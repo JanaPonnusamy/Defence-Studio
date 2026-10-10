@@ -1,0 +1,198 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# NEXORA Development Framework (NDF) — default configuration
+#
+# This bundled file holds defaults. To override per-project, place an
+# `ndf.config.toml` at the repository root (only the keys you change), or point
+# the NDF_CONFIG environment variable at a file. Values are deep-merged over
+# these defaults. All paths are RELATIVE to the auto-detected repository root.
+# ─────────────────────────────────────────────────────────────────────────────
+
+[project]
+name = "NEXORA"
+repository = "https://github.com/JanaPonnusamy/nexora_"
+default_branch = "main"
+
+[logging]
+level = "INFO"
+
+[paths]
+docs_dir = "docs"
+adr_dir = "docs/ADR"
+business_rules_dir = "docs/BUSINESS_RULES"
+ai_archive_dir = "docs/AI_ARCHIVE"
+reports_dir = "docs/REPORTS"
+version_file = "VERSION.md"
+changelog_file = "CHANGELOG.md"
+release_notes_file = "RELEASE_NOTES.md"
+index_file = "docs/INDEX.md"
+status_file = "PROJECT_STATUS.md"
+
+[version]
+release_name = "NEXORA"
+initial_major = 0
+initial_minor = 1
+initial_patch = 0
+
+[changelog]
+# Ordered changelog sections.
+sections = ["Added", "Changed", "Fixed", "Removed", "Deprecated", "Security", "Performance"]
+
+[commit]
+# Conventional-commit type -> changelog section.
+default_section = "Changed"
+
+[commit.mapping]
+feat = "Added"
+add = "Added"
+change = "Changed"
+refactor = "Changed"
+perf = "Performance"
+fix = "Fixed"
+bugfix = "Fixed"
+remove = "Removed"
+revert = "Removed"
+deprecate = "Deprecated"
+security = "Security"
+breaking = "Changed"
+
+[github]
+remote = "origin"
+auto_tag = false
+push_tags = true
+tag_prefix = "v"
+default_group = "chore"
+
+# Path prefixes that define an intelligent commit group.
+[github.groups]
+backend = ["backend/"]
+frontend = ["frontend/"]
+store_agent = ["store_agent/", "store_agent_setup/"]
+docs = ["docs/", "Prompts/", "Export/"]
+automation = ["automation/"]
+tests = ["tests/"]
+build = ["installer/", "NexoraStoreAgent.spec", "NexoraStoreAgentSettings.spec", "NexoraStoreAgentSetup.spec"]
+config = [".gitignore", "ndf.config.toml"]
+root = ["VERSION.md", "CHANGELOG.md", "RELEASE_NOTES.md", "PROJECT_STATUS.md"]
+
+# Commit type used per group in the standardized message.
+[github.group_types]
+backend = "feat"
+frontend = "feat"
+store_agent = "feat"
+docs = "docs"
+automation = "chore"
+tests = "test"
+build = "build"
+config = "chore"
+root = "docs"
+chore = "chore"
+
+[health]
+large_file_mb = 5
+doc_extensions = [".md"]
+exclude_dirs = [".git", "node_modules", "venv", ".venv", "backup", "dist", "__pycache__", ".pytest_cache"]
+
+[docs]
+exclude_files = ["INDEX.md"]
+
+[dashboard]
+recent_commits = 10
+
+[rules]
+default_prefix = "GEN-BR"
+
+# Module -> business-rule identifier prefix. Adding a vertical is config-only.
+[rules.prefixes]
+Procurement = "PR-BR"
+Inventory = "IN-BR"
+Sales = "SA-BR"
+Hospital = "HO-BR"
+Garments = "GA-BR"
+Manufacturing = "MF-BR"
+Sync = "SY-BR"
+Authentication = "AU-BR"
+"Store Agent" = "ST-BR"
+
+[ai]
+sources = ["ChatGPT", "Claude"]
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Platform module registry — drives the project dashboard and health checks.
+# Add a new vertical here (no code change) and it appears everywhere.
+# ─────────────────────────────────────────────────────────────────────────────
+[[modules.items]]
+name = "Multi-Tenant Platform"
+status = "Complete"
+completion = 100
+owner = "Platform"
+milestone = "Foundation"
+
+[[modules.items]]
+name = "Authentication"
+status = "Complete"
+completion = 100
+owner = "Platform"
+milestone = "Foundation"
+
+[[modules.items]]
+name = "User Management"
+status = "Complete"
+completion = 100
+owner = "Platform"
+milestone = "Administration"
+
+[[modules.items]]
+name = "Role Management"
+status = "Complete"
+completion = 100
+owner = "Platform"
+milestone = "Administration"
+
+[[modules.items]]
+name = "Tenant Management"
+status = "Complete"
+completion = 100
+owner = "Platform"
+milestone = "Administration"
+
+[[modules.items]]
+name = "Store Management"
+status = "Complete"
+completion = 100
+owner = "Platform"
+milestone = "Administration"
+
+[[modules.items]]
+name = "Store Agent"
+status = "Complete"
+completion = 100
+owner = "Platform"
+milestone = "Sync"
+
+[[modules.items]]
+name = "Sync Engine"
+status = "Complete"
+completion = 100
+owner = "Platform"
+milestone = "Sync"
+
+[[modules.items]]
+name = "Shared Sync Database"
+status = "Complete"
+completion = 100
+owner = "Platform"
+milestone = "Sync"
+
+[[modules.items]]
+name = "NEXORA Development Framework"
+status = "Complete"
+completion = 100
+owner = "Platform"
+milestone = "Governance"
+
+[[modules.items]]
+name = "Procurement"
+status = "Specified"
+completion = 5
+owner = "Solution Architecture"
+milestone = "Procurement V1"

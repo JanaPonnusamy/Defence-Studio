@@ -9,6 +9,7 @@ from pydantic import BaseModel, Field
 from defence_studio.auth import authenticated_user
 from defence_studio.config import PROJECT_ROOT, auth_secret, database_path, storage_root
 from defence_studio.database import initialize_database
+from defence_studio.services.discovery import DiscoveryApiService, DiscoveryError
 from defence_studio.services.jobs import JobError, JobService
 from defence_studio.services.review import ReviewError, ReviewService
 from defence_studio.services.worker import WorkerService
@@ -39,6 +40,18 @@ class ReviewDecisionBody(BaseModel):
     note: str = Field(default="", max_length=4000)
 
 
+class DiscoveryRequestBody(BaseModel):
+    topic: str = Field(min_length=1, max_length=1000)
+    language: str = Field(default="en", min_length=2, max_length=20)
+    search_terms: list[str] = Field(default_factory=list)
+    filters: dict = Field(default_factory=dict)
+    limits: dict = Field(default_factory=dict)
+
+
+class DiscoverySelectionBody(BaseModel):
+    candidate_ids: list[str] = Field(min_length=1, max_length=50)
+
+
 def create_app(
     database_file: Path | None = None,
     signing_secret: str | None = None,
@@ -52,6 +65,7 @@ def create_app(
     jobs = JobService(db_path)
     worker_service = WorkerService(db_path)
     review = ReviewService(db_path, store_root)
+    discovery = DiscoveryApiService(db_path, store_root)
 
     @asynccontextmanager
     async def lifespan(_app):
@@ -68,6 +82,10 @@ def create_app(
 
     @app.exception_handler(ReviewError)
     async def review_error_handler(_request, exc: ReviewError):
+        return JSONResponse(status_code=exc.status_code, content={"detail": str(exc)})
+
+    @app.exception_handler(DiscoveryError)
+    async def discovery_error_handler(_request, exc: DiscoveryError):
         return JSONResponse(status_code=exc.status_code, content={"detail": str(exc)})
 
     @app.post("/api/jobs", status_code=201)
@@ -166,6 +184,49 @@ def create_app(
             job_id, owner_id, claim_id, body.decision, body.reviewed_artifact_sha256,
             body.expected_revision, body.note, idempotency_key,
         )
+
+    @app.post("/api/jobs/{job_id}/discovery/requests", status_code=201)
+    def create_discovery_request(
+        job_id: str,
+        body: DiscoveryRequestBody,
+        owner_id: str = Depends(authenticated_user(secret)),
+    ):
+        return discovery.create_request(job_id, owner_id, body.model_dump())
+
+    @app.get("/api/jobs/{job_id}/discovery/requests")
+    def get_discovery_request(job_id: str, owner_id: str = Depends(authenticated_user(secret))):
+        return discovery.get_request(job_id, owner_id)
+
+    @app.get("/api/jobs/{job_id}/discovery/candidates")
+    def list_discovery_candidates(
+        job_id: str,
+        language: str | None = Query(default=None),
+        source_type: str | None = Query(default=None),
+        provider: str | None = Query(default=None),
+        min_score: float | None = Query(default=None),
+        query: str | None = Query(default=None),
+        owner_id: str = Depends(authenticated_user(secret)),
+    ):
+        return discovery.list_candidates(
+            job_id, owner_id, language=language, source_type=source_type,
+            provider=provider, min_score=min_score, query=query,
+        )
+
+    @app.get("/api/jobs/{job_id}/discovery/candidates/{candidate_id}")
+    def get_discovery_candidate(job_id: str, candidate_id: str, owner_id: str = Depends(authenticated_user(secret))):
+        return discovery.get_candidate(job_id, owner_id, candidate_id)
+
+    @app.post("/api/jobs/{job_id}/discovery/selection", status_code=201)
+    def select_discovery_candidates(
+        job_id: str,
+        body: DiscoverySelectionBody,
+        owner_id: str = Depends(authenticated_user(secret)),
+    ):
+        return discovery.select_candidates(job_id, owner_id, body.candidate_ids)
+
+    @app.get("/api/jobs/{job_id}/discovery/selection")
+    def get_discovery_selection(job_id: str, owner_id: str = Depends(authenticated_user(secret))):
+        return discovery.get_selection(job_id, owner_id)
 
     frontend_dir = PROJECT_ROOT / "frontend"
     if frontend_dir.is_dir():

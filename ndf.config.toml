@@ -1,0 +1,16 @@
+# Defence Studio override for the bundled NEXORA Development Framework (NDF)
+# defaults in automation/config/ndf.config.toml. Only overridden keys are listed.
+
+[project]
+name = "Defence Studio"
+repository = "https://github.com/JanaPonnusamy/Defence-Studio"
+default_branch = "main"
+
+[github.groups]
+backend = ["backend/"]
+frontend = ["frontend/"]
+component_registry = ["component_registry/"]
+docs = ["docs/"]
+automation = ["automation/"]
+config = [".gitignore", "ndf.config.toml"]
+root = ["VERSION.md", "CHANGELOG.md", "RELEASE_NOTES.md", "PROJECT_STATUS.md", "project_status.md", "project.md"]
