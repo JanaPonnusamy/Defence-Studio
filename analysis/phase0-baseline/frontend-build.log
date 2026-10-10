@@ -1,0 +1,19 @@
+
+> qvault-frontend@0.1.0 build
+> tsc && vite build --outDir E:/Jana Soft/DefenceStudio/analysis/phase0-baseline/frontend-dist
+
+vite v5.4.21 building for production...
+
+(!) outDir E:\Jana Soft\DefenceStudio\analysis\phase0-baseline\frontend-dist is not inside project root and will not be emptied.
+Use --emptyOutDir to override.
+
+transforming...
+✓ 128 modules transformed.
+rendering chunks...
+computing gzip size...
+../../Jana Soft/DefenceStudio/analysis/phase0-baseline/frontend-dist/index.html                               0.79 kB │ gzip:   0.51 kB
+../../Jana Soft/DefenceStudio/analysis/phase0-baseline/frontend-dist/assets/bootstrap-icons-mSm7cUeB.woff2  134.04 kB
+../../Jana Soft/DefenceStudio/analysis/phase0-baseline/frontend-dist/assets/bootstrap-icons-BeopsB42.woff   180.29 kB
+../../Jana Soft/DefenceStudio/analysis/phase0-baseline/frontend-dist/assets/index-BsXRqbHc.css              312.24 kB │ gzip:  47.01 kB
+../../Jana Soft/DefenceStudio/analysis/phase0-baseline/frontend-dist/assets/index-BBhkmrT7.js               434.81 kB │ gzip: 121.63 kB
+✓ built in 4.12s

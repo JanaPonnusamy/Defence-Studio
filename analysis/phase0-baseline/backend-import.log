@@ -1,0 +1,9 @@
+2026-10-10 16:54:33,055 [INFO] migrations: Checking migrations...
+2026-10-10 16:54:33,121 [INFO] migrations: Checking migrations... 2 pending.
+2026-10-10 16:54:33,170 [INFO] migrations: Migration completed: '0001_seed_default_tenant' (19ms).
+2026-10-10 16:54:33,203 [INFO] migrations: Migration completed: '0002_seed_gk_sites' (22ms).
+2026-10-10 16:54:33,203 [INFO] migrations: Migration completed. Startup completed.
+2026-10-10 16:54:33,510 [INFO] seed: Seeded admin user 'admin'
+2026-10-10 16:54:33,510 [INFO] ytdlp: Cookies Source:
+✗ None configured
+ROUTE_COUNT 22

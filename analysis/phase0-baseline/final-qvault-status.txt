@@ -1,0 +1,5 @@
+ M backend/app/integrations/gk_site_analyzer.py
+ M backend/scripts/import_legacy_gk_json.py
+ M frontend/src/pages/GkScraper.tsx
+ M frontend/vite.config.ts
+?? database/qvault.db-journal
