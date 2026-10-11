@@ -48,6 +48,8 @@ export function renderClaimDetail(claim, conflictPairs) {
     <div class="chip-row">${statusBadgeHtml(claim.review_status, { stale: claim.is_stale })}
       ${claim.has_conflict ? `<span class="badge CONFLICT_UNRESOLVED">Conflicting evidence</span>` : ""}</div>
     <div class="passage">${escapeHtml(claim.claim_text)}</div>
+    <p class="meta">Exact normalized-text offsets: ${escapeHtml(String(claim.passage?.start_offset ?? "unknown"))}–${escapeHtml(String(claim.passage?.end_offset ?? "unknown"))}<br>
+      Supporting artifact: ${escapeHtml(claim.passage?.artifact_uri || "unavailable")}</p>
     <p class="meta">Verbatim span from source <button type="button" data-action="view-source" data-source-id="${escapeHtml(claim.source_id)}" style="display:inline;padding:0.1rem 0.5rem;min-height:auto;">${escapeHtml(claim.source_id)}</button>
       &middot; published ${escapeHtml(claim.source_published_at || "unknown")}
       &middot; acquired ${escapeHtml(claim.acquisition_timestamp || "unknown")}</p>

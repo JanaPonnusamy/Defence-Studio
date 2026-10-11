@@ -253,6 +253,23 @@ class WorkerService:
                 (context.job_id,),
             ).fetchone()[0]
             job_status = "QUEUED" if remaining else "COMPLETED"
+            if context.stage_key == "extraction_validation_normalization_deduplication" and any(
+                output["artifact_type"] == "analysis_result" for output in outputs
+            ):
+                # Enter the existing human stage through valid transitions;
+                # never let an unattended worker run through review.
+                review_key = "evidence_analysis_and_review"
+                review_stage = connection.execute(
+                    "SELECT status FROM workflow_stages WHERE job_id=? AND stage_key=?", (context.job_id, review_key)
+                ).fetchone()
+                if review_stage and review_stage[0] == "PENDING":
+                    for before, after in (("PENDING", "RUNNING"), ("RUNNING", "AWAITING_REVIEW")):
+                        connection.execute("UPDATE workflow_stages SET status=?,version=version+1,updated_at=? WHERE job_id=? AND stage_key=?",
+                                           (after, now_text, context.job_id, review_key))
+                        connection.execute("INSERT INTO workflow_transitions(job_id,stage_key,from_status,to_status,stage_version,occurred_at) "
+                                           "SELECT job_id,stage_key,?,?,version,? FROM workflow_stages WHERE job_id=? AND stage_key=?",
+                                           (before, after, now_text, context.job_id, review_key))
+                    job_status = "AWAITING_REVIEW"
             connection.execute(
                 "UPDATE workflow_jobs SET status = ?, queued_at = CASE WHEN ? = 'QUEUED' THEN ? ELSE queued_at END, "
                 "updated_at = ? WHERE job_id = ?",
@@ -359,6 +376,13 @@ class WorkerService:
                 return None
             if stage["retry_after"] and stage["retry_after"] > _stamp(now):
                 return None
+            # Discovery completion is not candidate selection. Wait without
+            # consuming retries until a human confirms an acquisition request.
+            if stage["stage_key"] == "topic_search_and_source_collection":
+                kinds = {r[0] for r in connection.execute(
+                    "SELECT artifact_type FROM workflow_artifacts WHERE job_id=?", (job_id,))}
+                if "discovery_result" in kinds and "acquisition_request" not in kinds:
+                    return None
             return stage if stage["stage_key"] in supported else None
         return None
 

@@ -49,6 +49,17 @@ Portability: **STANDALONE** (lift single file) · **BUNDLE** (lift listed files)
 | BE-21 | Strict AI-output validation seam (no provider wired) | `backend/defence_studio/analysis/ai_schema.py` | STANDALONE | stdlib | module docstring | VERIFIED |
 | BE-22 | Analysis orchestration service + retry-safe F2 worker handler | `backend/defence_studio/services/analysis.py` | BUNDLE (BE-16..21) | stdlib | `CONTRACTS.md` → F4 analysis contract | VERIFIED |
 
+## Backend — feed discovery (Phase 1A)
+
+| ID | Component | Canonical path | Portability | External deps | README / contract | Status |
+|---|---|---|---|---|---|---|
+| BE-26 | Discovery request/result/candidate/ranking contracts | `backend/defence_studio/contracts/discovery.py` | STANDALONE (reuses BE-12's `MetadataStatus`) | stdlib | `CONTRACTS.md` → Phase 1A feed discovery contract | VERIFIED |
+| BE-27 | Discovery providers (`rss_feed`, `configured_search_api`) + registry | `backend/defence_studio/discovery/providers.py` | BUNDLE (BE-10, BE-11) | stdlib xml.etree | module docstring | VERIFIED |
+| BE-28 | Deterministic, explainable candidate ranking | `backend/defence_studio/discovery/ranking.py` | STANDALONE | stdlib | module docstring | VERIFIED |
+| BE-29 | Discovery orchestration (per-provider isolation, canonical dedup) | `backend/defence_studio/discovery/service.py` | BUNDLE (BE-26..28, BE-10) | stdlib | module docstring | VERIFIED |
+| BE-30 | Retry-safe F2 worker handler for the discovery stage | `backend/defence_studio/discovery/handler.py` | BUNDLE (BE-26, BE-29, BE-09) | stdlib | `CONTRACTS.md` → Phase 1A feed discovery contract | VERIFIED |
+| BE-31 | Discovery API service (request/browse/select, F3 handoff) | `backend/defence_studio/services/discovery.py` | COUPLED (BE-06, BE-26, BE-09) | stdlib | `CONTRACTS.md` → Phase 1A feed discovery contract | VERIFIED |
+
 ## Backend — evidence review & approval (F5)
 
 | ID | Component | Canonical path | Portability | External deps | README / contract | Status |
@@ -56,6 +67,66 @@ Portability: **STANDALONE** (lift single file) · **BUNDLE** (lift listed files)
 | BE-23 | Review decision/subject/history contracts | `backend/defence_studio/contracts/review.py` | STANDALONE | stdlib | `CONTRACTS.md` → F5 evidence review contract | VERIFIED |
 | BE-24 | Review/history SQL repository | `backend/defence_studio/repositories/review.py` | COUPLED (schema v3) | stdlib sqlite3 | `CONTRACTS.md` → F5 evidence review contract | VERIFIED |
 | BE-25 | Review decision service (stale/concurrency/idempotency, read-models) | `backend/defence_studio/services/review.py` | COUPLED (BE-23, BE-24, F3/F4 artifacts) | stdlib | `CONTRACTS.md` → F5 evidence review contract | VERIFIED |
+
+## Backend — evidence package, timeline, approval & export (Phase 2)
+
+| ID | Component | Canonical path | Portability | External deps | README / contract | Status |
+|---|---|---|---|---|---|---|
+| BE-32 | Evidence-package + timestamp-rule + strict schema contracts | `backend/defence_studio/contracts/evidence.py` | STANDALONE | pydantic | `CONTRACTS.md` → Phase 2 evidence-package contract | VERIFIED |
+| BE-33 | Evidence package/timeline/approval/export service (readiness gate, revision-bound approval, deterministic export) | `backend/defence_studio/services/evidence.py` | COUPLED (BE-25, BE-16, BE-26, schema v4) | stdlib | `CONTRACTS.md` → Phase 2 evidence-package contract | VERIFIED |
+| BE-34 | Research worker entry point (reuses F2 Worker; stops at human-review boundary) | `backend/defence_studio/research_worker.py` | BUNDLE (BE-30, F3/F4 handlers, F2 worker) | stdlib | module docstring | VERIFIED |
+| BE-35 | Script request/response + revision/validation/approval contracts + offline request helper (extended into the full Phase 3 boundary below) | `backend/defence_studio/contracts/script.py`, `backend/defence_studio/services/script_contract.py` | COUPLED (BE-32, BE-33) | pydantic | `CONTRACTS.md` → Phase 3 script contract | VERIFIED |
+
+## Backend — source-grounded script generation, review & approval (Phase 3)
+
+| ID | Component | Canonical path | Portability | External deps | README / contract | Status |
+|---|---|---|---|---|---|---|
+| BE-36 | OpenAI Chat-Completions provider behind a testable `client_factory` seam; env key; bounded retries; INR cost table | `backend/defence_studio/providers/openai_text.py` | STANDALONE (reuses F3's client-factory pattern) | httpx | `CONTRACTS.md` → Phase 3 script contract | VERIFIED |
+| BE-37 | Deterministic, source-grounded prompt construction (approved-claims-only, terminology preservation) | `backend/defence_studio/services/script_prompt.py` | STANDALONE | stdlib | module docstring | VERIFIED |
+| BE-38 | Deterministic evidence-grounded structural validation (citation-leak, unapproved/unknown claims, required sections) | `backend/defence_studio/services/script_validation.py` | STANDALONE | pydantic | `CONTRACTS.md` → Phase 3 script contract | VERIFIED |
+| BE-39 | Script generation/revision/review/approval/export service | `backend/defence_studio/services/script.py` | COUPLED (BE-33, BE-36..38, schema v5) | httpx | `CONTRACTS.md` → Phase 3 script contract | VERIFIED |
+
+## Backend — scene-plan contract (Phase 4, M0 — contract foundation only)
+
+> M0 is a contract only: no service, worker stage, route, DB, or TTS/alignment/render
+> integration. It fixes the versioned scene-plan schema that later Phase 4–7 milestones
+> (M1+) implement independently. See `CONTRACTS.md` → Phase 4 scene-plan contract.
+
+| ID | Component | Canonical path | Portability | External deps | README / contract | Status |
+|---|---|---|---|---|---|---|
+| BE-40 | Scene-plan request/output contract (ordered scenes, referenced-not-rewritten narration, approved-claim binding, planned-vs-measured timing, downstream asset/TTS/alignment/render reference slots, schema versioning) | `backend/defence_studio/contracts/scene.py` | STANDALONE (reuses BE-32's `StrictModel`/`digest`) | pydantic | `CONTRACTS.md` → Phase 4 scene-plan contract | VERIFIED (contract + 15 unit tests; no execution) |
+
+## Backend — scene planning, persistence, editing & approval (Phase 4, M1)
+
+> M1 generates/persists/edits/approves scene plans deterministically from an approved
+> Phase 3 script export. No TTS, alignment, render, asset, or rights integration —
+> those are later milestones (M2+). See `CONTRACTS.md` → Phase 4 M1 section.
+
+| ID | Component | Canonical path | Portability | External deps | README / contract | Status |
+|---|---|---|---|---|---|---|
+| BE-41 | Scene planning/persistence/edit/approval service (deterministic generation from the approved script export, per-scene isolated edits, plan-hash-bound approval, script-change re-sync gate, schema v6) | `backend/defence_studio/services/scene.py` | COUPLED (BE-39, BE-40, schema v6) | pydantic | `CONTRACTS.md` → Phase 4 M1 section | VERIFIED |
+
+## Backend — asset-management & rights-provenance contract (Phase 5, M2.0 — contract foundation only)
+
+> M2.0 is a contract only: no service, worker stage, route, DB, byte storage, fetch,
+> or asset/rights integration. It fixes the versioned asset-descriptor / rights-record /
+> scene-assignment schema that later Phase 5 milestones (M2.1+) implement independently,
+> and does not modify the M0 scene contract. See `CONTRACTS.md` → Phase 5 asset contract.
+
+| ID | Component | Canonical path | Portability | External deps | README / contract | Status |
+|---|---|---|---|---|---|---|
+| BE-42 | Asset descriptor / rights record / scene-assignment contract + deterministic fail-closed rights-gate predicate (content-hash integrity with no fabricated digest, declared-vs-fabricated provenance, operator-asserted rights, ingestion≠approval, assignment bound to the exact approved scene-plan hash/version/scene_id, canonical digests) | `backend/defence_studio/contracts/assets.py` | STANDALONE (reuses BE-32's `StrictModel`/`digest`) | pydantic | `CONTRACTS.md` → Phase 5 asset contract | VERIFIED (contract + 20 unit tests; no execution) |
+
+## Backend — asset-management & rights-provenance service (Phase 5, M2.1 — reference-only)
+
+> M2.1 registers reference-only assets, re-derives rights deterministically, assigns to an
+> approved scene plan (hash/version/scene_id-pinned), and records an auditable human rights
+> decision. No byte download/fetch, no SSRF surface, no frontend. Schema v7 (additive).
+> See `CONTRACTS.md` → Phase 5 asset service (M2.1).
+
+| ID | Component | Canonical path | Portability | External deps | README / contract | Status |
+|---|---|---|---|---|---|---|
+| BE-43 | Asset service: reference-only registration/retrieval, immutable rights revisions + deterministic re-evaluation, approved-plan-bound scene assignment, digest-pinned human review + append-only audit, readiness blockers, schema v7 | `backend/defence_studio/services/assets.py` | COUPLED (BE-41, BE-42, schema v7) | pydantic | `CONTRACTS.md` → Phase 5 asset service (M2.1) | VERIFIED |
 
 ## Frontend — UI primitives (built once, reused everywhere)
 
@@ -70,6 +141,7 @@ Portability: **STANDALONE** (lift single file) · **BUNDLE** (lift listed files)
 | UI-03 | Status badge (decision/acquisition/normalization status, color-coded, no fake %) | `frontend/js/components/status-badge.js` | STANDALONE | none (vanilla JS) | module docstring | VERIFIED |
 | UI-04 | Modal / confirm-dialog shell (keyboard + touch, Escape/backdrop cancel, focus on primary action) | `frontend/js/components/confirm-dialog.js` | STANDALONE | none (vanilla JS) | module docstring | VERIFIED |
 | UI-05 | Toast / transient status message | `frontend/js/components/toast.js` | STANDALONE | none (vanilla JS) | module docstring | VERIFIED |
+| UI-06 | Inline-SVG icon set (line icons, `currentColor`, no emoji) | `frontend/js/components/icons.js` | STANDALONE | none (vanilla JS) | module docstring | VERIFIED |
 
 <!-- Add new UI primitives here (select, date picker, tag input, file drop, table, etc.) as single canonical copies. -->
 
@@ -84,6 +156,24 @@ Portability: **STANDALONE** (lift single file) · **BUNDLE** (lift listed files)
 | F5-V1 | API client (fetch wrapper, bearer auth, Idempotency-Key) | `frontend/js/api.js` | COUPLED (Defence Studio API) | none (vanilla JS) | module docstring | VERIFIED |
 | F5-V2 | Review decision panel + history (shared by claim/source detail) | `frontend/js/views/decision-panel.js` | COUPLED (F5 API shape) | UI-01, UI-04, UI-05 | module docstring | VERIFIED |
 | F5-V3 | Sources / claims list + detail views and app shell/router | `frontend/js/views/sources-view.js`, `frontend/js/views/claims-view.js`, `frontend/js/app.js` | COUPLED (F5 API shape) | UI-03, F5-V1, F5-V2 | module docstrings | VERIFIED |
+
+## Frontend — Phase 1A discovery view (business-specific, not a reusable primitive)
+
+| ID | Component | Canonical path | Portability | External deps | README / contract | Status |
+|---|---|---|---|---|---|---|
+| F1A-V1 | Discovery request form, candidate list/ranking display, selection confirmation | `frontend/js/views/discovery-view.js` | COUPLED (Phase 1A API shape) | UI-01 | module docstring | VERIFIED |
+
+## Frontend — Phase 2 evidence package view (business-specific, not a reusable primitive)
+
+| ID | Component | Canonical path | Portability | External deps | README / contract | Status |
+|---|---|---|---|---|---|---|
+| P2-V1 | Evidence package view: readiness/blockers, timeline, approval + export (calls `/package/*` + `/timeline`) | `frontend/js/views/evidence-view.js` | COUPLED (Phase 2 API shape) | UI-04, F5-V1 | module docstring | VERIFIED (code; browser pending) |
+
+## Frontend — Phase 3 script view (business-specific, not a reusable primitive)
+
+| ID | Component | Canonical path | Portability | External deps | README / contract | Status |
+|---|---|---|---|---|---|---|
+| P3-V1 | Script view: generation controls, narration/evidence/validation viewer, revision history, review feedback, approval, export (calls `/script/*`) | `frontend/js/views/script-view.js` | COUPLED (Phase 3 API shape) | UI-01, UI-04, F5-V1 | module docstring | VERIFIED (code; browser pending) |
 
 ## YouTube publishing (Phase 9 / YT spec) — not built yet
 

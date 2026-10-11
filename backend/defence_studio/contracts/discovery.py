@@ -201,6 +201,7 @@ def request_from_dict(payload: dict, job_id: str | None = None) -> DiscoveryRequ
         raise RequestValidationError("Discovery request requires a non-empty string topic")
     if len(topic) > 1000:
         raise RequestValidationError("topic must be at most 1000 characters")
+    topic = topic.strip()
 
     language = payload.get("language", "en")
     if not isinstance(language, str) or not (2 <= len(language.strip()) <= 20):

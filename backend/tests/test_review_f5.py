@@ -158,14 +158,14 @@ def test_unsupported_decision_value_is_rejected(tmp_path):
     claim_id = result.claims[0].claim_id
     with pytest.raises(ReviewValidationError):
         review.decide_claim(job_id, OWNER, claim_id, "VERIFIED_TRUE",
-                            ref["sha256"], 0, "", "idem-bad")
+                            ref["sha256"], 0, "Reviewed test evidence", "idem-bad")
 
 
 def test_unknown_claim_id_is_rejected(tmp_path):
     _, _, _, _, job_id, review, result, ref, _, _ = _basic_job(tmp_path)
     with pytest.raises(ReviewValidationError):
         review.decide_claim(job_id, OWNER, "claim-does-not-exist", "APPROVED_FOR_USE",
-                            ref["sha256"], 0, "", "idem-unknown")
+                            ref["sha256"], 0, "Reviewed test evidence", "idem-unknown")
 
 
 # ---------------------------------------------------------------------------
@@ -178,7 +178,7 @@ def test_cross_owner_access_is_rejected_as_not_found(tmp_path):
     claim_id = result.claims[0].claim_id
     with pytest.raises(ReviewNotFound):
         review.decide_claim(job_id, "someone-else", claim_id, "APPROVED_FOR_USE",
-                            ref["sha256"], 0, "", "idem-x")
+                            ref["sha256"], 0, "Reviewed test evidence", "idem-x")
     with pytest.raises(ReviewNotFound):
         review.list_claims(job_id, "someone-else")
 
@@ -215,11 +215,11 @@ def test_decision_against_a_superseded_analysis_revision_is_rejected_as_stale(tm
 
     assert new_ref["sha256"] != stale_sha
     with pytest.raises(StaleRevision):
-        review.decide_claim(job_id, OWNER, claim_id, "APPROVED_FOR_USE", stale_sha, 0, "", "idem-stale")
+        review.decide_claim(job_id, OWNER, claim_id, "APPROVED_FOR_USE", stale_sha, 0, "Reviewed test evidence", "idem-stale")
 
     # Deciding against the current revision succeeds.
     record = review.decide_claim(job_id, OWNER, claim_id, "APPROVED_FOR_USE",
-                                 new_ref["sha256"], 0, "", "idem-current")
+                                 new_ref["sha256"], 0, "Reviewed test evidence", "idem-current")
     assert record["reviewed_artifact_sha256"] == new_ref["sha256"]
 
 
@@ -229,7 +229,7 @@ def test_decide_without_any_analysis_result_is_rejected(tmp_path):
     job_id = job["job_id"]
     review = ReviewService(database_file, storage_root)
     with pytest.raises(ReviewValidationError):
-        review.decide_claim(job_id, OWNER, "claim-x", "APPROVED_FOR_USE", "0" * 64, 0, "", "idem-empty")
+        review.decide_claim(job_id, OWNER, "claim-x", "APPROVED_FOR_USE", "0" * 64, 0, "Reviewed test evidence", "idem-empty")
     listing = review.list_claims(job_id, OWNER)
     assert listing["claims"] == []
     assert "empty_reason" in listing
@@ -243,15 +243,15 @@ def test_decide_without_any_analysis_result_is_rejected(tmp_path):
 def test_stale_expected_revision_is_rejected_as_conflict(tmp_path):
     _, _, _, _, job_id, review, result, ref, _, _ = _basic_job(tmp_path)
     claim_id = result.claims[0].claim_id
-    review.decide_claim(job_id, OWNER, claim_id, "APPROVED_FOR_USE", ref["sha256"], 0, "", "idem-a")
+    review.decide_claim(job_id, OWNER, claim_id, "APPROVED_FOR_USE", ref["sha256"], 0, "Reviewed test evidence", "idem-a")
 
     # A second submission still claiming expected_revision=0 (as if it never saw
     # the first reviewer's change) must not silently overwrite it.
     with pytest.raises(RevisionConflict):
-        review.decide_claim(job_id, OWNER, claim_id, "REJECTED", ref["sha256"], 0, "", "idem-b")
+        review.decide_claim(job_id, OWNER, claim_id, "REJECTED", ref["sha256"], 0, "Reviewed test evidence", "idem-b")
 
     # Resubmitting with the correct current revision succeeds.
-    record = review.decide_claim(job_id, OWNER, claim_id, "REJECTED", ref["sha256"], 1, "", "idem-c")
+    record = review.decide_claim(job_id, OWNER, claim_id, "REJECTED", ref["sha256"], 1, "Reviewed test evidence", "idem-c")
     assert record["decision"] == "REJECTED"
     assert record["revision"] == 2
 
@@ -341,7 +341,7 @@ def test_conflicting_claims_are_surfaced_with_both_sides_and_flagged(tmp_path):
 def test_filtering_claims_by_review_status_and_source(tmp_path):
     _, _, _, _, job_id, review, result, ref, _, _ = _basic_job(tmp_path)
     claim_id = result.claims[0].claim_id
-    review.decide_claim(job_id, OWNER, claim_id, "REJECTED", ref["sha256"], 0, "", "idem-filter")
+    review.decide_claim(job_id, OWNER, claim_id, "REJECTED", ref["sha256"], 0, "Reviewed test evidence", "idem-filter")
 
     pending = review.list_claims(job_id, OWNER, status="PENDING")
     assert pending["claims"] == []
@@ -406,7 +406,7 @@ def test_migration_from_a_real_v2_database_adds_review_tables_without_disturbing
 
     with closing(connect(database_file)) as connection:
         version = connection.execute("SELECT version FROM schema_info WHERE singleton = 1").fetchone()[0]
-        assert version == 3
+        assert version == 7
         for table in ("claim_reviews", "claim_review_history", "source_reviews", "source_review_history"):
             connection.execute(f"SELECT COUNT(*) FROM {table}")  # does not raise
         preserved = connection.execute(
@@ -430,7 +430,7 @@ def test_unsupported_schema_version_fails_closed(tmp_path):
 def test_decisions_persist_across_a_fresh_service_instance(tmp_path):
     database_file, storage_root, jobs, store, job_id, review, result, ref, _, _ = _basic_job(tmp_path)
     claim_id = result.claims[0].claim_id
-    review.decide_claim(job_id, OWNER, claim_id, "APPROVED_FOR_USE", ref["sha256"], 0, "", "idem-restart")
+    review.decide_claim(job_id, OWNER, claim_id, "APPROVED_FOR_USE", ref["sha256"], 0, "Reviewed test evidence", "idem-restart")
 
     reopened = ReviewService(database_file, storage_root)  # simulates app restart
     fetched = reopened.get_claim(job_id, OWNER, claim_id)
@@ -506,7 +506,7 @@ def test_api_rejects_cross_owner_and_unauthenticated_access(api_job):
         f"/api/jobs/{job_id}/review/claims/{claim_id}/decisions",
         headers={**other_headers, "Idempotency-Key": "cross-owner-1"},
         json={"decision": "APPROVED_FOR_USE", "reviewed_artifact_sha256": sha,
-              "expected_revision": 0, "note": ""},
+              "expected_revision": 0, "note": "Reviewed test evidence"},
     )
     assert cross_owner_decide.status_code == 404
 
@@ -519,7 +519,7 @@ def test_api_rejects_stale_revision_and_concurrency_conflict(api_job):
         f"/api/jobs/{job_id}/review/claims/{claim_id}/decisions",
         headers={**headers, "Idempotency-Key": "stale-1"},
         json={"decision": "APPROVED_FOR_USE", "reviewed_artifact_sha256": bad_sha,
-              "expected_revision": 0, "note": ""},
+              "expected_revision": 0, "note": "Reviewed test evidence"},
     )
     assert stale.status_code == 409
 
@@ -527,7 +527,7 @@ def test_api_rejects_stale_revision_and_concurrency_conflict(api_job):
         f"/api/jobs/{job_id}/review/claims/{claim_id}/decisions",
         headers={**headers, "Idempotency-Key": "conflict-1"},
         json={"decision": "APPROVED_FOR_USE", "reviewed_artifact_sha256": sha,
-              "expected_revision": 0, "note": ""},
+              "expected_revision": 0, "note": "Reviewed test evidence"},
     )
     assert first.status_code == 201
 
@@ -535,7 +535,7 @@ def test_api_rejects_stale_revision_and_concurrency_conflict(api_job):
         f"/api/jobs/{job_id}/review/claims/{claim_id}/decisions",
         headers={**headers, "Idempotency-Key": "conflict-2"},
         json={"decision": "REJECTED", "reviewed_artifact_sha256": sha,
-              "expected_revision": 0, "note": ""},
+              "expected_revision": 0, "note": "Reviewed test evidence"},
     )
     assert conflict.status_code == 409
 
@@ -546,6 +546,6 @@ def test_api_rejects_invalid_decision_value(api_job):
         f"/api/jobs/{job_id}/review/claims/{claim_id}/decisions",
         headers={**headers, "Idempotency-Key": "invalid-1"},
         json={"decision": "TOTALLY_TRUE", "reviewed_artifact_sha256": sha,
-              "expected_revision": 0, "note": ""},
+              "expected_revision": 0, "note": "Reviewed test evidence"},
     )
     assert response.status_code == 422

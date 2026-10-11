@@ -39,7 +39,7 @@ export function renderDecisionPanelHtml(review, isStale) {
       ${current}
       ${staleWarning}
       ${textFieldHtml({ id: "decision-note", label: "Review note / reason", multiline: true, maxLength: 4000,
-        placeholder: "Why are you making this decision? (optional but recommended)" })}
+        placeholder: "Required: explain the evidence behind your decision." })}
       <div class="decision-actions">
         ${DECISIONS.map((d) => `<button type="button" data-decision="${d.value}" class="${d.danger ? "danger" : ""}">${escapeHtml(d.label)}</button>`).join("")}
       </div>
@@ -58,6 +58,12 @@ export function wireDecisionPanel(container, { expectedRevision, reviewedArtifac
   }
   container.querySelectorAll("[data-decision]").forEach((button) => {
     button.addEventListener("click", async () => {
+      const note = container.querySelector("#decision-note")?.value.trim() || "";
+      if (!note) {
+        showToast("Enter a review explanation before submitting.", { isError: true });
+        container.querySelector("#decision-note")?.focus();
+        return;
+      }
       const decisionDef = DECISIONS.find((d) => d.value === button.dataset.decision);
       const confirmed = await confirmDialog({
         title: "Confirm review decision",
@@ -66,7 +72,6 @@ export function wireDecisionPanel(container, { expectedRevision, reviewedArtifac
         danger: decisionDef.danger,
       });
       if (!confirmed) return;
-      const note = container.querySelector("#decision-note")?.value || "";
       container.querySelectorAll("[data-decision]").forEach((b) => { b.disabled = true; });
       try {
         await onDecide(decisionDef.value, note, expectedRevision, reviewedArtifactSha256, newIdempotencyKey());
@@ -80,7 +85,6 @@ export function wireDecisionPanel(container, { expectedRevision, reviewedArtifac
           showToast((err && err.message) || "Could not save the decision.", { isError: true });
         }
         container.querySelectorAll("[data-decision]").forEach((b) => { b.disabled = false; });
-        throw err;
       }
     });
   });

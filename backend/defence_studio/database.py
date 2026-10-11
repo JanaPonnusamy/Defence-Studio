@@ -3,7 +3,7 @@ from contextlib import closing
 from pathlib import Path
 
 
-SCHEMA_VERSION = 3
+SCHEMA_VERSION = 7
 
 
 def connect(path: Path) -> sqlite3.Connection:
@@ -31,7 +31,7 @@ def initialize_database(path: Path) -> None:
         version = connection.execute(
             "SELECT version FROM schema_info WHERE singleton = 1"
         ).fetchone()[0]
-        if version not in (1, 2, SCHEMA_VERSION):
+        if version not in (1, 2, 3, 4, 5, 6, SCHEMA_VERSION):
             raise RuntimeError(f"Unsupported Defence Studio schema version: {version}")
 
         connection.executescript(
@@ -108,6 +108,279 @@ def initialize_database(path: Path) -> None:
             version = 2
         if version == 2:
             _upgrade_v2_to_v3(connection)
+            version = 3
+        if version == 3:
+            _upgrade_v3_to_v4(connection)
+            version = 4
+        if version == 4:
+            _upgrade_v4_to_v5(connection)
+            version = 5
+        if version == 5:
+            _upgrade_v5_to_v6(connection)
+            version = 6
+        if version == 6:
+            _upgrade_v6_to_v7(connection)
+
+
+def _upgrade_v3_to_v4(connection: sqlite3.Connection) -> None:
+    """Append-only package approvals. DDL and version update commit together."""
+    connection.execute("BEGIN EXCLUSIVE")
+    try:
+        connection.execute("""CREATE TABLE IF NOT EXISTS evidence_packages (
+            job_id TEXT NOT NULL REFERENCES workflow_jobs(job_id) ON DELETE CASCADE,
+            version INTEGER NOT NULL CHECK(version > 0),
+            revision TEXT NOT NULL,
+            uri TEXT NOT NULL,
+            sha256 TEXT NOT NULL,
+            reviewer_id TEXT NOT NULL,
+            note TEXT NOT NULL,
+            created_at TEXT NOT NULL,
+            idempotency_key TEXT NOT NULL,
+            PRIMARY KEY(job_id, version),
+            UNIQUE(job_id, revision),
+            UNIQUE(job_id, idempotency_key)
+        )""")
+        connection.execute("UPDATE schema_info SET version = 4 WHERE singleton = 1")
+        connection.commit()
+    except Exception:
+        connection.rollback()
+        raise
+
+
+def _upgrade_v4_to_v5(connection: sqlite3.Connection) -> None:
+    """Phase 3: immutable, versioned script revisions + append-only script
+    review/approval history. Additive only; no F1-F5/evidence table is touched.
+
+    `(job_id, language, version)` is the revision identity -- Tamil and English
+    are independent lineages per job, so approving one never approves the
+    other. `revision_sha256` is unique per job+language so a duplicate
+    generation request can be detected and is never silently re-created."""
+    connection.execute("BEGIN EXCLUSIVE")
+    try:
+        connection.executescript("""
+            CREATE TABLE IF NOT EXISTS script_revisions (
+                job_id TEXT NOT NULL REFERENCES workflow_jobs(job_id) ON DELETE CASCADE,
+                language TEXT NOT NULL,
+                version INTEGER NOT NULL CHECK(version > 0),
+                revision_sha256 TEXT NOT NULL,
+                uri TEXT NOT NULL,
+                sha256 TEXT NOT NULL,
+                package_sha256 TEXT NOT NULL,
+                request_sha256 TEXT NOT NULL,
+                status TEXT NOT NULL CHECK(status IN
+                    ('VALIDATION_FAILED','AWAITING_REVIEW','CHANGES_REQUESTED','APPROVED','SUPERSEDED')),
+                created_by TEXT NOT NULL,
+                created_at TEXT NOT NULL,
+                idempotency_key TEXT NOT NULL,
+                PRIMARY KEY(job_id, language, version),
+                UNIQUE(job_id, language, revision_sha256),
+                UNIQUE(job_id, language, idempotency_key)
+            );
+            CREATE INDEX IF NOT EXISTS ix_script_revisions_job_lang
+                ON script_revisions(job_id, language, created_at);
+
+            CREATE TABLE IF NOT EXISTS script_review_history (
+                history_id TEXT PRIMARY KEY,
+                job_id TEXT NOT NULL REFERENCES workflow_jobs(job_id) ON DELETE CASCADE,
+                language TEXT NOT NULL,
+                version INTEGER NOT NULL,
+                action TEXT NOT NULL CHECK(action IN ('CHANGES_REQUESTED','APPROVED')),
+                reviewer_id TEXT NOT NULL,
+                note TEXT NOT NULL,
+                occurred_at TEXT NOT NULL,
+                idempotency_key TEXT NOT NULL,
+                UNIQUE(job_id, language, version, reviewer_id, idempotency_key)
+            );
+            CREATE INDEX IF NOT EXISTS ix_script_review_history_subject
+                ON script_review_history(job_id, language, version, occurred_at);
+        """)
+        connection.execute("UPDATE schema_info SET version = 5 WHERE singleton = 1")
+        connection.commit()
+    except Exception:
+        connection.rollback()
+        raise
+
+
+def _upgrade_v5_to_v6(connection: sqlite3.Connection) -> None:
+    """Phase 4 M1: immutable, versioned scene plans + append-only scene-plan
+    review/approval history. Additive only; no F1-F5/evidence/script table is
+    touched.
+
+    `(job_id, language, version)` is the plan identity -- Tamil and English are
+    independent lineages per job, exactly like `script_revisions`, so approving
+    one language's plan never approves the other. `plan_sha256` is unique per
+    job+language so a duplicate generation/edit landing the same content is
+    detected and never silently re-created. Each plan row records the exact
+    approved-script revision hash (`script_revision_sha256`) and its approved
+    evidence package hash (`package_sha256`) it was built from, so a later
+    script change can be detected and block a *new* approval (re-sync required)
+    rather than being silently absorbed."""
+    connection.execute("BEGIN EXCLUSIVE")
+    try:
+        connection.executescript("""
+            CREATE TABLE IF NOT EXISTS scene_plans (
+                job_id TEXT NOT NULL REFERENCES workflow_jobs(job_id) ON DELETE CASCADE,
+                language TEXT NOT NULL,
+                version INTEGER NOT NULL CHECK(version > 0),
+                plan_sha256 TEXT NOT NULL,
+                uri TEXT NOT NULL,
+                sha256 TEXT NOT NULL,
+                script_revision_sha256 TEXT NOT NULL,
+                script_version INTEGER NOT NULL CHECK(script_version > 0),
+                package_sha256 TEXT NOT NULL,
+                status TEXT NOT NULL CHECK(status IN
+                    ('DRAFT','AWAITING_REVIEW','CHANGES_REQUESTED','APPROVED','SUPERSEDED')),
+                created_by TEXT NOT NULL,
+                created_at TEXT NOT NULL,
+                idempotency_key TEXT NOT NULL,
+                PRIMARY KEY(job_id, language, version),
+                UNIQUE(job_id, language, plan_sha256),
+                UNIQUE(job_id, language, idempotency_key)
+            );
+            CREATE INDEX IF NOT EXISTS ix_scene_plans_job_lang
+                ON scene_plans(job_id, language, created_at);
+
+            CREATE TABLE IF NOT EXISTS scene_plan_review_history (
+                history_id TEXT PRIMARY KEY,
+                job_id TEXT NOT NULL REFERENCES workflow_jobs(job_id) ON DELETE CASCADE,
+                language TEXT NOT NULL,
+                version INTEGER NOT NULL,
+                action TEXT NOT NULL CHECK(action IN ('CHANGES_REQUESTED','APPROVED')),
+                reviewer_id TEXT NOT NULL,
+                note TEXT NOT NULL,
+                occurred_at TEXT NOT NULL,
+                idempotency_key TEXT NOT NULL,
+                UNIQUE(job_id, language, version, reviewer_id, idempotency_key)
+            );
+            CREATE INDEX IF NOT EXISTS ix_scene_plan_review_history_subject
+                ON scene_plan_review_history(job_id, language, version, occurred_at);
+        """)
+        connection.execute("UPDATE schema_info SET version = 6 WHERE singleton = 1")
+        connection.commit()
+    except Exception:
+        connection.rollback()
+        raise
+
+
+def _upgrade_v6_to_v7(connection: sqlite3.Connection) -> None:
+    """Phase 5 M2.1: reference-only asset management & rights provenance.
+
+    Additive only; no F1-M1/evidence/script/scene table is touched. Five tables,
+    separating immutable content-addressed records (descriptor / rights-revision /
+    assignment) from the append-only rights-approval ledger (current review +
+    history), exactly as Phase 2 separates evidence artifacts from the
+    `evidence_packages` approval ledger:
+
+    * `assets` -- one row per registered asset; content-addressed by `asset_id`
+      (the descriptor digest). `review_status`/`effective_rights` are the current
+      derived state; the canonical descriptor bytes live in the artifact store.
+    * `asset_rights` -- immutable rights revisions per asset (a new rights record
+      never overwrites a prior one), identified by `rights_sha256`.
+    * `asset_assignments` -- immutable, versioned bindings of one asset to one
+      scene of an approved plan, pinned to the exact `scene_plan_sha256` +
+      `scene_plan_version` + `scene_id` they were made against.
+    * `asset_reviews` / `asset_review_history` -- the current human rights
+      decision per asset plus the append-only audit trail, each decision pinned
+      to the exact asset+rights digests the reviewer saw. Mirrors F5's
+      current-decision + history split and M1's `scene_plan_review_history`.
+
+    Ingestion is never approval: these tables record state, they do not imply it.
+    DDL + the version bump commit together inside `BEGIN EXCLUSIVE` and roll back
+    together on any failure, exactly like every prior migration.
+    """
+    connection.execute("BEGIN EXCLUSIVE")
+    try:
+        connection.executescript("""
+            CREATE TABLE IF NOT EXISTS assets (
+                job_id TEXT NOT NULL REFERENCES workflow_jobs(job_id) ON DELETE CASCADE,
+                asset_id TEXT NOT NULL,
+                kind TEXT NOT NULL,
+                uri TEXT NOT NULL,
+                sha256 TEXT NOT NULL,
+                review_status TEXT NOT NULL CHECK(review_status IN
+                    ('DRAFT','PENDING_REVIEW','APPROVED','REJECTED','RESTRICTED','EXPIRED')),
+                effective_rights TEXT NOT NULL CHECK(effective_rights IN
+                    ('CLEAR','RESTRICTED','UNVERIFIED','EXPIRED','BLOCKED')),
+                rights_sha256 TEXT,
+                created_by TEXT NOT NULL,
+                created_at TEXT NOT NULL,
+                updated_at TEXT NOT NULL,
+                idempotency_key TEXT NOT NULL,
+                PRIMARY KEY(job_id, asset_id),
+                UNIQUE(job_id, idempotency_key)
+            );
+            CREATE INDEX IF NOT EXISTS ix_assets_job_status
+                ON assets(job_id, review_status, created_at);
+
+            CREATE TABLE IF NOT EXISTS asset_rights (
+                job_id TEXT NOT NULL REFERENCES workflow_jobs(job_id) ON DELETE CASCADE,
+                asset_id TEXT NOT NULL,
+                rights_sha256 TEXT NOT NULL,
+                uri TEXT NOT NULL,
+                sha256 TEXT NOT NULL,
+                created_at TEXT NOT NULL,
+                PRIMARY KEY(job_id, asset_id, rights_sha256)
+            );
+
+            CREATE TABLE IF NOT EXISTS asset_assignments (
+                job_id TEXT NOT NULL REFERENCES workflow_jobs(job_id) ON DELETE CASCADE,
+                language TEXT NOT NULL,
+                scene_id TEXT NOT NULL,
+                asset_id TEXT NOT NULL,
+                version INTEGER NOT NULL CHECK(version > 0),
+                assignment_sha256 TEXT NOT NULL,
+                uri TEXT NOT NULL,
+                scene_plan_sha256 TEXT NOT NULL,
+                scene_plan_version INTEGER NOT NULL CHECK(scene_plan_version > 0),
+                effective_rights TEXT NOT NULL CHECK(effective_rights IN
+                    ('CLEAR','RESTRICTED','UNVERIFIED','EXPIRED','BLOCKED')),
+                target_use TEXT,
+                status TEXT NOT NULL CHECK(status IN ('ACTIVE','REMOVED')),
+                created_by TEXT NOT NULL,
+                created_at TEXT NOT NULL,
+                idempotency_key TEXT NOT NULL,
+                PRIMARY KEY(job_id, language, scene_id, asset_id, version),
+                UNIQUE(job_id, language, idempotency_key)
+            );
+            CREATE INDEX IF NOT EXISTS ix_asset_assignments_scene
+                ON asset_assignments(job_id, language, scene_id, status);
+
+            CREATE TABLE IF NOT EXISTS asset_reviews (
+                job_id TEXT NOT NULL REFERENCES workflow_jobs(job_id) ON DELETE CASCADE,
+                asset_id TEXT NOT NULL,
+                decision TEXT NOT NULL CHECK(decision IN
+                    ('APPROVED','REJECTED','RESTRICTED','CHANGES_REQUESTED')),
+                reviewed_asset_sha256 TEXT NOT NULL,
+                reviewed_rights_sha256 TEXT NOT NULL,
+                reviewer_id TEXT NOT NULL,
+                note TEXT NOT NULL,
+                revision INTEGER NOT NULL,
+                updated_at TEXT NOT NULL,
+                PRIMARY KEY(job_id, asset_id)
+            );
+
+            CREATE TABLE IF NOT EXISTS asset_review_history (
+                history_id TEXT PRIMARY KEY,
+                job_id TEXT NOT NULL REFERENCES workflow_jobs(job_id) ON DELETE CASCADE,
+                asset_id TEXT NOT NULL,
+                decision TEXT NOT NULL CHECK(decision IN
+                    ('APPROVED','REJECTED','RESTRICTED','CHANGES_REQUESTED')),
+                reviewed_asset_sha256 TEXT NOT NULL,
+                reviewed_rights_sha256 TEXT NOT NULL,
+                reviewer_id TEXT NOT NULL,
+                note TEXT NOT NULL,
+                occurred_at TEXT NOT NULL,
+                idempotency_key TEXT NOT NULL,
+                UNIQUE(job_id, asset_id, reviewer_id, idempotency_key)
+            );
+            CREATE INDEX IF NOT EXISTS ix_asset_review_history_subject
+                ON asset_review_history(job_id, asset_id, occurred_at);
+        """)
+        connection.execute("UPDATE schema_info SET version = 7 WHERE singleton = 1")
+        connection.commit()
+    except Exception:
+        connection.rollback()
+        raise
 
 
 def _upgrade_v1_to_v2(connection: sqlite3.Connection) -> None:

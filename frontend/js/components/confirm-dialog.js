@@ -7,6 +7,7 @@ import { escapeHtml } from "./status-badge.js";
 
 export function confirmDialog({ title, message, confirmLabel = "Confirm", cancelLabel = "Cancel", danger = false }) {
   return new Promise((resolve) => {
+    const previousFocus = document.activeElement;
     const overlay = document.createElement("div");
     overlay.className = "modal-overlay";
     overlay.setAttribute("role", "presentation");
@@ -23,10 +24,17 @@ export function confirmDialog({ title, message, confirmLabel = "Confirm", cancel
     function close(result) {
       document.removeEventListener("keydown", onKeydown);
       overlay.remove();
+      if (previousFocus?.isConnected) previousFocus.focus();
       resolve(result);
     }
     function onKeydown(event) {
       if (event.key === "Escape") close(false);
+      if (event.key === "Tab") {
+        const buttons = [...overlay.querySelectorAll("button")];
+        const first = buttons[0], last = buttons[buttons.length - 1];
+        if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
+        else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
+      }
     }
     overlay.addEventListener("click", (event) => {
       if (event.target === overlay) close(false);

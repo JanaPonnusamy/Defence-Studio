@@ -1,16 +1,24 @@
 import { createApiClient, ApiError } from "./api.js";
+import { escapeHtml } from "./components/status-badge.js";
+import { icon } from "./components/icons.js";
+import { mountEvidence } from "./views/evidence-view.js";
+import { mountScript } from "./views/script-view.js";
 import { loadSession, saveToken, saveJobId } from "./state.js";
 import { textFieldHtml } from "./components/text-field.js";
 import { showToast } from "./components/toast.js";
 import { renderSourcesList, renderSourceDetail } from "./views/sources-view.js";
 import { renderClaimsList, renderClaimDetail } from "./views/claims-view.js";
 import { renderDecisionPanelHtml, wireDecisionPanel, renderHistoryHtml } from "./views/decision-panel.js";
+import {
+  renderDiscoveryRequestFormHtml, renderProviderOutcomesHtml,
+  renderDiscoveryCandidatesListHtml, renderSelectionSummaryHtml,
+} from "./views/discovery-view.js";
 
 const session = loadSession();
 const state = {
   token: session.token,
   jobId: session.jobId,
-  tab: "sources", // "sources" | "claims"
+  tab: "sources", // "sources" | "claims" | "discovery"
   sourceStatus: "",
   claimStatus: "",
   claimConflictOnly: false,
@@ -19,6 +27,10 @@ const state = {
   selectedClaimId: null,
   sourcesResult: null,
   claimsResult: null,
+  discoveryResult: null,
+  discoverySelection: null,
+  discoveryFilters: { language: "", sourceType: "", provider: "", query: "" },
+  selectedCandidateIds: new Set(),
 };
 
 const api = createApiClient(() => state.token);
@@ -29,13 +41,83 @@ const el = {
   filters: document.getElementById("filters"),
   list: document.getElementById("list-panel"),
   detail: document.getElementById("detail-panel"),
+  conn: document.getElementById("conn-indicator"),
+  themeToggle: document.getElementById("theme-toggle"),
 };
+
+// ---- Real connection / job-context indicator ---------------------------
+// Driven only by an actual backend response (a getJob probe), never a
+// fabricated "all providers online" state. See probeConnection().
+function setConn(kind, text) {
+  if (!el.conn) return;
+  el.conn.className = `conn conn--${kind}`;
+  const label = el.conn.querySelector(".conn-text");
+  if (label) label.textContent = text;
+}
+
+function connErrorText(err) {
+  if (err instanceof ApiError) {
+    if (err.status === 401 || err.status === 403) return "Authentication failed";
+    if (err.status === 404) return "Job not found or not yours";
+    if (err.status >= 500) return "Backend error";
+    return `Request error (${err.status})`;
+  }
+  return "Backend unreachable";
+}
+
+// Probe the real session against the real job. getJob returns 200 only when
+// the token is valid AND the job is owned by the caller, so its outcome is an
+// honest connection + ownership signal, and its payload gives real job context.
+async function probeConnection() {
+  if (!state.jobId || !state.token) { setConn("idle", "Awaiting session"); return; }
+  setConn("connecting", "Connecting…");
+  try {
+    const job = await api.getJob(state.jobId);
+    const short = String(state.jobId).slice(-8);
+    const status = (job && (job.status || job.state)) || "loaded";
+    setConn("online", `Job …${short} · ${status}`);
+  } catch (err) {
+    setConn("error", connErrorText(err));
+  }
+}
+
+// ---- Theme toggle (dark is primary; light is a real, persisted option) --
+const THEME_KEY = "ds_theme";
+function applyTheme(theme) {
+  const root = document.documentElement;
+  if (theme === "light" || theme === "dark") root.setAttribute("data-theme", theme);
+  else root.removeAttribute("data-theme");
+  if (el.themeToggle) {
+    const effective = theme || (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+    el.themeToggle.innerHTML = icon(effective === "dark" ? "sun" : "moon");
+    el.themeToggle.setAttribute("aria-label", effective === "dark" ? "Switch to light theme" : "Switch to dark theme");
+  }
+}
+function initTheme() {
+  const saved = localStorage.getItem(THEME_KEY) || "";
+  applyTheme(saved);
+  if (el.themeToggle) {
+    el.themeToggle.addEventListener("click", () => {
+      const current = document.documentElement.getAttribute("data-theme")
+        || (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+      const next = current === "dark" ? "light" : "dark";
+      localStorage.setItem(THEME_KEY, next);
+      applyTheme(next);
+    });
+  }
+}
 
 function parseHash() {
   const parts = (location.hash || "").replace(/^#\/?/, "").split("/").filter(Boolean);
   if (parts[0] === "claims") {
     state.tab = "claims";
     state.selectedClaimId = parts[1] ? decodeURIComponent(parts[1]) : null;
+  } else if (parts[0] === "evidence") {
+    state.tab = "evidence";
+  } else if (parts[0] === "discovery") {
+    state.tab = "discovery";
+  } else if (parts[0] === "script") {
+    state.tab = "script";
   } else {
     state.tab = "sources";
     state.selectedSourceId = parts[1] ? decodeURIComponent(parts[1]) : null;
@@ -55,16 +137,26 @@ function renderTopbar() {
   document.getElementById("job-id-field").addEventListener("change", (e) => { state.jobId = e.target.value.trim(); });
   document.getElementById("token-field").addEventListener("change", (e) => { state.token = e.target.value.trim(); });
   document.getElementById("load-job-btn").addEventListener("click", () => {
+    state.jobId = document.getElementById("job-id-field").value.trim();
+    state.token = document.getElementById("token-field").value.trim();
     saveToken(state.token);
     saveJobId(state.jobId);
+    probeConnection();
     refreshActiveTab();
   });
 }
 
 function renderTabs() {
+  const tab = (id, iconName, label) => `
+    <button type="button" role="tab" aria-selected="${state.tab === id}" data-tab="${id}">
+      <span class="tab-icon">${icon(iconName, { size: 17 })}</span><span>${label}</span>
+    </button>`;
   el.tabs.innerHTML = `
-    <button type="button" role="tab" aria-selected="${state.tab === "sources"}" data-tab="sources">Sources</button>
-    <button type="button" role="tab" aria-selected="${state.tab === "claims"}" data-tab="claims">Claims</button>`;
+    ${tab("discovery", "radar", "Discovery")}
+    ${tab("sources", "layers", "Sources")}
+    ${tab("claims", "claims", "Claims")}
+    ${tab("evidence", "shield", "Evidence")}
+    ${tab("script", "script", "Script")}`;
   el.tabs.querySelectorAll("[data-tab]").forEach((btn) => {
     btn.addEventListener("click", () => {
       setHash(btn.dataset.tab, null);
@@ -73,9 +165,28 @@ function renderTabs() {
 }
 
 function renderFilters() {
+  if (state.tab === "evidence" || state.tab === "script") { el.filters.innerHTML = ""; return; }
   const statusOptions = ["", "PENDING", "APPROVED_FOR_USE", "REJECTED", "NEEDS_MORE_EVIDENCE", "CONFLICT_UNRESOLVED"];
   const optionHtml = (value) => `<option value="${value}">${value || "All statuses"}</option>`;
-  if (state.tab === "sources") {
+  if (state.tab === "discovery") {
+    const hasRun = !!(state.discoveryResult && !state.discoveryResult.empty_reason);
+    el.filters.innerHTML = hasRun ? `
+      ${textFieldHtml({ id: "discovery-filter-language", label: "Filter by language", value: state.discoveryFilters.language, placeholder: "en" })}
+      ${textFieldHtml({ id: "discovery-filter-query", label: "Filter by title", value: state.discoveryFilters.query, placeholder: "keyword" })}
+      <button type="button" id="discovery-confirm-btn" class="primary" disabled>Confirm selection</button>`
+      : `<p class="meta">Submit a discovery request below, queue the job, then refresh to browse ranked candidates.</p>`;
+    const langInput = el.filters.querySelector("#discovery-filter-language");
+    if (langInput) langInput.addEventListener("change", (e) => {
+      state.discoveryFilters.language = e.target.value.trim(); loadDiscovery();
+    });
+    const queryInput = el.filters.querySelector("#discovery-filter-query");
+    if (queryInput) queryInput.addEventListener("change", (e) => {
+      state.discoveryFilters.query = e.target.value.trim(); loadDiscovery();
+    });
+    const confirmBtn = el.filters.querySelector("#discovery-confirm-btn");
+    if (confirmBtn) confirmBtn.addEventListener("click", confirmDiscoverySelection);
+    updateConfirmButtonState();
+  } else if (state.tab === "sources") {
     el.filters.innerHTML = `
       <label for="source-status-filter">Status
         <select id="source-status-filter">${statusOptions.map(optionHtml).join("")}</select>
@@ -110,6 +221,97 @@ function requireJob() {
     return false;
   }
   return true;
+}
+
+async function loadDiscovery() {
+  if (!requireJob()) return;
+  el.detail.innerHTML = "";
+  el.detail.classList.remove("detail-overlay");
+  el.list.innerHTML = `<div class="loading-state">Loading discovery…</div>`;
+  try {
+    const result = await api.listDiscoveryCandidates(state.jobId, {
+      language: state.discoveryFilters.language || undefined,
+      query: state.discoveryFilters.query || undefined,
+    });
+    state.discoveryResult = result;
+    if (result.empty_reason && !result.candidates.length) {
+      const requestInfo = await api.getDiscoveryRequest(state.jobId).catch(() => null);
+      el.list.innerHTML = renderDiscoveryRequestFormHtml(requestInfo && requestInfo.request ? requestInfo.request.topic : "");
+      wireDiscoveryRequestForm();
+      return;
+    }
+    state.discoverySelection = await api.getDiscoverySelection(state.jobId).catch(() => null);
+    state.selectedCandidateIds = new Set((state.discoverySelection && state.discoverySelection.selected_candidate_ids) || []);
+    el.list.innerHTML = `
+      ${renderProviderOutcomesHtml(result.providers)}
+      ${renderSelectionSummaryHtml(state.discoverySelection)}
+      ${renderDiscoveryCandidatesListHtml(result.candidates, state.selectedCandidateIds)}`;
+    el.list.querySelectorAll("[data-select-candidate]").forEach((box) => {
+      box.addEventListener("change", (e) => {
+        const id = e.target.dataset.selectCandidate;
+        if (e.target.checked) state.selectedCandidateIds.add(id);
+        else state.selectedCandidateIds.delete(id);
+        updateConfirmButtonState();
+      });
+    });
+    renderFilters();
+  } catch (err) {
+    el.list.innerHTML = errorHtml(err);
+  }
+}
+
+function updateConfirmButtonState() {
+  const btn = el.filters.querySelector("#discovery-confirm-btn");
+  if (!btn) return;
+  const n = state.selectedCandidateIds.size;
+  btn.disabled = n === 0;
+  btn.textContent = n ? `Confirm selection (${n})` : "Confirm selection";
+}
+
+function wireDiscoveryRequestForm() {
+  const form = el.list.querySelector("#discovery-request-form");
+  if (form) {
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const topic = el.list.querySelector("#discovery-topic").value.trim();
+      const language = el.list.querySelector("#discovery-language").value.trim() || "en";
+      const terms = el.list.querySelector("#discovery-terms").value.trim();
+      try {
+        await api.createDiscoveryRequest(state.jobId, {
+          topic, language,
+          search_terms: terms ? terms.split(",").map((t) => t.trim()).filter(Boolean) : [],
+        });
+        showToast("Discovery request saved. Now queue the job to run it.");
+      } catch (err) {
+        showToast(err instanceof ApiError ? err.detail : "Could not save the discovery request.", { isError: true });
+      }
+    });
+  }
+  const queueBtn = el.list.querySelector("#discovery-queue-btn");
+  if (queueBtn) {
+    queueBtn.addEventListener("click", async () => {
+      try {
+        await api.queueJob(state.jobId);
+        showToast("Job queued. Discovery will run on the next worker pass.");
+      } catch (err) {
+        showToast(err instanceof ApiError ? err.detail : "Could not queue the job.", { isError: true });
+      }
+    });
+  }
+}
+
+async function confirmDiscoverySelection() {
+  if (!state.selectedCandidateIds.size) {
+    showToast("Select at least one candidate before confirming.", { isError: true });
+    return;
+  }
+  try {
+    await api.selectDiscoveryCandidates(state.jobId, Array.from(state.selectedCandidateIds));
+    showToast(`${state.selectedCandidateIds.size} candidate(s) confirmed for F3 acquisition.`);
+    await loadDiscovery();
+  } catch (err) {
+    showToast(err instanceof ApiError ? err.detail : "Could not confirm the selection.", { isError: true });
+  }
 }
 
 async function loadSources() {
@@ -284,25 +486,43 @@ function clearDetail() {
 
 function errorHtml(err) {
   const message = err instanceof ApiError ? err.detail : (err && err.message) || "Unexpected error.";
-  return `<div class="error-state">${message}</div>`;
+  return `<div class="error-state" role="alert">${escapeHtml(String(message))}</div>`;
+}
+
+function dispatchTab() {
+  if (state.tab === "evidence") {
+    if (!requireJob()) return;
+    const jobId = state.jobId;
+    mountEvidence({api, jobId, list:el.list, detail:el.detail, filters:el.filters,
+      isCurrent:() => state.tab === "evidence" && state.jobId === jobId});
+  }
+  else if (state.tab === "script") {
+    if (!requireJob()) return;
+    const jobId = state.jobId;
+    mountScript({api, jobId, list:el.list, detail:el.detail, filters:el.filters,
+      isCurrent:() => state.tab === "script" && state.jobId === jobId});
+  }
+  else if (state.tab === "discovery") loadDiscovery();
+  else if (state.tab === "sources") loadSources();
+  else loadClaims();
 }
 
 function refreshActiveTab() {
   renderTabs();
   renderFilters();
-  if (state.tab === "sources") loadSources();
-  else loadClaims();
+  dispatchTab();
 }
 
 function route() {
   parseHash();
   renderTabs();
   renderFilters();
-  if (state.tab === "sources") loadSources();
-  else loadClaims();
+  dispatchTab();
 }
 
 window.addEventListener("hashchange", route);
+initTheme();
 renderTopbar();
+probeConnection();
 if (!location.hash) setHash("sources", null);
 else route();

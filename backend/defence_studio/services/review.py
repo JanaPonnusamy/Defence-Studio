@@ -28,6 +28,7 @@ treatment as every other Defence Studio boundary.
 from __future__ import annotations
 
 import json
+import hashlib
 import uuid
 from contextlib import closing
 from datetime import datetime, timezone
@@ -168,8 +169,9 @@ class ReviewService:
 
             replay = repo.find_claim_history_by_idempotency_key(job_id, claim_id, owner_id, idempotency_key)
             if replay is not None:
+                result = self._replay(repo, replay, "claim", decision, reviewed_artifact_sha256, expected_revision, note)
                 connection.commit()
-                return self._record_from_row(repo.get_claim_review(job_id, claim_id), "claim_id")
+                return result
 
             latest_ref = self._latest_artifact(connection, job_id, ANALYSIS_RESULT_ARTIFACT)
             if latest_ref is None:
@@ -273,8 +275,9 @@ class ReviewService:
 
             replay = repo.find_source_history_by_idempotency_key(job_id, source_id, owner_id, idempotency_key)
             if replay is not None:
+                result = self._replay(repo, replay, "source", decision, reviewed_artifact_sha256, expected_revision, note)
                 connection.commit()
-                return self._record_from_row(repo.get_source_review(job_id, source_id), "source_id")
+                return result
 
             latest_ref = self._latest_artifact(connection, job_id, ACQUISITION_RESULT_ARTIFACT)
             if latest_ref is None:
@@ -307,6 +310,16 @@ class ReviewService:
 
     # -- internals ------------------------------------------------------------
 
+    def _replay(self, repo, row, kind, decision, sha, expected_revision, note):
+        if (row["decision"], row["reviewed_artifact_sha256"], row["revision"], row["note"]) != (decision, sha, expected_revision + 1, note):
+            raise RevisionConflict("Idempotency key was already used for a different review")
+        key = kind + "_id"
+        history = getattr(repo, kind + "_history")(row["job_id"], row[key])
+        original = dict(row)
+        original["created_at"] = min(h["occurred_at"] for h in history)
+        original["updated_at"] = original.pop("occurred_at")
+        return self._record_from_row(original, key)
+
     @staticmethod
     def _validate_decision(decision: str) -> None:
         if decision not in REVIEW_DECISIONS:
@@ -315,6 +328,8 @@ class ReviewService:
     @staticmethod
     def _validate_note(note: str) -> str:
         note = (note or "").strip()
+        if not note:
+            raise ReviewValidationError("A review explanation is required")
         if len(note) > 4000:
             raise ReviewValidationError("note must be at most 4000 characters")
         return note
@@ -337,10 +352,11 @@ class ReviewService:
 
     def _read_json_artifact(self, job_id: str, ref: dict) -> dict:
         try:
-            actual_sha = self.store.sha256_of(job_id, ref["uri"])
+            data = self.store.read_bytes(job_id, ref["uri"], max_bytes=128 * 1024 * 1024)
+            actual_sha = hashlib.sha256(data).hexdigest()
             if actual_sha != ref["sha256"]:
                 raise ReviewValidationError("Stored artifact failed integrity check")
-            parsed = json.loads(self.store.read_text(job_id, ref["uri"]))
+            parsed = json.loads(data)
         except (StoragePathError, FileNotFoundError, OSError, ValueError) as exc:
             raise ReviewValidationError(f"Could not read artifact {ref.get('uri')!r}: {exc}") from None
         if not isinstance(parsed, dict):

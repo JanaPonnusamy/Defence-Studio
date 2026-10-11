@@ -17,9 +17,15 @@ function authHeaders(token, extra) {
 
 async function handle(response) {
   const text = await response.text();
-  const body = text ? JSON.parse(text) : null;
+  let body;
+  try { body = text ? JSON.parse(text) : null; }
+  catch { throw new ApiError(response.status, "The server returned an unreadable response. Reload or try again."); }
   if (!response.ok) {
-    throw new ApiError(response.status, body && body.detail ? body.detail : response.statusText);
+    const detail = body?.detail;
+    const message = Array.isArray(detail)
+      ? detail.map(item => `${(item.loc || []).join(".")}: ${item.msg || "Invalid value"}`).join("; ")
+      : typeof detail === "string" ? detail : response.statusText;
+    throw new ApiError(response.status, message);
   }
   return body;
 }
@@ -27,6 +33,23 @@ async function handle(response) {
 export function createApiClient(getToken) {
   const base = "/api";
   return {
+    // Canonical Phase 2 surface is /package/* + /timeline (core-design route
+    // names). Method names kept stable for the evidence view that calls them.
+    async evidencePackage(jobId) {
+      return handle(await fetch(`${base}/jobs/${encodeURIComponent(jobId)}/package`, { headers: authHeaders(getToken()) }));
+    },
+    async evidenceTimeline(jobId, filters = {}) {
+      const params = new URLSearchParams(Object.entries(filters).filter(([, value]) => value));
+      return handle(await fetch(`${base}/jobs/${encodeURIComponent(jobId)}/timeline?${params}`, { headers: authHeaders(getToken()) }));
+    },
+    async approveEvidence(jobId, revision, note, key) {
+      return handle(await fetch(`${base}/jobs/${encodeURIComponent(jobId)}/package/approve`, {
+        method: "POST", headers: authHeaders(getToken(), { "Idempotency-Key": key }), body: JSON.stringify({ revision, note }),
+      }));
+    },
+    async exportEvidence(jobId, draft = false) {
+      return handle(await fetch(`${base}/jobs/${encodeURIComponent(jobId)}/package/export?draft=${draft}`, { headers: authHeaders(getToken()) }));
+    },
     async getJob(jobId) {
       return handle(await fetch(`${base}/jobs/${encodeURIComponent(jobId)}`, {
         headers: authHeaders(getToken()),
@@ -91,6 +114,87 @@ export function createApiClient(getToken) {
           body: JSON.stringify(body),
         },
       ));
+    },
+    async queueJob(jobId) {
+      return handle(await fetch(`${base}/jobs/${encodeURIComponent(jobId)}/queue`, {
+        method: "POST", headers: authHeaders(getToken()),
+      }));
+    },
+    async getDiscoveryRequest(jobId) {
+      return handle(await fetch(`${base}/jobs/${encodeURIComponent(jobId)}/discovery/requests`, {
+        headers: authHeaders(getToken()),
+      }));
+    },
+    async createDiscoveryRequest(jobId, body) {
+      return handle(await fetch(`${base}/jobs/${encodeURIComponent(jobId)}/discovery/requests`, {
+        method: "POST", headers: authHeaders(getToken()), body: JSON.stringify(body),
+      }));
+    },
+    async listDiscoveryCandidates(jobId, { language, sourceType, provider, minScore, query } = {}) {
+      const params = new URLSearchParams();
+      if (language) params.set("language", language);
+      if (sourceType) params.set("source_type", sourceType);
+      if (provider) params.set("provider", provider);
+      if (minScore) params.set("min_score", minScore);
+      if (query) params.set("query", query);
+      const qs = params.toString() ? `?${params.toString()}` : "";
+      return handle(await fetch(`${base}/jobs/${encodeURIComponent(jobId)}/discovery/candidates${qs}`, {
+        headers: authHeaders(getToken()),
+      }));
+    },
+    async selectDiscoveryCandidates(jobId, candidateIds) {
+      return handle(await fetch(`${base}/jobs/${encodeURIComponent(jobId)}/discovery/selection`, {
+        method: "POST", headers: authHeaders(getToken()), body: JSON.stringify({ candidate_ids: candidateIds }),
+      }));
+    },
+    async getDiscoverySelection(jobId) {
+      return handle(await fetch(`${base}/jobs/${encodeURIComponent(jobId)}/discovery/selection`, {
+        headers: authHeaders(getToken()),
+      }));
+    },
+    // -- Phase 3: source-grounded script generation, review, approval --------
+    async listScriptRevisions(jobId, language) {
+      const qs = language ? `?language=${encodeURIComponent(language)}` : "";
+      return handle(await fetch(`${base}/jobs/${encodeURIComponent(jobId)}/script/revisions${qs}`, {
+        headers: authHeaders(getToken()),
+      }));
+    },
+    async getScriptRevision(jobId, language, version) {
+      return handle(await fetch(
+        `${base}/jobs/${encodeURIComponent(jobId)}/script/revisions/${encodeURIComponent(language)}/${version}`,
+        { headers: authHeaders(getToken()) },
+      ));
+    },
+    async getScriptRevisionHistory(jobId, language, version) {
+      return handle(await fetch(
+        `${base}/jobs/${encodeURIComponent(jobId)}/script/revisions/${encodeURIComponent(language)}/${version}/history`,
+        { headers: authHeaders(getToken()) },
+      ));
+    },
+    async generateScript(jobId, config, idempotencyKey) {
+      return handle(await fetch(`${base}/jobs/${encodeURIComponent(jobId)}/script/generate`, {
+        method: "POST", headers: authHeaders(getToken(), { "Idempotency-Key": idempotencyKey }), body: JSON.stringify(config),
+      }));
+    },
+    async requestScriptChanges(jobId, language, version, note, idempotencyKey) {
+      return handle(await fetch(
+        `${base}/jobs/${encodeURIComponent(jobId)}/script/revisions/${encodeURIComponent(language)}/${version}/request-changes`,
+        { method: "POST", headers: authHeaders(getToken(), { "Idempotency-Key": idempotencyKey }), body: JSON.stringify({ note }) },
+      ));
+    },
+    async approveScriptRevision(jobId, language, version, revisionSha256, note, idempotencyKey) {
+      return handle(await fetch(
+        `${base}/jobs/${encodeURIComponent(jobId)}/script/revisions/${encodeURIComponent(language)}/${version}/approve`,
+        {
+          method: "POST", headers: authHeaders(getToken(), { "Idempotency-Key": idempotencyKey }),
+          body: JSON.stringify({ revision_sha256: revisionSha256, note }),
+        },
+      ));
+    },
+    async exportApprovedScript(jobId, language) {
+      return handle(await fetch(`${base}/jobs/${encodeURIComponent(jobId)}/script/export/${encodeURIComponent(language)}`, {
+        headers: authHeaders(getToken()),
+      }));
     },
   };
 }

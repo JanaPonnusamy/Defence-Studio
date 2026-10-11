@@ -4,7 +4,7 @@ from pathlib import Path
 from fastapi import Depends, FastAPI, Header, Query
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 
 from defence_studio.auth import authenticated_user
 from defence_studio.config import PROJECT_ROOT, auth_secret, database_path, storage_root
@@ -13,6 +13,13 @@ from defence_studio.services.discovery import DiscoveryApiService, DiscoveryErro
 from defence_studio.services.jobs import JobError, JobService
 from defence_studio.services.review import ReviewError, ReviewService
 from defence_studio.services.worker import WorkerService
+from defence_studio.services.evidence import EvidenceService
+from defence_studio.services.script import ScriptService
+from defence_studio.services.scene import SceneService
+from defence_studio.services.assets import AssetService
+from defence_studio.contracts.evidence import ApprovalBody
+from defence_studio.contracts.script import GenerationConfigV1
+from defence_studio.contracts.scene import ScenePlanConfigV1
 
 
 class CreateJobBody(BaseModel):
@@ -34,10 +41,11 @@ class ArtifactReferenceBody(BaseModel):
 
 
 class ReviewDecisionBody(BaseModel):
+    model_config = ConfigDict(extra="forbid", strict=True)
     decision: str
-    reviewed_artifact_sha256: str = Field(min_length=1, max_length=64)
+    reviewed_artifact_sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
     expected_revision: int = Field(ge=0)
-    note: str = Field(default="", max_length=4000)
+    note: str = Field(min_length=1, max_length=4000)
 
 
 class DiscoveryRequestBody(BaseModel):
@@ -50,6 +58,57 @@ class DiscoveryRequestBody(BaseModel):
 
 class DiscoverySelectionBody(BaseModel):
     candidate_ids: list[str] = Field(min_length=1, max_length=50)
+
+
+class ScriptReviewDecisionBody(BaseModel):
+    model_config = ConfigDict(extra="forbid", strict=True)
+    note: str = Field(min_length=1, max_length=4000)
+
+
+class ScriptApprovalRequestBody(BaseModel):
+    model_config = ConfigDict(extra="forbid", strict=True)
+    revision_sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
+    note: str = Field(min_length=1, max_length=4000)
+
+
+class SceneReviseBody(BaseModel):
+    model_config = ConfigDict(extra="forbid", strict=True)
+    base_version: int = Field(gt=0)
+    # Free-form edit instructions (reorder/remove/update/add); the service
+    # validates every operation and re-validates each touched scene.
+    edits: dict = Field(min_length=1)
+
+
+class ScenePlanApprovalRequestBody(BaseModel):
+    model_config = ConfigDict(extra="forbid", strict=True)
+    plan_sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
+    note: str = Field(min_length=1, max_length=4000)
+
+
+class AssetRegisterBody(BaseModel):
+    # The descriptor body is validated by the M2.0 contract in the service (which
+    # computes the content-addressed asset_id); accept it as a free object here.
+    model_config = ConfigDict(extra="allow")
+
+
+class AssetRightsBody(BaseModel):
+    model_config = ConfigDict(extra="allow")
+
+
+class AssetAssignBody(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    language: str = Field(pattern=r"^(ta|en)$")
+    asset_id: str = Field(pattern=r"^[0-9a-f]{64}$")
+    target_use: str | None = None
+
+
+class AssetReviewBody(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    decision: str
+    reviewed_asset_sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
+    reviewed_rights_sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
+    expected_revision: int = Field(ge=0)
+    note: str = Field(min_length=1, max_length=4000)
 
 
 def create_app(
@@ -66,6 +125,10 @@ def create_app(
     worker_service = WorkerService(db_path)
     review = ReviewService(db_path, store_root)
     discovery = DiscoveryApiService(db_path, store_root)
+    evidence = EvidenceService(db_path, store_root)
+    scripts = ScriptService(db_path, store_root)
+    scenes = SceneService(db_path, store_root)
+    assets = AssetService(db_path, store_root)
 
     @asynccontextmanager
     async def lifespan(_app):
@@ -87,6 +150,12 @@ def create_app(
     @app.exception_handler(DiscoveryError)
     async def discovery_error_handler(_request, exc: DiscoveryError):
         return JSONResponse(status_code=exc.status_code, content={"detail": str(exc)})
+
+    # ScriptError is not a distinct base: ScriptService raises the ReviewError
+    # family (ScriptGenerationFailed/ScriptNotFound/ScriptValidationError/
+    # ScriptStaleRevision all derive from ReviewError or its subclasses), so
+    # the existing review_error_handler above already covers every Phase 3
+    # error path with the correct status codes.
 
     @app.post("/api/jobs", status_code=201)
     def create_job(
@@ -227,6 +296,268 @@ def create_app(
     @app.get("/api/jobs/{job_id}/discovery/selection")
     def get_discovery_selection(job_id: str, owner_id: str = Depends(authenticated_user(secret))):
         return discovery.get_selection(job_id, owner_id)
+
+    # -- Phase 1D / Phase 2: evidence timeline, package, readiness, approval,
+    # export. One canonical /package/* + /timeline surface (the routes named in
+    # the core design) delegating to the single EvidenceService engine; no
+    # duplicate /evidence/* tree. EvidenceService raises ReviewError subclasses
+    # (ReviewNotFound/ReviewValidationError/StaleRevision), handled above.
+
+    @app.get("/api/jobs/{job_id}/timeline")
+    def get_timeline(
+        job_id: str,
+        start: str | None = None,
+        end: str | None = None,
+        source_id: str | None = None,
+        claim_id: str | None = None,
+        language: str | None = None,
+        owner_id: str = Depends(authenticated_user(secret)),
+    ):
+        return evidence.timeline(job_id, owner_id, start, end, source_id, claim_id, language)
+
+    @app.get("/api/jobs/{job_id}/package")
+    def get_package(job_id: str, owner_id: str = Depends(authenticated_user(secret))):
+        return evidence.draft(job_id, owner_id)
+
+    @app.get("/api/jobs/{job_id}/package/readiness")
+    def get_package_readiness(job_id: str, owner_id: str = Depends(authenticated_user(secret))):
+        state = evidence.draft(job_id, owner_id)
+        package = state["package"]
+        return {
+            "job_id": job_id,
+            "revision": state["revision"],
+            "ready": package["ready"],
+            "blockers": package["blockers"],
+            "limitations": package["limitations"],
+            "eligible_claim_ids": package["eligible_claim_ids"],
+            "current_approval": state["current_approval"],
+        }
+
+    @app.post("/api/jobs/{job_id}/package/approve", status_code=201)
+    def approve_package(
+        job_id: str,
+        body: ApprovalBody,
+        idempotency_key: str = Header(min_length=1, max_length=200, alias="Idempotency-Key"),
+        owner_id: str = Depends(authenticated_user(secret)),
+    ):
+        return evidence.approve(job_id, owner_id, body.revision, body.note, idempotency_key)
+
+    @app.get("/api/jobs/{job_id}/package/export")
+    def export_package(job_id: str, draft: bool = False, owner_id: str = Depends(authenticated_user(secret))):
+        return JSONResponse(evidence.export(job_id, owner_id, draft), headers={
+            "Content-Disposition": 'attachment; filename="evidence-package.json"',
+            "Cache-Control": "no-store",
+        })
+
+    # -- Phase 3: source-grounded script generation, evidence validation,
+    # review, and approval. Human-paced like F5/Phase 2 (synchronous HTTP, not
+    # a worker stage); generation is only ever triggered by an explicit POST,
+    # never during page load, package inspection, or job creation/review.
+
+    @app.get("/api/jobs/{job_id}/script/revisions")
+    def list_script_revisions(
+        job_id: str,
+        language: str | None = Query(default=None),
+        owner_id: str = Depends(authenticated_user(secret)),
+    ):
+        return scripts.list_revisions(job_id, owner_id, language)
+
+    @app.get("/api/jobs/{job_id}/script/revisions/{language}/{version}")
+    def get_script_revision(
+        job_id: str, language: str, version: int,
+        owner_id: str = Depends(authenticated_user(secret)),
+    ):
+        return scripts.get_revision(job_id, owner_id, language, version)
+
+    @app.get("/api/jobs/{job_id}/script/revisions/{language}/{version}/history")
+    def get_script_revision_history(
+        job_id: str, language: str, version: int,
+        owner_id: str = Depends(authenticated_user(secret)),
+    ):
+        return scripts.revision_history(job_id, owner_id, language, version)
+
+    @app.post("/api/jobs/{job_id}/script/generate", status_code=201)
+    def generate_script(
+        job_id: str,
+        body: GenerationConfigV1,
+        idempotency_key: str = Header(min_length=1, max_length=200, alias="Idempotency-Key"),
+        owner_id: str = Depends(authenticated_user(secret)),
+    ):
+        return scripts.generate(job_id, owner_id, body.model_dump(), idempotency_key)
+
+    @app.post("/api/jobs/{job_id}/script/revisions/{language}/{version}/request-changes", status_code=201)
+    def request_script_changes(
+        job_id: str, language: str, version: int,
+        body: ScriptReviewDecisionBody,
+        idempotency_key: str = Header(min_length=1, max_length=200, alias="Idempotency-Key"),
+        owner_id: str = Depends(authenticated_user(secret)),
+    ):
+        return scripts.request_changes(job_id, owner_id, language, version, body.note, idempotency_key)
+
+    @app.post("/api/jobs/{job_id}/script/revisions/{language}/{version}/approve", status_code=201)
+    def approve_script_revision(
+        job_id: str, language: str, version: int,
+        body: ScriptApprovalRequestBody,
+        idempotency_key: str = Header(min_length=1, max_length=200, alias="Idempotency-Key"),
+        owner_id: str = Depends(authenticated_user(secret)),
+    ):
+        return scripts.approve(job_id, owner_id, language, version, body.revision_sha256, body.note, idempotency_key)
+
+    @app.get("/api/jobs/{job_id}/script/export/{language}")
+    def export_approved_script(
+        job_id: str, language: str,
+        owner_id: str = Depends(authenticated_user(secret)),
+    ):
+        return JSONResponse(scripts.export_approved(job_id, owner_id, language), headers={
+            "Content-Disposition": f'attachment; filename="script-{language}-approved.json"',
+            "Cache-Control": "no-store",
+        })
+
+    # Phase 4 M1 scene planning/persistence/editing/approval. Human-paced like
+    # Phase 3 (synchronous HTTP, not a worker stage). `generate` is deterministic
+    # and offline -- it never calls a text/TTS/alignment/render provider; it only
+    # derives scenes from the already-approved script export. SceneService raises
+    # the ReviewError family, so review_error_handler maps every status code.
+
+    @app.get("/api/jobs/{job_id}/scene/plans")
+    def list_scene_plans(
+        job_id: str,
+        language: str | None = Query(default=None),
+        owner_id: str = Depends(authenticated_user(secret)),
+    ):
+        return scenes.list_plans(job_id, owner_id, language)
+
+    @app.get("/api/jobs/{job_id}/scene/plans/{language}/{version}")
+    def get_scene_plan(
+        job_id: str, language: str, version: int,
+        owner_id: str = Depends(authenticated_user(secret)),
+    ):
+        return scenes.get_plan(job_id, owner_id, language, version)
+
+    @app.get("/api/jobs/{job_id}/scene/plans/{language}/{version}/history")
+    def get_scene_plan_history(
+        job_id: str, language: str, version: int,
+        owner_id: str = Depends(authenticated_user(secret)),
+    ):
+        return scenes.plan_history(job_id, owner_id, language, version)
+
+    @app.get("/api/jobs/{job_id}/scene/plans/{language}/{version}/scene-digests")
+    def get_scene_plan_scene_digests(
+        job_id: str, language: str, version: int,
+        owner_id: str = Depends(authenticated_user(secret)),
+    ):
+        return scenes.scene_digests(job_id, owner_id, language, version)
+
+    @app.post("/api/jobs/{job_id}/scene/generate", status_code=201)
+    def generate_scene_plan(
+        job_id: str,
+        body: ScenePlanConfigV1,
+        idempotency_key: str = Header(min_length=1, max_length=200, alias="Idempotency-Key"),
+        owner_id: str = Depends(authenticated_user(secret)),
+    ):
+        return scenes.generate(job_id, owner_id, body.model_dump(), idempotency_key)
+
+    @app.post("/api/jobs/{job_id}/scene/plans/{language}/revise", status_code=201)
+    def revise_scene_plan(
+        job_id: str, language: str,
+        body: SceneReviseBody,
+        idempotency_key: str = Header(min_length=1, max_length=200, alias="Idempotency-Key"),
+        owner_id: str = Depends(authenticated_user(secret)),
+    ):
+        return scenes.revise(job_id, owner_id, language, body.base_version, body.edits, idempotency_key)
+
+    @app.post("/api/jobs/{job_id}/scene/plans/{language}/{version}/request-changes", status_code=201)
+    def request_scene_plan_changes(
+        job_id: str, language: str, version: int,
+        body: ScriptReviewDecisionBody,
+        idempotency_key: str = Header(min_length=1, max_length=200, alias="Idempotency-Key"),
+        owner_id: str = Depends(authenticated_user(secret)),
+    ):
+        return scenes.request_changes(job_id, owner_id, language, version, body.note, idempotency_key)
+
+    @app.post("/api/jobs/{job_id}/scene/plans/{language}/{version}/approve", status_code=201)
+    def approve_scene_plan(
+        job_id: str, language: str, version: int,
+        body: ScenePlanApprovalRequestBody,
+        idempotency_key: str = Header(min_length=1, max_length=200, alias="Idempotency-Key"),
+        owner_id: str = Depends(authenticated_user(secret)),
+    ):
+        return scenes.approve(job_id, owner_id, language, version, body.plan_sha256, body.note, idempotency_key)
+
+    # Phase 5 M2.1 asset management & rights provenance. Human-paced, synchronous,
+    # reference-only (no download/fetch). AssetService raises the ReviewError
+    # family so the existing handler maps 404/409/422. Registered before the
+    # static mount so none of these are shadowed.
+    @app.post("/api/jobs/{job_id}/assets", status_code=201)
+    def register_asset(
+        job_id: str, body: AssetRegisterBody,
+        idempotency_key: str = Header(min_length=1, max_length=200, alias="Idempotency-Key"),
+        owner_id: str = Depends(authenticated_user(secret)),
+    ):
+        return assets.register_asset(job_id, owner_id, body.model_dump(), idempotency_key)
+
+    @app.get("/api/jobs/{job_id}/assets")
+    def list_assets(
+        job_id: str, review_status: str | None = None, effective_rights: str | None = None,
+        kind: str | None = None, owner_id: str = Depends(authenticated_user(secret)),
+    ):
+        return assets.list_assets(job_id, owner_id, review_status=review_status,
+                                  effective_rights=effective_rights, kind=kind)
+
+    @app.get("/api/jobs/{job_id}/assets/{asset_id}")
+    def get_asset(job_id: str, asset_id: str, owner_id: str = Depends(authenticated_user(secret))):
+        return assets.get_asset(job_id, owner_id, asset_id)
+
+    @app.post("/api/jobs/{job_id}/assets/{asset_id}/rights", status_code=201)
+    def set_asset_rights(
+        job_id: str, asset_id: str, body: AssetRightsBody,
+        idempotency_key: str = Header(min_length=1, max_length=200, alias="Idempotency-Key"),
+        owner_id: str = Depends(authenticated_user(secret)),
+    ):
+        return assets.set_rights(job_id, owner_id, asset_id, body.model_dump(), idempotency_key)
+
+    @app.post("/api/jobs/{job_id}/assets/{asset_id}/review", status_code=201)
+    def review_asset(
+        job_id: str, asset_id: str, body: AssetReviewBody,
+        idempotency_key: str = Header(min_length=1, max_length=200, alias="Idempotency-Key"),
+        owner_id: str = Depends(authenticated_user(secret)),
+    ):
+        return assets.review_asset(job_id, owner_id, asset_id, body.decision,
+                                   body.reviewed_asset_sha256, body.reviewed_rights_sha256,
+                                   body.expected_revision, body.note, idempotency_key)
+
+    @app.get("/api/jobs/{job_id}/assets/{asset_id}/history")
+    def asset_history(job_id: str, asset_id: str, owner_id: str = Depends(authenticated_user(secret))):
+        return assets.asset_review_history(job_id, owner_id, asset_id)
+
+    @app.post("/api/jobs/{job_id}/scenes/{scene_id}/assets", status_code=201)
+    def assign_asset(
+        job_id: str, scene_id: str, body: AssetAssignBody,
+        idempotency_key: str = Header(min_length=1, max_length=200, alias="Idempotency-Key"),
+        owner_id: str = Depends(authenticated_user(secret)),
+    ):
+        return assets.assign_asset(job_id, owner_id, body.language, scene_id, body.asset_id,
+                                   idempotency_key, target_use=body.target_use)
+
+    @app.post("/api/jobs/{job_id}/scenes/{scene_id}/assets/{asset_id}/remove")
+    def remove_assignment(
+        job_id: str, scene_id: str, asset_id: str, language: str,
+        idempotency_key: str = Header(min_length=1, max_length=200, alias="Idempotency-Key"),
+        owner_id: str = Depends(authenticated_user(secret)),
+    ):
+        return assets.remove_assignment(job_id, owner_id, language, scene_id, asset_id, idempotency_key)
+
+    @app.get("/api/jobs/{job_id}/assignments")
+    def list_assignments(
+        job_id: str, language: str, owner_id: str = Depends(authenticated_user(secret)),
+    ):
+        return assets.list_assignments(job_id, owner_id, language)
+
+    @app.get("/api/jobs/{job_id}/assignments/readiness")
+    def assignment_readiness(
+        job_id: str, language: str, owner_id: str = Depends(authenticated_user(secret)),
+    ):
+        return assets.assignment_readiness(job_id, owner_id, language)
 
     frontend_dir = PROJECT_ROOT / "frontend"
     if frontend_dir.is_dir():

@@ -89,3 +89,53 @@ Modified existing files and their post-change SHA-256:
 | `backend/defence_studio/api/app.py` | Added `/review/...` routes, `ReviewError` handler, `storage_root_path` param, frontend static mount | `f8b8d3594026adf5eea3455151a67c50c04ad805e3480a7a62c91f41b5630a12` |
 
 `frontend/` is wholly new, framework-free HTML/CSS/ES-module code (no third-party JS dependency, no build step). It is not a backend Python module, so it falls outside this file's per-module hash convention; see `CONTRACTS.md`'s "F5 evidence review contract" section for its role and `component_registry/REGISTRY.md` for its registered primitives.
+
+## Phase 1A feed discovery component reuse
+
+Phase 1A adds a new, standalone `defence_studio.discovery` package (`providers.py`, `ranking.py`, `service.py`, `handler.py`) plus `defence_studio.contracts.discovery` and `defence_studio.services.discovery`. **No QVault or Whisper Studio source was inspected, copied, imported, or executed for Phase 1A.** It reuses three existing Defence Studio components rather than re-implementing them: F3's `defence_studio.acquisition.url_guard.normalize_url`/`UrlGuard` (canonical-URL dedup key and SSRF validation) and `defence_studio.acquisition.http_client.GuardedFetcher` (every provider's only fetch path), and F3's `MetadataStatus` tri-state (`defence_studio.contracts.acquisition`) for declared-candidate-metadata provenance. It executes only as a handler registered for the existing F2 `Worker`/`WorkerService` (no change to `services/worker.py`) and produces an `acquisition_request` artifact F3's existing `request_from_dict` parses unmodified -- no new or diverging contract on the F3 side.
+
+One existing file gained a narrowly-scoped additive method: `defence_studio/services/jobs.py`'s `add_artifact` gained an internal `_require_started` parameter (default `True`, preserving every existing call site's behavior unchanged) and a new public wrapper, `add_pretransition_artifact`, that allows an owner to attach an input artifact to a stage that has not started yet -- but only while the job is still `DRAFT`, before any worker claim exists. This is needed because `application_foundation` (the locked stage before `news_feed_and_topic_discovery`) has no handler of its own, so there is no other point at which an owner-submitted discovery request could become a predecessor-stage artifact for the discovery stage to consume. `defence_studio/api/app.py` gained the `/discovery/...` routes and a `DiscoveryError` exception handler, following the same pattern F5's `/review/...` routes and `ReviewError` handler established.
+
+New Phase 1A source components and their SHA-256:
+
+| Component | Role | SHA-256 |
+|---|---|---|
+| `backend/defence_studio/contracts/discovery.py` | Discovery request/result/candidate/ranking contracts | `acc115eb764e96358a3eb84dc1f09750f7e39994d4a3c621130859e7e2076cb5` |
+| `backend/defence_studio/discovery/providers.py` | `rss_feed` + `configured_search_api` providers, registry | `100c369e952e4cdfbff5af69a00ff19184c400c440156b98f5af7eb351abfade` |
+| `backend/defence_studio/discovery/ranking.py` | Deterministic, explainable candidate scoring | `2c8268d45805d40c271340778394a17aea2f210318052f64d4a23c6ad30838e2` |
+| `backend/defence_studio/discovery/service.py` | Orchestration: clamping, per-provider isolation, canonical dedup | `b7571be4e6330bed0c71b9467eaa9b8bca6b8ed8a4529909efa96755a4a9ca83` |
+| `backend/defence_studio/discovery/handler.py` | Retry-safe F2 worker stage handler binding | `bd644a38668d3bc500f5c8020d1d7311fe643718f2d993c926502812a3355baf` |
+| `backend/defence_studio/services/discovery.py` | API-facing service: request/browse/select, F3 handoff | `9fc5c42b0b2b2508953c2e669a189654828fc927aaffd3fe8c9e97a394790caf` |
+
+Modified existing files and their post-change SHA-256:
+
+| Component | Change | SHA-256 |
+|---|---|---|
+| `backend/defence_studio/services/jobs.py` | Added `add_pretransition_artifact` (additive; `add_artifact`'s default behavior unchanged) | `2325d38fdee7b49dba66243ac79ae0f007ad720de071f4f92af139d5f2c62f21` |
+| `backend/defence_studio/api/app.py` | Added `/discovery/...` routes and a `DiscoveryError` exception handler | `387403e00e66873f535f538dd660d94b4df61f29202fc052599c3eaccd742799` |
+
+## Phase 3 source-grounded script generation component reuse
+
+Phase 3 reuses existing Defence Studio capabilities rather than adding parallel infrastructure. `services/script.py::ScriptService` subclasses the Phase 2 `EvidenceService` (itself a subclass of F5's `ReviewService`), reusing its job-ownership checks, `ArtifactStore` byte access, JSON-artifact integrity verification, and evidence-package assembly/approval-ledger logic unchanged. The OpenAI provider reuses the project's existing testable-HTTP-seam convention (the `client_factory` pattern from F3's `acquisition/http_client.py`) rather than adding the `openai` SDK — no new runtime dependency (`httpx` is already required). The approval/audit persistence reuses the F5/Phase-2 immutable-ledger + append-only-history pattern. No QVault or Whisper Studio source was consulted or reused for Phase 3.
+
+New Phase 3 source components and their SHA-256:
+
+| Component | Role | SHA-256 |
+|---|---|---|
+| `backend/defence_studio/contracts/script.py` | Script request/response/revision/validation/approval contracts + deterministic word-count/duration helpers (extends the pre-existing offline boundary) | `a5bde7b55cc4d704971ec201b40bdc89e53bfc158ba820cd559e73d30df3e8ea` |
+| `backend/defence_studio/providers/__init__.py` | Provider package marker | `e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855` |
+| `backend/defence_studio/providers/openai_text.py` | Bounded, retrying OpenAI Chat-Completions client behind a testable `client_factory` seam; env-based key; INR cost table | `463d2a61556f1f86c4e5e0b81dcfc814d46790b63fc140b3c0bbe45f4319435d` |
+| `backend/defence_studio/services/script.py` | `ScriptService`: generation, revision persistence, review/approval lifecycle, export | `e8dbcb48b1f2fc9f958b85acb37b830b1704ac996b924adc7482309a9a45e955` |
+| `backend/defence_studio/services/script_validation.py` | Deterministic evidence-grounded structural validation | `2ae9d733dd336f6fcee0641078544b09a119d8e1fd4f61a4b74bf85c47e18e09` |
+| `backend/defence_studio/services/script_prompt.py` | Deterministic, source-grounded prompt construction (terminology preservation, approved-claims-only) | `425ade2be85be98ee17b0c2df0700c8a608862224aaf49f2e288cceefef2a999` |
+
+Modified existing files and their post-change SHA-256 (all additive; no prior behavior removed):
+
+| Component | Change | SHA-256 |
+|---|---|---|
+| `backend/defence_studio/database.py` | Added schema v5 migration `_upgrade_v4_to_v5` (`script_revisions` + `script_review_history`); accept prior versions {1,2,3,4,5} | `833938c6aebe6aff3f08d24a94b46be0d946840d236fe149bd6e409a458ead2d` |
+| `backend/defence_studio/api/app.py` | Added the `/script/...` routes and wired `ScriptService`; Phase 3 errors reuse the existing `ReviewError` handler | `32f91abdd1b22df5bcef3cf3f778653e7bd35ec004426fb53f15c45f9b3454c1` |
+
+New frontend components: `frontend/js/views/script-view.js` (Script tab: generation controls, narration/evidence/validation viewer, revision history, review feedback, approval, export) reuses the existing text-field (UI-01), confirm-dialog (UI-04), and toast primitives; `frontend/js/api.js`, `frontend/js/app.js`, and `frontend/styles/main.css` gained additive Script-tab wiring. (Frontend fingerprints are omitted here consistent with the prior phases' provenance tables, which fingerprint backend source only.)
+
+Note: `contracts/script.py`'s SHA-256 reflects the file at Phase 3 completion; a concurrent session was observed editing it (adding optional `tone`/`audience`/`depth` fields to `ScriptRequestV1`), so recompute from disk if reconciling against a later edit.

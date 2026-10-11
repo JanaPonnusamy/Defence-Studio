@@ -178,8 +178,32 @@ class JobService:
             connection.commit()
             return self._serialize(repo, repo.get_job(job_id))
 
+    def add_pretransition_artifact(self, job_id: str, owner_id: str, stage_key: str, artifact_type: str,
+                                   uri: str, sha256: str, schema_version: str):
+        """Attach an owner-submitted input artifact to a stage that has not
+        started yet, before the job is queued.
+
+        `add_artifact` deliberately requires a stage to have started, because
+        it is meant for worker-produced outputs. The very first real stage in
+        a job has no predecessor of its own to carry its input, so an owner
+        must be able to attach one to `application_foundation` (which has no
+        handler/work of its own) while the job is still `DRAFT` -- before any
+        worker claim exists, so there is no claim-fencing race to protect
+        against. Restricting this to `DRAFT` jobs is what keeps it safe: once
+        queued, only `add_artifact`'s stricter started/claim rules apply.
+        """
+        with closing(connect(self.database_file)) as connection:
+            repo = JobRepository(connection)
+            job = repo.get_owned_job(job_id, owner_id)
+            if job is None:
+                raise JobNotFound("Workflow job not found")
+            if job["status"] != "DRAFT":
+                raise InvalidTransition("Pre-queue artifacts can only be attached to a draft job")
+        return self.add_artifact(job_id, owner_id, stage_key, artifact_type, uri, sha256,
+                                 schema_version, _require_started=False)
+
     def add_artifact(self, job_id: str, owner_id: str, stage_key: str, artifact_type: str,
-                     uri: str, sha256: str, schema_version: str):
+                     uri: str, sha256: str, schema_version: str, _require_started: bool = True):
         for value, name in ((artifact_type, "artifact_type"), (schema_version, "schema_version")):
             if not _IDENTIFIER.fullmatch(value or ""):
                 raise JobValidationError(f"Invalid {name}")
@@ -207,7 +231,7 @@ class JobService:
                 (job_id, stage_key),
             ).fetchone():
                 raise InvalidTransition("Artifact references for an active claim must commit with its result")
-            if stage["version"] == 1 and stage["status"] == "PENDING":
+            if _require_started and stage["version"] == 1 and stage["status"] == "PENDING":
                 raise JobValidationError("An artifact can be recorded only after its stage has started")
             version = connection.execute(
                 "SELECT COALESCE(MAX(version), 0) + 1 FROM workflow_artifacts WHERE job_id = ? AND artifact_type = ?",

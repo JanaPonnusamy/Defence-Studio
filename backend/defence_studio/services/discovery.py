@@ -34,13 +34,18 @@ from __future__ import annotations
 
 import hashlib
 import json
+import uuid
+from contextlib import closing
+from datetime import datetime, timezone
 from pathlib import Path
+
+from defence_studio.database import connect
+from defence_studio.repositories.jobs import JobRepository
 
 from defence_studio.contracts.discovery import (
     DISCOVERY_PREDECESSOR_STAGE,
     DISCOVERY_REQUEST_SCHEMA,
     DISCOVERY_STAGE,
-    DiscoveryRequestV1,
     RequestValidationError,
     request_from_dict,
     request_to_dict,
@@ -92,24 +97,16 @@ class DiscoveryApiService:
             raise DiscoveryValidationError(str(exc)) from None
 
         discovery_stage = self._stage(job, DISCOVERY_STAGE)
-        if discovery_stage["status"] != "PENDING":
+        if discovery_stage["status"] != "PENDING" or job["status"] != "DRAFT":
             raise DiscoveryConflict(
-                f"Discovery has already {discovery_stage['status'].lower()}; "
+                "Discovery has already started (or the job has been queued); "
                 "the request can no longer be changed for this job."
             )
-
-        predecessor = self._stage(job, DISCOVERY_PREDECESSOR_STAGE)
-        if predecessor["status"] == "PENDING":
-            try:
-                self.jobs.transition(job_id, owner_id, DISCOVERY_PREDECESSOR_STAGE, "SKIPPED")
-            except (InvalidTransition, JobValidationError) as exc:
-                raise DiscoveryError(str(exc)) from None
-            job = self.jobs.get(job_id, owner_id)
 
         body = json.dumps(request_to_dict(request), ensure_ascii=False, sort_keys=True,
                           separators=(",", ":")).encode("utf-8")
         content_sha256 = hashlib.sha256(body).hexdigest()
-        uri = f"jobs/{job_id}/discovery/discovery_request.json"
+        uri = f"jobs/{job_id}/discovery/{content_sha256}.json"
 
         existing = self._latest_artifact(job, DISCOVERY_REQUEST_ARTIFACT_TYPE)
         if existing is not None and existing["sha256"] == content_sha256:
@@ -117,7 +114,7 @@ class DiscoveryApiService:
         else:
             stored = self.store.write_bytes(job_id, uri, body, "application/json")
             try:
-                ref = self.jobs.add_artifact(
+                ref = self.jobs.add_pretransition_artifact(
                     job_id, owner_id, DISCOVERY_PREDECESSOR_STAGE, DISCOVERY_REQUEST_ARTIFACT_TYPE,
                     stored.uri, stored.sha256, DISCOVERY_REQUEST_SCHEMA,
                 )
@@ -183,7 +180,18 @@ class DiscoveryApiService:
     # -- selection / confirmation ------------------------------------------------
 
     def select_candidates(self, job_id: str, owner_id: str, candidate_ids: list[str]) -> dict:
-        job = self._check_ownership(job_id, owner_id)
+        with closing(connect(self.jobs.database_file)) as connection:
+            connection.execute("BEGIN IMMEDIATE")
+            repo = JobRepository(connection)
+            row = repo.get_owned_job(job_id, owner_id)
+            if row is None:
+                raise DiscoveryNotFound("Workflow job not found")
+            job = self.jobs._serialize(repo, row)
+            result = self._select_candidates(connection, job, job_id, owner_id, candidate_ids)
+            connection.commit()
+            return result
+
+    def _select_candidates(self, connection, job, job_id, owner_id, candidate_ids):
         discovery_stage = self._stage(job, DISCOVERY_STAGE)
         if discovery_stage["status"] != "COMPLETED":
             raise DiscoveryValidationError(
@@ -205,6 +213,8 @@ class DiscoveryApiService:
         if unknown:
             raise DiscoveryValidationError(f"Unknown candidate_id(s): {unknown}")
 
+        candidate_ids = sorted(candidate_ids)
+
         targets = []
         for cid in candidate_ids:
             candidate = index[cid]
@@ -223,20 +233,24 @@ class DiscoveryApiService:
         body = json.dumps(acquisition_request, ensure_ascii=False, sort_keys=True,
                           separators=(",", ":")).encode("utf-8")
         content_sha256 = hashlib.sha256(body).hexdigest()
-        uri = f"jobs/{job_id}/discovery/acquisition_request.json"
+        uri = f"jobs/{job_id}/discovery/{content_sha256}.json"
 
         existing = self._latest_artifact(job, ACQUISITION_REQUEST_ARTIFACT_TYPE)
         if existing is not None and existing["sha256"] == content_sha256:
+            self._read_json(job_id, existing)
             ref = existing
         else:
+            acquisition = self._stage(job, "topic_search_and_source_collection")
+            if acquisition["status"] != "PENDING" or acquisition["attempt_count"]:
+                raise DiscoveryConflict("Selection is locked once acquisition has started; create a new research job")
             stored = self.store.write_bytes(job_id, uri, body, "application/json")
-            try:
-                ref = self.jobs.add_artifact(
-                    job_id, owner_id, DISCOVERY_STAGE, ACQUISITION_REQUEST_ARTIFACT_TYPE,
-                    stored.uri, stored.sha256, "defence-studio.acquisition-request.v1",
-                )
-            except (InvalidTransition, JobValidationError) as exc:
-                raise DiscoveryError(str(exc)) from None
+            version = 1 + (existing["version"] if existing else 0)
+            artifact_id = str(uuid.uuid4())
+            connection.execute("INSERT INTO workflow_artifacts VALUES(?,?,?,?,?,?,?,?,?)", (
+                artifact_id, job_id, DISCOVERY_STAGE, ACQUISITION_REQUEST_ARTIFACT_TYPE, version,
+                stored.uri, stored.sha256, ACQUISITION_REQUEST_SCHEMA_VERSION,
+                datetime.now(timezone.utc).isoformat(timespec="microseconds")))
+            ref = dict(connection.execute("SELECT * FROM workflow_artifacts WHERE artifact_id=?", (artifact_id,)).fetchone())
 
         return {
             "job_id": job_id, "selected_candidate_ids": candidate_ids,
