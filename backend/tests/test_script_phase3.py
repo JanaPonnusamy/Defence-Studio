@@ -479,6 +479,40 @@ def test_export_approved_requires_approval_and_current_package(approved):
         s["service"].export_approved(s["job"], OWNER, "xx")
 
 
+def test_revisions_and_approval_persist_across_a_fresh_service_instance(approved):
+    """Simulated server restart: a new `ScriptService` against the same
+    database file/storage root (no shared Python object, no cache) must see
+    the exact same draft and approved revisions, status, and history -- the
+    same pattern F5/Phase 2 already use to prove restart durability."""
+    s = approved
+    draft_revision = s["service"].generate(s["job"], OWNER, GOOD_CONFIG, "gen-restart-draft")
+    sha = s["service"].list_revisions(s["job"], OWNER)["revisions"][0]["revision_sha256"]
+    approved_record = s["service"].approve(
+        s["job"], OWNER, "ta", draft_revision["version"], sha, "Approved before restart", "approve-restart",
+    )
+    history_before = s["service"].revision_history(s["job"], OWNER, "ta", draft_revision["version"])
+
+    # A brand-new service instance (no shared process state) over the same files.
+    restarted = ScriptService(s["db"], s["root"], provider=s["provider"])
+    revisions_after = restarted.list_revisions(s["job"], OWNER)["revisions"]
+    assert len(revisions_after) == 1
+    assert revisions_after[0]["status"] == "APPROVED"
+    assert revisions_after[0]["revision_sha256"] == sha
+
+    refetched = restarted.get_revision(s["job"], OWNER, "ta", draft_revision["version"])
+    assert refetched["status"] == "APPROVED"
+    assert refetched["approval"]["revision_sha256"] == sha
+    assert refetched["sections"] == draft_revision["sections"]
+
+    history_after = restarted.revision_history(s["job"], OWNER, "ta", draft_revision["version"])
+    assert history_after == history_before
+    assert len(history_after) == 1 and history_after[0]["action"] == "APPROVED"
+
+    exported = restarted.export_approved(s["job"], OWNER, "ta")
+    assert exported["status"] == "APPROVED"
+    assert exported["approval"]["revision_sha256"] == approved_record["revision_sha256"]
+
+
 def test_phase3_module_has_no_downstream_production_imports():
     import ast
     import pathlib

@@ -17,6 +17,7 @@ const PATHS = {
   shield: '<path d="M12 3 20 6v6c0 5-3.5 7.5-8 9-4.5-1.5-8-4-8-9V6Z"/><path d="M9 12l2 2 4-4"/>',
   // Script: narration lines
   script: '<path d="M5 4h11l3 3v13H5Z"/><path d="M8 9h8"/><path d="M8 13h8"/><path d="M8 17h5"/>',
+  scene: '<rect x="3" y="6" width="18" height="12" rx="1.5"/><path d="M7 6v12M17 6v12"/><circle cx="12" cy="12" r="2.2"/>',
   // Dashboard: tiled overview
   grid: '<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>',
   // Sign out

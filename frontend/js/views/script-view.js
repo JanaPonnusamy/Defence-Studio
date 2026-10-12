@@ -21,13 +21,36 @@ export async function mountScript({ api, jobId, list, detail, filters, isCurrent
   let state = { language: "ta" };
   const showError = (error) => { if (isCurrent()) list.innerHTML = `<p role="alert" class="error-state">${esc(error.message)}</p>`; };
 
+  // Evidence readiness is checked proactively (not only discovered after a
+  // failed generate attempt) so the operator sees an honest "not ready yet"
+  // state -- driven entirely by the real persisted package, same source of
+  // truth the server itself re-checks before every generation call.
+  const readinessHtml = (evidence) => {
+    if (!evidence) return "";
+    const approved = !!evidence.current_approval;
+    if (approved) {
+      return `<p class="inline-ok" role="status">Evidence package is approved and current -- generation is available.</p>`;
+    }
+    const blockers = (evidence.package && evidence.package.blockers) || [];
+    return `<div class="inline-blocked" role="alert">
+      <strong>Evidence not ready for script generation.</strong>
+      <p>The evidence package must be human-approved on the Evidence tab before a script can be generated.</p>
+      ${blockers.length ? `<ul>${blockers.slice(0, 5).map(b => `<li>${esc(typeof b === "string" ? b : JSON.stringify(b))}</li>`).join("")}</ul>` : ""}
+    </div>`;
+  };
+
   const render = async () => {
     try {
-      const result = await api.listScriptRevisions(jobId);
+      const [result, evidence] = await Promise.all([
+        api.listScriptRevisions(jobId),
+        api.evidencePackage(jobId).catch(() => null),
+      ]);
       if (!isCurrent()) return;
       const revisions = result.revisions || [];
+      const evidenceReady = !!(evidence && evidence.current_approval);
       const byLanguage = { ta: revisions.filter(r => r.language === "ta"), en: revisions.filter(r => r.language === "en") };
       list.innerHTML = `<h2>Script generation</h2>
+        ${readinessHtml(evidence)}
         <form id="script-generate-form">
           <fieldset><legend>Generate a draft</legend>
             <label>Language
@@ -41,7 +64,8 @@ export async function mountScript({ api, jobId, list, detail, filters, isCurrent
             ${textFieldHtml({ id: "gen-model", label: "Model", value: DEFAULT_CONFIG.model })}
             ${textFieldHtml({ id: "gen-budget", label: "Max text-generation cost (INR)", value: String(DEFAULT_CONFIG.max_text_cost_inr) })}
             ${textFieldHtml({ id: "gen-terminology", label: "Preserve terms (comma-separated)", placeholder: "Rafale, AESA, DRDO" })}
-            <button type="submit" id="gen-submit">Generate draft</button>
+            <button type="submit" id="gen-submit" ${evidenceReady ? "" : "disabled"}>Generate draft</button>
+            ${evidenceReady ? "" : '<p class="meta">Generation is disabled until the evidence package is approved.</p>'}
           </fieldset>
         </form>
         <div id="script-gen-status" role="status"></div>

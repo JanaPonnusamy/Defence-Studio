@@ -3,6 +3,7 @@ import { escapeHtml } from "./components/status-badge.js";
 import { icon } from "./components/icons.js";
 import { mountEvidence } from "./views/evidence-view.js";
 import { mountScript } from "./views/script-view.js";
+import { mountScene } from "./views/scene-view.js";
 import { loadSession, saveToken, saveJobId } from "./state.js";
 import { textFieldHtml } from "./components/text-field.js";
 import { showToast } from "./components/toast.js";
@@ -20,7 +21,7 @@ const session = loadSession();
 const state = {
   token: session.token,
   jobId: session.jobId,
-  tab: "dashboard", // "dashboard" | "sources" | "claims" | "discovery" | "evidence" | "script"
+  tab: "dashboard", // "dashboard" | "sources" | "claims" | "discovery" | "evidence" | "script" | "scene"
   jobsResult: null,
   sourceStatus: "",
   claimStatus: "",
@@ -233,6 +234,8 @@ function parseHash() {
     state.tab = "discovery";
   } else if (parts[0] === "script") {
     state.tab = "script";
+  } else if (parts[0] === "scene") {
+    state.tab = "scene";
   } else {
     state.tab = "sources";
     state.selectedSourceId = parts[1] ? decodeURIComponent(parts[1]) : null;
@@ -289,7 +292,8 @@ function renderTabs() {
     ${tab("sources", "layers", "Sources")}
     ${tab("claims", "claims", "Claims")}
     ${tab("evidence", "shield", "Evidence")}
-    ${tab("script", "script", "Script")}`;
+    ${tab("script", "script", "Script")}
+    ${tab("scene", "scene", "Scene")}`;
   el.tabs.querySelectorAll("[data-tab]").forEach((btn) => {
     btn.addEventListener("click", () => {
       setHash(btn.dataset.tab, null);
@@ -298,7 +302,7 @@ function renderTabs() {
 }
 
 function renderFilters() {
-  if (state.tab === "evidence" || state.tab === "script" || state.tab === "dashboard") { el.filters.innerHTML = ""; return; }
+  if (state.tab === "evidence" || state.tab === "script" || state.tab === "scene" || state.tab === "dashboard") { el.filters.innerHTML = ""; return; }
   const statusOptions = ["", "PENDING", "APPROVED_FOR_USE", "REJECTED", "NEEDS_MORE_EVIDENCE", "CONFLICT_UNRESOLVED"];
   const optionHtml = (value) => `<option value="${value}">${value || "All statuses"}</option>`;
   if (state.tab === "discovery") {
@@ -659,6 +663,12 @@ function dispatchTab() {
     const jobId = state.jobId;
     mountScript({api, jobId, list:el.list, detail:el.detail, filters:el.filters,
       isCurrent:() => state.tab === "script" && state.jobId === jobId});
+  }
+  else if (state.tab === "scene") {
+    if (!requireJob()) return;
+    const jobId = state.jobId;
+    mountScene({api, jobId, list:el.list, detail:el.detail, filters:el.filters,
+      isCurrent:() => state.tab === "scene" && state.jobId === jobId});
   }
   else if (state.tab === "discovery") loadDiscovery();
   else if (state.tab === "sources") loadSources();

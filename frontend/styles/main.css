@@ -286,7 +286,7 @@ label {
 /* Brand bar — Defence Studio identity + connection/job context + theme toggle */
 .brandbar {
   position: sticky; top: 0; z-index: 40;
-  display: flex; align-items: center; gap: 1rem;
+  display: flex; align-items: center; flex-wrap: wrap; gap: 0.5rem 1rem;
   padding: 0.55rem 1rem;
   background: color-mix(in srgb, var(--surface-1) 86%, transparent);
   backdrop-filter: blur(10px);
@@ -313,7 +313,10 @@ label {
   text-transform: uppercase; white-space: nowrap;
   overflow: hidden; text-overflow: ellipsis;
 }
-.brandbar-right { margin-left: auto; display: flex; align-items: center; gap: 0.6rem; }
+.brandbar-right {
+  margin-left: auto; display: flex; align-items: center; gap: 0.6rem;
+  min-width: 0; flex-wrap: wrap; justify-content: flex-end;
+}
 
 /* Real connection / job-context indicator (driven by a getJob probe) */
 .conn {
@@ -674,6 +677,26 @@ details[open] > summary { margin-bottom: 0.3rem; }
   border-left-width: 3px; border-radius: var(--r-md);
   overflow-wrap: anywhere;
 }
+/* Inline positive-status variant (e.g. "evidence package is approved and
+   current") -- same shape as .inline-warn, the --approved/--ok-bg tokens. */
+.inline-ok {
+  margin: 0.6rem 0; padding: 0.6rem 0.75rem;
+  text-align: left; font-size: 0.86rem; color: var(--approved);
+  background: var(--ok-bg);
+  border: 1px solid color-mix(in srgb, var(--approved) 35%, transparent);
+  border-left-width: 3px; border-radius: var(--r-md);
+}
+/* Inline blocked/not-ready variant -- left-aligned, sits inline within a
+   populated panel (unlike the full-height centred .error-state). */
+.inline-blocked {
+  margin: 0.6rem 0; padding: 0.7rem 0.85rem;
+  text-align: left; font-size: 0.86rem; color: var(--rejected);
+  background: var(--danger-bg);
+  border: 1px solid color-mix(in srgb, var(--rejected) 35%, transparent);
+  border-left-width: 3px; border-radius: var(--r-md);
+  overflow-wrap: anywhere;
+}
+.inline-blocked ul { margin: 0.4rem 0 0; padding-left: 1.2rem; }
 .loading-state { position: relative; }
 .loading-state::after {
   content: ""; display: inline-block; margin-left: 0.6rem;
@@ -815,12 +838,18 @@ details[open] > summary { margin-bottom: 0.3rem; }
 .login-error { margin: 1rem 0 0; }
 
 /* ======================================================= Session control */
-.session-control { display: inline-flex; align-items: center; gap: 0.4rem; }
+.session-control { display: inline-flex; align-items: center; gap: 0.4rem; min-width: 0; }
 .session-owner {
   display: inline-flex; align-items: center; gap: 0.4rem;
   font-size: 0.8rem; color: var(--muted);
   font-family: var(--font-mono);
-  max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  max-width: min(180px, 30vw); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+/* Below 480px the session owner label collapses alongside the wordmark (see
+   the brand collapse rule) so the sign-out control and connection chip never
+   force the brand bar wider than the viewport. */
+@media (max-width: 479px) {
+  .session-owner { display: none; }
 }
 .session-dot {
   width: 7px; height: 7px; border-radius: 50%;

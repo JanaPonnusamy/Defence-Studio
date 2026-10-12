@@ -101,6 +101,74 @@ def test_register_cross_owner_denied(approved_plan):
 
 
 # ---------------------------------------------------------------------------
+# 1b. Cross-owner isolation regression tests (Phase 5A).
+#
+# The audit found that every AssetService method already calls
+# _check_ownership/_check_ownership_locked (confirmed by code inspection), but
+# only register_asset had an explicit regression test. These five tests close
+# that gap for set_rights, assign_asset, review_asset, list_assignments, and
+# assignment_readiness -- each against the job's real owner (OWNER, set up by
+# approved_script/_basic_job) vs. a different, non-owning caller. No
+# production code is changed; these tests assert existing behavior.
+# ---------------------------------------------------------------------------
+
+def test_set_rights_cross_owner_denied(approved_plan):
+    s = approved_plan
+    from defence_studio.services.review import ReviewNotFound
+    aid = _register(s, "reg-so-rights")["asset_id"]
+    with pytest.raises(ReviewNotFound):
+        s["assets"].set_rights(s["job"], "someone-else", aid, _rights(), "so-rights-1")
+    # The real owner's rights call is unaffected by the rejected attempt.
+    ok = s["assets"].set_rights(s["job"], OWNER, aid, _rights(), "so-rights-2")
+    assert ok["effective_rights"] == "CLEAR"
+
+
+def test_assign_asset_cross_owner_denied(approved_plan):
+    s = approved_plan
+    from defence_studio.services.review import ReviewNotFound
+    aid = _clear_asset(s, "reg-so-assign")
+    scene_id = s["scene_ids"][0]
+    with pytest.raises(ReviewNotFound):
+        s["assets"].assign_asset(s["job"], "someone-else", "ta", scene_id, aid, "so-assign-1")
+    # No assignment was created by the rejected cross-owner call.
+    assert s["assets"].list_assignments(s["job"], OWNER, "ta")["assignments"] == []
+
+
+def test_review_asset_cross_owner_denied(approved_plan):
+    s = approved_plan
+    from defence_studio.services.review import ReviewNotFound
+    aid = _register(s, "reg-so-review")["asset_id"]
+    a = s["assets"].set_rights(s["job"], OWNER, aid, _rights(), "so-review-rights")
+    with pytest.raises(ReviewNotFound):
+        s["assets"].review_asset(s["job"], "someone-else", aid, "APPROVED", a["asset_sha256"],
+                                 a["rights_sha256"], 0, "n", "so-review-1")
+    # The rejected cross-owner decision left the asset un-reviewed; the real
+    # owner's history is empty and the asset is still DRAFT.
+    assert s["assets"].asset_review_history(s["job"], OWNER, aid) == []
+    assert s["assets"].get_asset(s["job"], OWNER, aid)["review_status"] == "DRAFT"
+
+
+def test_list_assignments_cross_owner_denied(approved_plan):
+    s = approved_plan
+    from defence_studio.services.review import ReviewNotFound
+    aid = _clear_asset(s, "reg-so-list")
+    s["assets"].assign_asset(s["job"], OWNER, "ta", s["scene_ids"][0], aid, "so-list-assign")
+    with pytest.raises(ReviewNotFound):
+        s["assets"].list_assignments(s["job"], "someone-else", "ta")
+    # The real owner can still see the assignment -- the denial is caller-scoped.
+    assert len(s["assets"].list_assignments(s["job"], OWNER, "ta")["assignments"]) == 1
+
+
+def test_assignment_readiness_cross_owner_denied(approved_plan):
+    s = approved_plan
+    from defence_studio.services.review import ReviewNotFound
+    with pytest.raises(ReviewNotFound):
+        s["assets"].assignment_readiness(s["job"], "someone-else", "ta")
+    # The real owner's readiness read still works.
+    assert s["assets"].assignment_readiness(s["job"], OWNER, "ta")["job_id"] == s["job"]
+
+
+# ---------------------------------------------------------------------------
 # 2. Rights revisions + deterministic re-evaluation
 # ---------------------------------------------------------------------------
 

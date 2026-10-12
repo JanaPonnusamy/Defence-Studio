@@ -175,6 +175,12 @@ Portability: **STANDALONE** (lift single file) · **BUNDLE** (lift listed files)
 |---|---|---|---|---|---|---|
 | P3-V1 | Script view: generation controls, narration/evidence/validation viewer, revision history, review feedback, approval, export (calls `/script/*`) | `frontend/js/views/script-view.js` | COUPLED (Phase 3 API shape) | UI-01, UI-04, F5-V1 | module docstring | VERIFIED (code; browser pending) |
 
+## Frontend — Phase 4 M1 scene view (business-specific, not a reusable primitive)
+
+| ID | Component | Canonical path | Portability | External deps | README / contract | Status |
+|---|---|---|---|---|---|---|
+| P4-V1 | Scene plan view: generation controls (script-readiness gated), scene list/detail with draft/awaiting-review/changes-requested/approved/superseded state display, review feedback, approval (calls `/scene/*`) | `frontend/js/views/scene-view.js` | COUPLED (Phase 4 M1 API shape) | UI-01, UI-04, P3-V1 | module docstring | VERIFIED (code; browser pending) |
+
 ## YouTube publishing (Phase 9 / YT spec) — not built yet
 
 > Components specified in `DEFENCE_STUDIO_YOUTUBE_INTEGRATION_SPECIFICATION.md`

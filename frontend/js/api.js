@@ -206,6 +206,51 @@ export function createApiClient(getToken) {
         headers: authHeaders(getToken()),
       }));
     },
+    // -- Phase 4 M1: scene planning, persistence, editing, approval ----------
+    async listScenePlans(jobId, language) {
+      const qs = language ? `?language=${encodeURIComponent(language)}` : "";
+      return handle(await fetch(`${base}/jobs/${encodeURIComponent(jobId)}/scene/plans${qs}`, {
+        headers: authHeaders(getToken()),
+      }));
+    },
+    async getScenePlan(jobId, language, version) {
+      return handle(await fetch(
+        `${base}/jobs/${encodeURIComponent(jobId)}/scene/plans/${encodeURIComponent(language)}/${version}`,
+        { headers: authHeaders(getToken()) },
+      ));
+    },
+    async getScenePlanHistory(jobId, language, version) {
+      return handle(await fetch(
+        `${base}/jobs/${encodeURIComponent(jobId)}/scene/plans/${encodeURIComponent(language)}/${version}/history`,
+        { headers: authHeaders(getToken()) },
+      ));
+    },
+    async generateScenePlan(jobId, config, idempotencyKey) {
+      return handle(await fetch(`${base}/jobs/${encodeURIComponent(jobId)}/scene/generate`, {
+        method: "POST", headers: authHeaders(getToken(), { "Idempotency-Key": idempotencyKey }), body: JSON.stringify(config),
+      }));
+    },
+    async reviseScenePlan(jobId, language, baseVersion, edits, idempotencyKey) {
+      return handle(await fetch(`${base}/jobs/${encodeURIComponent(jobId)}/scene/plans/${encodeURIComponent(language)}/revise`, {
+        method: "POST", headers: authHeaders(getToken(), { "Idempotency-Key": idempotencyKey }),
+        body: JSON.stringify({ base_version: baseVersion, edits }),
+      }));
+    },
+    async requestScenePlanChanges(jobId, language, version, note, idempotencyKey) {
+      return handle(await fetch(
+        `${base}/jobs/${encodeURIComponent(jobId)}/scene/plans/${encodeURIComponent(language)}/${version}/request-changes`,
+        { method: "POST", headers: authHeaders(getToken(), { "Idempotency-Key": idempotencyKey }), body: JSON.stringify({ note }) },
+      ));
+    },
+    async approveScenePlan(jobId, language, version, planSha256, note, idempotencyKey) {
+      return handle(await fetch(
+        `${base}/jobs/${encodeURIComponent(jobId)}/scene/plans/${encodeURIComponent(language)}/${version}/approve`,
+        {
+          method: "POST", headers: authHeaders(getToken(), { "Idempotency-Key": idempotencyKey }),
+          body: JSON.stringify({ plan_sha256: planSha256, note }),
+        },
+      ));
+    },
   };
 }
 
