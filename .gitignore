@@ -51,3 +51,9 @@ node_modules/
 *.log
 .vscode/
 .idea/
+
+# Standalone module builds (independent projects). Ignored by default; only the
+# video-visual-module is tracked here (it keeps its own .gitignore for .venv, .env,
+# storage/ and backups/).
+/standalone/*
+!/standalone/video-visual-module/
