@@ -16,6 +16,12 @@ class JobRepository:
             (job_id, owner_id),
         ).fetchone()
 
+    def list_owned_jobs(self, owner_id: str):
+        return self.connection.execute(
+            "SELECT * FROM workflow_jobs WHERE owner_id = ? ORDER BY created_at DESC",
+            (owner_id,),
+        ).fetchall()
+
     def stages(self, job_id: str):
         return self.connection.execute(
             "SELECT * FROM workflow_stages WHERE job_id = ? ORDER BY ordinal", (job_id,)

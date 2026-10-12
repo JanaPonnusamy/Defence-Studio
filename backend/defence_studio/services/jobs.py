@@ -106,6 +106,37 @@ class JobService:
                 raise JobNotFound("Workflow job not found")
             return self._serialize(repo, job)
 
+    def list_for_owner(self, owner_id: str):
+        """Return a lightweight, owner-scoped summary of each job for the
+        dashboard: identity, topic/language, status, timestamps, and a small
+        stage roll-up (completed / total / current). Full stage/artifact/claim
+        detail stays behind ``get`` so the list stays cheap."""
+        owner_id = self._required(owner_id, "owner_id")
+        with closing(connect(self.database_file)) as connection:
+            repo = JobRepository(connection)
+            summaries = []
+            for job in repo.list_owned_jobs(owner_id):
+                stages = repo.stages(job["job_id"])
+                done = sum(1 for s in stages if s["status"] in {"COMPLETED", "SKIPPED"})
+                current = next(
+                    (s["stage_key"] for s in stages
+                     if s["status"] in {"RUNNING", "AWAITING_REVIEW", "FAILED"}),
+                    None,
+                )
+                summaries.append({
+                    "job_id": job["job_id"],
+                    "owner_id": job["owner_id"],
+                    "topic": job["topic"],
+                    "language": job["language"],
+                    "status": job["status"],
+                    "created_at": job["created_at"],
+                    "updated_at": job["updated_at"],
+                    "stages_total": len(stages),
+                    "stages_completed": done,
+                    "current_stage": current,
+                })
+            return summaries
+
     def transition(self, job_id: str, owner_id: str, stage_key: str, to_status: str, error: str = ""):
         if to_status not in STAGE_STATUSES or to_status == "PENDING":
             raise JobValidationError("Unsupported stage status")

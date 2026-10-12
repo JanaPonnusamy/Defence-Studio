@@ -10,6 +10,7 @@ import { textFieldHtml } from "../components/text-field.js";
 import { confirmDialog } from "../components/confirm-dialog.js";
 import { newIdempotencyKey } from "../api.js";
 import { showToast } from "../components/toast.js";
+import { icon } from "../components/icons.js";
 
 const DECISIONS = [
   { value: "APPROVED_FOR_USE", label: "Approve for use", danger: false,
@@ -30,8 +31,9 @@ export function renderDecisionPanelHtml(review, isStale) {
     : `<p>${statusBadgeHtml("PENDING")} -- no decision recorded yet.</p>`;
 
   const staleWarning = isStale
-    ? `<p class="error-state">This decision was made against a revision that has since been superseded.
-       Reload to review the current evidence before deciding again.</p>`
+    ? `<p class="inline-warn" role="status"><span aria-hidden="true">${icon("alert", { size: 14 })}</span>
+       <span>This decision was made against a revision that has since been superseded.
+       Reload to review the current evidence before deciding again.</span></p>`
     : "";
 
   return `

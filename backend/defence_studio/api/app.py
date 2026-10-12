@@ -1,13 +1,14 @@
 from contextlib import asynccontextmanager
 from pathlib import Path
 
-from fastapi import Depends, FastAPI, Header, Query
+from fastapi import Depends, FastAPI, Header, Query, Request
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field, ConfigDict
 
-from defence_studio.auth import authenticated_user
+from defence_studio.auth import authenticated_user, mint_dev_session_token
 from defence_studio.config import PROJECT_ROOT, auth_secret, database_path, storage_root
+from defence_studio.dev_auth import DevAuthConfig, load_dev_auth_config, request_is_loopback
 from defence_studio.database import initialize_database
 from defence_studio.services.discovery import DiscoveryApiService, DiscoveryError
 from defence_studio.services.jobs import JobError, JobService
@@ -115,12 +116,21 @@ def create_app(
     database_file: Path | None = None,
     signing_secret: str | None = None,
     storage_root_path: Path | None = None,
+    dev_auth: DevAuthConfig | None = None,
 ) -> FastAPI:
     db_path = Path(database_file) if database_file else database_path()
     secret = signing_secret if signing_secret is not None else auth_secret()
     if len(secret.encode()) < 32:
         raise RuntimeError("Set DEFENCE_STUDIO_AUTH_SECRET to a random secret of at least 32 bytes")
     store_root = Path(storage_root_path) if storage_root_path else storage_root()
+    # Dev-auth bypass is opt-in and off by default (``load_dev_auth_config``
+    # returns a disabled config unless both DEV_MODE and DEV_AUTH_BYPASS are
+    # set). Tests may inject an explicit config; production leaves it ``None``
+    # so the environment decides.
+    dev_config = dev_auth if dev_auth is not None else load_dev_auth_config()
+    # One shared dependency instance: production path when the bypass is unsafe,
+    # loopback bypass when it is safe. Reused across every authed route below.
+    require_owner = authenticated_user(secret, dev_config)
     jobs = JobService(db_path)
     worker_service = WorkerService(db_path)
     review = ReviewService(db_path, store_root)
@@ -157,20 +167,53 @@ def create_app(
     # the existing review_error_handler above already covers every Phase 3
     # error path with the correct status codes.
 
+    @app.get("/api/dev/session")
+    def dev_session(request: Request):
+        """Mint a short-lived bearer token for local development.
+
+        Returns a token **only** when the dev-auth bypass is safely configured
+        (opt-in env flags) *and* the request is a direct loopback request with
+        no proxy headers. In every other configuration it responds 404 -- it is
+        not an unauthenticated public diagnostic endpoint, and it never reveals
+        whether the server is in dev mode to a non-loopback caller. The signing
+        secret is never returned; only a normal token the UI can use.
+        """
+        loopback = request_is_loopback(
+            request.client.host if request.client else None, request.headers
+        )
+        if not (dev_config.safe and loopback):
+            return JSONResponse(status_code=404, content={"detail": "Not found"})
+        token = mint_dev_session_token(secret, dev_config.owner_id, minutes=60)
+        return {
+            "owner_id": dev_config.owner_id,
+            "token": token,
+            "token_type": "Bearer",
+            "mode": "development",
+        }
+
     @app.post("/api/jobs", status_code=201)
     def create_job(
         body: CreateJobBody,
         idempotency_key: str = Header(min_length=1, max_length=200, alias="Idempotency-Key"),
-        owner_id: str = Depends(authenticated_user(secret)),
+        owner_id: str = Depends(require_owner),
     ):
         return jobs.create(owner_id, idempotency_key, body.topic, body.language)
 
+    @app.get("/api/jobs")
+    def list_jobs(owner_id: str = Depends(require_owner)):
+        """List the authenticated owner's jobs (newest first).
+
+        Owner-scoped, so dashboard job selection is backed by real persisted
+        state while ownership isolation is preserved.
+        """
+        return {"jobs": jobs.list_for_owner(owner_id)}
+
     @app.get("/api/jobs/{job_id}")
-    def get_job(job_id: str, owner_id: str = Depends(authenticated_user(secret))):
+    def get_job(job_id: str, owner_id: str = Depends(require_owner)):
         return jobs.get(job_id, owner_id)
 
     @app.post("/api/jobs/{job_id}/queue")
-    def queue_job(job_id: str, owner_id: str = Depends(authenticated_user(secret))):
+    def queue_job(job_id: str, owner_id: str = Depends(require_owner)):
         worker_service.queue(job_id, owner_id)
         return jobs.get(job_id, owner_id)
 
@@ -179,7 +222,7 @@ def create_app(
         job_id: str,
         stage_key: str,
         body: StageTransitionBody,
-        owner_id: str = Depends(authenticated_user(secret)),
+        owner_id: str = Depends(require_owner),
     ):
         return jobs.transition(job_id, owner_id, stage_key, body.status, body.error)
 
@@ -187,7 +230,7 @@ def create_app(
     def add_artifact(
         job_id: str,
         body: ArtifactReferenceBody,
-        owner_id: str = Depends(authenticated_user(secret)),
+        owner_id: str = Depends(require_owner),
     ):
         return jobs.add_artifact(
             job_id, owner_id, body.stage_key, body.artifact_type, body.uri,
@@ -198,16 +241,16 @@ def create_app(
     def list_review_sources(
         job_id: str,
         status: str | None = Query(default=None),
-        owner_id: str = Depends(authenticated_user(secret)),
+        owner_id: str = Depends(require_owner),
     ):
         return review.list_sources(job_id, owner_id, status=status)
 
     @app.get("/api/jobs/{job_id}/review/sources/{source_id}")
-    def get_review_source(job_id: str, source_id: str, owner_id: str = Depends(authenticated_user(secret))):
+    def get_review_source(job_id: str, source_id: str, owner_id: str = Depends(require_owner)):
         return review.get_source(job_id, owner_id, source_id)
 
     @app.get("/api/jobs/{job_id}/review/sources/{source_id}/history")
-    def get_review_source_history(job_id: str, source_id: str, owner_id: str = Depends(authenticated_user(secret))):
+    def get_review_source_history(job_id: str, source_id: str, owner_id: str = Depends(require_owner)):
         return review.source_history(job_id, owner_id, source_id)
 
     @app.post("/api/jobs/{job_id}/review/sources/{source_id}/decisions", status_code=201)
@@ -216,7 +259,7 @@ def create_app(
         source_id: str,
         body: ReviewDecisionBody,
         idempotency_key: str = Header(min_length=1, max_length=200, alias="Idempotency-Key"),
-        owner_id: str = Depends(authenticated_user(secret)),
+        owner_id: str = Depends(require_owner),
     ):
         return review.decide_source(
             job_id, owner_id, source_id, body.decision, body.reviewed_artifact_sha256,
@@ -229,16 +272,16 @@ def create_app(
         status: str | None = Query(default=None),
         conflict: bool = Query(default=False),
         source_id: str | None = Query(default=None),
-        owner_id: str = Depends(authenticated_user(secret)),
+        owner_id: str = Depends(require_owner),
     ):
         return review.list_claims(job_id, owner_id, status=status, conflict_only=conflict, source_id=source_id)
 
     @app.get("/api/jobs/{job_id}/review/claims/{claim_id}")
-    def get_review_claim(job_id: str, claim_id: str, owner_id: str = Depends(authenticated_user(secret))):
+    def get_review_claim(job_id: str, claim_id: str, owner_id: str = Depends(require_owner)):
         return review.get_claim(job_id, owner_id, claim_id)
 
     @app.get("/api/jobs/{job_id}/review/claims/{claim_id}/history")
-    def get_review_claim_history(job_id: str, claim_id: str, owner_id: str = Depends(authenticated_user(secret))):
+    def get_review_claim_history(job_id: str, claim_id: str, owner_id: str = Depends(require_owner)):
         return review.claim_history(job_id, owner_id, claim_id)
 
     @app.post("/api/jobs/{job_id}/review/claims/{claim_id}/decisions", status_code=201)
@@ -247,7 +290,7 @@ def create_app(
         claim_id: str,
         body: ReviewDecisionBody,
         idempotency_key: str = Header(min_length=1, max_length=200, alias="Idempotency-Key"),
-        owner_id: str = Depends(authenticated_user(secret)),
+        owner_id: str = Depends(require_owner),
     ):
         return review.decide_claim(
             job_id, owner_id, claim_id, body.decision, body.reviewed_artifact_sha256,
@@ -258,12 +301,12 @@ def create_app(
     def create_discovery_request(
         job_id: str,
         body: DiscoveryRequestBody,
-        owner_id: str = Depends(authenticated_user(secret)),
+        owner_id: str = Depends(require_owner),
     ):
         return discovery.create_request(job_id, owner_id, body.model_dump())
 
     @app.get("/api/jobs/{job_id}/discovery/requests")
-    def get_discovery_request(job_id: str, owner_id: str = Depends(authenticated_user(secret))):
+    def get_discovery_request(job_id: str, owner_id: str = Depends(require_owner)):
         return discovery.get_request(job_id, owner_id)
 
     @app.get("/api/jobs/{job_id}/discovery/candidates")
@@ -274,7 +317,7 @@ def create_app(
         provider: str | None = Query(default=None),
         min_score: float | None = Query(default=None),
         query: str | None = Query(default=None),
-        owner_id: str = Depends(authenticated_user(secret)),
+        owner_id: str = Depends(require_owner),
     ):
         return discovery.list_candidates(
             job_id, owner_id, language=language, source_type=source_type,
@@ -282,19 +325,19 @@ def create_app(
         )
 
     @app.get("/api/jobs/{job_id}/discovery/candidates/{candidate_id}")
-    def get_discovery_candidate(job_id: str, candidate_id: str, owner_id: str = Depends(authenticated_user(secret))):
+    def get_discovery_candidate(job_id: str, candidate_id: str, owner_id: str = Depends(require_owner)):
         return discovery.get_candidate(job_id, owner_id, candidate_id)
 
     @app.post("/api/jobs/{job_id}/discovery/selection", status_code=201)
     def select_discovery_candidates(
         job_id: str,
         body: DiscoverySelectionBody,
-        owner_id: str = Depends(authenticated_user(secret)),
+        owner_id: str = Depends(require_owner),
     ):
         return discovery.select_candidates(job_id, owner_id, body.candidate_ids)
 
     @app.get("/api/jobs/{job_id}/discovery/selection")
-    def get_discovery_selection(job_id: str, owner_id: str = Depends(authenticated_user(secret))):
+    def get_discovery_selection(job_id: str, owner_id: str = Depends(require_owner)):
         return discovery.get_selection(job_id, owner_id)
 
     # -- Phase 1D / Phase 2: evidence timeline, package, readiness, approval,
@@ -311,16 +354,16 @@ def create_app(
         source_id: str | None = None,
         claim_id: str | None = None,
         language: str | None = None,
-        owner_id: str = Depends(authenticated_user(secret)),
+        owner_id: str = Depends(require_owner),
     ):
         return evidence.timeline(job_id, owner_id, start, end, source_id, claim_id, language)
 
     @app.get("/api/jobs/{job_id}/package")
-    def get_package(job_id: str, owner_id: str = Depends(authenticated_user(secret))):
+    def get_package(job_id: str, owner_id: str = Depends(require_owner)):
         return evidence.draft(job_id, owner_id)
 
     @app.get("/api/jobs/{job_id}/package/readiness")
-    def get_package_readiness(job_id: str, owner_id: str = Depends(authenticated_user(secret))):
+    def get_package_readiness(job_id: str, owner_id: str = Depends(require_owner)):
         state = evidence.draft(job_id, owner_id)
         package = state["package"]
         return {
@@ -338,12 +381,12 @@ def create_app(
         job_id: str,
         body: ApprovalBody,
         idempotency_key: str = Header(min_length=1, max_length=200, alias="Idempotency-Key"),
-        owner_id: str = Depends(authenticated_user(secret)),
+        owner_id: str = Depends(require_owner),
     ):
         return evidence.approve(job_id, owner_id, body.revision, body.note, idempotency_key)
 
     @app.get("/api/jobs/{job_id}/package/export")
-    def export_package(job_id: str, draft: bool = False, owner_id: str = Depends(authenticated_user(secret))):
+    def export_package(job_id: str, draft: bool = False, owner_id: str = Depends(require_owner)):
         return JSONResponse(evidence.export(job_id, owner_id, draft), headers={
             "Content-Disposition": 'attachment; filename="evidence-package.json"',
             "Cache-Control": "no-store",
@@ -358,21 +401,21 @@ def create_app(
     def list_script_revisions(
         job_id: str,
         language: str | None = Query(default=None),
-        owner_id: str = Depends(authenticated_user(secret)),
+        owner_id: str = Depends(require_owner),
     ):
         return scripts.list_revisions(job_id, owner_id, language)
 
     @app.get("/api/jobs/{job_id}/script/revisions/{language}/{version}")
     def get_script_revision(
         job_id: str, language: str, version: int,
-        owner_id: str = Depends(authenticated_user(secret)),
+        owner_id: str = Depends(require_owner),
     ):
         return scripts.get_revision(job_id, owner_id, language, version)
 
     @app.get("/api/jobs/{job_id}/script/revisions/{language}/{version}/history")
     def get_script_revision_history(
         job_id: str, language: str, version: int,
-        owner_id: str = Depends(authenticated_user(secret)),
+        owner_id: str = Depends(require_owner),
     ):
         return scripts.revision_history(job_id, owner_id, language, version)
 
@@ -381,7 +424,7 @@ def create_app(
         job_id: str,
         body: GenerationConfigV1,
         idempotency_key: str = Header(min_length=1, max_length=200, alias="Idempotency-Key"),
-        owner_id: str = Depends(authenticated_user(secret)),
+        owner_id: str = Depends(require_owner),
     ):
         return scripts.generate(job_id, owner_id, body.model_dump(), idempotency_key)
 
@@ -390,7 +433,7 @@ def create_app(
         job_id: str, language: str, version: int,
         body: ScriptReviewDecisionBody,
         idempotency_key: str = Header(min_length=1, max_length=200, alias="Idempotency-Key"),
-        owner_id: str = Depends(authenticated_user(secret)),
+        owner_id: str = Depends(require_owner),
     ):
         return scripts.request_changes(job_id, owner_id, language, version, body.note, idempotency_key)
 
@@ -399,14 +442,14 @@ def create_app(
         job_id: str, language: str, version: int,
         body: ScriptApprovalRequestBody,
         idempotency_key: str = Header(min_length=1, max_length=200, alias="Idempotency-Key"),
-        owner_id: str = Depends(authenticated_user(secret)),
+        owner_id: str = Depends(require_owner),
     ):
         return scripts.approve(job_id, owner_id, language, version, body.revision_sha256, body.note, idempotency_key)
 
     @app.get("/api/jobs/{job_id}/script/export/{language}")
     def export_approved_script(
         job_id: str, language: str,
-        owner_id: str = Depends(authenticated_user(secret)),
+        owner_id: str = Depends(require_owner),
     ):
         return JSONResponse(scripts.export_approved(job_id, owner_id, language), headers={
             "Content-Disposition": f'attachment; filename="script-{language}-approved.json"',
@@ -423,28 +466,28 @@ def create_app(
     def list_scene_plans(
         job_id: str,
         language: str | None = Query(default=None),
-        owner_id: str = Depends(authenticated_user(secret)),
+        owner_id: str = Depends(require_owner),
     ):
         return scenes.list_plans(job_id, owner_id, language)
 
     @app.get("/api/jobs/{job_id}/scene/plans/{language}/{version}")
     def get_scene_plan(
         job_id: str, language: str, version: int,
-        owner_id: str = Depends(authenticated_user(secret)),
+        owner_id: str = Depends(require_owner),
     ):
         return scenes.get_plan(job_id, owner_id, language, version)
 
     @app.get("/api/jobs/{job_id}/scene/plans/{language}/{version}/history")
     def get_scene_plan_history(
         job_id: str, language: str, version: int,
-        owner_id: str = Depends(authenticated_user(secret)),
+        owner_id: str = Depends(require_owner),
     ):
         return scenes.plan_history(job_id, owner_id, language, version)
 
     @app.get("/api/jobs/{job_id}/scene/plans/{language}/{version}/scene-digests")
     def get_scene_plan_scene_digests(
         job_id: str, language: str, version: int,
-        owner_id: str = Depends(authenticated_user(secret)),
+        owner_id: str = Depends(require_owner),
     ):
         return scenes.scene_digests(job_id, owner_id, language, version)
 
@@ -453,7 +496,7 @@ def create_app(
         job_id: str,
         body: ScenePlanConfigV1,
         idempotency_key: str = Header(min_length=1, max_length=200, alias="Idempotency-Key"),
-        owner_id: str = Depends(authenticated_user(secret)),
+        owner_id: str = Depends(require_owner),
     ):
         return scenes.generate(job_id, owner_id, body.model_dump(), idempotency_key)
 
@@ -462,7 +505,7 @@ def create_app(
         job_id: str, language: str,
         body: SceneReviseBody,
         idempotency_key: str = Header(min_length=1, max_length=200, alias="Idempotency-Key"),
-        owner_id: str = Depends(authenticated_user(secret)),
+        owner_id: str = Depends(require_owner),
     ):
         return scenes.revise(job_id, owner_id, language, body.base_version, body.edits, idempotency_key)
 
@@ -471,7 +514,7 @@ def create_app(
         job_id: str, language: str, version: int,
         body: ScriptReviewDecisionBody,
         idempotency_key: str = Header(min_length=1, max_length=200, alias="Idempotency-Key"),
-        owner_id: str = Depends(authenticated_user(secret)),
+        owner_id: str = Depends(require_owner),
     ):
         return scenes.request_changes(job_id, owner_id, language, version, body.note, idempotency_key)
 
@@ -480,7 +523,7 @@ def create_app(
         job_id: str, language: str, version: int,
         body: ScenePlanApprovalRequestBody,
         idempotency_key: str = Header(min_length=1, max_length=200, alias="Idempotency-Key"),
-        owner_id: str = Depends(authenticated_user(secret)),
+        owner_id: str = Depends(require_owner),
     ):
         return scenes.approve(job_id, owner_id, language, version, body.plan_sha256, body.note, idempotency_key)
 
@@ -492,27 +535,27 @@ def create_app(
     def register_asset(
         job_id: str, body: AssetRegisterBody,
         idempotency_key: str = Header(min_length=1, max_length=200, alias="Idempotency-Key"),
-        owner_id: str = Depends(authenticated_user(secret)),
+        owner_id: str = Depends(require_owner),
     ):
         return assets.register_asset(job_id, owner_id, body.model_dump(), idempotency_key)
 
     @app.get("/api/jobs/{job_id}/assets")
     def list_assets(
         job_id: str, review_status: str | None = None, effective_rights: str | None = None,
-        kind: str | None = None, owner_id: str = Depends(authenticated_user(secret)),
+        kind: str | None = None, owner_id: str = Depends(require_owner),
     ):
         return assets.list_assets(job_id, owner_id, review_status=review_status,
                                   effective_rights=effective_rights, kind=kind)
 
     @app.get("/api/jobs/{job_id}/assets/{asset_id}")
-    def get_asset(job_id: str, asset_id: str, owner_id: str = Depends(authenticated_user(secret))):
+    def get_asset(job_id: str, asset_id: str, owner_id: str = Depends(require_owner)):
         return assets.get_asset(job_id, owner_id, asset_id)
 
     @app.post("/api/jobs/{job_id}/assets/{asset_id}/rights", status_code=201)
     def set_asset_rights(
         job_id: str, asset_id: str, body: AssetRightsBody,
         idempotency_key: str = Header(min_length=1, max_length=200, alias="Idempotency-Key"),
-        owner_id: str = Depends(authenticated_user(secret)),
+        owner_id: str = Depends(require_owner),
     ):
         return assets.set_rights(job_id, owner_id, asset_id, body.model_dump(), idempotency_key)
 
@@ -520,21 +563,21 @@ def create_app(
     def review_asset(
         job_id: str, asset_id: str, body: AssetReviewBody,
         idempotency_key: str = Header(min_length=1, max_length=200, alias="Idempotency-Key"),
-        owner_id: str = Depends(authenticated_user(secret)),
+        owner_id: str = Depends(require_owner),
     ):
         return assets.review_asset(job_id, owner_id, asset_id, body.decision,
                                    body.reviewed_asset_sha256, body.reviewed_rights_sha256,
                                    body.expected_revision, body.note, idempotency_key)
 
     @app.get("/api/jobs/{job_id}/assets/{asset_id}/history")
-    def asset_history(job_id: str, asset_id: str, owner_id: str = Depends(authenticated_user(secret))):
+    def asset_history(job_id: str, asset_id: str, owner_id: str = Depends(require_owner)):
         return assets.asset_review_history(job_id, owner_id, asset_id)
 
     @app.post("/api/jobs/{job_id}/scenes/{scene_id}/assets", status_code=201)
     def assign_asset(
         job_id: str, scene_id: str, body: AssetAssignBody,
         idempotency_key: str = Header(min_length=1, max_length=200, alias="Idempotency-Key"),
-        owner_id: str = Depends(authenticated_user(secret)),
+        owner_id: str = Depends(require_owner),
     ):
         return assets.assign_asset(job_id, owner_id, body.language, scene_id, body.asset_id,
                                    idempotency_key, target_use=body.target_use)
@@ -543,19 +586,19 @@ def create_app(
     def remove_assignment(
         job_id: str, scene_id: str, asset_id: str, language: str,
         idempotency_key: str = Header(min_length=1, max_length=200, alias="Idempotency-Key"),
-        owner_id: str = Depends(authenticated_user(secret)),
+        owner_id: str = Depends(require_owner),
     ):
         return assets.remove_assignment(job_id, owner_id, language, scene_id, asset_id, idempotency_key)
 
     @app.get("/api/jobs/{job_id}/assignments")
     def list_assignments(
-        job_id: str, language: str, owner_id: str = Depends(authenticated_user(secret)),
+        job_id: str, language: str, owner_id: str = Depends(require_owner),
     ):
         return assets.list_assignments(job_id, owner_id, language)
 
     @app.get("/api/jobs/{job_id}/assignments/readiness")
     def assignment_readiness(
-        job_id: str, language: str, owner_id: str = Depends(authenticated_user(secret)),
+        job_id: str, language: str, owner_id: str = Depends(require_owner),
     ):
         return assets.assignment_readiness(job_id, owner_id, language)
 

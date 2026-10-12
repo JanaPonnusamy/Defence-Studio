@@ -9,6 +9,8 @@ import { showToast } from "./components/toast.js";
 import { renderSourcesList, renderSourceDetail } from "./views/sources-view.js";
 import { renderClaimsList, renderClaimDetail } from "./views/claims-view.js";
 import { renderDecisionPanelHtml, wireDecisionPanel, renderHistoryHtml } from "./views/decision-panel.js";
+import { renderDashboardHtml } from "./views/dashboard-view.js";
+import { renderLoginHtml } from "./views/login-view.js";
 import {
   renderDiscoveryRequestFormHtml, renderProviderOutcomesHtml,
   renderDiscoveryCandidatesListHtml, renderSelectionSummaryHtml,
@@ -18,7 +20,8 @@ const session = loadSession();
 const state = {
   token: session.token,
   jobId: session.jobId,
-  tab: "sources", // "sources" | "claims" | "discovery"
+  tab: "dashboard", // "dashboard" | "sources" | "claims" | "discovery" | "evidence" | "script"
+  jobsResult: null,
   sourceStatus: "",
   claimStatus: "",
   claimConflictOnly: false,
@@ -36,6 +39,7 @@ const state = {
 const api = createApiClient(() => state.token);
 
 const el = {
+  shell: document.querySelector(".app-shell"),
   topbar: document.getElementById("topbar"),
   tabs: document.getElementById("tabs"),
   filters: document.getElementById("filters"),
@@ -43,7 +47,116 @@ const el = {
   detail: document.getElementById("detail-panel"),
   conn: document.getElementById("conn-indicator"),
   themeToggle: document.getElementById("theme-toggle"),
+  brandbarRight: document.querySelector(".brandbar-right"),
 };
+
+// ---- Login / session gate ------------------------------------------------
+// Whether the server offers a safe loopback dev session. Probed once at boot;
+// drives whether the login screen shows the "Enter development mode" button.
+let devAvailable = false;
+let devOwner = "";
+let loginMount = null;
+
+async function probeDevSession() {
+  try {
+    const info = await api.devSession();
+    devAvailable = true;
+    devOwner = info && info.owner_id ? info.owner_id : "";
+    return info;
+  } catch {
+    devAvailable = false;
+    devOwner = "";
+    return null;
+  }
+}
+
+function showLogin() {
+  if (el.shell) el.shell.hidden = true;
+  if (!loginMount) {
+    loginMount = document.createElement("div");
+    loginMount.id = "login-mount";
+    document.body.appendChild(loginMount);
+  }
+  loginMount.hidden = false;
+  loginMount.innerHTML = renderLoginHtml({ devAvailable, devOwner });
+  const devBtn = loginMount.querySelector("#dev-enter-btn");
+  if (devBtn) devBtn.addEventListener("click", enterDevMode);
+  const form = loginMount.querySelector("#login-token-form");
+  if (form) form.addEventListener("submit", (e) => {
+    e.preventDefault();
+    const value = loginMount.querySelector("#login-token-field").value.trim();
+    if (!value) { showLoginError("Enter a bearer token to sign in."); return; }
+    completeLogin(value);
+  });
+}
+
+function hideLogin() {
+  if (loginMount) loginMount.hidden = true;
+  if (el.shell) el.shell.hidden = false;
+}
+
+function showLoginError(message) {
+  const box = loginMount && loginMount.querySelector("#login-error");
+  if (box) { box.textContent = message; box.hidden = false; }
+}
+
+async function enterDevMode() {
+  try {
+    const info = await api.devSession();
+    completeLogin(info.token);
+  } catch (err) {
+    showLoginError(err instanceof ApiError
+      ? "Development mode is not available in this configuration."
+      : "Could not reach the server for a development session.");
+  }
+}
+
+function completeLogin(token) {
+  state.token = token;
+  saveToken(token);
+  hideLogin();
+  renderSessionControl();
+  bootWorkspace();
+}
+
+function signOut() {
+  state.token = "";
+  state.jobId = "";
+  state.jobsResult = null;
+  saveToken("");
+  saveJobId("");
+  renderSessionControl();
+  showLogin();
+}
+
+// Session indicator + sign-out in the brand bar (replaces the old static conn
+// chip position with a real, token-derived control). The owner id is decoded
+// from the token payload purely for display; the server remains authoritative.
+function ownerFromToken(token) {
+  try {
+    const payload = JSON.parse(atob(token.split(".")[1].replace(/-/g, "+").replace(/_/g, "/")));
+    return payload && typeof payload.sub === "string" ? payload.sub : "";
+  } catch { return ""; }
+}
+
+function renderSessionControl() {
+  let ctrl = document.getElementById("session-control");
+  if (!ctrl) {
+    ctrl = document.createElement("div");
+    ctrl.id = "session-control";
+    ctrl.className = "session-control";
+    el.brandbarRight.insertBefore(ctrl, el.brandbarRight.firstChild);
+  }
+  if (!state.token) { ctrl.innerHTML = ""; return; }
+  const owner = ownerFromToken(state.token);
+  ctrl.innerHTML = `
+    <span class="session-owner" title="Signed-in owner">
+      <span class="session-dot" aria-hidden="true"></span>${escapeHtml(owner || "session")}
+    </span>
+    <button type="button" class="icon-btn" id="sign-out-btn" aria-label="Sign out">${icon("exit", { size: 16 })}</button>`;
+  const btn = ctrl.querySelector("#sign-out-btn");
+  if (btn) btn.addEventListener("click", signOut);
+}
 
 // ---- Real connection / job-context indicator ---------------------------
 // Driven only by an actual backend response (a getJob probe), never a
@@ -109,7 +222,9 @@ function initTheme() {
 
 function parseHash() {
   const parts = (location.hash || "").replace(/^#\/?/, "").split("/").filter(Boolean);
-  if (parts[0] === "claims") {
+  if (parts[0] === "dashboard") {
+    state.tab = "dashboard";
+  } else if (parts[0] === "claims") {
     state.tab = "claims";
     state.selectedClaimId = parts[1] ? decodeURIComponent(parts[1]) : null;
   } else if (parts[0] === "evidence") {
@@ -129,21 +244,38 @@ function setHash(tab, id) {
 }
 
 function renderTopbar() {
+  // Job selection is primarily via the Dashboard (real DB-backed job cards);
+  // this bar shows the active job and offers a direct load-by-ID for operators
+  // who already have a job_id. The token is handled by the login gate, not here.
   el.topbar.innerHTML = `
-    ${textFieldHtml({ id: "job-id-field", label: "Job ID", value: state.jobId, placeholder: "paste a workflow job_id" })}
-    ${textFieldHtml({ id: "token-field", label: "Bearer token", value: state.token, type: "password", placeholder: "signed HS256 token" })}
-    <button type="button" id="load-job-btn" class="primary">Load</button>
-    <span id="job-status" class="meta" aria-live="polite"></span>`;
-  document.getElementById("job-id-field").addEventListener("change", (e) => { state.jobId = e.target.value.trim(); });
-  document.getElementById("token-field").addEventListener("change", (e) => { state.token = e.target.value.trim(); });
-  document.getElementById("load-job-btn").addEventListener("click", () => {
-    state.jobId = document.getElementById("job-id-field").value.trim();
-    state.token = document.getElementById("token-field").value.trim();
-    saveToken(state.token);
-    saveJobId(state.jobId);
-    probeConnection();
-    refreshActiveTab();
+    <div class="topbar-active" aria-live="polite">
+      ${state.jobId
+        ? `<span class="topbar-label">Active job</span>
+           <span class="mono topbar-jobid">${escapeHtml(state.jobId)}</span>`
+        : `<span class="topbar-label">No active job</span>
+           <span class="meta">Pick one from the Dashboard, or load by ID.</span>`}
+    </div>
+    <div class="topbar-loader">
+      ${textFieldHtml({ id: "job-id-field", label: "Load job by ID", value: state.jobId, placeholder: "workflow job_id" })}
+      <button type="button" id="load-job-btn" class="primary">Load</button>
+    </div>`;
+  const idField = document.getElementById("job-id-field");
+  if (idField) idField.addEventListener("change", (e) => { state.jobId = e.target.value.trim(); });
+  const loadBtn = document.getElementById("load-job-btn");
+  if (loadBtn) loadBtn.addEventListener("click", () => {
+    const value = document.getElementById("job-id-field").value.trim();
+    if (!value) return;
+    selectJob(value, "sources");
   });
+}
+
+// Set the active job (persisted) and navigate to a tab for it.
+function selectJob(jobId, tab = "sources") {
+  state.jobId = jobId;
+  saveJobId(jobId);
+  renderTopbar();
+  probeConnection();
+  setHash(tab, null);
 }
 
 function renderTabs() {
@@ -152,6 +284,7 @@ function renderTabs() {
       <span class="tab-icon">${icon(iconName, { size: 17 })}</span><span>${label}</span>
     </button>`;
   el.tabs.innerHTML = `
+    ${tab("dashboard", "grid", "Dashboard")}
     ${tab("discovery", "radar", "Discovery")}
     ${tab("sources", "layers", "Sources")}
     ${tab("claims", "claims", "Claims")}
@@ -165,7 +298,7 @@ function renderTabs() {
 }
 
 function renderFilters() {
-  if (state.tab === "evidence" || state.tab === "script") { el.filters.innerHTML = ""; return; }
+  if (state.tab === "evidence" || state.tab === "script" || state.tab === "dashboard") { el.filters.innerHTML = ""; return; }
   const statusOptions = ["", "PENDING", "APPROVED_FOR_USE", "REJECTED", "NEEDS_MORE_EVIDENCE", "CONFLICT_UNRESOLVED"];
   const optionHtml = (value) => `<option value="${value}">${value || "All statuses"}</option>`;
   if (state.tab === "discovery") {
@@ -200,8 +333,8 @@ function renderFilters() {
         <select id="claim-status-filter">${statusOptions.map(optionHtml).join("")}</select>
       </label>
       <label class="inline"><input type="checkbox" id="claim-conflict-filter"> Conflicts only</label>
-      ${state.claimSourceFilter ? `<span class="chip">Source: ${state.claimSourceFilter}
-        <button type="button" id="clear-source-filter" style="min-height:auto;padding:0 0.3rem;">x</button></span>` : ""}`;
+      ${state.claimSourceFilter ? `<span class="chip">Source: ${escapeHtml(state.claimSourceFilter)}
+        <button type="button" id="clear-source-filter" class="chip-dismiss" aria-label="Clear source filter">${icon("close", { size: 12 })}</button></span>` : ""}`;
     const sel = el.filters.querySelector("#claim-status-filter");
     sel.value = state.claimStatus;
     sel.addEventListener("change", (e) => { state.claimStatus = e.target.value; loadClaims(); });
@@ -215,12 +348,33 @@ function renderFilters() {
 
 function requireJob() {
   if (!state.jobId || !state.token) {
-    el.list.innerHTML = `<div class="empty-state">Enter a Job ID and bearer token above, then press Load.</div>`;
+    el.list.innerHTML = `<div class="empty-state">No active job. Open one from the <a href="#/dashboard">Dashboard</a>, or load a job by ID above.</div>`;
     el.detail.innerHTML = "";
     el.detail.classList.remove("detail-overlay");
     return false;
   }
   return true;
+}
+
+async function loadDashboard() {
+  el.detail.innerHTML = "";
+  el.detail.classList.remove("detail-overlay");
+  el.list.classList.add("list--full");
+  el.list.innerHTML = `<div class="loading-state">Loading jobs…</div>`;
+  try {
+    state.jobsResult = await api.listJobs();
+    const jobs = (state.jobsResult && state.jobsResult.jobs) || [];
+    el.list.innerHTML = renderDashboardHtml(jobs, state.jobId);
+    el.list.querySelectorAll("[data-job-card]").forEach((card) => {
+      const open = () => selectJob(card.dataset.jobCard, "sources");
+      card.addEventListener("click", open);
+      card.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" || e.key === " ") { e.preventDefault(); open(); }
+      });
+    });
+  } catch (err) {
+    el.list.innerHTML = errorHtml(err);
+  }
 }
 
 async function loadDiscovery() {
@@ -490,6 +644,10 @@ function errorHtml(err) {
 }
 
 function dispatchTab() {
+  // Dashboard is full-width and job-independent (only needs a token); every
+  // other tab uses the list+detail layout and requires an active job.
+  if (state.tab !== "dashboard") el.list.classList.remove("list--full");
+  if (state.tab === "dashboard") { loadDashboard(); return; }
   if (state.tab === "evidence") {
     if (!requireJob()) return;
     const jobId = state.jobId;
@@ -520,9 +678,34 @@ function route() {
   dispatchTab();
 }
 
-window.addEventListener("hashchange", route);
-initTheme();
-renderTopbar();
-probeConnection();
-if (!location.hash) setHash("sources", null);
-else route();
+// ---- Boot ----------------------------------------------------------------
+// The workspace shell only runs with an authenticated session. Without a token
+// we show the login gate (offering a dev session when the server allows it);
+// with one, we render the shell and route to the current (or default) tab.
+
+function bootWorkspace() {
+  renderTopbar();
+  renderSessionControl();
+  probeConnection();
+  if (!location.hash || location.hash === "#" || location.hash === "#/") {
+    setHash("dashboard", null);
+  } else {
+    route();
+  }
+}
+
+async function boot() {
+  initTheme();
+  // Probe whether a safe dev session is available so the login screen can offer
+  // it; this never logs anyone in on its own.
+  await probeDevSession();
+  if (state.token) {
+    hideLogin();
+    bootWorkspace();
+  } else {
+    showLogin();
+  }
+}
+
+window.addEventListener("hashchange", () => { if (state.token) route(); });
+boot();

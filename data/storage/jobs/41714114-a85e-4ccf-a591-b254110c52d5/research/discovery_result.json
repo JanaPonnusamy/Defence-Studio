@@ -1,0 +1,401 @@
+{
+  "candidates": [
+    {
+      "candidate_id": "b4b60c32dcfe1cefdecf9a7d92e28305ab90d0b8",
+      "canonical_url": "https://www.defensenews.com/global/asia-pacific/2026/10/07/embraer-lockheed-martin-vie-for-indias-105b-military-transport-aircraft-deal/",
+      "declared_metadata": {
+        "language": "en",
+        "language_status": "COLLECTED",
+        "published_at": "Wed, 07 Oct 2026 12:35:37 +0000",
+        "published_at_status": "COLLECTED",
+        "publisher": "Defense News",
+        "publisher_status": "COLLECTED",
+        "title": "Embraer, Lockheed Martin vie for India\u2019s $10.5B military transport aircraft deal",
+        "title_status": "COLLECTED"
+      },
+      "discovered_at": "2026-10-11T15:04:36.145799+00:00",
+      "merged_from_providers": [],
+      "original_metadata": {
+        "link": "https://www.defensenews.com/global/asia-pacific/2026/10/07/embraer-lockheed-martin-vie-for-indias-105b-military-transport-aircraft-deal/",
+        "published_at": "Wed, 07 Oct 2026 12:35:37 +0000",
+        "source": "Defense News",
+        "summary": "The Indian government wants one of its biggest military aviation contracts to deepen the country\u2019s local aerospace industrial base.",
+        "title": "Embraer, Lockheed Martin vie for India\u2019s $10.5B military transport aircraft deal"
+      },
+      "provider": "rss_feed",
+      "provider_version": "0.1.0",
+      "ranking": {
+        "explanation": [
+          "Title shares 2/7 topic token(s).",
+          "Published 4 day(s) ago.",
+          "Candidate language matches the requested language 'en'.",
+          "No source-type preference was set."
+        ],
+        "language_match_score": 1.0,
+        "recency_score": 0.989,
+        "relevance_score": 0.2857,
+        "source_type_score": 1.0,
+        "total_score": 0.6407
+      },
+      "requested_url": "https://www.defensenews.com/global/asia-pacific/2026/10/07/embraer-lockheed-martin-vie-for-indias-105b-military-transport-aircraft-deal/",
+      "source_type": "news_feed",
+      "warnings": []
+    },
+    {
+      "candidate_id": "af320e626ead66f2078a1a8daba8145797c58bbc",
+      "canonical_url": "https://www.bbc.co.uk/news/articles/ck20r39nl3qzo?at_medium=RSS&at_campaign=rss",
+      "declared_metadata": {
+        "language": "en",
+        "language_status": "COLLECTED",
+        "published_at": "Fri, 09 Oct 2026 21:50:47 GMT",
+        "published_at_status": "COLLECTED",
+        "publisher": "BBC News",
+        "publisher_status": "COLLECTED",
+        "title": "JD Vance casts doubt on firing squad execution and says he would not watch it",
+        "title_status": "COLLECTED"
+      },
+      "discovered_at": "2026-10-11T15:04:36.145799+00:00",
+      "merged_from_providers": [],
+      "original_metadata": {
+        "link": "https://www.bbc.co.uk/news/articles/ck20r39nl3qzo?at_medium=RSS&at_campaign=rss",
+        "published_at": "Fri, 09 Oct 2026 21:50:47 GMT",
+        "source": "BBC News",
+        "summary": "The planned execution of Nidal Hasan by firing squad would be the first military execution in more than 60 years.",
+        "title": "JD Vance casts doubt on firing squad execution and says he would not watch it"
+      },
+      "provider": "rss_feed",
+      "provider_version": "0.1.0",
+      "ranking": {
+        "explanation": [
+          "Title shares 1/7 topic token(s).",
+          "Published 2 day(s) ago.",
+          "Candidate language matches the requested language 'en'.",
+          "No source-type preference was set."
+        ],
+        "language_match_score": 1.0,
+        "recency_score": 0.9945,
+        "relevance_score": 0.1429,
+        "source_type_score": 1.0,
+        "total_score": 0.5703
+      },
+      "requested_url": "https://www.bbc.co.uk/news/articles/ck20r39nl3qzo?at_medium=RSS&at_campaign=rss",
+      "source_type": "news_feed",
+      "warnings": []
+    },
+    {
+      "candidate_id": "fa716edda0edd7c51cd6d92a9e8fd7f326982f77",
+      "canonical_url": "https://www.defensenews.com/global/mideast-africa/2026/10/08/turkeys-foreign-minister-says-ankara-weighing-saudi-defense-support-rules-out-offensive-role/",
+      "declared_metadata": {
+        "language": "en",
+        "language_status": "COLLECTED",
+        "published_at": "Thu, 08 Oct 2026 13:07:36 +0000",
+        "published_at_status": "COLLECTED",
+        "publisher": "Defense News",
+        "publisher_status": "COLLECTED",
+        "title": "Turkey\u2019s foreign minister says Ankara weighing Saudi defense support, rules out offensive role",
+        "title_status": "COLLECTED"
+      },
+      "discovered_at": "2026-10-11T15:04:36.145799+00:00",
+      "merged_from_providers": [],
+      "original_metadata": {
+        "link": "https://www.defensenews.com/global/mideast-africa/2026/10/08/turkeys-foreign-minister-says-ankara-weighing-saudi-defense-support-rules-out-offensive-role/",
+        "published_at": "Thu, 08 Oct 2026 13:07:36 +0000",
+        "source": "Defense News",
+        "summary": "Turkey, Pakistan and Saudi Arabia signed the Mecca Joint Defence Agreement, under which an armed attack on one member is considered an attack on all.",
+        "title": "Turkey\u2019s foreign minister says Ankara weighing Saudi defense support, rules out offensive role"
+      },
+      "provider": "rss_feed",
+      "provider_version": "0.1.0",
+      "ranking": {
+        "explanation": [
+          "Title shares 1/7 topic token(s).",
+          "Published 3 day(s) ago.",
+          "Candidate language matches the requested language 'en'.",
+          "No source-type preference was set."
+        ],
+        "language_match_score": 1.0,
+        "recency_score": 0.9918,
+        "relevance_score": 0.1429,
+        "source_type_score": 1.0,
+        "total_score": 0.5698
+      },
+      "requested_url": "https://www.defensenews.com/global/mideast-africa/2026/10/08/turkeys-foreign-minister-says-ankara-weighing-saudi-defense-support-rules-out-offensive-role/",
+      "source_type": "news_feed",
+      "warnings": []
+    },
+    {
+      "candidate_id": "ffb64aebfbf11fb08ce711942f5fe250a1c859f8",
+      "canonical_url": "https://www.defensenews.com/global/europe/2026/10/08/france-to-start-training-ukrainian-pilots-on-rafale-warplanes-in-november-minister-says/",
+      "declared_metadata": {
+        "language": "en",
+        "language_status": "COLLECTED",
+        "published_at": "Thu, 08 Oct 2026 13:21:08 +0000",
+        "published_at_status": "COLLECTED",
+        "publisher": "Defense News",
+        "publisher_status": "COLLECTED",
+        "title": "France to start training Ukrainian pilots on Rafale warplanes in November, minister says",
+        "title_status": "COLLECTED"
+      },
+      "discovered_at": "2026-10-11T15:04:36.145799+00:00",
+      "merged_from_providers": [],
+      "original_metadata": {
+        "link": "https://www.defensenews.com/global/europe/2026/10/08/france-to-start-training-ukrainian-pilots-on-rafale-warplanes-in-november-minister-says/",
+        "published_at": "Thu, 08 Oct 2026 13:21:08 +0000",
+        "source": "Defense News",
+        "summary": "France will begin training Ukrainian pilots on the Rafale fighter jet next month, Armed Forces Minister Catherine Vautrin told lawmakers on Thursday.",
+        "title": "France to start training Ukrainian pilots on Rafale warplanes in November, minister says"
+      },
+      "provider": "rss_feed",
+      "provider_version": "0.1.0",
+      "ranking": {
+        "explanation": [
+          "Title shares 1/7 topic token(s).",
+          "Published 3 day(s) ago.",
+          "Candidate language matches the requested language 'en'.",
+          "No source-type preference was set."
+        ],
+        "language_match_score": 1.0,
+        "recency_score": 0.9918,
+        "relevance_score": 0.1429,
+        "source_type_score": 1.0,
+        "total_score": 0.5698
+      },
+      "requested_url": "https://www.defensenews.com/global/europe/2026/10/08/france-to-start-training-ukrainian-pilots-on-rafale-warplanes-in-november-minister-says/",
+      "source_type": "news_feed",
+      "warnings": []
+    },
+    {
+      "candidate_id": "1de9fb5cbea162738776ea1c1277865117723e22",
+      "canonical_url": "https://www.bbc.co.uk/news/articles/c8vgx9ew571wo?at_medium=RSS&at_campaign=rss",
+      "declared_metadata": {
+        "language": "en",
+        "language_status": "COLLECTED",
+        "published_at": "Sat, 10 Oct 2026 14:49:32 GMT",
+        "published_at_status": "COLLECTED",
+        "publisher": "BBC News",
+        "publisher_status": "COLLECTED",
+        "title": "Drone strike by Sudan paramilitary kills 41 near Ethiopian border, rights group says",
+        "title_status": "COLLECTED"
+      },
+      "discovered_at": "2026-10-11T15:04:36.145799+00:00",
+      "merged_from_providers": [],
+      "original_metadata": {
+        "link": "https://www.bbc.co.uk/news/articles/c8vgx9ew571wo?at_medium=RSS&at_campaign=rss",
+        "published_at": "Sat, 10 Oct 2026 14:49:32 GMT",
+        "source": "BBC News",
+        "summary": "Eight children are said to be among those killed by the strike, which hit a gathering of displaced people.",
+        "title": "Drone strike by Sudan paramilitary kills 41 near Ethiopian border, rights group says"
+      },
+      "provider": "rss_feed",
+      "provider_version": "0.1.0",
+      "ranking": {
+        "explanation": [
+          "Title shares 0/7 topic token(s).",
+          "Published 1 day(s) ago.",
+          "Candidate language matches the requested language 'en'.",
+          "No source-type preference was set."
+        ],
+        "language_match_score": 1.0,
+        "recency_score": 0.9973,
+        "relevance_score": 0.0,
+        "source_type_score": 1.0,
+        "total_score": 0.4995
+      },
+      "requested_url": "https://www.bbc.co.uk/news/articles/c8vgx9ew571wo?at_medium=RSS&at_campaign=rss",
+      "source_type": "news_feed",
+      "warnings": []
+    },
+    {
+      "candidate_id": "9c3372eb6a882c3c6def19e8f79a6d4bb82817d0",
+      "canonical_url": "https://www.defensenews.com/industry/techwatch/2026/10/10/us-army-kaizen-laboratories-to-establish-common-software-platform-for-classified-material/",
+      "declared_metadata": {
+        "language": "en",
+        "language_status": "COLLECTED",
+        "published_at": "Sat, 10 Oct 2026 22:47:27 +0000",
+        "published_at_status": "COLLECTED",
+        "publisher": "Defense News",
+        "publisher_status": "COLLECTED",
+        "title": "US Army, Kaizen Laboratories to establish common software platform for classified material",
+        "title_status": "COLLECTED"
+      },
+      "discovered_at": "2026-10-11T15:04:36.145799+00:00",
+      "merged_from_providers": [],
+      "original_metadata": {
+        "link": "https://www.defensenews.com/industry/techwatch/2026/10/10/us-army-kaizen-laboratories-to-establish-common-software-platform-for-classified-material/",
+        "published_at": "Sat, 10 Oct 2026 22:47:27 +0000",
+        "source": "Defense News",
+        "summary": "The U.S. Army recently awarded $43 million to Kaizen Laboratories to create application software for highly sensitive military material.",
+        "title": "US Army, Kaizen Laboratories to establish common software platform for classified material"
+      },
+      "provider": "rss_feed",
+      "provider_version": "0.1.0",
+      "ranking": {
+        "explanation": [
+          "Title shares 0/7 topic token(s).",
+          "Published 1 day(s) ago.",
+          "Candidate language matches the requested language 'en'.",
+          "No source-type preference was set."
+        ],
+        "language_match_score": 1.0,
+        "recency_score": 0.9973,
+        "relevance_score": 0.0,
+        "source_type_score": 1.0,
+        "total_score": 0.4995
+      },
+      "requested_url": "https://www.defensenews.com/industry/techwatch/2026/10/10/us-army-kaizen-laboratories-to-establish-common-software-platform-for-classified-material/",
+      "source_type": "news_feed",
+      "warnings": []
+    },
+    {
+      "candidate_id": "1ca6238f0b36d12dd3d1eee7d3e1f10a2770548a",
+      "canonical_url": "https://www.defensenews.com/missile-defense/2026/10/09/pentagon-raytheon-sign-63b-deal-to-replenish-us-missile-interceptor-supply/",
+      "declared_metadata": {
+        "language": "en",
+        "language_status": "COLLECTED",
+        "published_at": "Fri, 09 Oct 2026 20:17:18 +0000",
+        "published_at_status": "COLLECTED",
+        "publisher": "Defense News",
+        "publisher_status": "COLLECTED",
+        "title": "Pentagon, Raytheon sign $6.3B deal to replenish US missile interceptor supply",
+        "title_status": "COLLECTED"
+      },
+      "discovered_at": "2026-10-11T15:04:36.145799+00:00",
+      "merged_from_providers": [],
+      "original_metadata": {
+        "link": "https://www.defensenews.com/missile-defense/2026/10/09/pentagon-raytheon-sign-63b-deal-to-replenish-us-missile-interceptor-supply/",
+        "published_at": "Fri, 09 Oct 2026 20:17:18 +0000",
+        "source": "Defense News",
+        "summary": "The contract \"supports urgent replenishment of missile defense inventory that has been successfully used in combat,\" Raytheon said.",
+        "title": "Pentagon, Raytheon sign $6.3B deal to replenish US missile interceptor supply"
+      },
+      "provider": "rss_feed",
+      "provider_version": "0.1.0",
+      "ranking": {
+        "explanation": [
+          "Title shares 0/7 topic token(s).",
+          "Published 2 day(s) ago.",
+          "Candidate language matches the requested language 'en'.",
+          "No source-type preference was set."
+        ],
+        "language_match_score": 1.0,
+        "recency_score": 0.9945,
+        "relevance_score": 0.0,
+        "source_type_score": 1.0,
+        "total_score": 0.4989
+      },
+      "requested_url": "https://www.defensenews.com/missile-defense/2026/10/09/pentagon-raytheon-sign-63b-deal-to-replenish-us-missile-interceptor-supply/",
+      "source_type": "news_feed",
+      "warnings": []
+    },
+    {
+      "candidate_id": "65a1d160ce6a53065ec0b480fb20632dfc491448",
+      "canonical_url": "https://www.defensenews.com/news/your-military/2026/10/08/pentagon-recruits-drone-pilots-from-across-services-for-upcoming-competition/",
+      "declared_metadata": {
+        "language": "en",
+        "language_status": "COLLECTED",
+        "published_at": "Thu, 08 Oct 2026 14:06:55 +0000",
+        "published_at_status": "COLLECTED",
+        "publisher": "Defense News",
+        "publisher_status": "COLLECTED",
+        "title": "Pentagon recruits drone pilots from across services for upcoming competition",
+        "title_status": "COLLECTED"
+      },
+      "discovered_at": "2026-10-11T15:04:36.145799+00:00",
+      "merged_from_providers": [],
+      "original_metadata": {
+        "link": "https://www.defensenews.com/news/your-military/2026/10/08/pentagon-recruits-drone-pilots-from-across-services-for-upcoming-competition/",
+        "published_at": "Thu, 08 Oct 2026 14:06:55 +0000",
+        "source": "Defense News",
+        "summary": "The Defense Innovation Unit is looking to recruit about 100 drone pilots and create a standing registry of operators across the military services.",
+        "title": "Pentagon recruits drone pilots from across services for upcoming competition"
+      },
+      "provider": "rss_feed",
+      "provider_version": "0.1.0",
+      "ranking": {
+        "explanation": [
+          "Title shares 0/7 topic token(s).",
+          "Published 3 day(s) ago.",
+          "Candidate language matches the requested language 'en'.",
+          "No source-type preference was set."
+        ],
+        "language_match_score": 1.0,
+        "recency_score": 0.9918,
+        "relevance_score": 0.0,
+        "source_type_score": 1.0,
+        "total_score": 0.4984
+      },
+      "requested_url": "https://www.defensenews.com/news/your-military/2026/10/08/pentagon-recruits-drone-pilots-from-across-services-for-upcoming-competition/",
+      "source_type": "news_feed",
+      "warnings": []
+    },
+    {
+      "candidate_id": "7b645f4341ea93a2e12c945a9433852abf409a44",
+      "canonical_url": "https://www.defensenews.com/industry/techwatch/2026/10/08/us-air-force-army-eye-industry-access-on-test-ranges/",
+      "declared_metadata": {
+        "language": "en",
+        "language_status": "COLLECTED",
+        "published_at": "Thu, 08 Oct 2026 16:27:32 +0000",
+        "published_at_status": "COLLECTED",
+        "publisher": "Defense News",
+        "publisher_status": "COLLECTED",
+        "title": "US Air Force, Army eye industry access on test ranges",
+        "title_status": "COLLECTED"
+      },
+      "discovered_at": "2026-10-11T15:04:36.145799+00:00",
+      "merged_from_providers": [],
+      "original_metadata": {
+        "link": "https://www.defensenews.com/industry/techwatch/2026/10/08/us-air-force-army-eye-industry-access-on-test-ranges/",
+        "published_at": "Thu, 08 Oct 2026 16:27:32 +0000",
+        "source": "Defense News",
+        "summary": "The U.S. Air Force is partnering with the U.S. Army to open its test ranges to approved defense firms.",
+        "title": "US Air Force, Army eye industry access on test ranges"
+      },
+      "provider": "rss_feed",
+      "provider_version": "0.1.0",
+      "ranking": {
+        "explanation": [
+          "Title shares 0/7 topic token(s).",
+          "Published 3 day(s) ago.",
+          "Candidate language matches the requested language 'en'.",
+          "No source-type preference was set."
+        ],
+        "language_match_score": 1.0,
+        "recency_score": 0.9918,
+        "relevance_score": 0.0,
+        "source_type_score": 1.0,
+        "total_score": 0.4984
+      },
+      "requested_url": "https://www.defensenews.com/industry/techwatch/2026/10/08/us-air-force-army-eye-industry-access-on-test-ranges/",
+      "source_type": "news_feed",
+      "warnings": []
+    }
+  ],
+  "dedup_notes": [],
+  "discovered_at": "2026-10-11T15:04:36.145799+00:00",
+  "job_id": "41714114-a85e-4ccf-a591-b254110c52d5",
+  "language": "en",
+  "providers": [
+    {
+      "candidates_returned": 0,
+      "message": "Set DEFENCE_STUDIO_DISCOVERY_SEARCH_API_URL and DEFENCE_STUDIO_DISCOVERY_SEARCH_API_KEY to enable this provider.",
+      "optional_dependency": false,
+      "provider": "configured_search_api",
+      "requires_credentials": true,
+      "status": "UNAVAILABLE_MISSING_CREDENTIALS"
+    },
+    {
+      "candidates_returned": 9,
+      "message": "1 of 3 feed(s) failed: https://www.thedefensepost.com/feed/: could not parse feed XML: not well-formed (invalid token): line 69, column 239",
+      "optional_dependency": false,
+      "provider": "rss_feed",
+      "requires_credentials": false,
+      "status": "PARTIAL"
+    }
+  ],
+  "requested_limit": 10,
+  "returned": 9,
+  "schema_version": "defence-studio.discovery-result.v1",
+  "status": "COMPLETED",
+  "topic": "India defence procurement and Rafale",
+  "warnings": []
+}

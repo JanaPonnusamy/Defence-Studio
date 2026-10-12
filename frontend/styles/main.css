@@ -543,6 +543,15 @@ main.workspace {
   max-width: 100%; overflow-wrap: anywhere;
 }
 p.chip { margin: 0.5rem 0; }
+/* Dismiss control inside a filter chip (e.g. "Source: … ×") — matches the
+   branded icon system instead of a bare text glyph. */
+.chip .chip-dismiss {
+  display: inline-grid; place-items: center;
+  width: 18px; height: 18px; min-height: 18px; margin-left: 0.4rem; padding: 0;
+  border: none; border-radius: 50%; background: transparent; color: var(--faint);
+}
+.chip .chip-dismiss svg { width: 12px; height: 12px; }
+.chip .chip-dismiss:hover { background: var(--surface-4); color: var(--text); }
 
 /* Conflict pairs */
 .conflict-pair {
@@ -653,6 +662,18 @@ details[open] > summary { margin-bottom: 0.3rem; }
   color: var(--rejected); border-color: color-mix(in srgb, var(--rejected) 35%, transparent);
   border-style: solid; background: var(--danger-bg);
 }
+/* Inline warning — a single-line advisory inside a populated panel (e.g. a
+   stale-revision note in the decision panel). Distinct from .error-state,
+   which is a full-height centred surface for whole-panel empty/error states. */
+.inline-warn {
+  display: flex; gap: 0.55rem; align-items: flex-start;
+  margin: 0.6rem 0; padding: 0.6rem 0.75rem;
+  text-align: left; font-size: 0.86rem; color: var(--needs-evidence);
+  background: var(--needs-bg);
+  border: 1px solid color-mix(in srgb, var(--needs-evidence) 35%, transparent);
+  border-left-width: 3px; border-radius: var(--r-md);
+  overflow-wrap: anywhere;
+}
 .loading-state { position: relative; }
 .loading-state::after {
   content: ""; display: inline-block; margin-left: 0.6rem;
@@ -743,6 +764,131 @@ details[open] > summary { margin-bottom: 0.3rem; }
    a per-element blur (cheap, static). */
 .detail, .card, .candidate-card { background-clip: padding-box; }
 .brandbar { box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04), var(--shadow-1); }
+
+/* ===================================================== Login / entry gate */
+.login-screen {
+  min-height: 100vh; display: grid; place-items: center;
+  padding: 1.5rem;
+  background:
+    radial-gradient(1100px 620px at 50% -12%, var(--bg-glow), transparent 60%),
+    var(--bg);
+}
+.login-card {
+  width: 100%; max-width: 420px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-pop);
+  padding: 2rem 1.75rem 1.75rem;
+}
+.login-brand { text-align: center; margin-bottom: 1.5rem; }
+.login-mark {
+  display: inline-grid; place-items: center; width: 54px; height: 54px;
+  color: var(--accent); border: 1px solid var(--accent-line);
+  border-radius: var(--r-md); background: var(--accent-soft);
+  margin-bottom: 0.75rem;
+}
+.login-mark svg { width: 30px; height: 30px; }
+.login-brand h1 { font-size: 1.4rem; margin: 0; letter-spacing: -0.01em; }
+.login-tagline { color: var(--muted); font-size: 0.85rem; margin: 0.25rem 0 0; }
+.login-dev { margin-bottom: 1rem; }
+.login-primary {
+  width: 100%; min-height: 46px; font-size: 0.95rem; font-weight: 640;
+  display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem;
+}
+.login-dev-meta { text-align: center; margin: 0.6rem 0 0; font-size: 0.78rem; }
+.login-divider {
+  display: flex; align-items: center; gap: 0.75rem;
+  color: var(--faint); font-size: 0.75rem; text-transform: uppercase;
+  letter-spacing: 0.08em; margin: 1.1rem 0;
+}
+.login-divider::before, .login-divider::after {
+  content: ""; flex: 1; height: 1px; background: var(--border);
+}
+.login-form { display: flex; flex-direction: column; gap: 0.75rem; }
+.login-secondary {
+  width: 100%; min-height: 42px;
+  background: var(--surface-3); color: var(--text);
+  border: 1px solid var(--border-strong);
+}
+.login-secondary:hover { background: var(--surface-4); }
+.login-error { margin: 1rem 0 0; }
+
+/* ======================================================= Session control */
+.session-control { display: inline-flex; align-items: center; gap: 0.4rem; }
+.session-owner {
+  display: inline-flex; align-items: center; gap: 0.4rem;
+  font-size: 0.8rem; color: var(--muted);
+  font-family: var(--font-mono);
+  max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.session-dot {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: var(--approved); box-shadow: 0 0 0 3px var(--approved-bg);
+}
+
+/* ============================================================== Topbar active */
+.topbar-active { display: flex; flex-direction: column; gap: 0.15rem; flex: 1 1 260px; min-width: 0; }
+.topbar-label { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--faint); }
+.topbar-jobid { font-size: 0.9rem; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.topbar-loader { display: flex; gap: 0.6rem; align-items: flex-end; flex: 1 1 320px; }
+.topbar-loader .field { margin: 0; flex: 1 1 auto; min-width: 0; }
+
+/* =============================================================== Dashboard */
+/* Dashboard spans the full workspace width (no detail panel). */
+.list--full { grid-column: 1 / -1; }
+.dashboard { display: flex; flex-direction: column; gap: 1.25rem; }
+.dashboard-stats {
+  display: grid; gap: 0.75rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+@media (min-width: 720px) { .dashboard-stats { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+.stat-tile {
+  background: var(--surface-2); border: 1px solid var(--border);
+  border-radius: var(--r-md); padding: 0.9rem 1rem;
+  display: flex; flex-direction: column; gap: 0.2rem;
+}
+.stat-tile--APPROVED_FOR_USE { border-left: 3px solid var(--approved); }
+.stat-tile--NEEDS_MORE_EVIDENCE { border-left: 3px solid var(--needs-evidence); }
+.stat-value { font-size: 1.7rem; font-weight: 680; line-height: 1; letter-spacing: -0.02em; }
+.stat-label { font-size: 0.78rem; color: var(--muted); }
+
+.job-grid {
+  display: grid; gap: 0.85rem;
+  grid-template-columns: 1fr;
+}
+@media (min-width: 640px) { .job-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (min-width: 1200px) { .job-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+
+.job-card {
+  display: flex; flex-direction: column; gap: 0.75rem;
+  background: var(--surface-2); border: 1px solid var(--border);
+  border-radius: var(--r-md); padding: 1rem;
+  cursor: pointer; transition: border-color var(--dur), transform var(--dur), box-shadow var(--dur);
+  min-width: 0;
+}
+.job-card:hover { border-color: var(--border-strong); transform: translateY(-1px); box-shadow: var(--shadow-2); }
+.job-card:focus-visible { outline: none; box-shadow: var(--ring), var(--shadow-2); border-color: var(--accent-line); }
+.job-card--active { border-color: var(--accent-line); box-shadow: inset 0 0 0 1px var(--accent-line); }
+.job-card-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 0.6rem; }
+.job-card-title { min-width: 0; }
+.job-card-title h3 {
+  margin: 0; font-size: 0.98rem; line-height: 1.3; overflow-wrap: anywhere;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+}
+.job-card-meta { display: flex; align-items: center; gap: 0.4rem; margin-top: 0.3rem; font-size: 0.76rem; color: var(--faint); }
+.dot-sep { color: var(--border-strong); }
+.job-card-progress { display: flex; flex-direction: column; gap: 0.35rem; }
+.progress-track { height: 6px; border-radius: 99px; background: var(--surface-4); overflow: hidden; }
+.progress-fill { height: 100%; border-radius: 99px; background: linear-gradient(90deg, var(--accent-strong), var(--accent)); transition: width var(--dur); }
+.job-card-progress-label { font-size: 0.74rem; color: var(--muted); font-family: var(--font-mono); }
+.job-card-foot { display: flex; justify-content: space-between; align-items: center; gap: 0.5rem; font-size: 0.78rem; }
+.job-card-stage { display: inline-flex; align-items: center; gap: 0.35rem; color: var(--text); min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.job-card-stage.muted { color: var(--faint); }
+.job-card-stage svg { color: var(--accent); flex: none; }
+.job-card-go { display: inline-flex; align-items: center; gap: 0.3rem; color: var(--accent); font-weight: 560; flex: none; }
+.dashboard-empty { align-items: center; text-align: center; gap: 0.4rem; }
+.dashboard-empty .empty-icon { color: var(--accent); display: inline-grid; place-items: center; margin-bottom: 0.3rem; }
 
 /* ============================================================ Reduced motion */
 @media (prefers-reduced-motion: reduce) {

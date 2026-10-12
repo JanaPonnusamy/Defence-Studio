@@ -1,15 +1,52 @@
 __pycache__/
 *.py[cod]
 .pytest_cache/
-data/
-backend/data/
+
+# SQLite databases are ignored by default (QA/test/scratch DBs must never be
+# committed). WAL/SHM side-files are always ignored.
 *.sqlite3
 *.sqlite3-shm
 *.sqlite3-wal
+# ...but the ONE intended development database is explicitly allowlisted so the
+# second PC gets the same starting state. Its WAL side-files stay ignored above.
+!data/defence_studio.sqlite3
+# Timestamped DB backups produced by db_tool/snapshots stay local.
+data/*.bak-*
+data/*.sqlite3.bak-*
+data/local-backup.sqlite3
+
+# Ignore the data dir broadly, but un-ignore the intended DB, docs, and ONLY
+# the target job's artifact tree. (A re-included path under an ignored dir
+# needs every ancestor directory un-ignored too, hence the nested re-includes.)
+data/*
+!data/
+!data/defence_studio.sqlite3
+!data/README.md
+!data/storage/
+data/storage/*
+!data/storage/jobs/
+data/storage/jobs/*
+!data/storage/jobs/41714114-a85e-4ccf-a591-b254110c52d5/
+!data/storage/jobs/41714114-a85e-4ccf-a591-b254110c52d5/**
+backend/data/
+
+# Secrets & machine-local config — never commit.
+.env
 .env.local
 backend/.env.local
+*.key
+*.pem
+
+# Private research exports / prepared decisions — kept local, never committed.
+decision_manifest.json
+review_dump.json
+**/decision_manifest.json
+**/review_dump.json
+
+# Python / Node / editor / logs
 *.egg-info/
-.pytest_cache/
+.venv/
+backend/.venv/
 node_modules/
 *.log
 .vscode/

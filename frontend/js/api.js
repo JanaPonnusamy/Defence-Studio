@@ -55,6 +55,16 @@ export function createApiClient(getToken) {
         headers: authHeaders(getToken()),
       }));
     },
+    // Owner-scoped job list for the dashboard (real persisted jobs, no mocks).
+    async listJobs() {
+      return handle(await fetch(`${base}/jobs`, { headers: authHeaders(getToken()) }));
+    },
+    // Development entry: ask the server to mint a short-lived token. Only
+    // succeeds under the safe loopback dev-bypass config; 404 otherwise. The
+    // token is never fabricated client-side.
+    async devSession() {
+      return handle(await fetch(`${base}/dev/session`, { headers: { "Content-Type": "application/json" } }));
+    },
     async listSources(jobId, status) {
       const qs = status ? `?status=${encodeURIComponent(status)}` : "";
       return handle(await fetch(`${base}/jobs/${encodeURIComponent(jobId)}/review/sources${qs}`, {

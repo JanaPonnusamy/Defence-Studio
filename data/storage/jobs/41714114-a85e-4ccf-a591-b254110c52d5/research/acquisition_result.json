@@ -1,0 +1,172 @@
+{
+  "acquired_at": "2026-10-11T15:04:38.775116+00:00",
+  "failed": 0,
+  "job_id": "41714114-a85e-4ccf-a591-b254110c52d5",
+  "requested": 3,
+  "schema_version": "defence-studio.acquisition-result.v1",
+  "skipped_duplicate": 0,
+  "sources": [
+    {
+      "acquisition_timestamp": "2026-10-11T15:04:38.775116+00:00",
+      "artifacts": [
+        {
+          "artifact_type": "source_content",
+          "bytes": 424712,
+          "media_type": "text/html",
+          "schema_version": "defence-studio.source-artifact.v1",
+          "sha256": "7acc3601f19f2167c4ec864d9ce9d2b2431b70b4d64372347bfab2a8433c0cf4",
+          "uri": "jobs/41714114-a85e-4ccf-a591-b254110c52d5/research/sources/af320e626ead66f2078a1a8daba8145797c58bbc/content.html"
+        }
+      ],
+      "canonical_url": "https://www.bbc.co.uk/news/articles/ck20r39nl3qzo?at_medium=RSS&at_campaign=rss",
+      "declared_metadata": {
+        "language": "en-GB",
+        "language_status": "COLLECTED",
+        "published_at": null,
+        "published_at_status": "UNAVAILABLE",
+        "publisher": "BBC News",
+        "publisher_status": "COLLECTED",
+        "title": "JD Vance casts doubt on firing squad execution and says he would not watch it - BBC News",
+        "title_status": "COLLECTED"
+      },
+      "error": null,
+      "final_url": "https://www.bbc.co.uk/news/articles/ck20r39nl3qzo?at_medium=RSS&at_campaign=rss",
+      "method": "auto",
+      "original_metadata": {
+        "declared_media_type": "text/html",
+        "http_status": 200,
+        "response_headers": {
+          "content-length": "66099",
+          "content-type": "text/html",
+          "date": "Sun, 11 Oct 2026 15:04:35 GMT"
+        }
+      },
+      "provenance": {
+        "acquired_at": "2026-10-11T15:04:38.775116+00:00",
+        "canonical_url": "https://www.bbc.co.uk/news/articles/ck20r39nl3qzo?at_medium=RSS&at_campaign=rss",
+        "final_url": "https://www.bbc.co.uk/news/articles/ck20r39nl3qzo?at_medium=RSS&at_campaign=rss",
+        "provider": "http_page",
+        "provider_version": "0.1.0",
+        "request_target_id": "af320e626ead66f2078a1a8daba8145797c58bbc",
+        "requested_url": "https://www.bbc.co.uk/news/articles/ck20r39nl3qzo?at_medium=RSS&at_campaign=rss",
+        "source_component": "defence_studio.acquisition.providers.http_page@0.1.0"
+      },
+      "requested_url": "https://www.bbc.co.uk/news/articles/ck20r39nl3qzo?at_medium=RSS&at_campaign=rss",
+      "source_id": "af320e626ead66f2078a1a8daba8145797c58bbc",
+      "source_type": "web_page",
+      "status": "ACQUIRED",
+      "target_id": "af320e626ead66f2078a1a8daba8145797c58bbc",
+      "warnings": []
+    },
+    {
+      "acquisition_timestamp": "2026-10-11T15:04:39.149496+00:00",
+      "artifacts": [
+        {
+          "artifact_type": "source_content",
+          "bytes": 235025,
+          "media_type": "text/html",
+          "schema_version": "defence-studio.source-artifact.v1",
+          "sha256": "f5fba231144761dfe9ce8acb6106cfe861949aaff687ed6548a9e9e8abc4b130",
+          "uri": "jobs/41714114-a85e-4ccf-a591-b254110c52d5/research/sources/b4b60c32dcfe1cefdecf9a7d92e28305ab90d0b8/content.html"
+        }
+      ],
+      "canonical_url": "https://www.defensenews.com/global/asia-pacific/2026/10/07/embraer-lockheed-martin-vie-for-indias-105b-military-transport-aircraft-deal/",
+      "declared_metadata": {
+        "language": "en",
+        "language_status": "COLLECTED",
+        "published_at": "2026-10-07T12:35:37.869Z",
+        "published_at_status": "COLLECTED",
+        "publisher": "Defense News",
+        "publisher_status": "COLLECTED",
+        "title": "Embraer, Lockheed Martin vie for India\u2019s $10.5B military transport aircraft deal",
+        "title_status": "COLLECTED"
+      },
+      "error": null,
+      "final_url": "https://www.defensenews.com/global/asia-pacific/2026/10/07/embraer-lockheed-martin-vie-for-indias-105b-military-transport-aircraft-deal/",
+      "method": "auto",
+      "original_metadata": {
+        "declared_media_type": "text/html",
+        "http_status": 200,
+        "response_headers": {
+          "content-length": "45553",
+          "content-type": "text/html; charset=utf-8",
+          "date": "Sun, 11 Oct 2026 15:04:35 GMT",
+          "etag": "W/\"383d4-PB8QzyqTJQMz8znZVmvWJTx02Ck\"",
+          "last-modified": "Sun, 11 Oct 2026 14:51:29 GMT"
+        }
+      },
+      "provenance": {
+        "acquired_at": "2026-10-11T15:04:39.149496+00:00",
+        "canonical_url": "https://www.defensenews.com/global/asia-pacific/2026/10/07/embraer-lockheed-martin-vie-for-indias-105b-military-transport-aircraft-deal/",
+        "final_url": "https://www.defensenews.com/global/asia-pacific/2026/10/07/embraer-lockheed-martin-vie-for-indias-105b-military-transport-aircraft-deal/",
+        "provider": "http_page",
+        "provider_version": "0.1.0",
+        "request_target_id": "b4b60c32dcfe1cefdecf9a7d92e28305ab90d0b8",
+        "requested_url": "https://www.defensenews.com/global/asia-pacific/2026/10/07/embraer-lockheed-martin-vie-for-indias-105b-military-transport-aircraft-deal/",
+        "source_component": "defence_studio.acquisition.providers.http_page@0.1.0"
+      },
+      "requested_url": "https://www.defensenews.com/global/asia-pacific/2026/10/07/embraer-lockheed-martin-vie-for-indias-105b-military-transport-aircraft-deal/",
+      "source_id": "b4b60c32dcfe1cefdecf9a7d92e28305ab90d0b8",
+      "source_type": "web_page",
+      "status": "ACQUIRED",
+      "target_id": "b4b60c32dcfe1cefdecf9a7d92e28305ab90d0b8",
+      "warnings": []
+    },
+    {
+      "acquisition_timestamp": "2026-10-11T15:04:39.370565+00:00",
+      "artifacts": [
+        {
+          "artifact_type": "source_content",
+          "bytes": 232764,
+          "media_type": "text/html",
+          "schema_version": "defence-studio.source-artifact.v1",
+          "sha256": "4735f36379cc489f3c2d5d4d7bd00f8773661f3ac9c6cda977eabd43ccb00bf6",
+          "uri": "jobs/41714114-a85e-4ccf-a591-b254110c52d5/research/sources/fa716edda0edd7c51cd6d92a9e8fd7f326982f77/content.html"
+        }
+      ],
+      "canonical_url": "https://www.defensenews.com/global/mideast-africa/2026/10/08/turkeys-foreign-minister-says-ankara-weighing-saudi-defense-support-rules-out-offensive-role/",
+      "declared_metadata": {
+        "language": "en",
+        "language_status": "COLLECTED",
+        "published_at": "2026-10-08T13:07:36.955Z",
+        "published_at_status": "COLLECTED",
+        "publisher": "Defense News",
+        "publisher_status": "COLLECTED",
+        "title": "Turkey\u2019s foreign minister says Ankara weighing Saudi defense support, rules out offensive role",
+        "title_status": "COLLECTED"
+      },
+      "error": null,
+      "final_url": "https://www.defensenews.com/global/mideast-africa/2026/10/08/turkeys-foreign-minister-says-ankara-weighing-saudi-defense-support-rules-out-offensive-role/",
+      "method": "auto",
+      "original_metadata": {
+        "declared_media_type": "text/html",
+        "http_status": 200,
+        "response_headers": {
+          "content-length": "44778",
+          "content-type": "text/html; charset=utf-8",
+          "date": "Sun, 11 Oct 2026 15:04:36 GMT",
+          "etag": "W/\"37aff-CtKtFR4hVLO/q5AKDExOCO7xf50\"",
+          "last-modified": "Sun, 11 Oct 2026 15:03:47 GMT"
+        }
+      },
+      "provenance": {
+        "acquired_at": "2026-10-11T15:04:39.370565+00:00",
+        "canonical_url": "https://www.defensenews.com/global/mideast-africa/2026/10/08/turkeys-foreign-minister-says-ankara-weighing-saudi-defense-support-rules-out-offensive-role/",
+        "final_url": "https://www.defensenews.com/global/mideast-africa/2026/10/08/turkeys-foreign-minister-says-ankara-weighing-saudi-defense-support-rules-out-offensive-role/",
+        "provider": "http_page",
+        "provider_version": "0.1.0",
+        "request_target_id": "fa716edda0edd7c51cd6d92a9e8fd7f326982f77",
+        "requested_url": "https://www.defensenews.com/global/mideast-africa/2026/10/08/turkeys-foreign-minister-says-ankara-weighing-saudi-defense-support-rules-out-offensive-role/",
+        "source_component": "defence_studio.acquisition.providers.http_page@0.1.0"
+      },
+      "requested_url": "https://www.defensenews.com/global/mideast-africa/2026/10/08/turkeys-foreign-minister-says-ankara-weighing-saudi-defense-support-rules-out-offensive-role/",
+      "source_id": "fa716edda0edd7c51cd6d92a9e8fd7f326982f77",
+      "source_type": "web_page",
+      "status": "ACQUIRED",
+      "target_id": "fa716edda0edd7c51cd6d92a9e8fd7f326982f77",
+      "warnings": []
+    }
+  ],
+  "succeeded": 3,
+  "warnings": []
+}
