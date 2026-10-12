@@ -1,0 +1,243 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Visual Composition Studio</title>
+<link rel="stylesheet" href="styles.css" />
+<link rel="icon" href="data:," />
+
+</head>
+<body>
+<header class="topbar">
+  <h1>Visual Composition Studio</h1>
+  <div class="project-bar">
+    <label>Project
+      <select id="projectSelect"><option value="">— select —</option></select>
+    </label>
+    <form id="newProjectForm" class="inline">
+      <input name="name" placeholder="New project name" required maxlength="255">
+      <input name="ai_image_budget_usd" type="number" step="0.01" min="0" placeholder="AI budget USD" title="AI image budget (USD)">
+      <button type="submit">Create</button>
+    </form>
+  </div>
+  <div class="api-status" id="apiStatus">checking API…</div>
+</header>
+<nav class="tabs">
+  <button data-tab="dashboard" class="tab active">Dashboard &amp; Jobs</button>
+  <button data-tab="assets" class="tab">Asset Library</button>
+  <button data-tab="graphics" class="tab">Maps &amp; Stats</button>
+  <button data-tab="planner" class="tab">Scene &amp; Timeline Planner</button>
+  <button data-tab="preview" class="tab">Visual Preview</button>
+  <button data-tab="generation" class="tab">Generation</button>
+  <button data-tab="costs" class="tab">Costs</button>
+  <button data-tab="diagnostics" class="tab">Diagnostics</button>
+</nav>
+
+<main>
+  <div id="toast" class="toast hidden"></div>
+
+  <!-- DASHBOARD -->
+  <section id="panel-dashboard" class="panel active">
+    <div class="grid2">
+      <div class="card"><h2>Project summary</h2><div id="projectSummary" class="muted">Select or create a project.</div></div>
+      <div class="card"><h2>Service health</h2><pre id="healthBox" class="pre-small"></pre></div>
+    </div>
+    <div class="card">
+      <h2>Job history <button id="refreshJobs" class="small">Refresh</button>
+        <label class="small-label"><input type="checkbox" id="jobsAllProjects"> all projects</label>
+        <label class="small-label"><input type="checkbox" id="jobsAutoRefresh" checked> auto-refresh</label></h2>
+      <table class="tbl" id="jobsTable"><thead><tr><th>Job</th><th>Type</th><th>Status</th><th>Progress</th><th>Stage</th><th>Created</th><th>Error</th><th>Result</th><th></th></tr></thead><tbody></tbody></table>
+    </div>
+  </section>
+
+  <!-- ASSETS -->
+  <section id="panel-assets" class="panel">
+    <div class="grid2">
+      <div class="card">
+        <h2>Import asset</h2>
+        <form id="importForm" class="form">
+          <label>File<input type="file" name="file" accept=".png,.jpg,.jpeg,.webp,.gif,.pdf,.mp4,.mov,.webm,.avi"></label>
+          <label>Asset type
+            <select name="asset_type">
+              <option>SOURCE_PHOTO</option><option>IMAGE</option><option>MAP</option><option>SATELLITE</option>
+              <option>DOCUMENT</option><option>CHART</option><option>STAT_CARD</option><option>DIAGRAM</option>
+              <option>VIDEO_CLIP</option><option>TITLE_CARD</option><option>TRANSITION</option><option>AI_IMAGE</option>
+            </select></label>
+          <label>Source type
+            <select name="source_type">
+              <option>EXTERNAL_SOURCE</option><option>USER_PROVIDED</option><option>SYSTEM_GENERATED</option>
+              <option>AI_GENERATED</option><option selected>UNKNOWN</option>
+            </select></label>
+          <label>Rights status
+            <select name="rights_status">
+              <option selected>UNKNOWN</option><option>OPEN</option><option>LICENSED</option><option>PERMITTED</option><option>RESTRICTED</option>
+            </select></label>
+          <label>Title<input name="title" maxlength="255"></label>
+          <label>Licence<input name="licence" maxlength="128" placeholder="e.g. CC BY 4.0 (required for OPEN)"></label>
+          <label>Attribution<input name="attribution" maxlength="1000"></label>
+          <label>Creator<input name="creator" maxlength="255"></label>
+          <label>Source URL<input name="source_url" placeholder="https://…"></label>
+          <label>Duration (s, clips; optional if the media probe can read it)<input name="duration" type="number" step="0.01" min="0"></label>
+          <label>Tags (comma separated, any language)<input name="tags"></label>
+          <label>Source identity (publisher / archive / record id)<input name="source_identity" maxlength="255"></label>
+          <label>Licence URL<input name="licence_url" placeholder="https://…"></label>
+          <label>Usage rights / restrictions<input name="usage_rights" maxlength="2000"></label>
+          <label>Source retrieved at<input name="source_retrieved_at" type="datetime-local"></label>
+          <label class="check"><input type="checkbox" name="attribution_required"> attribution required</label>
+          <label class="wide">Extra metadata JSON (regions, protected_regions, focus_point, clip)
+            <textarea name="extra_metadata" rows="2" placeholder='{"protected_regions":[{"x":0.1,"y":0.1,"w":0.3,"h":0.2,"label":"markings"}]}'></textarea></label>
+          <button type="submit">Import</button>
+        </form>
+        <p class="muted small">Files are validated (format, dimensions, integrity). UNKNOWN rights are never shown as open; AI images must be AI_GENERATED. Placeholder images cannot be imported.</p>
+      </div>
+      <div class="card">
+        <h2>Selected asset</h2>
+        <div id="assetDetail" class="muted">Click an asset row.</div>
+      </div>
+    </div>
+    <div class="card">
+      <h2>Library
+        <select id="fltType"><option value="">all types</option></select>
+        <select id="fltSource"><option value="">all sources</option><option>EXTERNAL_SOURCE</option><option>USER_PROVIDED</option><option>SYSTEM_GENERATED</option><option>AI_GENERATED</option><option>UNKNOWN</option></select>
+        <select id="fltRights"><option value="">all rights</option><option>OPEN</option><option>LICENSED</option><option>PERMITTED</option><option>UNKNOWN</option><option>RESTRICTED</option></select>
+        <select id="fltKind"><option value="">all origins</option><option value="NOT_GENERATED">imported / data graphics</option><option value="AI_GENERATED">real AI</option><option value="PLACEHOLDER">placeholder</option><option value="TEST_FIXTURE">mock / fixture</option></select>
+        <button id="refreshAssets" class="small">Refresh</button></h2>
+      <table class="tbl" id="assetsTable"><thead><tr><th>Preview</th><th>Title</th><th>Type</th><th>Source</th><th>Classification</th><th>Editorial</th><th>Rights</th><th>Size</th><th>Used</th></tr></thead><tbody></tbody></table>
+    </div>
+  </section>
+
+  <!-- MAPS & STATS -->
+  <section id="panel-graphics" class="panel">
+    <div class="grid2">
+      <div class="card">
+        <h2>Statistic graphic (from structured data)</h2>
+        <form id="statForm" class="form">
+          <label>Graphic type<select name="graphic_type"><option>STAT_CARD</option><option>NUMBER_CALLOUT</option><option>BAR_CHART</option><option>LINE_CHART</option><option>COMPARISON</option><option>TIMELINE</option></select></label>
+          <label>Title<input name="title" required maxlength="120"></label>
+          <label class="wide">Data points JSON (value, unit, source, as_of, confidence required)
+            <textarea name="data" rows="6">[{"label":"Warships deployed","value":40,"unit":"ships","source":"Ministry of Defence release","as_of":"2026-09-30","confidence":"OFFICIAL"}]</textarea></label>
+          <label>Tags<input name="tags" placeholder="comma separated"></label>
+          <button type="submit">Render statistic</button>
+        </form>
+        <p class="muted small">Missing value/unit/source/as-of is rejected (INVALID_STAT_DATA). Numbers are never invented.</p>
+      </div>
+      <div class="card">
+        <h2>Schematic map (from supplied coordinates)</h2>
+        <form id="mapForm" class="form">
+          <label>Title<input name="title" required maxlength="120"></label>
+          <label>Coordinate data source<input name="data_source" required placeholder="who supplied the coordinates"></label>
+          <label class="wide">Markers JSON<textarea name="markers" rows="3">[{"label":"Sevastopol","lat":44.6,"lon":33.52},{"label":"Novorossiysk","lat":44.72,"lon":37.77}]</textarea></label>
+          <label class="wide">Route JSON (optional)<textarea name="route" rows="2">[]</textarea></label>
+          <label class="wide">Region JSON (optional) {"label":..,"polygon":[{lat,lon}…]}<textarea name="region" rows="2"></textarea></label>
+          <label>Tags<input name="tags" placeholder="comma separated"></label>
+          <label class="check"><input type="checkbox" name="basemap"> use configured basemap tiles (if enabled)</label>
+          <button type="submit">Render map</button>
+        </form>
+        <p class="muted small">By default no basemap, borders or coastlines are drawn — only your coordinates on a lat/lon grid. An attributed tile basemap is used only if the operator configured one and enabled network access; otherwise the schematic map is the fallback.</p>
+      </div>
+    </div>
+    <div class="card"><h2>Last graphic</h2><div id="graphicResult" class="muted">—</div></div>
+  </section>
+
+  <!-- PLANNER -->
+  <section id="panel-planner" class="panel">
+    <div class="grid2">
+      <div class="card">
+        <h2>Create scenes from narration</h2>
+        <form id="scenesForm" class="form">
+          <label class="wide">Narration (blank line = new scene)
+            <textarea name="narration" rows="8" placeholder="The fleet is concentrated near the Black Sea. …"></textarea></label>
+          <label class="wide">…or timed segments JSON [{text,start,end,scene?}] (timing contract)
+            <textarea name="segments" rows="3" placeholder='[{"text":"…","start":0,"end":3.2}]'></textarea></label>
+          <label>Words per minute<input name="wpm" type="number" value="150" min="60" max="400"></label>
+          <label class="check"><input type="checkbox" name="replace" checked> replace existing scenes</label>
+          <button type="submit">Create scenes</button>
+        </form>
+      </div>
+      <div class="card">
+        <h2>Build visual plan</h2>
+        <form id="buildForm" class="form">
+          <label class="check"><input type="checkbox" name="generate_ai"> generate hook/illustration images</label>
+          <label>Image provider<select name="ai_provider" class="providerSelect"></select></label>
+          <label>Max generated images<input name="max_ai_images" type="number" value="4" min="0" max="12"></label>
+          <label>Max shot seconds (fallback split)<input name="max_shot_seconds" type="number" step="0.5" value="6.5"></label>
+          <label>Output (optional, e.g. 1920x1080@30)<input name="output" placeholder="renderer decides if blank"></label>
+          <label class="check"><input type="checkbox" name="allow_unknown_rights"> allow UNKNOWN-rights assets (flagged)</label>
+          <label class="check"><input type="checkbox" name="allow_placeholder_fallback"> if a real AI provider fails, accept labelled PLACEHOLDER images</label>
+          <button type="submit">Build plan</button>
+        </form>
+        <div id="buildStatus" class="muted"></div>
+      </div>
+    </div>
+    <div class="card">
+      <h2>Scenes <button id="refreshScenes" class="small">Refresh</button></h2>
+      <table class="tbl" id="scenesTable"><thead><tr><th>#</th><th>Title</th><th>Time</th><th>Timing</th><th>Intents</th><th>Narration anchors</th></tr></thead><tbody></tbody></table>
+    </div>
+    <div class="card">
+      <h2>Visual plans <select id="planSelect"></select> <button id="refreshPlans" class="small">Refresh</button>
+        <a id="timelineLink" class="small" href="#" target="_blank" rel="noopener">timeline JSON</a></h2>
+      <div id="planSummary" class="muted"></div>
+      <div id="timelineBar" class="timeline-bar"></div>
+      <div class="legend"><span class="lg FACTUAL_EVIDENCE">factual/evidence</span><span class="lg ILLUSTRATIVE_VISUAL">illustrative</span><span class="lg AI_GENERATED">AI generated</span><span class="lg PLACEHOLDER">placeholder (not AI)</span><span class="lg UNKNOWN">unknown</span><span class="lg GAP">gap</span></div>
+      <table class="tbl" id="shotsTable"><thead><tr><th>#</th><th>Start–End</th><th>Visual</th><th>Status</th><th>Framing</th><th>Intent</th><th>Change reason</th><th>Anchor</th></tr></thead><tbody></tbody></table>
+    </div>
+  </section>
+
+  <!-- PREVIEW -->
+  <section id="panel-preview" class="panel">
+    <div class="card">
+      <h2>Shot preview <select id="previewShot"></select></h2>
+      <div class="preview-row">
+        <figure><img id="pvStart" alt="first frame"><figcaption>first frame (t=0)</figcaption></figure>
+        <figure><img id="pvEnd" alt="last frame"><figcaption>last frame (t=1)</figcaption></figure>
+        <div id="pvMeta" class="pv-meta"></div>
+      </div>
+      <p class="muted small">Stills rendered by the backend from the shot's crop + motion. Final video rendering is out of scope (renderer contract only).</p>
+    </div>
+    <div class="card"><h2>Contact sheet <button id="loadSheet" class="small">Render</button></h2><img id="contactSheet" class="sheet" alt=""></div>
+  </section>
+
+  <!-- GENERATION -->
+  <section id="panel-generation" class="panel">
+    <div class="grid2">
+      <div class="card">
+        <h2>Generate image (real AI or placeholder)</h2>
+        <form id="genForm" class="form">
+          <label>Provider<select name="provider" class="providerSelect"></select></label>
+          <label class="check"><input type="checkbox" name="allow_placeholder_fallback"> if the real AI provider fails, accept a labelled PLACEHOLDER</label>
+          <div id="providerInfo" class="muted small"></div>
+          <label class="wide">Prompt<textarea name="prompt" rows="3" required maxlength="2000">Cinematic illustrative visual of a naval task force at dawn, non-photographic</textarea></label>
+          <label>Purpose<select name="purpose"><option>HOOK</option><option>HERO</option><option>ILLUSTRATION</option><option>ATMOSPHERE</option><option>CONCEPT</option><option>TRANSITION</option><option>CONCLUSION</option></select></label>
+          <label>Quality<select name="quality"><option>draft</option><option selected>standard</option><option>high</option></select></label>
+          <label>Resolution<select name="resolution"><option>1280x720</option><option>1920x1080</option><option>640x360</option></select></label>
+          <div class="btnrow"><button type="button" id="checkProviderBtn">Check provider</button><button type="button" id="estimateBtn">Estimate cost</button><button type="submit">Generate</button></div>
+        </form>
+        <div id="estimateBox" class="muted"></div>
+      </div>
+      <div class="card"><h2>Generation status</h2><div id="genStatus" class="muted">—</div></div>
+    </div>
+  </section>
+
+  <!-- COSTS -->
+  <section id="panel-costs" class="panel">
+    <div class="card"><h2>Episode / project cost report <button id="refreshCosts" class="small">Refresh</button></h2>
+      <div id="costNote" class="small muted"></div>
+      <div id="costSummary" class="kpis"></div>
+      <h3>By provider</h3><table class="tbl" id="costProviders"><thead><tr><th>Provider</th><th>Kind</th><th>Count</th><th>Known cost</th><th>Unknown-cost</th><th>Not applicable</th><th>Models</th></tr></thead><tbody></tbody></table>
+      <h3>Records</h3><table class="tbl" id="costRecords"><thead><tr><th>When</th><th>Provider</th><th>Kind</th><th>Model</th><th>Quality</th><th>Resolution</th><th>Cost</th><th>Asset</th></tr></thead><tbody></tbody></table>
+      <p class="muted small">Only KNOWN costs (documented provider pricing × usage returned by the provider) are summed. UNKNOWN costs are counted separately and never treated as zero. Placeholder and mock images have no cost and are never counted as AI images.</p>
+    </div>
+  </section>
+
+  <!-- DIAGNOSTICS -->
+  <section id="panel-diagnostics" class="panel">
+    <div class="card"><h2>Diagnostics <button id="refreshDiag" class="small">Refresh</button></h2>
+      <label>API key (only if the server requires one)<input id="apiKey" type="password" autocomplete="off"></label>
+      <pre id="diagBox" class="pre-small"></pre></div>
+    <div class="card"><h2>Logs (redacted, last 200 lines) <button id="refreshLogs" class="small">Refresh</button></h2><pre id="logBox" class="log"></pre></div>
+  </section>
+</main>
+<script src="app.js"></script>
+</body>
+</html>

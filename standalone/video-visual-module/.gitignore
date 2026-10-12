@@ -1,0 +1,11 @@
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.env
+# module-owned runtime data (DB, assets, plans, logs) is never committed
+storage/
+# Phase 2 pre-change backups (module-local, never committed)
+backups/
+# generated browser-check output; reproduce with scripts/ui_browser_check.py
+docs/ui_screenshots/

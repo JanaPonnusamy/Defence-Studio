@@ -1,0 +1,3 @@
+﻿# dev/test only: automated browser verification (scripts/ui_browser_check.py) using the INSTALLED Edge
+-r requirements.txt
+playwright==1.63.0
