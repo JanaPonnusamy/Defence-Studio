@@ -1,0 +1,21 @@
+{
+  "schema_version": "defence-align.request.v1",
+  "alignment_job_id": "sample-en-1",
+  "project_id": "sample-project",
+  "audio_artifact_id": "sample-audio-en",
+  "audio_path": "audio/sample_en.wav",
+  "audio_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+  "transcript_id": "sample-transcript-en",
+  "transcript_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+  "language": "en",
+  "sections": [
+    {
+      "section_id": "intro",
+      "segments": [
+        {"segment_id": "intro-1", "original_text": "The DRDO's Rafale fleet reached Mach-2 in 2024."},
+        {"segment_id": "intro-2", "original_text": "Officials said the AESA radar performed well."}
+      ]
+    }
+  ],
+  "config": {"engine": "deterministic-test", "granularity": "word", "allow_synthetic": true}
+}

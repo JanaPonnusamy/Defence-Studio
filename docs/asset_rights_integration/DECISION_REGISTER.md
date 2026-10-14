@@ -12,6 +12,13 @@ Phase 5C doc text alone): `backend/defence_studio/contracts/assets.py`,
 were re-read for this phase. One correction to the Phase 5C record surfaced during this
 re-check and is noted in Decision 5.
 
+> **2026-10-14 path update:** the standalone component was consolidated from
+> `E:\DefenceStudio-Components\asset-rights-engine\` into
+> `E:\Jana Soft\DefenceStudio\components\asset-rights-engine\` (same internal layout,
+> verified by hash and a passing re-run of its own test suite: 140 passed, 116 subtests
+> passed). Historical path references below are left verbatim as a record of what was
+> read at the time; resolve them against the new location.
+
 Status legend: **BLOCKED PENDING APPROVAL** — a product/security decision this document
 recommends but does not have standing authorization to implement. Every entry in this
 register is BLOCKED PENDING APPROVAL; none may be implemented from this document alone.

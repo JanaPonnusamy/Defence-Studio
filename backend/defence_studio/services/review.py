@@ -75,6 +75,22 @@ class RevisionConflict(ReviewError):
     status_code = 409
 
 
+def _evidence_class(claim: dict, conflicted: bool, review_status: str, stale: bool) -> str:
+    """Label a claim for review without treating extraction as fact-checking.
+
+    ``verified`` is only a current human ``APPROVED_FOR_USE`` on a claim that
+    is not in conflict and carries no attribution hedge. Extraction never
+    assigns that label by itself.
+    """
+    if conflicted:
+        return "disputed"
+    if claim.get("qualifiers"):
+        return "attributed"
+    if review_status == "APPROVED_FOR_USE" and not stale:
+        return "verified"
+    return "unverified"
+
+
 def _now() -> str:
     return datetime.now(timezone.utc).isoformat(timespec="microseconds")
 
@@ -124,12 +140,14 @@ class ReviewService:
                     continue
                 if conflict_only and claim.get("claim_id") not in conflicted:
                     continue
+                stale = bool(review) and review["reviewed_artifact_sha256"] != latest_ref["sha256"]
                 claims.append({
                     **claim,
                     "has_conflict": claim.get("claim_id") in conflicted,
                     "review": self._record_from_row(review, "claim_id"),
                     "review_status": current_status,
-                    "is_stale": bool(review) and review["reviewed_artifact_sha256"] != latest_ref["sha256"],
+                    "is_stale": stale,
+                    "evidence_class": _evidence_class(claim, claim.get("claim_id") in conflicted, current_status, stale),
                 })
             return {
                 "job_id": job_id,

@@ -1,0 +1,16 @@
+{
+  "baseline_tests": 50,
+  "failures": 0,
+  "git": "not initialized",
+  "sha256": {
+    "src/asset_rights_engine/engine.py": "c1b93492c4aa7c1389077ffdd4b0e30fba72dd1f8ae8f94e9d0c2b55c9847209",
+    "src/asset_rights_engine/contracts.py": "9e54e942ad934fecac7ed57844082836c1c780651cd1fa92bb89122db55c5596",
+    "src/asset_rights_engine/evaluator.py": "8a9fd995ad89c1ee7f772ae6451a274114065a8ec877f01aa6648acf161cf97f",
+    "src/asset_rights_engine/schema.sql": "04e45275550a86cfb5f6c3a103209a2f18c81e7d81fc3027bfd9f841a5add4ae",
+    "migrations/001_initial.sql": "04e45275550a86cfb5f6c3a103209a2f18c81e7d81fc3027bfd9f841a5add4ae",
+    "tests/test_engine.py": "bf993e5dd91a91ce767c3a321743d19522ba827978eab53f738b97aca628644b",
+    "dist/asset_rights_engine-1.0.0-py3-none-any.whl": "5abb6fcb0c86cb53482afc2148eaa0652340b0a457167070a469d875bbf614dd",
+    "data\\asset_rights.sqlite3": "a430c4ed5a500d1de707a43b71e264a4463b8550ea71b6e7e46922504b658290",
+    "data\\snapshot.sqlite3": "abdabf30ad32d32c22996442091bccb8bec1b35a8980703c2a7dc110d97b2fcd"
+  }
+}

@@ -28,6 +28,8 @@ data/storage/*
 data/storage/jobs/*
 !data/storage/jobs/41714114-a85e-4ccf-a591-b254110c52d5/
 !data/storage/jobs/41714114-a85e-4ccf-a591-b254110c52d5/**
+!data/storage/jobs/9bf18adc-a843-4931-beee-b93bd2e370c1/
+!data/storage/jobs/9bf18adc-a843-4931-beee-b93bd2e370c1/**
 backend/data/
 
 # Secrets & machine-local config — never commit.
@@ -61,3 +63,10 @@ node_modules/
 !/standalone/video-renderer/
 /standalone/audio-module/fixtures/_female_voice_audit_out/
 *.wav.tmp
+
+# Consolidated external components (independent projects, not integrated into core
+# DefenceStudio yet). Same pattern as /standalone above: each keeps its own
+# .gitignore for .venv/data/build/caches, so only source, tests and docs are tracked.
+/components/*
+!/components/asset-rights-engine/
+!/components/defence-align/

@@ -4,10 +4,10 @@ Discovery runs as the locked `news_feed_and_topic_discovery` worker stage
 (`contracts/jobs.py`'s second stage, immediately before F3's
 `topic_search_and_source_collection`). Its *input* artifact
 (`discovery_request`) is produced by the owner against the predecessor stage
-`application_foundation`; its *output* artifact (`discovery_result`) is what
-the owner later browses/filters/selects from before an `acquisition_request`
-artifact (F3's own input contract) is written to hand approved candidates to
-F3. Discovery never acquires bytes itself and never marks a candidate as
+`application_foundation`; its *output* artifact (`discovery_result`) is the
+set of article URLs the acquisition stage fetches. The owner may still
+confirm a subset as an `acquisition_request` before that stage starts.
+Discovery never acquires bytes itself and never marks a candidate as
 acquired, verified, corroborated, or approved -- that remains F3/F5's job.
 
 Design rules enforced by these shapes (mirrors F3's contracts/acquisition.py):

@@ -1,0 +1,16 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "asset-rights-engine"
+version = "1.1.0"
+description = "ARE-A1 core with optional ARE-A2 host adapter contracts and offline simulator"
+requires-python = ">=3.11"
+dependencies = []
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+asset_rights_engine = ["*.sql"]

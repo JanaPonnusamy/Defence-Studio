@@ -104,7 +104,7 @@ def test_v9_database_upgrades_to_current_preserving_data(approved_script):
     before = sqlite3.connect(s["db"]).execute("SELECT COUNT(*) FROM script_revisions").fetchone()[0]
     initialize_database(s["db"])
     with sqlite3.connect(s["db"]) as c:
-        assert c.execute("SELECT version FROM schema_info").fetchone()[0] == SCHEMA_VERSION == 10
+        assert c.execute("SELECT version FROM schema_info").fetchone()[0] == SCHEMA_VERSION == 11
         assert c.execute("SELECT COUNT(*) FROM script_revisions").fetchone()[0] == before >= 1
         assert c.execute("SELECT COUNT(*) FROM provider_credentials").fetchone()[0] == 0
 

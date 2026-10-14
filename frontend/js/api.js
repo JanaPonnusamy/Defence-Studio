@@ -135,6 +135,13 @@ export function createApiClient(getToken) {
         },
       ));
     },
+    async createJob(topic, language, idempotencyKey) {
+      return handle(await fetch(`${base}/jobs`, {
+        method: "POST",
+        headers: authHeaders(getToken(), { "Idempotency-Key": idempotencyKey }),
+        body: JSON.stringify({ topic, language }),
+      }));
+    },
     async queueJob(jobId) {
       return handle(await fetch(`${base}/jobs/${encodeURIComponent(jobId)}/queue`, {
         method: "POST", headers: authHeaders(getToken()),

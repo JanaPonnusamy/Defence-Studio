@@ -1,0 +1,18 @@
+{
+  "create_assignment": "(self, assignment_id: str, asset_id: str, binding: asset_rights_engine.contracts.SceneBinding, role: str, usage: asset_rights_engine.contracts.UseContext, state: str = 'DRAFT') -> asset_rights_engine.contracts.RevisionView",
+  "create_database_snapshot": "(self, name: str) -> pathlib.Path",
+  "create_rights_revision": "(self, asset_id: str, record: asset_rights_engine.contracts.RightsRecord, expected_revision: int = 0) -> asset_rights_engine.contracts.RevisionView",
+  "evaluate_assignment_readiness": "(self, assignment_id: str, current_binding: asset_rights_engine.contracts.SceneBinding, context: asset_rights_engine.contracts.UseContext) -> asset_rights_engine.contracts.Evaluation",
+  "evaluate_effective_rights": "(self, asset_id: str, context: asset_rights_engine.contracts.UseContext) -> asset_rights_engine.contracts.Evaluation",
+  "get_asset": "(self, asset_id: str) -> asset_rights_engine.contracts.AssetDescriptor",
+  "get_assignment": "(self, assignment_id: str) -> asset_rights_engine.contracts.RevisionView",
+  "get_review_history": "(self) -> tuple[asset_rights_engine.contracts.ReviewEvent, ...]",
+  "get_rights": "(self, asset_id: str) -> asset_rights_engine.contracts.RevisionView",
+  "list_assets": "(self) -> tuple[asset_rights_engine.contracts.AssetDescriptor, ...]",
+  "list_assignments": "(self) -> tuple[asset_rights_engine.contracts.RevisionView, ...]",
+  "register_asset": "(self, asset: asset_rights_engine.contracts.AssetDescriptor) -> asset_rights_engine.contracts.AssetDescriptor",
+  "review_assignment": "(self, assignment_id: str, request: asset_rights_engine.contracts.ReviewRequest, current_binding: asset_rights_engine.contracts.SceneBinding | None = None, context: asset_rights_engine.contracts.UseContext | None = None) -> asset_rights_engine.contracts.ReviewEvent",
+  "review_rights": "(self, asset_id: str, request: asset_rights_engine.contracts.ReviewRequest) -> asset_rights_engine.contracts.ReviewEvent",
+  "revise_assignment": "(self, assignment_id: str, binding: asset_rights_engine.contracts.SceneBinding, role: str, usage: asset_rights_engine.contracts.UseContext, expected_revision: int, state: str = 'PENDING_REVIEW') -> asset_rights_engine.contracts.RevisionView",
+  "validate_database": "(self) -> dict"
+}

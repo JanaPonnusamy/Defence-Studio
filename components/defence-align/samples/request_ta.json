@@ -1,0 +1,21 @@
+{
+  "schema_version": "defence-align.request.v1",
+  "alignment_job_id": "sample-ta-1",
+  "project_id": "sample-project",
+  "audio_artifact_id": "sample-audio-ta",
+  "audio_path": "audio/sample_ta.wav",
+  "audio_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+  "transcript_id": "sample-transcript-ta",
+  "transcript_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+  "language": "ta",
+  "sections": [
+    {
+      "section_id": "intro",
+      "segments": [
+        {"segment_id": "intro-1", "original_text": "ராஃபேல் விமானம் DRDO ஆல் சோதிக்கப்பட்டது."},
+        {"segment_id": "intro-2", "original_text": "AESA ரேடார் சிறப்பாக செயல்பட்டது."}
+      ]
+    }
+  ],
+  "config": {"engine": "deterministic-test", "granularity": "word", "allow_synthetic": true}
+}

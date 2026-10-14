@@ -28,6 +28,9 @@ export function renderSourcesList(sources, selectedId) {
       <div class="card clickable${selected}" data-source-id="${escapeHtml(source.source_id)}" role="button" tabindex="0">
         <h3>${escapeHtml(title)}</h3>
         <p class="meta">${escapeHtml(source.declared_metadata?.publisher || "Publisher unknown")}
+          ${source.status === "ACQUIRED" && !source.normalized ? " · text not extracted" : ""}
+          ${source.normalized && source.normalized.status && source.normalized.status !== "NORMALIZED"
+            ? ` · ${escapeHtml(source.normalized.status)}` : ""}
           &middot; ${escapeHtml(source.declared_metadata?.language || "language unknown")}</p>
         <div class="chip-row">
           ${statusBadgeHtml(source.status)}

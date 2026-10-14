@@ -72,7 +72,7 @@ export function renderDashboardHtml(jobs, activeJobId) {
         <div class="empty-state dashboard-empty">
           <span class="empty-icon" aria-hidden="true">${icon("layers", { size: 26 })}</span>
           <p>No workflow jobs yet for this session.</p>
-          <p class="meta">Start one from the Discovery tab, or load a specific job by ID above.</p>
+          <p class="meta">Open the Discovery tab and submit a topic, or load a job by ID above.</p>
         </div>
       </div>`;
   }

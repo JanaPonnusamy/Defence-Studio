@@ -181,6 +181,19 @@ Portability: **STANDALONE** (lift single file) · **BUNDLE** (lift listed files)
 |---|---|---|---|---|---|---|
 | P4-V1 | Scene plan view: generation controls (script-readiness gated), scene list/detail with draft/awaiting-review/changes-requested/approved/superseded state display, review feedback, approval (calls `/scene/*`) | `frontend/js/views/scene-view.js` | COUPLED (Phase 4 M1 API shape) | UI-01, UI-04, P3-V1 | module docstring | VERIFIED (code; browser pending) |
 
+## Standalone external components (consolidated under the project root, not yet integrated)
+
+> Each of these is an independently-versioned standalone project (own `pyproject.toml`,
+> own test suite, own internal module layout) rather than a single reusable file/bundle —
+> so this section registers it at the folder level and points to its own README/contracts
+> rather than enumerating internal files. Neither is wired into core Defence Studio yet;
+> see `project_status.md` for integration status and known gaps.
+
+| ID | Component | Canonical path | Portability | External deps | README / contract | Status |
+|---|---|---|---|---|---|---|
+| EXT-01 | Asset & Rights Engine (ARE) — asset registration, rights revisions, usage evaluation | `components/asset-rights-engine/` | COUPLED (own SQLite, needs a host adapter to wire into Defence Studio's asset model) | stdlib only (sqlite3) | `components/asset-rights-engine/README.md`, `CONTRACTS.md`, `docs/HOST_ADAPTER.md` | PARTIAL — standalone VERIFIED (140 passed, 116 subtests passed), not drop-in compatible with Defence Studio's own Phase 5 asset model (`docs/asset_rights_integration/COMPATIBILITY.md`), not integrated |
+| EXT-02 | Alignment engine (align_engine) — forced-alignment of spoken text to audio (CTC/torchaudio) | `components/defence-align/` | COUPLED (FastAPI service, needs torch/torchaudio; MMS-FA model is CC-BY-NC 4.0, non-commercial) | fastapi, torch, torchaudio | `components/defence-align/README.md`, `INTEGRATION_CONTRACT.md` | PARTIAL — standalone VERIFIED (76 passed), real CTC adapter implemented but not run against a real downloaded model, Tamil/English accuracy unverified, not integrated with TTS or core Defence Studio |
+
 ## YouTube publishing (Phase 9 / YT spec) — not built yet
 
 > Components specified in `DEFENCE_STUDIO_YOUTUBE_INTEGRATION_SPECIFICATION.md`

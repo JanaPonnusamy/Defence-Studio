@@ -1,0 +1,3 @@
+from pathlib import Path
+p=Path('src/asset_rights_engine/engine.py');s=p.read_text().replace('        except (ValueError,TypeError,KeyError,AttributeError,RecursionError) as e:', '        except json.JSONDecodeError as e:\n            raise DomainError("VALIDATION",f"{context}: Malformed JSON at line {e.lineno}, column {e.colno}: {e.msg}") from e\n        except (ValueError,TypeError,KeyError,AttributeError,RecursionError) as e:');p.write_text(s)
+p=Path('tests/test_database_validation.py');s=p.read_text().replace("self.reject('JSONDecodeError',e)","self.reject('Malformed JSON at line 1, column 1',e)");p.write_text(s)

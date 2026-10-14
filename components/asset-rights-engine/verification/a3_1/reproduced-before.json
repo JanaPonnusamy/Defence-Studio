@@ -1,0 +1,30 @@
+[
+  {
+    "probe": "empty ledger",
+    "result": {
+      "exception": "TypeError",
+      "message": "'NoneType' object is not subscriptable"
+    }
+  },
+  {
+    "probe": "missing review_state",
+    "result": {
+      "valid": true,
+      "schema_version": 1
+    }
+  },
+  {
+    "probe": "no-op trigger",
+    "result": {
+      "valid": true,
+      "schema_version": 1
+    }
+  },
+  {
+    "probe": "malformed revision JSON",
+    "result": {
+      "exception": "JSONDecodeError",
+      "message": "Expecting value: line 1 column 1 (char 0)"
+    }
+  }
+]

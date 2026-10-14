@@ -1,0 +1,2213 @@
+FILE src/asset_rights_engine/engine.py ENCODING utf-8
+   1: """Transactional standalone component; no media IO or host imports."""
+   2: from datetime import datetime, timezone
+   3: from pathlib import Path
+   4: from contextlib import contextmanager
+   5: from importlib.resources import files
+   6: import sqlite3, json, hashlib
+   7: from .contracts import *
+   8: from .evaluator import evaluate_effective_rights
+   9: 
+  10: class Engine:
+  11:     def __init__(self, data_directory: Path, database_name: str="asset_rights.sqlite3"):
+  12:         self.root=Path(data_directory).resolve()
+  13:         require(Path(database_name).name==database_name and database_name.endswith(".sqlite3"),"Database name must be a local SQLite basename")
+  14:         try: self.root.mkdir(parents=True,exist_ok=True)
+  15:         except OSError as e: raise DomainError("FILESYSTEM",str(e)) from e
+  16:         self.path=self.root/database_name
+  17:         require(self.path.resolve().parent==self.root,"Database escapes configured directory")
+  18:         self._initialize()
+  19: 
+  20:     @contextmanager
+  21:     def _connection(self, write=False):
+  22:         con=None
+  23:         try:
+  24:             con=sqlite3.connect(self.path,timeout=10)
+  25:             con.execute("PRAGMA foreign_keys=ON")
+  26:             con.row_factory=sqlite3.Row
+  27:             con.execute("BEGIN IMMEDIATE" if write else "BEGIN")
+  28:             yield con
+  29:             if write: con.commit()
+  30:         except sqlite3.Error as e:
+  31:             if con: con.rollback()
+  32:             raise DomainError("DATABASE",str(e)) from e
+  33:         except Exception:
+  34:             if con: con.rollback()
+  35:             raise
+  36:         finally:
+  37:             if con: con.close()
+  38: 
+  39:     def _initialize(self):
+  40:         with self._connection(True) as c:
+  41:             version=c.execute("PRAGMA user_version").fetchone()[0]
+  42:             require(version in (0,1),"Unsupported schema version")
+  43:             schema=files("asset_rights_engine").joinpath("schema.sql").read_text()
+  44:             checksum=hashlib.sha256(schema.encode()).hexdigest()
+  45:             if version==0:
+  46:                 require(not c.execute("SELECT name FROM sqlite_master WHERE type='table'").fetchall(),"Refusing to initialize existing unversioned database")
+  47:                 for statement in schema.split(";"):
+  48:                     if statement.strip(): c.execute(statement)
+  49:                 for table in ("assets","rights_revisions","assignment_revisions","review_history","migrations"):
+  50:                     for action in ("UPDATE","DELETE"):
+  51:                         c.execute(f"CREATE TRIGGER immutable_{table}_{action.lower()} BEFORE {action} ON {table} BEGIN SELECT RAISE(ABORT,'immutable record'); END")
+  52:                 c.execute("INSERT INTO migrations VALUES(1,?,?)",(datetime.now(timezone.utc).isoformat(),checksum))
+  53:                 c.execute("PRAGMA user_version=1")
+  54:             else:
+  55:                 require(c.execute("SELECT checksum FROM migrations WHERE version=1").fetchone()[0]==checksum,"Schema migration checksum mismatch")
+  56:         self.validate_database()
+  57: 
+  58:     def validate_database(self) -> dict:
+  59:         with self._connection() as c:
+  60:             require(c.execute("PRAGMA user_version").fetchone()[0]==1,"Unsupported schema")
+  61:             require(c.execute("PRAGMA integrity_check").fetchone()[0]=="ok","Integrity check failed")
+  62:             require(not c.execute("PRAGMA foreign_key_check").fetchall(),"Foreign key violations")
+  63:             for table in ("assets","rights_revisions","assignment_revisions","review_history","migrations"):
+  64:                 for action in ("update","delete"):
+  65:                     require(c.execute("SELECT 1 FROM sqlite_master WHERE type='trigger' AND name=?",(f"immutable_{table}_{action}",)).fetchone() is not None,"Missing immutability trigger")
+  66:             for table in ("rights_revisions","assignment_revisions"):
+  67:                 for row in c.execute(f"SELECT payload,digest FROM {table}"):
+  68:                     require(digest(json.loads(row["payload"]))==row["digest"],"Content digest mismatch")
+  69:             return {"valid":True,"schema_version":1}
+  70: 
+  71:     def register_asset(self, asset: AssetDescriptor) -> AssetDescriptor:
+  72:         require(isinstance(asset,AssetDescriptor),"Expected AssetDescriptor")
+  73:         with self._connection(True) as c:
+  74:             existing=c.execute("SELECT payload FROM assets WHERE asset_id=?",(asset.asset_id,)).fetchone()
+  75:             if existing:
+  76:                 require(existing[0]==canonical(asset),"Asset ID already registered with different metadata")
+  77:             else: c.execute("INSERT INTO assets VALUES(?,?)",(asset.asset_id,canonical(asset)))
+  78:         return asset
+  79: 
+  80:     def get_asset(self, asset_id: str) -> AssetDescriptor:
+  81:         identifier(asset_id)
+  82:         with self._connection() as c:
+  83:             row=c.execute("SELECT payload FROM assets WHERE asset_id=?",(asset_id,)).fetchone()
+  84:             if not row: raise DomainError("NOT_FOUND","Asset not found")
+  85:             return AssetDescriptor(**json.loads(row[0]))
+  86: 
+  87:     def list_assets(self) -> tuple[AssetDescriptor,...]:
+  88:         with self._connection() as c: return tuple(AssetDescriptor(**json.loads(r[0])) for r in c.execute("SELECT payload FROM assets ORDER BY asset_id"))
+  89: 
+  90:     def _view(self,c,kind,entity_id):
+  91:         table="rights_revisions" if kind=="rights" else "assignment_revisions"
+  92:         row=c.execute(f"SELECT * FROM {table} WHERE entity_id=? ORDER BY revision DESC LIMIT 1",(entity_id,)).fetchone()
+  93:         if not row: raise DomainError("NOT_FOUND","Revision not found")
+  94:         state=c.execute("SELECT revision,decision FROM review_state WHERE kind=? AND entity_id=?",(kind,entity_id)).fetchone()
+  95:         payload=json.loads(row["payload"])
+  96:         status=payload.get("state","PENDING_REVIEW")
+  97:         if state and state[0]==row["revision"]: status=state[1] if kind=="rights" or state[1]=="APPROVED" else "BLOCKED"
+  98:         if kind=="assignment":
+  99:             current=c.execute("SELECT revision,digest FROM rights_revisions WHERE entity_id=? ORDER BY revision DESC LIMIT 1",(payload["asset_id"],)).fetchone()
+ 100:             if current and (current[0]!=payload["rights_revision"] or current[1]!=payload["rights_hash"]): status="STALE"
+ 101:         return RevisionView(entity_id,row["revision"],payload,row["digest"],status)
+ 102: 
+ 103:     def get_rights(self,asset_id: str) -> RevisionView:
+ 104:         with self._connection() as c: return self._view(c,"rights",asset_id)
+ 105: 
+ 106:     def get_assignment(self,assignment_id: str) -> RevisionView:
+ 107:         with self._connection() as c: return self._view(c,"assignment",assignment_id)
+ 108: 
+ 109:     def create_rights_revision(self, asset_id: str, record: RightsRecord, expected_revision: int=0) -> RevisionView:
+ 110:         require(isinstance(record,RightsRecord),"Expected RightsRecord")
+ 111:         require(record.state!=RightsState.APPROVED,"Approval requires review_rights")
+ 112:         require(type(expected_revision) is int and expected_revision>=0,"Invalid expected revision")
+ 113:         self.get_asset(asset_id)
+ 114:         with self._connection(True) as c:
+ 115:             current=c.execute("SELECT COALESCE(MAX(revision),0) FROM rights_revisions WHERE entity_id=?",(asset_id,)).fetchone()[0]
+ 116:             if current!=expected_revision: raise DomainError("CONFLICT","Rights revision changed")
+ 117:             c.execute("INSERT INTO rights_revisions VALUES(?,?,?,?)",(asset_id,current+1,canonical(record),digest(record)))
+ 118:             c.execute("DELETE FROM review_state WHERE kind='rights' AND entity_id=?",(asset_id,))
+ 119:             return self._view(c,"rights",asset_id)
+ 120: 
+ 121:     def _rights_review(self,c,view):
+ 122:         row=c.execute("SELECT h.* FROM review_state s JOIN review_history h ON h.kind=s.kind AND h.entity_id=s.entity_id AND h.revision=s.revision WHERE s.kind='rights' AND s.entity_id=? AND s.revision=?",(view.entity_id,view.revision)).fetchone()
+ 123:         return self._event(row) if row else None
+ 124: 
+ 125:     def evaluate_effective_rights(self,asset_id: str,context: UseContext) -> Evaluation:
+ 126:         with self._connection() as c:
+ 127:             view=self._view(c,"rights",asset_id)
+ 128:             return evaluate_effective_rights(RightsRecord(**view.content),context,rights_revision=view.revision,review=self._rights_review(c,view))
+ 129: 
+ 130:     def _assignment_payload(self,c,asset_id,binding,role,usage,state):
+ 131:         require(isinstance(binding,SceneBinding) and isinstance(usage,UseContext),"Typed binding and usage required")
+ 132:         identifier(role)
+ 133:         require(state in ("DRAFT","PENDING_REVIEW","BLOCKED"),"Assignment approval requires review")
+ 134:         rights=self._view(c,"rights",asset_id)
+ 135:         return asdict(AssignmentDescriptor(asset_id,binding,role,usage,rights.revision,rights.content_digest,AssignmentState(state)))
+ 136: 
+ 137:     def create_assignment(self,assignment_id: str,asset_id: str,binding: SceneBinding,role: str,usage: UseContext,state: str="DRAFT") -> RevisionView:
+ 138:         identifier(assignment_id)
+ 139:         with self._connection(True) as c:
+ 140:             payload=self._assignment_payload(c,asset_id,binding,role,usage,state)
+ 141:             if c.execute("SELECT 1 FROM assignments WHERE assignment_id=?",(assignment_id,)).fetchone(): raise DomainError("CONFLICT","Assignment exists")
+ 142:             c.execute("INSERT INTO assignments VALUES(?,?)",(assignment_id,asset_id))
+ 143:             c.execute("INSERT INTO assignment_revisions VALUES(?,1,?,?)",(assignment_id,canonical(payload),digest(payload)))
+ 144:             return self._view(c,"assignment",assignment_id)
+ 145: 
+ 146:     def revise_assignment(self,assignment_id: str,binding: SceneBinding,role: str,usage: UseContext,expected_revision: int,state: str="PENDING_REVIEW") -> RevisionView:
+ 147:         revision(expected_revision)
+ 148:         with self._connection(True) as c:
+ 149:             old=self._view(c,"assignment",assignment_id)
+ 150:             if old.revision!=expected_revision: raise DomainError("CONFLICT","Assignment revision changed")
+ 151:             payload=self._assignment_payload(c,old.content["asset_id"],binding,role,usage,state)
+ 152:             c.execute("INSERT INTO assignment_revisions VALUES(?,?,?,?)",(assignment_id,old.revision+1,canonical(payload),digest(payload)))
+ 153:             c.execute("DELETE FROM review_state WHERE kind='assignment' AND entity_id=?",(assignment_id,))
+ 154:             return self._view(c,"assignment",assignment_id)
+ 155: 
+ 156:     def _readiness(self,c,view,binding,context,require_review=True):
+ 157:         payload=view.content; rights=self._view(c,"rights",payload["asset_id"])
+ 158:         asset=c.execute("SELECT payload FROM assets WHERE asset_id=?",(payload["asset_id"],)).fetchone()
+ 159:         AssetDescriptor(**json.loads(asset[0]))
+ 160:         result=evaluate_effective_rights(RightsRecord(**rights.content),context,rights_revision=rights.revision,review=self._rights_review(c,rights))
+ 161:         blockers=list(result.blockers)
+ 162:         if rights.revision!=payload["rights_revision"] or rights.content_digest!=payload["rights_hash"]: blockers.append("STALE_RIGHTS_REVISION")
+ 163:         if asdict(binding)!=payload["binding"]: blockers.append("STALE_SCENE_BINDING")
+ 164:         declared=dict(payload["usage"]); actual=asdict(context)
+ 165:         declared.pop("evaluated_at"); actual.pop("evaluated_at")
+ 166:         if declared!=actual: blockers.append("USE_CONTEXT_CHANGED")
+ 167:         if payload["state"]=="BLOCKED" or view.state=="BLOCKED": blockers.append("ASSIGNMENT_BLOCKED")
+ 168:         if require_review and view.state!="APPROVED": blockers.append("ASSIGNMENT_NOT_APPROVED")
+ 169:         if require_review:
+ 170:             reviewed=c.execute("SELECT reviewed_at FROM review_history WHERE kind='assignment' AND entity_id=? AND revision=?",(view.entity_id,view.revision)).fetchone()
+ 171:             if reviewed and instant(reviewed[0])>instant(context.evaluated_at): blockers.append("ASSIGNMENT_REVIEW_AFTER_EVALUATION")
+ 172:         return Evaluation(not blockers,tuple(blockers),("MEDIA_AVAILABILITY_UNVERIFIED",),tuple("RESOLVE_"+b for b in blockers),rights.revision,rights.content_digest,context.evaluated_at)
+ 173: 
+ 174:     def evaluate_assignment_readiness(self,assignment_id: str,current_binding: SceneBinding,context: UseContext) -> Evaluation:
+ 175:         require(isinstance(current_binding,SceneBinding) and isinstance(context,UseContext),"Typed context required")
+ 176:         with self._connection() as c: return self._readiness(c,self._view(c,"assignment",assignment_id),current_binding,context)
+ 177: 
+ 178:     def _review(self,kind,entity_id,request,binding=None,context=None):
+ 179:         require(isinstance(request,ReviewRequest),"Expected ReviewRequest")
+ 180:         payload=canonical({"kind":kind,"entity_id":entity_id,"request":asdict(request),"binding":asdict(binding) if binding else None,"context":asdict(context) if context else None})
+ 181:         with self._connection(True) as c:
+ 182:             previous=c.execute("SELECT * FROM review_history WHERE idempotency_key=?",(request.idempotency_key,)).fetchone()
+ 183:             if previous:
+ 184:                 if previous["request_payload"]!=payload: raise DomainError("CONFLICT","Idempotency key payload differs")
+ 185:                 return self._event(previous)
+ 186:             view=self._view(c,kind,entity_id)
+ 187:             if view.revision!=request.expected_revision: raise DomainError("CONFLICT","Review revision changed")
+ 188:             if view.content_digest!=request.content_digest: raise DomainError("CONFLICT","Reviewed digest changed")
+ 189:             if c.execute("SELECT 1 FROM review_state WHERE kind=? AND entity_id=? AND revision=?",(kind,entity_id,view.revision)).fetchone(): raise DomainError("CONFLICT","Revision already reviewed")
+ 190:             if request.decision=="APPROVED":
+ 191:                 if kind=="rights":
+ 192:                     record=RightsRecord(**view.content)
+ 193:                     require(record.state in (RightsState.PENDING_REVIEW,),"Only pending rights can be approved")
+ 194:                     require(all(isinstance(x,str) and x.strip() for x in (record.rights_basis,record.licence_name,record.evidence_notes)),"Rights evidence required")
+ 195:                     require(record.attribution_required is not None and (not record.attribution_required or bool(record.attribution_text and record.attribution_text.strip())),"Attribution information required")
+ 196:                 else:
+ 197:                     require(isinstance(binding,SceneBinding) and isinstance(context,UseContext),"Current binding and context required")
+ 198:                     require(context.evaluated_at==request.reviewed_at,"Review context must use review timestamp")
+ 199:                     result=self._readiness(c,view,binding,context,False)
+ 200:                     require(result.eligible,"Assignment blocked: "+",".join(result.blockers))
+ 201:             c.execute("INSERT INTO review_history(kind,entity_id,revision,reviewer,decision,note,content_digest,reviewed_at,idempotency_key,request_payload) VALUES(?,?,?,?,?,?,?,?,?,?)",(kind,entity_id,view.revision,request.reviewer,request.decision,request.note,request.content_digest,request.reviewed_at,request.idempotency_key,payload))
+ 202:             c.execute("INSERT INTO review_state VALUES(?,?,?,?) ON CONFLICT(kind,entity_id) DO UPDATE SET revision=excluded.revision,decision=excluded.decision",(kind,entity_id,view.revision,request.decision))
+ 203:             return self._event(c.execute("SELECT * FROM review_history WHERE idempotency_key=?",(request.idempotency_key,)).fetchone())
+ 204: 
+ 205:     def review_rights(self,asset_id: str,request: ReviewRequest) -> ReviewEvent: return self._review("rights",asset_id,request)
+ 206:     def review_assignment(self,assignment_id: str,request: ReviewRequest,current_binding: SceneBinding|None=None,context: UseContext|None=None) -> ReviewEvent: return self._review("assignment",assignment_id,request,current_binding,context)
+ 207:     @staticmethod
+ 208:     def _event(row): return ReviewEvent(**{k:row[k] for k in ReviewEvent.__dataclass_fields__})
+ 209:     def get_review_history(self) -> tuple[ReviewEvent,...]:
+ 210:         with self._connection() as c: return tuple(self._event(r) for r in c.execute("SELECT * FROM review_history ORDER BY sequence"))
+ 211:     def list_assignments(self) -> tuple[RevisionView,...]:
+ 212:         with self._connection() as c: return tuple(self._view(c,"assignment",r[0]) for r in c.execute("SELECT assignment_id FROM assignments ORDER BY assignment_id"))
+ 213:     def create_database_snapshot(self,name: str) -> Path:
+ 214:         require(Path(name).name==name and name.endswith(".sqlite3"),"Snapshot must be local basename")
+ 215:         target=self.root/name
+ 216:         require(target.resolve().parent==self.root and not target.exists(),"Snapshot exists or escapes configured directory")
+ 217:         try:
+ 218:             with target.open("xb"): pass
+ 219:             with self._connection() as source:
+ 220:                 dest=sqlite3.connect(target)
+ 221:                 try: source.backup(dest)
+ 222:                 finally: dest.close()
+ 223:         except (OSError,sqlite3.Error) as e: raise DomainError("SNAPSHOT",str(e)) from e
+ 224:         return target
+FILE src/asset_rights_engine/contracts.py ENCODING utf-8
+   1: """Version 1 immutable, validated metadata contracts."""
+   2: from dataclasses import dataclass, asdict
+   3: from datetime import datetime
+   4: from enum import Enum
+   5: import hashlib, json, re
+   6: 
+   7: class DomainError(Exception):
+   8:     def __init__(self, code: str, message: str):
+   9:         self.code, self.message = code, message
+  10:         super().__init__(f"{code}: {message}")
+  11: 
+  12: class RightsState(str, Enum):
+  13:     UNKNOWN="UNKNOWN"
+  14:     PENDING_REVIEW="PENDING_REVIEW"
+  15:     APPROVED="APPROVED"
+  16:     REJECTED="REJECTED"
+  17:     EXPIRED="EXPIRED"
+  18:     REVOKED="REVOKED"
+  19: 
+  20: class AssignmentState(str, Enum):
+  21:     DRAFT="DRAFT"
+  22:     PENDING_REVIEW="PENDING_REVIEW"
+  23:     APPROVED="APPROVED"
+  24:     BLOCKED="BLOCKED"
+  25:     STALE="STALE"
+  26: 
+  27: def require(ok, message):
+  28:     if not ok: raise DomainError("VALIDATION", message)
+  29: 
+  30: def identifier(value):
+  31:     require(isinstance(value,str) and re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}",value), "Invalid identifier")
+  32: 
+  33: def sha(value):
+  34:     require(isinstance(value,str) and re.fullmatch(r"[0-9a-f]{64}",value), "Expected lowercase SHA-256")
+  35: 
+  36: def instant(value):
+  37:     try:
+  38:         dt=datetime.fromisoformat(value.replace("Z","+00:00"))
+  39:         require(dt.tzinfo is not None and dt.utcoffset() is not None,"Timezone required")
+  40:         return dt
+  41:     except (ValueError,AttributeError,TypeError): raise DomainError("VALIDATION","Invalid timestamp")
+  42: 
+  43: def revision(value):
+  44:     require(type(value) is int and value>0,"Revision must be positive integer")
+  45: 
+  46: def canonical(value):
+  47:     if hasattr(value,"__dataclass_fields__"): value=asdict(value)
+  48:     return json.dumps(value,sort_keys=True,separators=(",",":"),ensure_ascii=False)
+  49: 
+  50: def digest(value): return hashlib.sha256(canonical(value).encode()).hexdigest()
+  51: 
+  52: @dataclass(frozen=True)
+  53: class AssetDescriptor:
+  54:     asset_id: str
+  55:     asset_type: str
+  56:     display_name: str
+  57:     description: str
+  58:     provenance: str
+  59:     original_source: str
+  60:     created_at: str
+  61:     registered_at: str
+  62:     mime_type: str|None=None
+  63:     byte_size: int|None=None
+  64:     sha256: str|None=None
+  65:     creator: str|None=None
+  66:     publisher: str|None=None
+  67:     tags: tuple[str,...]=()
+  68:     metadata_version: int=1
+  69:     validation_status: str="VALID"
+  70:     def __post_init__(self):
+  71:         identifier(self.asset_id)
+  72:         require(self.asset_type in ("image","video","audio","graphic","other"),"Unsupported asset type")
+  73:         require(type(self.metadata_version) is int and self.metadata_version==1,"Unsupported metadata version")
+  74:         require(self.validation_status=="VALID","Descriptor must pass validation")
+  75:         for v in (self.display_name,self.provenance,self.original_source): require(isinstance(v,str) and bool(v.strip()),"Required text missing")
+  76:         require(isinstance(self.description,str),"Description must be text")
+  77:         require(instant(self.created_at)<=instant(self.registered_at),"Creation after registration")
+  78:         require(self.byte_size is None or (type(self.byte_size) is int and self.byte_size>=0),"Invalid size")
+  79:         if self.sha256 is not None: sha(self.sha256)
+  80:         if self.mime_type is not None:
+  81:             require(isinstance(self.mime_type,str) and bool(re.fullmatch(r"[\w.+-]+/[\w.+-]+",self.mime_type)),"Invalid MIME")
+  82:             if self.asset_type in ("image","video","audio"): require(self.mime_type.startswith(self.asset_type+"/"),"MIME/type mismatch")
+  83:         for v in (self.creator,self.publisher): require(v is None or isinstance(v,str),"Invalid creator/publisher")
+  84:         require(isinstance(self.tags,(tuple,list)) and all(isinstance(t,str) and t.strip() for t in self.tags),"Invalid tags")
+  85:         object.__setattr__(self,"tags",tuple(self.tags))
+  86: 
+  87: @dataclass(frozen=True)
+  88: class RightsRecord:
+  89:     state: RightsState=RightsState.UNKNOWN
+  90:     rights_basis: str|None=None
+  91:     licence_name: str|None=None
+  92:     source_reference: str|None=None
+  93:     attribution_required: bool|None=None
+  94:     commercial: bool|None=None
+  95:     modification: bool|None=None
+  96:     distribution: bool|None=None
+  97:     territories: tuple[str,...]=()
+  98:     valid_from: str|None=None
+  99:     valid_until: str|None=None
+ 100:     attribution_text: str|None=None
+ 101:     evidence_notes: str|None=None
+ 102:     contract_version: int=1
+ 103:     def __post_init__(self):
+ 104:         try: object.__setattr__(self,"state",RightsState(self.state))
+ 105:         except (ValueError,TypeError): raise DomainError("VALIDATION","Unknown rights state")
+ 106:         require(type(self.contract_version) is int and self.contract_version==1,"Unsupported rights contract")
+ 107:         for name in ("attribution_required","commercial","modification","distribution"):
+ 108:             require(getattr(self,name) is None or type(getattr(self,name)) is bool,"Permission must be Boolean or unknown")
+ 109:         for name in ("rights_basis","licence_name","source_reference","attribution_text","evidence_notes"):
+ 110:             require(getattr(self,name) is None or isinstance(getattr(self,name),str),"Rights text must be text")
+ 111:         require(isinstance(self.territories,(list,tuple)) and all(isinstance(t,str) and re.fullmatch(r"[A-Z]{2}",t) for t in self.territories),"Territories must be uppercase two-letter codes")
+ 112:         object.__setattr__(self,"territories",tuple(sorted(set(self.territories))))
+ 113:         if self.valid_from is not None: instant(self.valid_from)
+ 114:         if self.valid_until is not None: instant(self.valid_until)
+ 115:         if self.valid_from and self.valid_until: require(instant(self.valid_from)<instant(self.valid_until),"Invalid validity interval")
+ 116: 
+ 117: @dataclass(frozen=True)
+ 118: class UseContext:
+ 119:     evaluated_at: str
+ 120:     commercial: bool=True
+ 121:     modification: bool=False
+ 122:     distribution: bool=True
+ 123:     territory: str|None=None
+ 124:     attribution_text: str|None=None
+ 125:     def __post_init__(self):
+ 126:         instant(self.evaluated_at)
+ 127:         for v in (self.commercial,self.modification,self.distribution): require(type(v) is bool,"Use flags must be Boolean")
+ 128:         require(self.territory is None or (isinstance(self.territory,str) and bool(re.fullmatch(r"[A-Z]{2}",self.territory))),"Invalid territory")
+ 129:         require(self.attribution_text is None or isinstance(self.attribution_text,str),"Invalid attribution")
+ 130: 
+ 131: @dataclass(frozen=True)
+ 132: class SceneBinding:
+ 133:     host_application: str
+ 134:     job_id: str
+ 135:     scene_id: str
+ 136:     plan_version: str
+ 137:     plan_sha256: str
+ 138:     content_digest: str|None=None
+ 139:     def __post_init__(self):
+ 140:         for v in (self.host_application,self.job_id,self.scene_id,self.plan_version): identifier(v)
+ 141:         sha(self.plan_sha256)
+ 142:         if self.content_digest is not None: sha(self.content_digest)
+ 143: 
+ 144: @dataclass(frozen=True)
+ 145: class ReviewRequest:
+ 146:     reviewer: str
+ 147:     decision: str
+ 148:     note: str
+ 149:     expected_revision: int
+ 150:     content_digest: str
+ 151:     idempotency_key: str
+ 152:     reviewed_at: str
+ 153:     def __post_init__(self):
+ 154:         identifier(self.reviewer); identifier(self.idempotency_key)
+ 155:         require(self.decision in ("APPROVED","REJECTED"),"Invalid review decision")
+ 156:         require(isinstance(self.note,str) and bool(self.note.strip()),"Review note required")
+ 157:         revision(self.expected_revision); sha(self.content_digest); instant(self.reviewed_at)
+ 158: 
+ 159: @dataclass(frozen=True)
+ 160: class RevisionView:
+ 161:     entity_id: str
+ 162:     revision: int
+ 163:     content: dict
+ 164:     content_digest: str
+ 165:     state: str
+ 166: 
+ 167: @dataclass(frozen=True)
+ 168: class Evaluation:
+ 169:     eligible: bool
+ 170:     blockers: tuple[str,...]
+ 171:     warnings: tuple[str,...]
+ 172:     review_actions: tuple[str,...]
+ 173:     rights_revision: int
+ 174:     rights_hash: str
+ 175:     evaluated_at: str
+ 176: 
+ 177: @dataclass(frozen=True)
+ 178: class ReviewEvent:
+ 179:     sequence: int
+ 180:     kind: str
+ 181:     entity_id: str
+ 182:     revision: int
+ 183:     reviewer: str
+ 184:     decision: str
+ 185:     note: str
+ 186:     content_digest: str
+ 187:     reviewed_at: str
+ 188:     idempotency_key: str
+ 189: 
+ 190: @dataclass(frozen=True)
+ 191: class AssignmentDescriptor:
+ 192:     asset_id: str
+ 193:     binding: SceneBinding
+ 194:     role: str
+ 195:     usage: UseContext
+ 196:     rights_revision: int
+ 197:     rights_hash: str
+ 198:     state: AssignmentState=AssignmentState.DRAFT
+ 199:     contract_version: int=1
+ 200:     def __post_init__(self):
+ 201:         identifier(self.asset_id); identifier(self.role)
+ 202:         require(isinstance(self.binding,SceneBinding) and isinstance(self.usage,UseContext),"Typed scene binding and usage required")
+ 203:         revision(self.rights_revision); sha(self.rights_hash)
+ 204:         require(type(self.contract_version) is int and self.contract_version==1,"Unsupported assignment contract")
+ 205:         try: object.__setattr__(self,"state",AssignmentState(self.state))
+ 206:         except (ValueError,TypeError): raise DomainError("VALIDATION","Unsupported assignment state")
+FILE src/asset_rights_engine/evaluator.py ENCODING utf-8
+   1: """Pure evaluator; approval is supplied by the engine's persisted review."""
+   2: from .contracts import *
+   3: 
+   4: def evaluate_effective_rights(record: RightsRecord, context: UseContext, *, rights_revision: int=1, review: ReviewEvent|None=None) -> Evaluation:
+   5:     revision(rights_revision)
+   6:     blockers=[]
+   7:     if record.state != RightsState.PENDING_REVIEW or review is None or review.kind != "rights" or review.decision != "APPROVED" or review.revision != rights_revision or review.content_digest != digest(record):
+   8:         blockers.append("RIGHTS_NOT_APPROVED")
+   9:     if review is not None and instant(review.reviewed_at)>instant(context.evaluated_at): blockers.append("REVIEW_AFTER_EVALUATION")
+  10:     if not record.rights_basis or not record.licence_name or not record.evidence_notes:
+  11:         blockers.append("INCOMPLETE_RIGHTS_EVIDENCE")
+  12:     for field in ("commercial","modification","distribution"):
+  13:         if getattr(context,field) and getattr(record,field) is not True: blockers.append(field.upper()+"_NOT_PERMITTED")
+  14:     if record.attribution_required is None: blockers.append("ATTRIBUTION_REQUIREMENT_UNKNOWN")
+  15:     if record.attribution_required and (not record.attribution_text or context.attribution_text!=record.attribution_text): blockers.append("ATTRIBUTION_MISSING_OR_MISMATCHED")
+  16:     if record.territories and context.territory not in record.territories: blockers.append("TERRITORY_RESTRICTED")
+  17:     if record.valid_from and instant(context.evaluated_at)<instant(record.valid_from): blockers.append("RIGHTS_NOT_YET_VALID")
+  18:     if record.valid_until and instant(context.evaluated_at)>=instant(record.valid_until): blockers.append("RIGHTS_EXPIRED")
+  19:     return Evaluation(not blockers,tuple(blockers),(),("REVIEW_DECLARED_RIGHTS",) if blockers else (),rights_revision,digest(record),context.evaluated_at)
+FILE src/asset_rights_engine/adapter_contracts.py ENCODING utf-8
+   1: """ARE-A2 v1: validated host assertions are never authentication evidence."""
+   2: from dataclasses import dataclass
+   3: from enum import Enum
+   4: from .contracts import DomainError, SceneBinding, identifier, revision, sha, require
+   5: 
+   6: 
+   7: class PlanState(str, Enum):
+   8:     DRAFT = "DRAFT"
+   9:     PENDING_REVIEW = "PENDING_REVIEW"
+  10:     APPROVED = "APPROVED"
+  11:     REVOKED = "REVOKED"
+  12: 
+  13: 
+  14: class HostOperation(str, Enum):
+  15:     CREATE_ASSIGNMENT = "CREATE_ASSIGNMENT"
+  16:     REVISE_ASSIGNMENT = "REVISE_ASSIGNMENT"
+  17:     REVIEW_RIGHTS = "REVIEW_RIGHTS"
+  18:     REVIEW_ASSIGNMENT = "REVIEW_ASSIGNMENT"
+  19:     EVALUATE_READINESS = "EVALUATE_READINESS"
+  20: 
+  21: 
+  22: @dataclass(frozen=True)
+  23: class HostScope:
+  24:     host_application: str
+  25:     tenant_id: str
+  26:     owner_id: str
+  27: 
+  28:     def __post_init__(self) -> None:
+  29:         for value in (self.host_application, self.tenant_id, self.owner_id):
+  30:             identifier(value)
+  31: 
+  32: 
+  33: @dataclass(frozen=True)
+  34: class HostSceneKey:
+  35:     scope: HostScope
+  36:     job_id: str
+  37:     scene_id: str
+  38: 
+  39:     def __post_init__(self) -> None:
+  40:         require(isinstance(self.scope, HostScope), "Expected HostScope")
+  41:         identifier(self.job_id)
+  42:         identifier(self.scene_id)
+  43: 
+  44: 
+  45: @dataclass(frozen=True)
+  46: class HostSceneContext:
+  47:     """Host-asserted plan state. Construction validates structure, not authority."""
+  48:     scene: HostSceneKey
+  49:     plan_revision: int
+  50:     plan_sha256: str
+  51:     plan_state: PlanState
+  52:     host_asserts_approved: bool
+  53:     scene_content_digest: str | None = None
+  54:     contract_version: int = 1
+  55: 
+  56:     def __post_init__(self) -> None:
+  57:         require(isinstance(self.scene, HostSceneKey), "Expected HostSceneKey")
+  58:         revision(self.plan_revision)
+  59:         sha(self.plan_sha256)
+  60:         if self.scene_content_digest is not None:
+  61:             sha(self.scene_content_digest)
+  62:         try:
+  63:             object.__setattr__(self, "plan_state", PlanState(self.plan_state))
+  64:         except (ValueError, TypeError):
+  65:             raise DomainError("VALIDATION", "Invalid plan state")
+  66:         require(type(self.host_asserts_approved) is bool, "Approval assertion must be Boolean")
+  67:         require(self.host_asserts_approved == (self.plan_state == PlanState.APPROVED),
+  68:                 "Contradictory plan approval assertion")
+  69:         require(type(self.contract_version) is int and self.contract_version == 1,
+  70:                 "Unsupported host adapter contract version")
+  71: 
+  72:     def scene_binding(self) -> SceneBinding:
+  73:         """Translate structure only; this method confers no authorization."""
+  74:         if not self.host_asserts_approved:
+  75:             raise DomainError("PLAN_NOT_APPROVED", "Host plan is not asserted approved")
+  76:         return SceneBinding(self.scene.scope.host_application, self.scene.job_id,
+  77:                             self.scene.scene_id, str(self.plan_revision), self.plan_sha256,
+  78:                             self.scene_content_digest)
+  79: 
+  80: 
+  81: @dataclass(frozen=True)
+  82: class HostPrincipal:
+  83:     """Host-supplied principal identifier, with no authenticated/authorized flag."""
+  84:     scope: HostScope
+  85:     principal_id: str
+  86: 
+  87:     def __post_init__(self) -> None:
+  88:         require(isinstance(self.scope, HostScope), "Expected HostScope")
+  89:         identifier(self.principal_id)
+  90: 
+  91: 
+  92: @dataclass(frozen=True)
+  93: class HostOperationRequest:
+  94:     operation: HostOperation
+  95:     expected_context: HostSceneContext
+  96:     principal: HostPrincipal
+  97:     asset_id: str
+  98:     assignment_id: str | None = None
+  99: 
+ 100:     def __post_init__(self) -> None:
+ 101:         try:
+ 102:             object.__setattr__(self, "operation", HostOperation(self.operation))
+ 103:         except (ValueError, TypeError):
+ 104:             raise DomainError("VALIDATION", "Unsupported host operation")
+ 105:         require(isinstance(self.expected_context, HostSceneContext), "Expected HostSceneContext")
+ 106:         require(isinstance(self.principal, HostPrincipal), "Host principal required")
+ 107:         if self.principal.scope != self.expected_context.scene.scope:
+ 108:             raise DomainError("SCOPE_MISMATCH", "Principal scope differs from requested scene scope")
+ 109:         identifier(self.asset_id)
+ 110:         if self.operation == HostOperation.REVIEW_RIGHTS:
+ 111:             require(self.assignment_id is None, "Rights review must not target an assignment")
+ 112:         else:
+ 113:             identifier(self.assignment_id)
+FILE src/asset_rights_engine/host_adapter.py ENCODING utf-8
+   1: """Optional host gateway. A trusted provider is a production prerequisite."""
+   2: from contextlib import AbstractContextManager, contextmanager
+   3: from typing import Iterator, Protocol
+   4: from .adapter_contracts import (HostOperation, HostOperationRequest, HostPrincipal,
+   5:                                 HostSceneContext)
+   6: from .contracts import DomainError, Evaluation, ReviewEvent, ReviewRequest, RevisionView, UseContext, require
+   7: from .engine import Engine
+   8: 
+   9: 
+  10: class HostAdapter(Protocol):
+  11:     def operation_context(self, request: HostOperationRequest) -> AbstractContextManager[HostSceneContext]:
+  12:         """Authenticate/authorize, verify resource ownership and current approved plan.
+  13: 
+  14:         A production implementation must derive identity from an authenticated session,
+  15:         independently authorize the operation and asset/assignment scope, load the
+  16:         authoritative scene, and keep its state stable until the context exits. Reject
+  17:         by raising DomainError. Returning a DTO alone is not proof of authorization.
+  18:         The component cannot verify that an implementation fulfills these obligations.
+  19:         """
+  20:         ...
+  21: 
+  22: 
+  23: class AdapterGateway:
+  24:     """Use only behind a trusted host boundary; never accept providers from end users."""
+  25:     def __init__(self, engine: Engine, host: HostAdapter):
+  26:         require(isinstance(engine, Engine), "Expected Engine")
+  27:         require(callable(getattr(host, "operation_context", None)), "Host adapter provider required")
+  28:         self._engine, self._host = engine, host
+  29: 
+  30:     @contextmanager
+  31:     def _context(self, request: HostOperationRequest) -> Iterator[HostSceneContext]:
+  32:         with self._host.operation_context(request) as current:
+  33:             require(isinstance(current, HostSceneContext), "Host provider returned invalid context")
+  34:             if current.scene != request.expected_context.scene:
+  35:                 raise DomainError("SCENE_MISMATCH", "Authoritative host scene identity differs")
+  36:             if not current.host_asserts_approved or not request.expected_context.host_asserts_approved:
+  37:                 raise DomainError("PLAN_NOT_APPROVED", "Assignment boundary requires an approved plan")
+  38:             if current != request.expected_context:
+  39:                 raise DomainError("STALE_PLAN", "Expected plan differs from authoritative host context")
+  40:             yield current
+  41: 
+  42:     def create_assignment(self, assignment_id: str, asset_id: str,
+  43:                           expected_context: HostSceneContext, principal: HostPrincipal,
+  44:                           role: str, usage: UseContext, state: str = "DRAFT") -> RevisionView:
+  45:         request = HostOperationRequest(HostOperation.CREATE_ASSIGNMENT, expected_context,
+  46:                                        principal, asset_id, assignment_id)
+  47:         with self._context(request) as current:
+  48:             return self._engine.create_assignment(assignment_id, asset_id, current.scene_binding(),
+  49:                                                    role, usage, state)
+  50: 
+  51:     def _check_assignment(self, request: HostOperationRequest) -> None:
+  52:         view = self._engine.get_assignment(request.assignment_id)
+  53:         if view.content["asset_id"] != request.asset_id:
+  54:             raise DomainError("RESOURCE_MISMATCH", "Assignment belongs to another asset")
+  55:         binding = view.content["binding"]
+  56:         scene = request.expected_context.scene
+  57:         if (binding["host_application"], binding["job_id"], binding["scene_id"]) != (
+  58:                 scene.scope.host_application, scene.job_id, scene.scene_id):
+  59:             raise DomainError("SCENE_MISMATCH", "Assignment belongs to another scene")
+  60: 
+  61:     def revise_assignment(self, assignment_id: str, asset_id: str,
+  62:                           expected_context: HostSceneContext, principal: HostPrincipal,
+  63:                           role: str, usage: UseContext, expected_revision: int,
+  64:                           state: str = "PENDING_REVIEW") -> RevisionView:
+  65:         request = HostOperationRequest(HostOperation.REVISE_ASSIGNMENT, expected_context,
+  66:                                        principal, asset_id, assignment_id)
+  67:         with self._context(request) as current:
+  68:             self._check_assignment(request)
+  69:             return self._engine.revise_assignment(assignment_id, current.scene_binding(), role,
+  70:                                                    usage, expected_revision, state)
+  71: 
+  72:     @staticmethod
+  73:     def _review_identity(principal: HostPrincipal, review: ReviewRequest) -> None:
+  74:         require(isinstance(principal, HostPrincipal), "Host principal required")
+  75:         require(isinstance(review, ReviewRequest), "Expected ReviewRequest")
+  76:         if principal.principal_id != review.reviewer:
+  77:             raise DomainError("PRINCIPAL_MISMATCH", "Review identity differs from host principal")
+  78: 
+  79:     def review_rights(self, asset_id: str, expected_context: HostSceneContext,
+  80:                       principal: HostPrincipal, review: ReviewRequest) -> ReviewEvent:
+  81:         self._review_identity(principal, review)
+  82:         request = HostOperationRequest(HostOperation.REVIEW_RIGHTS, expected_context,
+  83:                                        principal, asset_id)
+  84:         with self._context(request):
+  85:             return self._engine.review_rights(asset_id, review)
+  86: 
+  87:     def review_assignment(self, assignment_id: str, asset_id: str,
+  88:                           expected_context: HostSceneContext, principal: HostPrincipal,
+  89:                           review: ReviewRequest, usage: UseContext) -> ReviewEvent:
+  90:         self._review_identity(principal, review)
+  91:         request = HostOperationRequest(HostOperation.REVIEW_ASSIGNMENT, expected_context,
+  92:                                        principal, asset_id, assignment_id)
+  93:         with self._context(request) as current:
+  94:             self._check_assignment(request)
+  95:             return self._engine.review_assignment(assignment_id, review, current.scene_binding(), usage)
+  96: 
+  97:     def evaluate_assignment_readiness(self, assignment_id: str, asset_id: str,
+  98:                                       expected_context: HostSceneContext, principal: HostPrincipal,
+  99:                                       usage: UseContext) -> Evaluation:
+ 100:         request = HostOperationRequest(HostOperation.EVALUATE_READINESS, expected_context,
+ 101:                                        principal, asset_id, assignment_id)
+ 102:         with self._context(request) as current:
+ 103:             self._check_assignment(request)
+ 104:             return self._engine.evaluate_assignment_readiness(assignment_id,
+ 105:                                                                current.scene_binding(), usage)
+FILE src/asset_rights_engine/simulator.py ENCODING utf-8
+   1: """OFFLINE DEVELOPMENT TOOL ONLY. Synthetic policy is not authentication."""
+   2: from contextlib import contextmanager
+   3: from dataclasses import dataclass, replace
+   4: from pathlib import Path
+   5: from tempfile import TemporaryDirectory
+   6: from threading import Barrier, RLock, Thread
+   7: from typing import Iterator
+   8: from .adapter_contracts import (HostOperation, HostOperationRequest, HostPrincipal,
+   9:                                 HostSceneContext, HostSceneKey, HostScope, PlanState)
+  10: from .host_adapter import AdapterGateway
+  11: from .contracts import (AssetDescriptor, DomainError, ReviewRequest, RightsRecord,
+  12:                         UseContext, identifier, require)
+  13: from .engine import Engine
+  14: 
+  15: 
+  16: class SyntheticHost:
+  17:     """In-memory fixture registry. No supplied principal is authenticated.
+  18: 
+  19:     Preconfigured grants simulate host policy. Production must replace this entire
+  20:     provider with authenticated authorization and authoritative resource resolution.
+  21:     The lock keeps synthetic plan state stable through the actual engine operation.
+  22:     """
+  23:     def __init__(self, scope: HostScope):
+  24:         require(isinstance(scope, HostScope), "Expected HostScope")
+  25:         self.scope = scope
+  26:         self._lock = RLock()
+  27:         self._scenes: dict[HostSceneKey, HostSceneContext] = {}
+  28:         self._assets: dict[str, HostScope] = {}
+  29:         self._targets: dict[str, tuple[HostSceneKey, str]] = {}
+  30:         self._grants: dict[HostPrincipal, frozenset[HostOperation]] = {}
+  31: 
+  32:     def set_scene(self, context: HostSceneContext) -> None:
+  33:         require(isinstance(context, HostSceneContext), "Expected HostSceneContext")
+  34:         if context.scene.scope != self.scope:
+  35:             raise DomainError("SCOPE_MISMATCH", "Synthetic scene outside configured scope")
+  36:         with self._lock:
+  37:             old = self._scenes.get(context.scene)
+  38:             if old and context.plan_revision < old.plan_revision:
+  39:                 raise DomainError("STALE_PLAN", "Synthetic plan revision cannot move backwards")
+  40:             self._scenes[context.scene] = context
+  41: 
+  42:     def declare_asset_scope(self, asset_id: str, scope: HostScope) -> None:
+  43:         identifier(asset_id)
+  44:         require(isinstance(scope, HostScope), "Expected HostScope")
+  45:         with self._lock:
+  46:             if asset_id in self._assets and self._assets[asset_id] != scope:
+  47:                 raise DomainError("CONFLICT", "Synthetic asset ownership cannot be reassigned")
+  48:             self._assets[asset_id] = scope
+  49: 
+  50:     def declare_assignment_target(self, assignment_id: str, scene: HostSceneKey, asset_id: str) -> None:
+  51:         identifier(assignment_id)
+  52:         identifier(asset_id)
+  53:         require(isinstance(scene, HostSceneKey), "Expected HostSceneKey")
+  54:         with self._lock:
+  55:             if scene.scope != self.scope or self._assets.get(asset_id) != self.scope:
+  56:                 raise DomainError("SCOPE_MISMATCH", "Synthetic assignment target outside configured scope")
+  57:             target = (scene, asset_id)
+  58:             if assignment_id in self._targets and self._targets[assignment_id] != target:
+  59:                 raise DomainError("CONFLICT", "Synthetic assignment identity cannot be rebound")
+  60:             self._targets[assignment_id] = target
+  61: 
+  62:     def grant_synthetic_operations(self, principal: HostPrincipal,
+  63:                                    operations: tuple[HostOperation, ...]) -> None:
+  64:         require(isinstance(principal, HostPrincipal), "Expected HostPrincipal")
+  65:         if principal.scope != self.scope:
+  66:             raise DomainError("SCOPE_MISMATCH", "Synthetic principal outside configured scope")
+  67:         require(isinstance(operations, tuple) and all(isinstance(op, HostOperation) for op in operations),
+  68:                 "Expected tuple of HostOperation")
+  69:         with self._lock:
+  70:             self._grants[principal] = frozenset(operations)
+  71: 
+  72:     @contextmanager
+  73:     def operation_context(self, request: HostOperationRequest) -> Iterator[HostSceneContext]:
+  74:         require(isinstance(request, HostOperationRequest), "Expected HostOperationRequest")
+  75:         with self._lock:
+  76:             if request.expected_context.scene.scope != self.scope or request.principal.scope != self.scope:
+  77:                 raise DomainError("SCOPE_MISMATCH", "Host/tenant/owner scope mismatch")
+  78:             if request.operation not in self._grants.get(request.principal, frozenset()):
+  79:                 raise DomainError("HOST_POLICY_DENIED", "No synthetic operation grant; identity is not authentication")
+  80:             if self._assets.get(request.asset_id) != self.scope:
+  81:                 raise DomainError("SCOPE_MISMATCH", "Asset ownership does not match host scope")
+  82:             if request.assignment_id is not None:
+  83:                 target = self._targets.get(request.assignment_id)
+  84:                 if target is None:
+  85:                     raise DomainError("HOST_POLICY_DENIED", "Unknown synthetic assignment target")
+  86:                 if target != (request.expected_context.scene, request.asset_id):
+  87:                     raise DomainError("RESOURCE_MISMATCH", "Scene/asset substituted for declared assignment target")
+  88:             current = self._scenes.get(request.expected_context.scene)
+  89:             if current is None:
+  90:                 raise DomainError("SCENE_MISMATCH", "Unknown authoritative synthetic scene")
+  91:             yield current
+  92: 
+  93: 
+  94: @dataclass(frozen=True)
+  95: class SimulationReport:
+  96:     scenarios: tuple[tuple[str, bool], ...]
+  97:     authentication: str = "NOT_IMPLEMENTED_SYNTHETIC_IDENTIFIERS_ONLY"
+  98:     storage: str = "TEMPORARY_DATABASE_DELETED_ON_EXIT"
+  99:     schema_version: int = 1
+ 100: 
+ 101: 
+ 102: def run_simulation() -> SimulationReport:
+ 103:     """Fixed synthetic data, temporary storage, no remote or persistent inputs."""
+ 104:     timestamp = "2026-10-12T00:00:00Z"
+ 105:     scope = HostScope("synthetic-host", "synthetic-tenant", "synthetic-owner")
+ 106:     scene = HostSceneKey(scope, "synthetic-job", "synthetic-scene")
+ 107:     context = HostSceneContext(scene, 1, "a" * 64, PlanState.APPROVED, True)
+ 108:     principal = HostPrincipal(scope, "synthetic-reviewer")
+ 109:     usage = UseContext(timestamp)
+ 110:     outcomes: list[tuple[str, bool]] = []
+ 111: 
+ 112:     def expect_error(name, code, operation):
+ 113:         try:
+ 114:             operation()
+ 115:         except DomainError as error:
+ 116:             require(error.code == code, f"Scenario {name}: expected {code}, got {error.code}")
+ 117:             outcomes.append((name, True))
+ 118:         else:
+ 119:             raise AssertionError(f"Scenario {name} unexpectedly succeeded")
+ 120: 
+ 121:     with TemporaryDirectory(prefix="are-a2-synthetic-") as directory:
+ 122:         engine = Engine(Path(directory))
+ 123:         host = SyntheticHost(scope)
+ 124:         host.set_scene(context)
+ 125:         host.grant_synthetic_operations(principal, tuple(HostOperation))
+ 126:         engine.register_asset(AssetDescriptor("synthetic-asset", "image", "TEST DATA ONLY",
+ 127:             "No real media or rights", "Synthetic fixture", "test:are-a2", timestamp, timestamp))
+ 128:         host.declare_asset_scope("synthetic-asset", scope)
+ 129:         host.declare_assignment_target("synthetic-assignment", scene, "synthetic-asset")
+ 130:         gateway = AdapterGateway(engine, host)
+ 131:         rights = engine.create_rights_revision("synthetic-asset", RightsRecord(
+ 132:             state="PENDING_REVIEW", rights_basis="Synthetic grant", licence_name="TEST ONLY",
+ 133:             commercial=True, modification=False, distribution=True, attribution_required=False,
+ 134:             evidence_notes="SYNTHETIC TEST DATA, not rights evidence"))
+ 135:         review = ReviewRequest(principal.principal_id, "APPROVED", "Synthetic test decision",
+ 136:                                rights.revision, rights.content_digest, "synthetic-rights-review", timestamp)
+ 137:         first = gateway.review_rights("synthetic-asset", context, principal, review)
+ 138:         outcomes.append(("approved_context_valid", context.scene_binding().plan_version == "1"))
+ 139:         unapproved = replace(context, plan_state=PlanState.DRAFT, host_asserts_approved=False)
+ 140:         host.set_scene(unapproved)
+ 141:         expect_error("unapproved_plan_rejected", "PLAN_NOT_APPROVED", lambda:
+ 142:             gateway.create_assignment("synthetic-assignment", "synthetic-asset", unapproved, principal,
+ 143:                                       "background", usage))
+ 144:         host.set_scene(context)
+ 145:         for label, bad_hash in (("missing_hash_rejected", None), ("malformed_hash_rejected", "bad")):
+ 146:             expect_error(label, "VALIDATION", lambda h=bad_hash: replace(context, plan_sha256=h))
+ 147:         other_scene = HostSceneKey(scope, "synthetic-job", "other-scene")
+ 148:         substituted = replace(context, scene=other_scene)
+ 149:         host.set_scene(substituted)
+ 150:         expect_error("scene_substitution_rejected", "RESOURCE_MISMATCH", lambda:
+ 151:             gateway.create_assignment("synthetic-assignment", "synthetic-asset", substituted, principal,
+ 152:                                       "background", usage))
+ 153:         latest = replace(context, plan_revision=2)
+ 154:         host.set_scene(latest)
+ 155:         expect_error("stale_revision_rejected_before_assignment", "STALE_PLAN", lambda:
+ 156:             gateway.create_assignment("synthetic-assignment", "synthetic-asset", context, principal,
+ 157:                                       "background", usage))
+ 158:         assignment = gateway.create_assignment("synthetic-assignment", "synthetic-asset", latest,
+ 159:                                                principal, "background", usage, "PENDING_REVIEW")
+ 160:         assignment_review = ReviewRequest(principal.principal_id, "APPROVED", "Synthetic scene decision",
+ 161:             assignment.revision, assignment.content_digest, "synthetic-assignment-review", timestamp)
+ 162:         gateway.review_assignment(assignment.entity_id, "synthetic-asset", latest, principal,
+ 163:                                   assignment_review, usage)
+ 164:         ready = gateway.evaluate_assignment_readiness(assignment.entity_id, "synthetic-asset",
+ 165:                                                       latest, principal, usage)
+ 166:         outcomes.append(("approved_assignment_ready", ready.eligible))
+ 167:         changed = replace(latest, plan_sha256="b" * 64)
+ 168:         host.set_scene(changed)
+ 169:         expect_error("changed_digest_old_context_rejected", "STALE_PLAN", lambda:
+ 170:             gateway.review_assignment(assignment.entity_id, "synthetic-asset", latest, principal,
+ 171:                                       assignment_review, usage))
+ 172:         blocked = gateway.evaluate_assignment_readiness(assignment.entity_id, "synthetic-asset",
+ 173:                                                         changed, principal, usage)
+ 174:         outcomes.append(("changed_digest_old_assignment_blocked", not blocked.eligible and
+ 175:                          "STALE_SCENE_BINDING" in blocked.blockers))
+ 176:         expect_error("missing_reviewer_rejected", "VALIDATION", lambda:
+ 177:             gateway.review_rights("synthetic-asset", changed, None, review))
+ 178:         unknown = HostPrincipal(scope, "ungranted-synthetic-principal")
+ 179:         expect_error("identifier_not_authentication", "HOST_POLICY_DENIED", lambda:
+ 180:             gateway.review_rights("synthetic-asset", changed, unknown,
+ 181:                                  replace(review, reviewer=unknown.principal_id)))
+ 182:         for label, altered_scope in (
+ 183:                 ("tenant_boundary_rejected", replace(scope, tenant_id="other-tenant")),
+ 184:                 ("owner_boundary_rejected", replace(scope, owner_id="other-owner"))):
+ 185:             outsider = replace(changed, scene=replace(scene, scope=altered_scope))
+ 186:             actor = HostPrincipal(altered_scope, principal.principal_id)
+ 187:             expect_error(label, "SCOPE_MISMATCH", lambda c=outsider, p=actor:
+ 188:                 gateway.review_rights("synthetic-asset", c, p, review))
+ 189:         # Rights-review payload excludes scene context in A1. The host rechecks current
+ 190:         # authorization and context, then the engine returns the original immutable event.
+ 191:         replay = gateway.review_rights("synthetic-asset", changed, principal, review)
+ 192:         outcomes.append(("idempotent_review_replay", first == replay and len(engine.get_review_history()) == 2))
+ 193:         expect_error("idempotency_payload_conflict", "CONFLICT", lambda:
+ 194:             gateway.review_rights("synthetic-asset", changed, principal, replace(review, note="Changed note")))
+ 195:         # Concurrent opposite decisions over a fresh rights revision. Which wins is
+ 196:         # deliberately not asserted; one success, one conflict is deterministic.
+ 197:         newer = engine.create_rights_revision("synthetic-asset", RightsRecord(
+ 198:             state="PENDING_REVIEW", rights_basis="Synthetic grant", licence_name="TEST ONLY",
+ 199:             commercial=True, distribution=True, attribution_required=False, evidence_notes="TEST ONLY"), 1)
+ 200:         gate = Barrier(2)
+ 201:         results: list[str] = []
+ 202:         result_lock = RLock()
+ 203:         def attempt(decision):
+ 204:             gate.wait(timeout=10)
+ 205:             try:
+ 206:                 req = ReviewRequest(principal.principal_id, decision, "Synthetic concurrent decision",
+ 207:                     newer.revision, newer.content_digest, "synthetic-race-" + decision, timestamp)
+ 208:                 gateway.review_rights("synthetic-asset", changed, principal, req)
+ 209:                 result = "SUCCESS"
+ 210:             except DomainError as error:
+ 211:                 result = error.code
+ 212:             with result_lock:
+ 213:                 results.append(result)
+ 214:         threads = [Thread(target=attempt, args=(decision,)) for decision in ("APPROVED", "REJECTED")]
+ 215:         for thread in threads:
+ 216:             thread.start()
+ 217:         for thread in threads:
+ 218:             thread.join(timeout=15)
+ 219:         require(not any(thread.is_alive() for thread in threads), "Concurrent simulator thread timed out")
+ 220:         outcomes.append(("concurrent_conflict_preserves_first_decision",
+ 221:                          sorted(results) == ["CONFLICT", "SUCCESS"] and len(engine.get_review_history()) == 3))
+ 222:         outcomes.append(("temporary_database_integrity", engine.validate_database()["valid"]))
+ 223:     outcomes.append(("temporary_database_removed", not Path(directory).exists()))
+ 224:     require(all(ok for _, ok in outcomes), "A synthetic scenario failed")
+ 225:     return SimulationReport(tuple(outcomes))
+FILE src/asset_rights_engine/__init__.py ENCODING utf-8
+   1: """Asset & Rights Engine 1.1.0; optional ARE-A2 modules are explicitly imported."""
+   2: from .contracts import (AssetDescriptor, AssignmentDescriptor, RightsRecord, RightsState, AssignmentState, UseContext, SceneBinding, ReviewRequest, RevisionView, Evaluation, ReviewEvent, DomainError, digest)
+   3: from .engine import Engine
+   4: from .evaluator import evaluate_effective_rights
+   5: __version__="1.1.0"
+FILE src/asset_rights_engine/schema.sql ENCODING utf-8
+   1: CREATE TABLE assets(asset_id TEXT PRIMARY KEY, payload TEXT NOT NULL);
+   2: CREATE TABLE rights_revisions(entity_id TEXT NOT NULL REFERENCES assets(asset_id), revision INTEGER NOT NULL CHECK(revision>0), payload TEXT NOT NULL, digest TEXT NOT NULL, PRIMARY KEY(entity_id,revision));
+   3: CREATE TABLE assignments(assignment_id TEXT PRIMARY KEY, asset_id TEXT NOT NULL REFERENCES assets(asset_id));
+   4: CREATE TABLE assignment_revisions(entity_id TEXT NOT NULL REFERENCES assignments(assignment_id), revision INTEGER NOT NULL CHECK(revision>0), payload TEXT NOT NULL, digest TEXT NOT NULL, PRIMARY KEY(entity_id,revision));
+   5: CREATE TABLE review_state(kind TEXT NOT NULL, entity_id TEXT NOT NULL, revision INTEGER NOT NULL, decision TEXT NOT NULL, PRIMARY KEY(kind,entity_id));
+   6: CREATE TABLE review_history(sequence INTEGER PRIMARY KEY AUTOINCREMENT, kind TEXT NOT NULL, entity_id TEXT NOT NULL, revision INTEGER NOT NULL, reviewer TEXT NOT NULL, decision TEXT NOT NULL, note TEXT NOT NULL, content_digest TEXT NOT NULL, reviewed_at TEXT NOT NULL, idempotency_key TEXT NOT NULL UNIQUE, request_payload TEXT NOT NULL);
+   7: CREATE TABLE migrations(version INTEGER PRIMARY KEY, applied_at TEXT NOT NULL, checksum TEXT NOT NULL);
+FILE migrations/001_initial.sql ENCODING utf-8
+   1: CREATE TABLE assets(asset_id TEXT PRIMARY KEY, payload TEXT NOT NULL);
+   2: CREATE TABLE rights_revisions(entity_id TEXT NOT NULL REFERENCES assets(asset_id), revision INTEGER NOT NULL CHECK(revision>0), payload TEXT NOT NULL, digest TEXT NOT NULL, PRIMARY KEY(entity_id,revision));
+   3: CREATE TABLE assignments(assignment_id TEXT PRIMARY KEY, asset_id TEXT NOT NULL REFERENCES assets(asset_id));
+   4: CREATE TABLE assignment_revisions(entity_id TEXT NOT NULL REFERENCES assignments(assignment_id), revision INTEGER NOT NULL CHECK(revision>0), payload TEXT NOT NULL, digest TEXT NOT NULL, PRIMARY KEY(entity_id,revision));
+   5: CREATE TABLE review_state(kind TEXT NOT NULL, entity_id TEXT NOT NULL, revision INTEGER NOT NULL, decision TEXT NOT NULL, PRIMARY KEY(kind,entity_id));
+   6: CREATE TABLE review_history(sequence INTEGER PRIMARY KEY AUTOINCREMENT, kind TEXT NOT NULL, entity_id TEXT NOT NULL, revision INTEGER NOT NULL, reviewer TEXT NOT NULL, decision TEXT NOT NULL, note TEXT NOT NULL, content_digest TEXT NOT NULL, reviewed_at TEXT NOT NULL, idempotency_key TEXT NOT NULL UNIQUE, request_payload TEXT NOT NULL);
+   7: CREATE TABLE migrations(version INTEGER PRIMARY KEY, applied_at TEXT NOT NULL, checksum TEXT NOT NULL);
+FILE tests/test_engine.py ENCODING utf-8
+   1: import unittest, tempfile, sqlite3, threading
+   2: from contextlib import closing
+   3: from pathlib import Path
+   4: from dataclasses import replace
+   5: from asset_rights_engine import *
+   6: from asset_rights_engine.evaluator import evaluate_effective_rights
+   7: 
+   8: T="2026-10-12T00:00:00Z"
+   9: H="a"*64
+  10: 
+  11: def asset(**kw):
+  12:     return AssetDescriptor(**(dict(asset_id="asset-1",asset_type="image",display_name="Test only",description="Synthetic metadata",provenance="Test fixture",original_source="test:fixture",created_at=T,registered_at=T)|kw))
+  13: def rights(**kw):
+  14:     return RightsRecord(**(dict(state="PENDING_REVIEW",rights_basis="Test grant",licence_name="Test-only licence",evidence_notes="Synthetic test evidence",commercial=True,modification=True,distribution=True,attribution_required=False)|kw))
+  15: def binding(**kw): return SceneBinding(**(dict(host_application="test-host",job_id="job-1",scene_id="scene-1",plan_version="1",plan_sha256=H)|kw))
+  16: def usage(**kw): return UseContext(**(dict(evaluated_at=T)|kw))
+  17: def request(view,key="review-1",**kw): return ReviewRequest(**(dict(reviewer="reviewer-1",decision="APPROVED",note="Synthetic test review",expected_revision=view.revision,content_digest=view.content_digest,idempotency_key=key,reviewed_at=T)|kw))
+  18: 
+  19: class Contracts(unittest.TestCase):
+  20:     def test_asset_valid(self): self.assertEqual(asset().validation_status,"VALID")
+  21:     def test_asset_invalid(self):
+  22:         for kw in ({"asset_id":"../x"},{"byte_size":-1},{"byte_size":True},{"sha256":"x"},{"metadata_version":2},{"asset_type":"executable"},{"mime_type":"video/mp4"},{"mime_type":42},{"registered_at":"2020-01-01T00:00:00Z"},{"created_at":"bad"},{"tags":("",)}):
+  23:             with self.subTest(kw=kw),self.assertRaises(DomainError): asset(**kw)
+  24:     def test_rights_validation(self):
+  25:         for kw in ({"state":"invented"},{"commercial":"yes"},{"contract_version":2},{"territories":("usa",)},{"valid_until":"bad"},{"valid_until":""},{"valid_from":T,"valid_until":T}):
+  26:             with self.subTest(kw=kw),self.assertRaises(DomainError): rights(**kw)
+  27:     def test_unknown_licence_not_inferred(self):
+  28:         result=evaluate_effective_rights(RightsRecord(source_reference="https://example.invalid/public.jpg"),usage())
+  29:         self.assertFalse(result.eligible)
+  30:     def test_arbitrary_licence_is_only_declared_metadata(self): self.assertEqual(rights(licence_name="Unknown custom grant").licence_name,"Unknown custom grant")
+  31:     def test_binding_validation(self):
+  32:         for kw in ({"plan_version":""},{"plan_sha256":"bad"},{"content_digest":"bad"},{"host_application":"../host"}):
+  33:             with self.subTest(kw=kw),self.assertRaises(DomainError): binding(**kw)
+  34:     def test_review_validation(self):
+  35:         v=RevisionView("x",1,{},H,"PENDING_REVIEW")
+  36:         for kw in ({"note":""},{"expected_revision":0},{"expected_revision":True},{"content_digest":"bad"},{"reviewer":""},{"decision":"maybe"}):
+  37:             with self.subTest(kw=kw),self.assertRaises(DomainError): request(v,**kw)
+  38: 
+  39: class EngineTests(unittest.TestCase):
+  40:     def setUp(self):
+  41:         self.tmp=tempfile.TemporaryDirectory();self.root=Path(self.tmp.name);self.e=Engine(self.root);self.e.register_asset(asset())
+  42:     def tearDown(self): self.tmp.cleanup()
+  43:     def approved_rights(self,**kw):
+  44:         v=self.e.create_rights_revision("asset-1",rights(**kw));self.e.review_rights("asset-1",request(v));return v
+  45:     def assignment(self,**kw):
+  46:         return self.e.create_assignment("assignment-1","asset-1",binding(),"background",usage(**kw),"PENDING_REVIEW")
+  47:     def test_initialization(self): self.assertEqual(self.e.validate_database(),{"valid":True,"schema_version":1})
+  48:     def test_register_idempotent(self): self.e.register_asset(asset());self.assertEqual(len(self.e.list_assets()),1)
+  49:     def test_register_conflict(self):
+  50:         with self.assertRaises(DomainError): self.e.register_asset(asset(display_name="changed"))
+  51:     def test_no_media_required(self): self.assertEqual(self.e.get_asset("asset-1").original_source,"test:fixture")
+  52:     def test_no_caller_approval(self):
+  53:         with self.assertRaises(DomainError): self.e.create_rights_revision("asset-1",rights(state="APPROVED"))
+  54:     def test_review_success(self): self.approved_rights();self.assertTrue(self.e.evaluate_effective_rights("asset-1",usage()).eligible)
+  55:     def test_commercial_missing(self): self.approved_rights(commercial=None);self.assertIn("COMMERCIAL_NOT_PERMITTED",self.e.evaluate_effective_rights("asset-1",usage()).blockers)
+  56:     def test_noncommercial(self): self.approved_rights(commercial=False);self.assertTrue(self.e.evaluate_effective_rights("asset-1",usage(commercial=False)).eligible)
+  57:     def test_unknown_pending_rejected_expired_revoked(self):
+  58:         for status in ("UNKNOWN","PENDING_REVIEW","REJECTED","EXPIRED","REVOKED"):
+  59:             current=len([1 for _ in range(self.e.get_rights("asset-1").revision)]) if status!="UNKNOWN" else 0
+  60:             self.e.create_rights_revision("asset-1",rights(state=status),current)
+  61:             self.assertFalse(self.e.evaluate_effective_rights("asset-1",usage()).eligible)
+  62:     def test_expired_by_date(self): self.approved_rights(valid_until=T);self.assertIn("RIGHTS_EXPIRED",self.e.evaluate_effective_rights("asset-1",usage()).blockers)
+  63:     def test_not_yet_valid(self): self.approved_rights(valid_from="2027-01-01T00:00:00Z");self.assertFalse(self.e.evaluate_effective_rights("asset-1",usage()).eligible)
+  64:     def test_attribution(self):
+  65:         self.approved_rights(attribution_required=True,attribution_text="Credit Author")
+  66:         self.assertFalse(self.e.evaluate_effective_rights("asset-1",usage()).eligible)
+  67:         self.assertTrue(self.e.evaluate_effective_rights("asset-1",usage(attribution_text="Credit Author")).eligible)
+  68:     def test_incomplete_attribution_review(self):
+  69:         v=self.e.create_rights_revision("asset-1",rights(attribution_required=True))
+  70:         with self.assertRaises(DomainError): self.e.review_rights("asset-1",request(v))
+  71:         self.assertEqual(len(self.e.get_review_history()),0)
+  72:     def test_restrictions(self):
+  73:         self.approved_rights(modification=False,distribution=False,territories=("IN",))
+  74:         result=self.e.evaluate_effective_rights("asset-1",usage(modification=True,territory="US"))
+  75:         self.assertEqual(set(result.blockers),{"MODIFICATION_NOT_PERMITTED","DISTRIBUTION_NOT_PERMITTED","TERRITORY_RESTRICTED"})
+  76:     def test_determinism(self): self.approved_rights();self.assertEqual(self.e.evaluate_effective_rights("asset-1",usage()),self.e.evaluate_effective_rights("asset-1",usage()))
+  77:     def test_stale_review_revision(self):
+  78:         v=self.e.create_rights_revision("asset-1",rights());self.e.create_rights_revision("asset-1",rights(),1)
+  79:         with self.assertRaises(DomainError): self.e.review_rights("asset-1",request(v))
+  80:     def test_stale_digest(self):
+  81:         v=self.e.create_rights_revision("asset-1",rights())
+  82:         with self.assertRaises(DomainError): self.e.review_rights("asset-1",request(v,content_digest="b"*64))
+  83:     def test_idempotency(self):
+  84:         v=self.e.create_rights_revision("asset-1",rights());r=request(v)
+  85:         first=self.e.review_rights("asset-1",r);self.assertEqual(first,self.e.review_rights("asset-1",r));self.assertEqual(len(self.e.get_review_history()),1)
+  86:         with self.assertRaises(DomainError): self.e.review_rights("asset-1",replace(r,note="different"))
+  87:     def test_review_rejection(self):
+  88:         v=self.e.create_rights_revision("asset-1",rights());self.e.review_rights("asset-1",request(v,decision="REJECTED"));self.assertEqual(self.e.get_rights("asset-1").state,"REJECTED")
+  89:     def test_concurrent_review(self):
+  90:         v=self.e.create_rights_revision("asset-1",rights());out=[];gate=threading.Barrier(2)
+  91:         def run(key):
+  92:             gate.wait()
+  93:             try: self.e.review_rights("asset-1",request(v,key));out.append("success")
+  94:             except DomainError as e: out.append(e.code)
+  95:         threads=[threading.Thread(target=run,args=("key-"+str(i),)) for i in range(2)]
+  96:         for t in threads:t.start()
+  97:         for t in threads:t.join()
+  98:         self.assertCountEqual(out,["success","CONFLICT"]);self.assertEqual(len(self.e.get_review_history()),1)
+  99:     def test_approved_assignment_restart(self):
+ 100:         self.approved_rights();v=self.assignment();self.e.review_assignment(v.entity_id,request(v,"assignment-review"),binding(),usage())
+ 101:         self.e=Engine(self.root);result=self.e.evaluate_assignment_readiness(v.entity_id,binding(),usage());self.assertTrue(result.eligible);self.assertIn("MEDIA_AVAILABILITY_UNVERIFIED",result.warnings)
+ 102:     def test_assignment_pending(self): self.approved_rights();self.assignment();self.assertFalse(self.e.evaluate_assignment_readiness("assignment-1",binding(),usage()).eligible)
+ 103:     def test_stale_scene(self):
+ 104:         self.approved_rights();v=self.assignment();self.e.review_assignment(v.entity_id,request(v,"ar"),binding(),usage())
+ 105:         for b in (binding(plan_sha256="b"*64),binding(plan_version="2"),binding(content_digest="c"*64)):
+ 106:             self.assertIn("STALE_SCENE_BINDING",self.e.evaluate_assignment_readiness(v.entity_id,b,usage()).blockers)
+ 107:     def test_changed_rights(self):
+ 108:         self.approved_rights();v=self.assignment();self.e.review_assignment(v.entity_id,request(v,"ar"),binding(),usage());self.e.create_rights_revision("asset-1",rights(),1)
+ 109:         self.assertIn("STALE_RIGHTS_REVISION",self.e.evaluate_assignment_readiness(v.entity_id,binding(),usage()).blockers)
+ 110:     def test_changed_assignment(self):
+ 111:         self.approved_rights();v=self.assignment();self.e.review_assignment(v.entity_id,request(v,"ar"),binding(),usage());v2=self.e.revise_assignment(v.entity_id,binding(),"foreground",usage(),1)
+ 112:         self.assertEqual(v2.revision,2);self.assertFalse(self.e.evaluate_assignment_readiness(v.entity_id,binding(),usage()).eligible)
+ 113:         with self.assertRaises(DomainError): self.e.review_assignment(v.entity_id,request(v,"old-ar"),binding(),usage())
+ 114:     def test_changed_usage(self): self.approved_rights();v=self.assignment();self.assertIn("USE_CONTEXT_CHANGED",self.e.evaluate_assignment_readiness(v.entity_id,binding(),usage(modification=True)).blockers)
+ 115:     def test_blocked_assignment(self):
+ 116:         self.approved_rights();v=self.e.create_assignment("blocked","asset-1",binding(),"background",usage(),"BLOCKED")
+ 117:         with self.assertRaises(DomainError): self.e.review_assignment(v.entity_id,request(v,"ar"),binding(),usage())
+ 118:     def test_assignment_missing_attribution(self):
+ 119:         self.approved_rights(attribution_required=True,attribution_text="Credit");v=self.assignment()
+ 120:         with self.assertRaises(DomainError): self.e.review_assignment(v.entity_id,request(v,"ar"),binding(),usage())
+ 121:     def test_transaction_rollback(self):
+ 122:         self.approved_rights()
+ 123:         with self.e._connection(True) as c:
+ 124:             c.execute("CREATE TRIGGER fail_revision BEFORE INSERT ON assignment_revisions BEGIN SELECT RAISE(ABORT,'test fault'); END")
+ 125:         with self.assertRaises(DomainError): self.assignment()
+ 126:         self.assertEqual(self.e.list_assignments(),())
+ 127:     def test_foreign_keys(self):
+ 128:         with self.assertRaises(DomainError),self.e._connection(True) as c:c.execute("INSERT INTO assignments VALUES(?,?)",("bad","missing"))
+ 129:     def test_immutable_history(self):
+ 130:         self.approved_rights();self.assignment()
+ 131:         for table in ("assets","rights_revisions","assignment_revisions","review_history","migrations"):
+ 132:             for sql in (f"DELETE FROM {table}",f"UPDATE {table} SET "+("asset_id=asset_id" if table=="assets" else "version=version" if table=="migrations" else "entity_id=entity_id")):
+ 133:                 with self.subTest(sql=sql),self.assertRaises(DomainError),self.e._connection(True) as c:c.execute(sql)
+ 134:     def test_snapshot_restore(self):
+ 135:         self.approved_rights();self.assignment();path=self.e.create_database_snapshot("backup.sqlite3");restored=Engine(self.root,"backup.sqlite3")
+ 136:         self.assertEqual(restored.list_assets(),self.e.list_assets());self.assertEqual(restored.get_review_history(),self.e.get_review_history());self.assertTrue(restored.validate_database()["valid"])
+ 137:         with self.assertRaises(DomainError):self.e.create_database_snapshot("backup.sqlite3")
+ 138:     def test_path_restriction(self):
+ 139:         for name in ("../external.sqlite3",str(self.root/"absolute.sqlite3")):
+ 140:             with self.assertRaises(DomainError): Engine(self.root,name)
+ 141:             with self.assertRaises(DomainError): self.e.create_database_snapshot(name)
+ 142:     def test_schema_rejection(self):
+ 143:         p=self.root/"future.sqlite3"
+ 144:         with closing(sqlite3.connect(p, isolation_level=None)) as c:c.execute("PRAGMA user_version=9")
+ 145:         with self.assertRaises(DomainError):Engine(self.root,"future.sqlite3")
+ 146:     def test_unversioned_database_preserved(self):
+ 147:         p=self.root/"foreign.sqlite3"
+ 148:         with closing(sqlite3.connect(p, isolation_level=None)) as c:c.execute("CREATE TABLE foreign_data(value)");c.execute("INSERT INTO foreign_data VALUES(42)")
+ 149:         with self.assertRaises(DomainError):Engine(self.root,"foreign.sqlite3")
+ 150:         with closing(sqlite3.connect(p, isolation_level=None)) as c:self.assertEqual(c.execute("SELECT value FROM foreign_data").fetchone()[0],42)
+ 151:     def test_migration_rerun_preserves_data(self): self.approved_rights();Engine(self.root);self.assertEqual(len(self.e.get_review_history()),1)
+ 152:     def test_missing_trigger_detected(self):
+ 153:         with closing(sqlite3.connect(self.e.path, isolation_level=None)) as c:c.execute("DROP TRIGGER immutable_review_history_delete")
+ 154:         with self.assertRaises(DomainError):self.e.validate_database()
+ 155:     def test_wal_snapshot_includes_committed_rows(self):
+ 156:         with closing(sqlite3.connect(self.e.path,isolation_level=None)) as keeper:
+ 157:             keeper.execute("PRAGMA journal_mode=WAL")
+ 158:             self.approved_rights()
+ 159:             self.e.create_database_snapshot("wal-snapshot.sqlite3")
+ 160:             restored=Engine(self.root,"wal-snapshot.sqlite3")
+ 161:             self.assertEqual(len(restored.get_review_history()),1)
+ 162:             self.assertEqual(restored.get_rights("asset-1").state,"APPROVED")
+ 163:     def test_schema_migration_mirror(self):
+ 164:         from importlib.resources import files
+ 165:         self.assertEqual(files("asset_rights_engine").joinpath("schema.sql").read_text(),(Path(__file__).parents[1]/"migrations/001_initial.sql").read_text())
+ 166:     def test_missing_rights_blocks_assignment(self):
+ 167:         with self.assertRaises(DomainError):self.assignment()
+ 168:         self.assertEqual(self.e.list_assignments(),())
+ 169:     def test_approval_does_not_survive_rights_revision(self):
+ 170:         self.approved_rights();v=self.assignment();self.e.review_assignment(v.entity_id,request(v,"ar"),binding(),usage())
+ 171:         self.e.create_rights_revision("asset-1",rights(),1)
+ 172:         self.assertEqual(self.e.get_assignment(v.entity_id).state,"STALE")
+ 173:     def test_review_cannot_be_used_before_timestamp(self):
+ 174:         self.approved_rights()
+ 175:         self.assertIn("REVIEW_AFTER_EVALUATION",self.e.evaluate_effective_rights("asset-1",usage(evaluated_at="2026-10-11T00:00:00Z")).blockers)
+ 176:     def test_core_isolation(self):
+ 177:         import sys
+ 178:         self.assertFalse(any(n.lower().startswith(("defencestudio","qvault","whisper_studio")) for n in sys.modules))
+ 179:         self.assertEqual(self.e.path.parent,self.root.resolve())
+ 180: 
+ 181: if __name__=="__main__":unittest.main()
+FILE tests/test_host_adapter.py ENCODING utf-8
+   1: import inspect
+   2: import tempfile
+   3: import unittest
+   4: from contextlib import contextmanager
+   5: from dataclasses import FrozenInstanceError, replace
+   6: from pathlib import Path
+   7: from threading import Thread
+   8: from unittest.mock import patch
+   9: 
+  10: from asset_rights_engine import (AssetDescriptor, DomainError, Engine, ReviewRequest,
+  11:                                  RightsRecord, UseContext)
+  12: from asset_rights_engine.adapter_contracts import (HostOperation, HostOperationRequest,
+  13:     HostPrincipal, HostSceneContext, HostSceneKey, HostScope, PlanState)
+  14: from asset_rights_engine.host_adapter import AdapterGateway
+  15: from asset_rights_engine.simulator import SyntheticHost
+  16: 
+  17: T = "2026-10-12T00:00:00Z"
+  18: SCOPE = HostScope("fixture-host", "fixture-tenant", "fixture-owner")
+  19: SCENE = HostSceneKey(SCOPE, "fixture-job", "fixture-scene")
+  20: CONTEXT = HostSceneContext(SCENE, 1, "a" * 64, PlanState.APPROVED, True)
+  21: PRINCIPAL = HostPrincipal(SCOPE, "fixture-reviewer")
+  22: USAGE = UseContext(T)
+  23: 
+  24: 
+  25: def review(view, key="fixture-review", **kwargs):
+  26:     return ReviewRequest(**(dict(reviewer=PRINCIPAL.principal_id, decision="APPROVED",
+  27:         note="SYNTHETIC TEST REVIEW", expected_revision=view.revision,
+  28:         content_digest=view.content_digest, idempotency_key=key, reviewed_at=T) | kwargs))
+  29: 
+  30: 
+  31: class AdapterContractTests(unittest.TestCase):
+  32:     def test_valid_translation_preserves_a1_binding(self):
+  33:         binding = CONTEXT.scene_binding()
+  34:         self.assertEqual((binding.host_application, binding.job_id, binding.scene_id,
+  35:                           binding.plan_version, binding.plan_sha256),
+  36:                          (SCOPE.host_application, SCENE.job_id, SCENE.scene_id, "1", "a" * 64))
+  37:     def test_context_is_immutable(self):
+  38:         with self.assertRaises(FrozenInstanceError): CONTEXT.plan_revision = 2
+  39:     def test_invalid_identifiers(self):
+  40:         for bad in (None, "", "../scene", "space here", 1, "x" * 129):
+  41:             with self.subTest(value=bad), self.assertRaises(DomainError):
+  42:                 replace(SCENE, scene_id=bad)
+  43:     def test_invalid_scope_identifiers(self):
+  44:         for field in ("host_application", "tenant_id", "owner_id"):
+  45:             with self.subTest(field=field), self.assertRaises(DomainError):
+  46:                 replace(SCOPE, **{field: ""})
+  47:     def test_invalid_hashes(self):
+  48:         for bad in (None, "", "A" * 64, "g" * 64, "a" * 63, 123):
+  49:             with self.subTest(value=bad), self.assertRaises(DomainError):
+  50:                 replace(CONTEXT, plan_sha256=bad)
+  51:     def test_invalid_revisions(self):
+  52:         for bad in (None, 0, -1, True, "1", 1.0):
+  53:             with self.subTest(value=bad), self.assertRaises(DomainError):
+  54:                 replace(CONTEXT, plan_revision=bad)
+  55:     def test_contradictory_approval(self):
+  56:         for kwargs in ({"host_asserts_approved": False}, {"plan_state": "DRAFT"},
+  57:                        {"plan_state": "PENDING_REVIEW"}, {"plan_state": "REVOKED"},
+  58:                        {"host_asserts_approved": 1}, {"plan_state": "invalid"}):
+  59:             with self.subTest(kwargs=kwargs), self.assertRaises(DomainError):
+  60:                 replace(CONTEXT, **kwargs)
+  61:     def test_unapproved_structurally_valid_but_binding_rejected(self):
+  62:         for state in (PlanState.DRAFT, PlanState.PENDING_REVIEW, PlanState.REVOKED):
+  63:             ctx = replace(CONTEXT, plan_state=state, host_asserts_approved=False)
+  64:             with self.assertRaises(DomainError): ctx.scene_binding()
+  65:     def test_missing_principal(self):
+  66:         for bad in (None, "", "../reviewer", "reviewer name"):
+  67:             with self.subTest(value=bad), self.assertRaises(DomainError):
+  68:                 replace(PRINCIPAL, principal_id=bad)
+  69:     def test_principal_is_not_authentication(self):
+  70:         self.assertFalse(hasattr(PRINCIPAL, "authenticated"))
+  71:         self.assertFalse(hasattr(PRINCIPAL, "authorized"))
+  72:     def test_nested_types_and_contract_version(self):
+  73:         for kwargs in ({"scene": {}}, {"contract_version": 2},
+  74:                        {"contract_version": True}, {"scene_content_digest": "bad"}):
+  75:             with self.subTest(kwargs=kwargs), self.assertRaises(DomainError):
+  76:                 replace(CONTEXT, **kwargs)
+  77:     def test_content_digest_preserved(self):
+  78:         self.assertEqual(replace(CONTEXT, scene_content_digest="b" * 64).scene_binding().content_digest,
+  79:                          "b" * 64)
+  80:     def test_operation_request_validation(self):
+  81:         args = dict(operation=HostOperation.CREATE_ASSIGNMENT, expected_context=CONTEXT,
+  82:                     principal=PRINCIPAL, asset_id="engine-asset", assignment_id="engine-assignment")
+  83:         HostOperationRequest(**args)
+  84:         for kwargs in ({"operation": "invalid"}, {"principal": None}, {"asset_id": ""},
+  85:                        {"assignment_id": None}, {"expected_context": None}):
+  86:             with self.subTest(kwargs=kwargs), self.assertRaises(DomainError):
+  87:                 HostOperationRequest(**(args | kwargs))
+  88:     def test_rights_request_cannot_target_assignment(self):
+  89:         with self.assertRaises(DomainError):
+  90:             HostOperationRequest(HostOperation.REVIEW_RIGHTS, CONTEXT, PRINCIPAL,
+  91:                                  "engine-asset", "engine-assignment")
+  92:     def test_principal_scope_mismatch(self):
+  93:         principal = replace(PRINCIPAL, scope=replace(SCOPE, tenant_id="other-tenant"))
+  94:         with self.assertRaises(DomainError):
+  95:             HostOperationRequest(HostOperation.CREATE_ASSIGNMENT, CONTEXT, principal,
+  96:                                  "engine-asset", "engine-assignment")
+  97: 
+  98: 
+  99: class HostGatewayTests(unittest.TestCase):
+ 100:     def setUp(self):
+ 101:         self.tmp = tempfile.TemporaryDirectory(prefix="are-a2-tests-")
+ 102:         self.addCleanup(self.tmp.cleanup)
+ 103:         self.engine = Engine(Path(self.tmp.name))
+ 104:         self.host = SyntheticHost(SCOPE)
+ 105:         self.host.set_scene(CONTEXT)
+ 106:         self.host.grant_synthetic_operations(PRINCIPAL, tuple(HostOperation))
+ 107:         self.host.declare_asset_scope("engine-asset", SCOPE)
+ 108:         self.host.declare_assignment_target("engine-assignment", SCENE, "engine-asset")
+ 109:         self.gateway = AdapterGateway(self.engine, self.host)
+ 110:         self.engine.register_asset(AssetDescriptor("engine-asset", "image", "TEST ONLY", "Synthetic",
+ 111:             "Synthetic fixture", "test:adapter", T, T))
+ 112:         self.rights = self.engine.create_rights_revision("engine-asset", RightsRecord(
+ 113:             state="PENDING_REVIEW", rights_basis="Test grant", licence_name="TEST ONLY",
+ 114:             commercial=True, distribution=True, modification=True, attribution_required=False,
+ 115:             evidence_notes="Synthetic fixture"))
+ 116:     def approve_rights(self):
+ 117:         return self.gateway.review_rights("engine-asset", CONTEXT, PRINCIPAL, review(self.rights))
+ 118:     def create(self, context=CONTEXT, principal=PRINCIPAL):
+ 119:         return self.gateway.create_assignment("engine-assignment", "engine-asset", context,
+ 120:                                               principal, "background", USAGE, "PENDING_REVIEW")
+ 121:     def test_valid_assignment_and_readiness(self):
+ 122:         self.approve_rights(); view = self.create()
+ 123:         self.gateway.review_assignment(view.entity_id, "engine-asset", CONTEXT, PRINCIPAL,
+ 124:                                        review(view, "assignment-review"), USAGE)
+ 125:         self.assertTrue(self.gateway.evaluate_assignment_readiness(view.entity_id, "engine-asset",
+ 126:                                                                   CONTEXT, PRINCIPAL, USAGE).eligible)
+ 127:     def test_unapproved_rejected_before_engine(self):
+ 128:         context = replace(CONTEXT, plan_state=PlanState.DRAFT, host_asserts_approved=False)
+ 129:         self.host.set_scene(context)
+ 130:         with patch.object(self.engine, "create_assignment") as operation:
+ 131:             with self.assertRaises(DomainError) as error: self.create(context)
+ 132:             self.assertEqual(error.exception.code, "PLAN_NOT_APPROVED")
+ 133:             operation.assert_not_called()
+ 134:     def test_expected_approved_but_authoritative_unapproved(self):
+ 135:         self.host.set_scene(replace(CONTEXT, plan_state=PlanState.REVOKED, host_asserts_approved=False))
+ 136:         with self.assertRaises(DomainError) as error: self.create()
+ 137:         self.assertEqual(error.exception.code, "PLAN_NOT_APPROVED")
+ 138:         self.assertEqual(self.engine.list_assignments(), ())
+ 139:     def test_revision_mismatch_before_engine(self):
+ 140:         self.host.set_scene(replace(CONTEXT, plan_revision=2))
+ 141:         with patch.object(self.engine, "create_assignment") as operation:
+ 142:             with self.assertRaises(DomainError) as error: self.create()
+ 143:             self.assertEqual(error.exception.code, "STALE_PLAN")
+ 144:             operation.assert_not_called()
+ 145:     def test_digest_mismatch_before_engine(self):
+ 146:         self.host.set_scene(replace(CONTEXT, plan_sha256="b" * 64))
+ 147:         with self.assertRaises(DomainError) as error: self.create()
+ 148:         self.assertEqual(error.exception.code, "STALE_PLAN")
+ 149:     def test_content_digest_change_detected(self):
+ 150:         self.host.set_scene(replace(CONTEXT, scene_content_digest="c" * 64))
+ 151:         with self.assertRaises(DomainError) as error: self.create()
+ 152:         self.assertEqual(error.exception.code, "STALE_PLAN")
+ 153:     def test_scene_substitution_before_engine(self):
+ 154:         other = replace(CONTEXT, scene=replace(SCENE, scene_id="other-scene"))
+ 155:         self.host.set_scene(other)
+ 156:         with patch.object(self.engine, "create_assignment") as operation:
+ 157:             with self.assertRaises(DomainError) as error: self.create(other)
+ 158:             self.assertEqual(error.exception.code, "RESOURCE_MISMATCH")
+ 159:             operation.assert_not_called()
+ 160:     def test_tenant_and_owner_boundaries_before_engine(self):
+ 161:         for field in ("host_application", "tenant_id", "owner_id"):
+ 162:             altered_scope = replace(SCOPE, **{field: "outsider"})
+ 163:             context = replace(CONTEXT, scene=replace(SCENE, scope=altered_scope))
+ 164:             principal = replace(PRINCIPAL, scope=altered_scope)
+ 165:             with self.subTest(field=field), patch.object(self.engine, "create_assignment") as operation:
+ 166:                 with self.assertRaises(DomainError) as error: self.create(context, principal)
+ 167:                 self.assertEqual(error.exception.code, "SCOPE_MISMATCH")
+ 168:                 operation.assert_not_called()
+ 169:     def test_asset_scope_boundary(self):
+ 170:         self.host.declare_asset_scope("foreign-asset", replace(SCOPE, tenant_id="foreign-tenant"))
+ 171:         with self.assertRaises(DomainError) as error:
+ 172:             self.gateway.review_rights("foreign-asset", CONTEXT, PRINCIPAL, review(self.rights))
+ 173:         self.assertEqual(error.exception.code, "SCOPE_MISMATCH")
+ 174:     def test_missing_reviewer_and_mismatched_identity(self):
+ 175:         with self.assertRaises(DomainError):
+ 176:             self.gateway.review_rights("engine-asset", CONTEXT, None, review(self.rights))
+ 177:         with self.assertRaises(DomainError) as error:
+ 178:             self.gateway.review_rights("engine-asset", CONTEXT, PRINCIPAL,
+ 179:                                       review(self.rights, reviewer="another-reviewer"))
+ 180:         self.assertEqual(error.exception.code, "PRINCIPAL_MISMATCH")
+ 181:         self.assertEqual(self.engine.get_review_history(), ())
+ 182:     def test_supplied_identifier_does_not_grant_policy(self):
+ 183:         ungranted = HostPrincipal(SCOPE, "ungranted-reviewer")
+ 184:         with self.assertRaises(DomainError) as error:
+ 185:             self.gateway.review_rights("engine-asset", CONTEXT, ungranted,
+ 186:                                       review(self.rights, reviewer=ungranted.principal_id))
+ 187:         self.assertEqual(error.exception.code, "HOST_POLICY_DENIED")
+ 188:     def test_policy_is_operation_specific(self):
+ 189:         self.host.grant_synthetic_operations(PRINCIPAL, (HostOperation.EVALUATE_READINESS,))
+ 190:         with self.assertRaises(DomainError) as error: self.approve_rights()
+ 191:         self.assertEqual(error.exception.code, "HOST_POLICY_DENIED")
+ 192:     def test_idempotent_replay_and_conflict(self):
+ 193:         first = self.approve_rights()
+ 194:         self.assertEqual(first, self.approve_rights())
+ 195:         with self.assertRaises(DomainError) as error:
+ 196:             self.gateway.review_rights("engine-asset", CONTEXT, PRINCIPAL,
+ 197:                                       review(self.rights, note="Changed payload"))
+ 198:         self.assertEqual(error.exception.code, "CONFLICT")
+ 199:         self.assertEqual(len(self.engine.get_review_history()), 1)
+ 200:     def test_replay_rechecks_current_host_policy(self):
+ 201:         self.approve_rights()
+ 202:         self.host.grant_synthetic_operations(PRINCIPAL, ())
+ 203:         with self.assertRaises(DomainError) as error: self.approve_rights()
+ 204:         self.assertEqual(error.exception.code, "HOST_POLICY_DENIED")
+ 205:         self.assertEqual(len(self.engine.get_review_history()), 1)
+ 206:     def test_review_context_stale_blocks_even_replay(self):
+ 207:         self.approve_rights(); view = self.create(); req = review(view, "ar")
+ 208:         self.gateway.review_assignment(view.entity_id, "engine-asset", CONTEXT, PRINCIPAL, req, USAGE)
+ 209:         changed = replace(CONTEXT, plan_sha256="b" * 64)
+ 210:         self.host.set_scene(changed)
+ 211:         with self.assertRaises(DomainError) as error:
+ 212:             self.gateway.review_assignment(view.entity_id, "engine-asset", CONTEXT, PRINCIPAL, req, USAGE)
+ 213:         self.assertEqual(error.exception.code, "STALE_PLAN")
+ 214:         result = self.gateway.evaluate_assignment_readiness(view.entity_id, "engine-asset", changed,
+ 215:                                                             PRINCIPAL, USAGE)
+ 216:         self.assertFalse(result.eligible)
+ 217:         self.assertIn("STALE_SCENE_BINDING", result.blockers)
+ 218:         self.assertEqual(len(self.engine.get_review_history()), 2)
+ 219:     def test_revise_assignment_requires_new_review(self):
+ 220:         self.approve_rights(); view = self.create()
+ 221:         self.gateway.review_assignment(view.entity_id, "engine-asset", CONTEXT, PRINCIPAL,
+ 222:                                        review(view, "ar"), USAGE)
+ 223:         changed = replace(CONTEXT, plan_revision=2)
+ 224:         self.host.set_scene(changed)
+ 225:         newer = self.gateway.revise_assignment(view.entity_id, "engine-asset", changed, PRINCIPAL,
+ 226:                                                 "background", USAGE, 1)
+ 227:         self.assertEqual(newer.revision, 2)
+ 228:         self.assertFalse(self.gateway.evaluate_assignment_readiness(view.entity_id, "engine-asset",
+ 229:                                                                     changed, PRINCIPAL, USAGE).eligible)
+ 230:         self.gateway.review_assignment(view.entity_id, "engine-asset", changed, PRINCIPAL,
+ 231:                                        review(newer, "ar2"), USAGE)
+ 232:         self.assertTrue(self.gateway.evaluate_assignment_readiness(view.entity_id, "engine-asset",
+ 233:                                                                    changed, PRINCIPAL, USAGE).eligible)
+ 234:     def test_engine_rights_checks_not_bypassed(self):
+ 235:         view = self.create()
+ 236:         with self.assertRaises(DomainError):
+ 237:             self.gateway.review_assignment(view.entity_id, "engine-asset", CONTEXT, PRINCIPAL,
+ 238:                                            review(view, "ar"), USAGE)
+ 239:         self.assertEqual(self.engine.get_review_history(), ())
+ 240:     def test_unknown_provider_and_invalid_provider_response(self):
+ 241:         with self.assertRaises(DomainError): AdapterGateway(self.engine, None)
+ 242:         class BadProvider:
+ 243:             @contextmanager
+ 244:             def operation_context(self, request): yield None
+ 245:         gateway = AdapterGateway(self.engine, BadProvider())
+ 246:         with self.assertRaises(DomainError):
+ 247:             gateway.create_assignment("engine-assignment", "engine-asset", CONTEXT, PRINCIPAL,
+ 248:                                       "background", USAGE)
+ 249:         self.assertEqual(self.engine.list_assignments(), ())
+ 250:     def test_provider_cannot_substitute_scene(self):
+ 251:         class WrongSceneProvider:
+ 252:             @contextmanager
+ 253:             def operation_context(self, request):
+ 254:                 yield replace(CONTEXT, scene=replace(SCENE, scene_id="wrong-scene"))
+ 255:         gateway = AdapterGateway(self.engine, WrongSceneProvider())
+ 256:         with self.assertRaises(DomainError) as error:
+ 257:             gateway.create_assignment("engine-assignment", "engine-asset", CONTEXT, PRINCIPAL,
+ 258:                                       "background", USAGE)
+ 259:         self.assertEqual(error.exception.code, "SCENE_MISMATCH")
+ 260:     def test_assignment_asset_crosscheck(self):
+ 261:         self.create()
+ 262:         self.engine.register_asset(AssetDescriptor("second-asset", "image", "TEST ONLY", "Synthetic",
+ 263:             "Fixture", "test:second", T, T))
+ 264:         self.host.declare_asset_scope("second-asset", SCOPE)
+ 265:         # A deliberately broken resource map is still cross-checked against A1 content.
+ 266:         class BrokenMapProvider:
+ 267:             @contextmanager
+ 268:             def operation_context(self, request): yield CONTEXT
+ 269:         gateway = AdapterGateway(self.engine, BrokenMapProvider())
+ 270:         with self.assertRaises(DomainError) as error:
+ 271:             gateway.evaluate_assignment_readiness("engine-assignment", "second-asset", CONTEXT,
+ 272:                                                   PRINCIPAL, USAGE)
+ 273:         self.assertEqual(error.exception.code, "RESOURCE_MISMATCH")
+ 274:     def test_scene_binding_crosscheck(self):
+ 275:         self.create()
+ 276:         other = replace(CONTEXT, scene=replace(SCENE, scene_id="other-scene"))
+ 277:         class BrokenMapProvider:
+ 278:             @contextmanager
+ 279:             def operation_context(self, request): yield other
+ 280:         gateway = AdapterGateway(self.engine, BrokenMapProvider())
+ 281:         with self.assertRaises(DomainError) as error:
+ 282:             gateway.evaluate_assignment_readiness("engine-assignment", "engine-asset", other,
+ 283:                                                   PRINCIPAL, USAGE)
+ 284:         self.assertEqual(error.exception.code, "SCENE_MISMATCH")
+ 285:     def test_host_state_is_locked_through_engine_operation(self):
+ 286:         original = self.engine.create_assignment
+ 287:         acquired = []
+ 288:         def call(*args, **kwargs):
+ 289:             def probe():
+ 290:                 ok = self.host._lock.acquire(blocking=False)
+ 291:                 acquired.append(ok)
+ 292:                 if ok: self.host._lock.release()
+ 293:             thread = Thread(target=probe); thread.start(); thread.join(timeout=5)
+ 294:             self.assertFalse(thread.is_alive())
+ 295:             return original(*args, **kwargs)
+ 296:         with patch.object(self.engine, "create_assignment", side_effect=call): self.create()
+ 297:         self.assertEqual(acquired, [False])
+ 298:     def test_temporary_storage_only(self):
+ 299:         self.assertEqual(self.engine.path.parent, Path(self.tmp.name).resolve())
+ 300:         self.assertEqual(self.engine.validate_database()["schema_version"], 1)
+ 301:     def test_a1_signatures_remain_compatible(self):
+ 302:         self.assertEqual(list(inspect.signature(Engine.create_assignment).parameters),
+ 303:                          ["self", "assignment_id", "asset_id", "binding", "role", "usage", "state"])
+ 304:         self.assertEqual(list(inspect.signature(Engine.review_assignment).parameters),
+ 305:                          ["self", "assignment_id", "request", "current_binding", "context"])
+ 306:         self.assertEqual(inspect.signature(Engine.create_rights_revision).parameters["expected_revision"].default, 0)
+ 307:     def test_resource_mappings_cannot_silently_rebind(self):
+ 308:         with self.assertRaises(DomainError):
+ 309:             self.host.declare_assignment_target("engine-assignment", replace(SCENE, scene_id="other"), "engine-asset")
+ 310:         with self.assertRaises(DomainError):
+ 311:             self.host.declare_asset_scope("engine-asset", replace(SCOPE, tenant_id="other"))
+ 312:     def test_unknown_resource_denied(self):
+ 313:         with self.assertRaises(DomainError) as error:
+ 314:             self.gateway.create_assignment("unknown-assignment", "engine-asset", CONTEXT,
+ 315:                                           PRINCIPAL, "background", USAGE)
+ 316:         self.assertEqual(error.exception.code, "HOST_POLICY_DENIED")
+FILE tests/test_adapter_simulator.py ENCODING utf-8
+   1: import unittest
+   2: from unittest.mock import patch
+   3: from asset_rights_engine.simulator import run_simulation
+   4: 
+   5: 
+   6: class SimulatorTests(unittest.TestCase):
+   7:     def test_all_scenarios(self):
+   8:         report = run_simulation()
+   9:         self.assertEqual(len(report.scenarios), 18)
+  10:         self.assertTrue(all(passed for _, passed in report.scenarios))
+  11:         self.assertEqual(report.authentication, "NOT_IMPLEMENTED_SYNTHETIC_IDENTIFIERS_ONLY")
+  12:         self.assertEqual(report.storage, "TEMPORARY_DATABASE_DELETED_ON_EXIT")
+  13:         self.assertEqual(report.schema_version, 1)
+  14:     def test_deterministic_report(self):
+  15:         self.assertEqual(run_simulation(), run_simulation())
+  16:     def test_no_network_required(self):
+  17:         def denied(*args, **kwargs): raise AssertionError("Network prohibited")
+  18:         with patch("socket.socket", side_effect=denied), patch("socket.create_connection", side_effect=denied):
+  19:             self.assertTrue(all(passed for _, passed in run_simulation().scenarios))
+  20: 
+  21: if __name__ == "__main__": unittest.main()
+FILE scripts/database.py ENCODING utf-8
+   1: """Explicit administrator CLI; paths are trusted configuration, never metadata."""
+   2: import argparse
+   3: from pathlib import Path
+   4: from asset_rights_engine import Engine
+   5: parser=argparse.ArgumentParser()
+   6: parser.add_argument("data_directory",type=Path)
+   7: parser.add_argument("--snapshot",help="Unused local .sqlite3 basename")
+   8: args=parser.parse_args()
+   9: engine=Engine(args.data_directory)
+  10: print(engine.validate_database())
+  11: if args.snapshot: print(engine.create_database_snapshot(args.snapshot))
+FILE scripts/verify_release.py ENCODING utf-8
+   1: """Local release evidence: baseline hashes, import boundary and runtime source audit."""
+   2: import ast
+   3: import hashlib
+   4: import importlib.metadata
+   5: import inspect
+   6: import json
+   7: import re
+   8: import subprocess
+   9: import sys
+  10: from pathlib import Path
+  11: import asset_rights_engine
+  12: 
+  13: 
+  14: def verify():
+  15:     root = Path(__file__).resolve().parents[1]
+  16:     baseline = json.loads((root / "A2_BASELINE.json").read_text())
+  17:     unchanged = []
+  18:     for name, expected in baseline["sha256"].items():
+  19:         actual = hashlib.sha256((root / name).read_bytes()).hexdigest()
+  20:         if actual != expected:
+  21:             raise AssertionError(f"Accepted A1 file changed: {name}")
+  22:         unchanged.append(name)
+  23:     source = root / "src" / "asset_rights_engine"
+  24:     banned = {"socket", "requests", "urllib", "http", "httpx", "aiohttp", "fastapi",
+  25:               "pyodbc", "defencestudio", "qvault", "whisper_studio"}
+  26:     audited = []
+  27:     for path in source.glob("*.py"):
+  28:         text = path.read_text()
+  29:         for node in ast.walk(ast.parse(text)):
+  30:             imports = [a.name for a in node.names] if isinstance(node, ast.Import) else (
+  31:                 [node.module] if isinstance(node, ast.ImportFrom) and node.level == 0 and node.module else [])
+  32:             if any(name.split(".")[0].lower() in banned for name in imports):
+  33:                 raise AssertionError(f"Prohibited runtime import: {path.name}")
+  34:         if re.search(r"(?:sk-[A-Za-z0-9]{24,}|AKIA[A-Z0-9]{16})", text):
+  35:             raise AssertionError(f"Credential-like literal: {path.name}")
+  36:         if re.search(r"[A-Za-z]:[\\/]", text):
+  37:             raise AssertionError(f"Fixed external filesystem path: {path.name}")
+  38:         audited.append(path.name)
+  39:     if importlib.metadata.requires("asset-rights-engine"):
+  40:         raise AssertionError("Unexpected runtime dependencies")
+  41:     installed = Path(asset_rights_engine.__file__).resolve()
+  42:     if "site-packages" not in installed.parts or Path(sys.prefix).resolve() not in installed.parents:
+  43:         raise AssertionError("Verification must use this virtual environment's installed wheel")
+  44:     for file in source.glob("*.py"):
+  45:         if file.read_bytes() != (installed.parent / file.name).read_bytes():
+  46:             raise AssertionError(f"Installed code differs from release source: {file.name}")
+  47:     # A fresh isolated interpreter proves that the A1 import leaves adapter modules optional.
+  48:     code = "import sys,asset_rights_engine; assert not any(n in sys.modules for n in ['asset_rights_engine.host_adapter','asset_rights_engine.adapter_contracts','asset_rights_engine.simulator']); print('Core import remains independent')"
+  49:     subprocess.run([sys.executable, "-I", "-c", code], check=True)
+  50:     # Compare all existing exported objects against signatures in preserved wheel source.
+  51:     # A1 implementation files are byte-identical above; signatures remain unchanged.
+  52:     result = {
+  53:         "version": asset_rights_engine.__version__,
+  54:         "installed_from": str(installed),
+  55:         "accepted_a1_files_unchanged": unchanged,
+  56:         "runtime_modules_audited": audited,
+  57:         "runtime_dependencies": [],
+  58:         "core_import_loads_adapter": False,
+  59:         "persistent_component_data_unchanged": True,
+  60:         "credential_scan": "No common API-key patterns found; not a comprehensive secret detector",
+  61:     }
+  62:     print(json.dumps(result, indent=2))
+  63:     return result
+  64: 
+  65: if __name__ == "__main__": verify()
+FILE scripts/test_offline.py ENCODING utf-8
+   1: """Run core tests with Python network sockets denied."""
+   2: import socket, unittest
+   3: from unittest.mock import patch
+   4: 
+   5: def denied(*args,**kwargs): raise AssertionError("Network use prohibited in core tests")
+   6: with patch.object(socket,"socket",side_effect=denied),patch.object(socket,"create_connection",side_effect=denied):
+   7:     result=unittest.TextTestRunner(verbosity=2).run(unittest.defaultTestLoader.discover("tests"))
+   8: raise SystemExit(0 if result.wasSuccessful() else 1)
+FILE scripts/check_temporary_database.py ENCODING utf-8
+   1: """Verify the existing administrator CLI entirely in temporary storage."""
+   2: from pathlib import Path
+   3: from tempfile import TemporaryDirectory
+   4: import subprocess
+   5: import sys
+   6: from asset_rights_engine import Engine
+   7: 
+   8: if __name__ == "__main__":
+   9:     with TemporaryDirectory(prefix="are-a2-cli-") as directory:
+  10:         subprocess.run([sys.executable, str(Path(__file__).with_name("database.py")),
+  11:                         directory, "--snapshot", "cli-snapshot.sqlite3"], check=True)
+  12:         print("Restored CLI snapshot:", Engine(Path(directory), "cli-snapshot.sqlite3").validate_database())
+  13:     print("Temporary CLI storage removed:", not Path(directory).exists())
+FILE scripts/example.py ENCODING utf-8
+   1: """SYNTHETIC TEST DATA: never real-world rights evidence."""
+   2: from pathlib import Path
+   3: from tempfile import TemporaryDirectory
+   4: from asset_rights_engine import *
+   5: 
+   6: with TemporaryDirectory() as directory:
+   7:     engine=Engine(Path(directory))
+   8:     timestamp="2026-10-12T00:00:00Z"
+   9:     engine.register_asset(AssetDescriptor("demo-asset","image","Synthetic example","No media file","Test fixture","test:synthetic",timestamp,timestamp))
+  10:     rights=engine.create_rights_revision("demo-asset",RightsRecord(state="PENDING_REVIEW",rights_basis="Synthetic test grant",licence_name="Test-only licence",commercial=True,modification=False,distribution=True,attribution_required=True,attribution_text="Synthetic test author",evidence_notes="TEST DATA ONLY"))
+  11:     engine.review_rights("demo-asset",ReviewRequest("test-reviewer","APPROVED","Synthetic test decision",rights.revision,rights.content_digest,"rights-demo",timestamp))
+  12:     binding=SceneBinding("example-host","job-1","scene-1","1","a"*64)
+  13:     context=UseContext(timestamp,attribution_text="Synthetic test author")
+  14:     assignment=engine.create_assignment("demo-assignment","demo-asset",binding,"background",context,"PENDING_REVIEW")
+  15:     engine.review_assignment("demo-assignment",ReviewRequest("test-reviewer","APPROVED","Synthetic scene decision",assignment.revision,assignment.content_digest,"assignment-demo",timestamp),binding,context)
+  16:     print(engine.evaluate_assignment_readiness("demo-assignment",binding,context))
+  17:     print(engine.validate_database())
+  18:     snapshot=engine.create_database_snapshot("snapshot.sqlite3")
+  19:     print("Snapshot restored:",Engine(Path(directory),snapshot.name).validate_database())
+FILE scripts/adapter_simulator.py ENCODING utf-8
+   1: """OFFLINE TEST SIMULATOR: no authenticated identities or real rights evidence."""
+   2: from dataclasses import asdict
+   3: import json
+   4: from asset_rights_engine.simulator import run_simulation
+   5: 
+   6: if __name__ == "__main__":
+   7:     print(json.dumps(asdict(run_simulation()), indent=2))
+FILE pyproject.toml ENCODING utf-8
+   1: [build-system]
+   2: requires = ["setuptools>=77"]
+   3: build-backend = "setuptools.build_meta"
+   4: 
+   5: [project]
+   6: name = "asset-rights-engine"
+   7: version = "1.1.0"
+   8: description = "ARE-A1 core with optional ARE-A2 host adapter contracts and offline simulator"
+   9: requires-python = ">=3.11"
+  10: dependencies = []
+  11: 
+  12: [tool.setuptools.packages.find]
+  13: where = ["src"]
+  14: 
+  15: [tool.setuptools.package-data]
+  16: asset_rights_engine = ["*.sql"]
+FILE README.md ENCODING utf-8
+   1: # Asset & Rights Engine
+   2: 
+   3: ARE-A1 · version 1.0.0 · Python 3.11+ · standard-library runtime
+   4: 
+   5: Standalone location: `E:\DefenceStudio-Components\asset-rights-engine`.
+   6: This component has no host imports, media IO, network calls, or server requirement.
+   7: It evaluates declared metadata; it does not establish ownership or provide legal advice.
+   8: 
+   9: ## Install and verify (PowerShell, from this directory)
+  10: 
+  11: ```powershell
+  12: python -m venv .venv-a2
+  13: Remove-Item Env:\PYTHONPATH -ErrorAction SilentlyContinue
+  14: .venv-a2\Scripts\python -m pip install --no-index --no-deps dist/asset_rights_engine-1.1.0-py3-none-any.whl
+  15: .venv-a2\Scripts\python -m unittest discover -s tests -v
+  16: .venv-a2\Scripts\python scripts/test_offline.py
+  17: .venv-a2\Scripts\python scripts/example.py
+  18: .venv-a2\Scripts\python scripts/adapter_simulator.py
+  19: # Use a temporary database for CLI verification, without writing synthetic data to data/.
+  20: .venv-a2\Scripts\python scripts/check_temporary_database.py
+  21: .venv-a2\Scripts\python scripts/verify_release.py
+  22: ```
+  23: 
+  24: The supplied wheel installs offline. To rebuild with an available setuptools >=77:
+  25: `python -m pip wheel . --no-index --no-deps --no-build-isolation --wheel-dir dist`.
+  26: No global installation is required. Core tests use temporary databases only.
+  27: 
+  28: The complete executable integration example is `scripts/example.py`. All example
+  29: records and approvals are SYNTHETIC TEST DATA, never real rights evidence. It registers
+  30: metadata without a media file, creates and reviews rights, binds an assignment to an
+  31: exact scene plan, reviews the assignment, evaluates readiness, and restores a snapshot.
+  32: 
+  33: ## Python API
+  34: 
+  35: Import `Engine`, `AssetDescriptor`, `RightsRecord`, `SceneBinding`, `UseContext`,
+  36: `ReviewRequest` from `asset_rights_engine`. Construct `Engine(Path("data"))` with a
+  37: trusted, dedicated directory. The default database is `data/asset_rights.sqlite3`.
+  38: 
+  39: | Operation | Inputs / result |
+  40: |---|---|
+  41: | register_asset | AssetDescriptor -> AssetDescriptor; identical registration replays |
+  42: | get_asset / list_assets | identifier -> AssetDescriptor / ordered tuple |
+  43: | create_rights_revision | asset ID, RightsRecord, expected_revision (0 initially) -> RevisionView |
+  44: | get_rights | asset ID -> current RevisionView |
+  45: | evaluate_effective_rights | asset ID, UseContext -> Evaluation |
+  46: | create_assignment | assignment ID, asset ID, SceneBinding, role, UseContext, optional draft/pending/blocked state -> RevisionView |
+  47: | revise_assignment | assignment ID, binding, role, usage, expected_revision, optional state -> RevisionView |
+  48: | get_assignment / list_assignments | current RevisionView / ordered tuple |
+  49: | review_rights | asset ID, ReviewRequest -> immutable ReviewEvent |
+  50: | review_assignment | assignment ID, ReviewRequest, current binding, context -> ReviewEvent |
+  51: | evaluate_assignment_readiness | assignment ID, current binding, context -> Evaluation |
+  52: | get_review_history | ordered immutable ReviewEvent tuple |
+  53: | validate_database | integrity, foreign keys, hashes and immutability checks -> status dict |
+  54: | create_database_snapshot | unused local .sqlite3 basename -> Path; SQLite backup API |
+  55: 
+  56: A revision view provides entity_id, revision, content, content_digest and derived state.
+  57: ReviewRequest requires reviewer, APPROVED/REJECTED, nonempty note, expected_revision,
+  58: content_digest, idempotency_key and reviewed_at. Assignment approval also requires the
+  59: current binding and a context whose evaluated_at equals reviewed_at. No caller approval
+  60: flag is accepted by the engine. Unknown records require an explicit pending revision.
+  61: 
+  62: DomainError has `code` and `message`: VALIDATION, CONFLICT, NOT_FOUND, DATABASE,
+  63: FILESYSTEM or SNAPSHOT. Failures never commit partial updates. Exact idempotent review
+  64: replays return their original event, including after subsequent revisions; they do not
+  65: restore old approval. Different payloads under the same key conflict.
+  66: 
+  67: See CONTRACTS.md, ARCHITECTURE.md and SECURITY.md for integration boundaries and limits.
+  68: 
+  69: ## Optional ARE-A2 adapter
+  70: 
+  71: [Host adapter contract](docs/HOST_ADAPTER.md) documents immutable host scope, scene,
+  72: plan and principal assertions, the HostAdapter Protocol and AdapterGateway operations.
+  73: Import these explicitly from adapter_contracts and host_adapter; core imports are unchanged.
+  74: The simulator runs 18 synthetic scenarios in a temporary database. It authenticates no
+  75: identity and is not production integration. A real host must supply authentication,
+  76: authorization, ownership mappings and authoritative plan verification.
+  77: 
+  78: The accepted 1.0.0 wheel is retained alongside 1.1.0. Offline build/test commands use
+  79: installed wheels; unset PYTHONPATH before installed-wheel checks. Use
+  80: `python -m unittest discover -s tests -p test_host_adapter.py -v` and the analogous
+  81: `test_adapter_simulator.py` command for focused checks.
+FILE CONTRACTS.md ENCODING utf-8
+   1: # Contracts v1
+   2: 
+   3: All inputs are frozen dataclasses. Stable identifiers use 1–128 ASCII letters, digits,
+   4: underscore, period, colon or hyphen, beginning with a letter or digit. SHA-256 fields
+   5: require exactly 64 lowercase hexadecimal characters. Revisions are positive integers;
+   6: expected initial rights revision alone is zero. Timestamps must carry an explicit UTC
+   7: offset. Evaluation uses caller-supplied time, never an implicit wall clock.
+   8: 
+   9: AssetDescriptor metadata_version=1 supports image/video/audio/graphic/other. Name,
+  10: provenance, original source and creation/registration timestamps are required. Media
+  11: bytes, file existence and verification are never assumed. Known MIME must be compatible
+  12: with image/video/audio categories; size is a nonnegative integer. VALID means metadata
+  13: contract validation only. Registered descriptors are immutable; corrections use a new ID.
+  14: 
+  15: RightsRecord contract_version=1 states: UNKNOWN, PENDING_REVIEW, APPROVED, REJECTED,
+  16: EXPIRED, REVOKED. Persisted input APPROVED is rejected. Successful review creates a
+  17: separate approved review state over immutable pending content. Explicit rights basis,
+  18: licence name and evidence notes are required for approval. Custom licence names are
+  19: accepted as declarations, not interpreted as a known licence. URLs are inert strings.
+  20: Permissions and attribution requirement are tri-state Boolean/unknown. Unknown required
+  21: permissions block; false permissions block requested operations. A required attribution
+  22: must exactly match the declared text. Territory restrictions use uppercase two-letter
+  23: codes; omission of a territory blocks a restricted grant. Empty territory list declares
+  24: no territory restriction. Valid-from is inclusive; valid-until is exclusive.
+  25: 
+  26: UseContext records commercial, modification, distribution, territory, attribution text
+  27: and evaluated_at. Unrequested modification/distribution need no permission. Record
+  28: approval never implies a permission. An evaluation before its rights review blocks.
+  29: 
+  30: SceneBinding carries host_application, job_id, scene_id, plan_version, plan_sha256 and
+  31: optional content_digest. All fields participate in exact binding comparison. The host
+  32: must supply its authoritative approved plan. The core cannot authenticate that assertion.
+  33: AssignmentDescriptor contract_version=1 carries binding, asset ID, role, use context,
+  34: rights revision/hash and state. Assignment revision and identity live in RevisionView.
+  35: DRAFT/PENDING_REVIEW/BLOCKED may be supplied at creation or revision. APPROVED requires
+  36: review. A changed rights revision yields derived STALE. A changed scene plan produces
+  37: STALE_SCENE_BINDING at evaluation, without mutating or rebinding the historical record.
+  38: 
+  39: Every decision requires a nonempty note. First decision per entity revision wins;
+  40: additional decisions require a new revision. Idempotency keys are unique across all
+  41: review kinds. Their payload includes binding and usage context. Exact replay returns
+  42: one original event; all other reuse conflicts. Reviews reference content digests and
+  43: expected revisions. Approval of blocked assignments is refused.
+  44: 
+  45: Evaluation returns eligibility, blocker codes, warnings, human actions, rights revision,
+  46: rights hash and deterministic timestamp. Readiness requires current approved rights,
+  47: compatible use, exact scene binding, current assignment approval, and matching usage.
+  48: Only evaluated_at may change without creating a new assignment revision. Readiness always
+  49: warns MEDIA_AVAILABILITY_UNVERIFIED; it is rights readiness, not render readiness.
+  50: 
+  51: The exported pure evaluator accepts an optional immutable ReviewEvent, checks decision,
+  52: revision, digest and time, and defaults to blocked without review evidence. For an
+  53: untrusted caller always use Engine.evaluate_effective_rights, which loads its own history.
+  54: Passing fabricated events to the pure function has no effect on persisted approval.
+  55: 
+  56: ## ARE-A2 optional host contracts v1
+  57: 
+  58: HostScope, HostSceneKey, HostSceneContext, HostPrincipal and HostOperationRequest add
+  59: immutable framework-neutral assertions. Positive integer host plan revisions map to
+  60: ARE-A1 plan_version strings. Full scene/plan equality and consistent approval assertions
+  61: are checked before gateway operations. Identifiers/assertions confer no authentication.
+  62: ARE-A1 contracts are unchanged. See [HOST_ADAPTER.md](docs/HOST_ADAPTER.md) for exact
+  63: validation, tenant ownership, trust levels, staleness and idempotency semantics.
+FILE ARCHITECTURE.md ENCODING utf-8
+   1: # Architecture
+   2: 
+   3: contracts.py defines validated immutable input contracts and structured results/errors.
+   4: evaluator.py is a deterministic pure metadata evaluator. engine.py provides transactional
+   5: SQLite persistence, version selection, explicit review workflows and readiness.
+   6: __init__.py is the public integration surface. schema.sql is packaged runtime migration
+   7: 001; migrations/001_initial.sql is its reviewable source mirror. scripts/ contains an
+   8: administrator initialization/snapshot CLI and a synthetic temporary-database example.
+   9: Tests use unittest and temporary directories, with no paid or network services.
+  10: 
+  11: ## Database v1
+  12: 
+  13: assets stores immutable metadata JSON. rights_revisions stores immutable versioned
+  14: rights JSON/hash keyed by asset/revision, with a foreign key to assets. assignments
+  15: stores identity and an asset foreign key. assignment_revisions stores versioned binding,
+  16: usage and rights references. review_state holds the latest decision per kind/entity;
+  17: review_history holds reviewer, decision, note, revision, digest, timestamp, idempotency
+  18: key and canonical full request. migrations holds version, application timestamp and
+  19: SQL checksum. PRAGMA user_version is 1. Assets/revisions/history/migration records are
+  20: protected by update/delete triggers. Media bytes are never stored.
+  21: 
+  22: Each operation opens/closes its own connection. Foreign keys are enabled on every
+  23: connection. BEGIN IMMEDIATE serializes writes; expected revisions and first-review
+  24: checks reject concurrent conflicts. Read operations use one snapshot transaction for
+  25: consistent readiness across concurrent changes. Parameterized values are used throughout;
+  26: dynamic SQL identifiers come exclusively from fixed internal table names.
+  27: 
+  28: ## Migrations
+  29: 
+  30: Version 0 with no tables migrates atomically to version 1. Existing unversioned tables
+  31: are rejected without modification. Initialization reruns validate the packaged migration
+  32: checksum and integrity instead of overwriting data. Unknown future versions fail closed.
+  33: Future releases must add numbered, additive migration scripts and sequential transactional
+  34: upgrade steps; never edit migration 001 or rewrite historical rows. No later migrations
+  35: are shipped in Phase A1. Backup before upgrades. Both mirror and packaged SQL must match.
+  36: 
+  37: Snapshots use sqlite3.Connection.backup, including committed WAL content, and reject
+  38: existing destination files. Restore by constructing Engine in the configured directory
+  39: with the snapshot basename, or copying a completed offline snapshot to another trusted,
+  40: dedicated directory. Never copy only a live WAL database file as a backup.
+  41: 
+  42: ## Future host adapter
+  43: 
+  44: The adapter belongs in the host, not this package. It must translate an authoritative
+  45: approved host plan into SceneBinding, identify authenticated reviewers, select trusted
+  46: component-owned data storage, translate usage into UseContext, and call readiness with
+  47: the current binding immediately before use. Changed plans require explicit assignment
+  48: revision and fresh review; changed rights require explicit reassignment to the current
+  49: rights revision. The adapter handles media resolution/verification and host permissions.
+  50: The core never imports host scene classes or connects to the host database. No integration
+  51: with Defence Studio, QVault or Whisper Studio has been performed.
+  52: 
+  53: ## ARE-A2 optional boundary
+  54: 
+  55: adapter_contracts.py defines validated host DTOs; host_adapter.py defines a one-method
+  56: HostAdapter Protocol and AdapterGateway. The gateway delegates to unchanged Engine APIs
+  57: inside the host provider's stable context, and validates exact authoritative context and
+  58: assignment identity. simulator.py supplies a synthetic in-memory provider and temporary
+  59: 18-scenario runner; scripts/adapter_simulator.py is its CLI. No adapter table, schema
+  60: change or host-framework runtime dependency is added. Real host resource mapping and
+  61: authentication belong outside the core. See docs/HOST_ADAPTER.md.
+FILE SECURITY.md ENCODING utf-8
+   1: # Security and isolation
+   2: 
+   3: No external calls, fetching, downloading, media execution or automatic file opening.
+   4: Runtime dependencies are Python standard library only. Metadata references are inert.
+   5: The database lives under an explicitly configured trusted component-owned directory;
+   6: database and snapshot basenames cannot be absolute, traverse directories, or resolve
+   7: through a symlink outside that root. Configuration paths are administrator inputs, never
+   8: asset metadata. Tests explicitly supply isolated temporary directories.
+   9: 
+  10: Approval is an explicit persisted review action. Input APPROVED flags are rejected;
+  11: first decision, expected revisions, digests and idempotency payloads are checked within
+  12: one write transaction. Relevant rights or assignment revisions invalidate readiness.
+  13: Scene plan changes are detected only when the adapter supplies the new authoritative
+  14: binding. History is append-only under normal SQLite writes via immutable triggers.
+  15: 
+  16: The caller must authenticate reviewers and constrain data-directory configuration.
+  17: This library is not a multi-tenant authorization system. An administrator with direct
+  18: filesystem/SQLite access can remove triggers or alter records; there is no cryptographic
+  19: signature or external tamper-proof ledger. SQLite integrity, foreign keys, stored hashes
+  20: and required triggers are validated, but this is not protection against a privileged
+  21: attacker. Filesystem race resistance against hostile local users is not guaranteed.
+  22: Protect the configured directory with operating-system permissions.
+  23: 
+  24: Rights decisions evaluate declarations, not law, ownership or real-world evidence.
+  25: No media-availability claim is made. There is no REST server, media verifier, licence
+  26: catalogue or automatic rights inheritance. Backup destinations must be unused; a failed
+  27: backup may leave a partial new destination, which must not be used until validated.
+  28: 
+  29: ## ARE-A2 trust boundary
+  30: 
+  31: Validated DTOs and host approval/principal assertions are not authenticated evidence.
+  32: AdapterGateway requires a supplied HostAdapter implementation, but cannot certify it.
+  33: Production must authenticate sessions, authorize operations/resources, enforce tenant/owner
+  34: mappings and keep authoritative plan state stable before/through the engine operation.
+  35: No Engine authorization callback or real host authentication is implemented. Direct core
+  36: calls retain ARE-A1 behavior; do not expose them as a public multi-tenant API.
+  37: 
+  38: SyntheticHost grants are in-memory test policy only, never real authorization. The simulator
+  39: uses explicitly synthetic principals and temporary SQLite; it leaves data/ unchanged.
+  40: No REST server, OAuth, remote service or real host integration is included. For provider
+  41: trust, concurrency and host/SQLite transaction limitations see docs/HOST_ADAPTER.md.
+FILE CHANGELOG.md ENCODING cp1252 fallback (original bytes unchanged)
+   1: # Changelog
+   2: 
+   3: ## 1.1.0 — 2026-10-12 (ARE-A2)
+   4: 
+   5: Backward-compatible optional host scope/scene/plan/principal DTOs, HostAdapter Protocol,
+   6: AdapterGateway and deterministic temporary-database simulator. Adds host ownership,
+   7: exact context and reviewer-identifier boundary checks without claiming authentication.
+   8: ARE-A1 APIs, core implementation, baseline tests, schema v1 and migrations unchanged.
+   9: Original 1.0.0 wheel preserved. No real host integration or production server.
+  10: 
+  11: ## 1.0.0 â€” 2026-10-12
+  12: 
+  13: Standalone ARE-A1 contracts, pure effective-rights evaluator, SQLite schema v1,
+  14: immutable revisions and review history, explicit concurrent/idempotent review,
+  15: exact scene binding and usage readiness, SQLite snapshots, offline tests and example.
+FILE docs/HOST_ADAPTER.md ENCODING utf-8
+   1: # ARE-A2 host adapter contract v1
+   2: 
+   3: ARE-A2 supplies a framework-neutral Python Protocol, validated immutable DTOs, an
+   4: optional gateway, and a deterministic offline simulator. It is not a production adapter,
+   5: authentication system, tenant-aware database or rights/ownership verifier.
+   6: 
+   7: ## Import and operations
+   8: 
+   9: ```python
+  10: from asset_rights_engine.adapter_contracts import (
+  11:     HostScope, HostSceneKey, HostSceneContext, HostPrincipal, PlanState, HostOperation
+  12: )
+  13: from asset_rights_engine.host_adapter import HostAdapter, AdapterGateway
+  14: 
+  15: # engine: existing ARE-A1 Engine in a trusted component-owned directory
+  16: # trusted_host: a production implementation of the Protocol described below
+  17: # Do not populate these from public request flags alone.
+  18: # gateway = AdapterGateway(engine, trusted_host)
+  19: ```
+  20: 
+  21: The gateway exposes create_assignment, revise_assignment, review_rights,
+  22: review_assignment and evaluate_assignment_readiness. Every operation takes the expected
+  23: HostSceneContext and HostPrincipal. Assignment operations additionally take both the
+  24: internal assignment_id and internal asset_id; these are checked against host mappings
+  25: and engine content, never derived from host scene identifiers. Other parameters retain
+  26: the corresponding ARE-A1 meaning. Rights/assignment reviews accept the existing
+  27: ReviewRequest, and require request.reviewer to equal principal.principal_id. The gateway
+  28: calls actual Engine APIs and does not duplicate rights evaluation or persistence.
+  29: 
+  30: Importing `asset_rights_engine` continues to expose ARE-A1 names and does not import
+  31: adapter or simulator modules. Explicitly import the optional submodules when needed.
+  32: 
+  33: ## DTOs and validation
+  34: 
+  35: | Contract | Required fields |
+  36: |---|---|
+  37: | HostScope | host_application, tenant_id, owner_id |
+  38: | HostSceneKey | HostScope, host-scoped job_id, stable scene_id |
+  39: | HostSceneContext | scene key, positive integer plan_revision, lowercase SHA-256 plan_sha256, PlanState, strict Boolean host_asserts_approved |
+  40: | HostPrincipal | HostScope and nonempty principal_id; an identifier only |
+  41: | HostOperationRequest | operation, expected_context, principal, internal asset_id, assignment_id except for rights review |
+  42: 
+  43: Identifiers follow ARE-A1's stable identifier rules. Booleans are not revisions.
+  44: HostSceneContext optionally carries scene_content_digest and contract_version=1.
+  45: PlanState is DRAFT, PENDING_REVIEW, APPROVED or REVOKED. The approval assertion must
+  46: be true exactly when state is APPROVED; contradictory states are rejected. Missing
+  47: or malformed hashes never create a valid context. A structurally valid draft context
+  48: can be represented, but all gateway operations require a currently asserted approved
+  49: plan. Its scene_binding method translates approved metadata into ARE-A1 SceneBinding:
+  50: plan_version is the decimal positive revision string. This adapter contract deliberately
+  51: uses integer plan revisions; ARE-A1 still accepts opaque plan-version identifiers.
+  52: 
+  53: Tenant/owner fields are host authorization scope, not new SQLite columns or substitutes
+  54: for engine asset/assignment IDs. They are not encoded into ARE-A1 scene IDs. Use trusted
+  55: resource mappings and dedicated engines/storage per scope; equal job/scene IDs in another
+  56: tenant do not imply shared identity. No implicit tenant isolation is added to Engine.
+  57: 
+  58: ## Three distinct trust levels
+  59: 
+  60: 1. **Validated:** constructing a DTO checks syntax, type, revision, digest and consistent
+  61:    assertions. It does not inspect a host or authenticate anybody.
+  62: 2. **Host asserted:** DTO approval/principal fields describe a host's claim. A Boolean,
+  63:    principal string or even a matching scope is not proof of authority.
+  64: 3. **Authenticated and authorized:** the future production host must obtain identity
+  65:    from its authenticated session, authorize the exact operation and resource, enforce
+  66:    ownership/tenant scope, and read its authoritative approved plan before invoking the
+  67:    engine. No implementation of this level ships in ARE-A2.
+  68: 
+  69: HostAdapter has one structural method:
+  70: 
+  71: ```python
+  72: def operation_context(request: HostOperationRequest) -> AbstractContextManager[HostSceneContext]:
+  73:     ...
+  74: ```
+  75: 
+  76: The provider must reject unauthorized operations before yielding. It must independently
+  77: check principal/session correspondence, permissions, host/job/scene ownership, asset
+  78: ownership, immutable assignment-to-scene/asset mappings and approved authoritative plan.
+  79: It must keep that state stable through the engine call (e.g. a host transaction/lock or
+  80: appropriate version reservation). Authorization deferred until context exit is too late:
+  81: SQLite may already have committed. Host and component transactions are separate; there
+  82: is no distributed rollback protocol. Production must define commit/failure recovery.
+  83: 
+  84: The gateway compares the provider's returned scene and full context against the expected
+  85: context, rejects unapproved or stale plans, checks existing assignment asset/scene identity,
+  86: and delegates inside the provider's context lifetime. Engine handles reviewed digest,
+  87: expected revision, idempotency conflicts and first-review concurrency transactionally.
+  88: 
+  89: This is a dependency-injected trusted execution boundary, not a security sandbox. There
+  90: is no engine authorization callback. A malicious provider can lie, and direct Engine
+  91: calls remain available for backward compatibility. Do not expose the raw Engine or let
+  92: end users choose providers, grants, mappings or authenticated identity. A production host
+  93: must enforce access control independently; the Protocol cannot prove compliance.
+  94: 
+  95: ## Errors, staleness and replay
+  96: 
+  97: Adapter errors use existing DomainError(code, message). Additional codes include
+  98: PLAN_NOT_APPROVED, STALE_PLAN, SCENE_MISMATCH, SCOPE_MISMATCH, RESOURCE_MISMATCH,
+  99: PRINCIPAL_MISMATCH and HOST_POLICY_DENIED (synthetic provider). Engine errors remain
+ 100: unchanged. Readiness receives the current approved binding and returns Engine blockers;
+ 101: a changed binding yields STALE_SCENE_BINDING without silently rebinding assignments.
+ 102: A newly current plan requires explicit assignment revision and fresh review.
+ 103: 
+ 104: Every replay rechecks current host context and policy first. For rights reviews, ARE-A1's
+ 105: idempotency payload contains rights identity/content and ReviewRequest, but not scene
+ 106: context. If authorization still succeeds under a later approved scene context, an exact
+ 107: rights review replay returns the original event; it does not append history or restore
+ 108: an old rights revision's approval. Assignment review replay includes the exact scene
+ 109: binding/usage and therefore cannot reuse a changed plan's binding. Altered review payloads
+ 110: under one key conflict. Two competing decisions produce one success and one conflict;
+ 111: which decision wins is intentionally unspecified.
+ 112: 
+ 113: ## Offline simulator
+ 114: 
+ 115: ```powershell
+ 116: .venv-a2\Scripts\python scripts/adapter_simulator.py
+ 117: ```
+ 118: 
+ 119: SyntheticHost is a development fixture, not a production HostAdapter. It uses an
+ 120: in-memory authoritative scene registry, explicit synthetic grants and immutable resource
+ 121: maps. An RLock holds synthetic host state stable through engine calls. It denies unknown
+ 122: principals/operations and out-of-scope resources, but even a granted fixture identifier
+ 123: is not authenticated. Its dictionaries have no durable host storage or real account link.
+ 124: It cannot be used to claim production authentication or authorization.
+ 125: 
+ 126: run_simulation creates and removes a temporary database. It returns a deterministic
+ 127: 18-scenario report including approved context, rejected draft, missing/malformed hashes,
+ 128: scene substitution, stale revision before assignment, valid reviewed readiness, changed
+ 129: digest rejection and stale readiness, missing/ungranted principal, tenant/owner mismatch,
+ 130: idempotent replay/conflict, concurrent opposing decisions, integrity and cleanup. Fixed
+ 131: fixture timestamps and identifiers are TEST DATA ONLY. There are no persistent simulator
+ 132: options, media fetches, remote calls or writes into data/. The CLI accepts no database path.
+ 133: The network-denied tests demonstrate that these scenarios run without sockets.
+ 134: 
+ 135: Unsupported: real host authentication/authorization, proof of approval, durable tenant
+ 136: mapping, distributed host/engine transactions, real media verification, production server,
+ 137: REST/OAuth and live Defence Studio integration. These are explicit production prerequisites,
+ 138: not skipped scenarios claimed as implemented.
+ 139: 
+ 140: ## Release and migration
+ 141: 
+ 142: Version 1.1.0 is a backward-compatible minor addition. All ARE-A1 APIs, contracts, schema
+ 143: v1, migrations, engine behavior and baseline tests remain unchanged. The accepted 1.0.0
+ 144: wheel is preserved. No database migration is needed. Existing hosts can ignore the adapter.
+ 145: A future real Defence Studio adapter requires separately authorized host access and tests.
+FILE ACCEPTANCE_REPORT.md ENCODING utf-8
+   1: # Phase A1 acceptance report
+   2: 
+   3: Component: Asset & Rights Engine / ARE-A1 / 1.0.0
+   4: Directory: E:\DefenceStudio-Components\asset-rights-engine
+   5: Date: 2026-10-12 (Asia/Calcutta)
+   6: 
+   7: ## Results
+   8: 
+   9: - Independent wheel build: PASS, no-index/no-deps/no-build-isolation.
+  10: - Offline installation into component-local .venv: PASS.
+  11: - Installed-wheel test suite: 50 tests, 0 failures, 0 errors.
+  12: - Network-denied suite (scripts/test_offline.py): 50 tests, PASS.
+  13: - Documented synthetic example: PASS; eligible=True, no blockers,
+  14:   MEDIA_AVAILABILITY_UNVERIFIED warning retained.
+  15: - Initialization and validation CLI: PASS, schema_version=1.
+  16: - SQLite backup and restored snapshot validation: PASS.
+  17: - WAL committed-data snapshot test: PASS.
+  18: - Immutable revision/history triggers, stale revision/digest rejection,
+  19:   review idempotency/conflicts, concurrent first-decision conflict: PASS.
+  20: - Rollback, foreign keys, migration reinitialization, unsupported schema rejection,
+  21:   unversioned database preservation and migration SQL mirror: PASS.
+  22: 
+  23: Wheel: dist/asset_rights_engine-1.0.0-py3-none-any.whl
+  24: SHA-256: 5abb6fcb0c86cb53482afc2148eaa0652340b0a457167070a469d875bbf614dd
+  25: 
+  26: ## Isolation
+  27: 
+  28: All implementation writes were directed to the standalone component. No Defence Studio,
+  29: QVault or Whisper Studio implementation was imported or used as a dependency. No external
+  30: project database was opened. No branch changes, commits or pushes were performed. No global
+  31: packages were installed, no media fetched, and no system configuration changed. Core tests
+  32: use temporary SQLite databases. The persistent data/ database created by the administrator
+  33: CLI is empty component-owned storage; synthetic records exist only in temporary examples.
+  34: 
+  35: ## Inventory and boundary
+  36: 
+  37: contracts.py: metadata, rights, usage, bindings, assignment and review contracts.
+  38: evaluator.py: pure declared-rights decisions.
+  39: engine.py: transactional SQLite, revision/review services, readiness and snapshots.
+  40: schema.sql / migrations/001_initial.sql: schema v1 and migration metadata.
+  41: scripts/: initialization/snapshot CLI, synthetic example and network-denied tests.
+  42: tests/: 50 unittest cases including parameterized contract cases.
+  43: README.md: installation, all required public API operations and example instructions.
+  44: CONTRACTS.md, ARCHITECTURE.md, SECURITY.md, CHANGELOG.md: contracts, adapter boundary,
+  45: migration strategy and limits.
+  46: 
+  47: Schema v1 tables: assets, rights_revisions, assignments, assignment_revisions,
+  48: review_state, review_history, migrations. Current rights/assignment records are views of
+  49: the latest immutable revision plus review state, avoiding duplicate mutable metadata.
+  50: 
+  51: ## Remaining limitations
+  52: 
+  53: No host integration, REST server, media verifier or licence interpretation is included.
+  54: Reviewer authentication and authoritative plan delivery belong to a future explicit host
+  55: adapter. Declared rights do not establish legal ownership. SQLite triggers/hashes provide
+  56: application auditability, not protection against a privileged administrator altering files.
+  57: No later schema upgrade is shipped; future versions must add sequential additive migrations.
+FILE A2_ACCEPTANCE_REPORT.md ENCODING utf-8
+   1: # ARE-A2 acceptance report
+   2: 
+   3: Component: Asset & Rights Engine / ARE-A2 / 1.1.0
+   4: Directory: E:\DefenceStudio-Components\asset-rights-engine
+   5: Date: 2026-10-12 (Asia/Calcutta)
+   6: 
+   7: ## Baseline and compatibility
+   8: 
+   9: The installed ARE-A1 1.0.0 wheel passed 50 tests, 0 failures/errors before editing.
+  10: The component root has no .git directory: branch, HEAD and Git status are unavailable.
+  11: No repository was initialized, and no commit, push or branch operation occurred.
+  12: A2_BASELINE.json records baseline hashes. The accepted engine.py, contracts.py,
+  13: evaluator.py, schema.sql, migrations/001_initial.sql and tests/test_engine.py remain
+  14: byte-for-byte unchanged. All prior public Engine APIs and exported contracts remain
+  15: compatible; __init__.py only changes release metadata/docstring. Optional adapter imports
+  16: are explicit and do not load with an ARE-A1 core import.
+  17: 
+  18: 1.1.0 is a minor version because the additions are public and backward compatible.
+  19: The accepted 1.0.0 wheel is unchanged and retained alongside the new release.
+  20: 
+  21: ## Files
+  22: 
+  23: Created:
+  24: - src/asset_rights_engine/adapter_contracts.py: immutable validated assertions.
+  25: - src/asset_rights_engine/host_adapter.py: HostAdapter Protocol and AdapterGateway.
+  26: - src/asset_rights_engine/simulator.py: synthetic in-memory provider and scenario runner.
+  27: - scripts/adapter_simulator.py: offline temporary-database simulator CLI.
+  28: - scripts/check_temporary_database.py: existing CLI initialization/snapshot/restore check.
+  29: - scripts/verify_release.py: accepted-file hashes, installed import, optionality and source audit.
+  30: - tests/test_host_adapter.py: 41 contract/gateway tests.
+  31: - tests/test_adapter_simulator.py: 3 simulator tests.
+  32: - docs/HOST_ADAPTER.md: exact boundary and production prerequisites.
+  33: - A2_BASELINE.json and this report.
+  34: - dist/asset_rights_engine-1.1.0-py3-none-any.whl, candidate wheel and verification log.
+  35: - Component-local .venv-a2-check and fresh final .venv-a2 environments.
+  36: 
+  37: Modified: README.md, CONTRACTS.md, ARCHITECTURE.md, SECURITY.md, CHANGELOG.md,
+  38: pyproject.toml, src/asset_rights_engine/__init__.py and .gitignore.
+  39: The original A1 ACCEPTANCE_REPORT.md is retained unchanged.
+  40: 
+  41: ## Host contract and enforcement
+  42: 
+  43: HostScope distinguishes host/tenant/owner. HostSceneKey supplies scoped job and stable
+  44: scene identity. HostSceneContext supplies positive plan revision, SHA-256, consistent
+  45: approval state/assertion and optional content digest. HostPrincipal is an identifier
+  46: only, with no authenticated flag. HostOperationRequest distinguishes engine resource
+  47: IDs from host IDs and validates principal/context scope.
+  48: 
+  49: HostAdapter.operation_context must authorize and verify authoritative host state before
+  50: yielding, then keep it stable throughout the engine call. AdapterGateway checks current
+  51: full context, rejects unapproved/stale plans, checks resource/scene identity, checks
+  52: reviewer correspondence and delegates to the original engine. SyntheticHost enforces
+  53: preconfigured fixture grants, immutable resource mappings and host scope under an RLock.
+  54: Those checks are synthetic policy, never authentication or production authorization.
+  55: There is no core authorization callback; provider trust and prevention of direct untrusted
+  56: Engine access remain production responsibilities. See docs/HOST_ADAPTER.md.
+  57: 
+  58: ## Verification results
+  59: 
+  60: | Check | Result |
+  61: |---|---|
+  62: | ARE-A1 baseline | 50 passed, 0 failures/errors |
+  63: | Focused adapter tests | 41 passed |
+  64: | Focused simulator tests | 3 passed |
+  65: | Complete candidate installed-wheel suite | 94 passed |
+  66: | Candidate network-denied suite | 94 passed |
+  67: | Independent final offline wheel build | PASS |
+  68: | Fresh .venv-a2 no-index/no-deps installation | PASS |
+  69: | Final installed-wheel suite | 94 passed, 0 failures/errors |
+  70: | Final installed-wheel network-denied suite | 94 passed, 0 failures/errors |
+  71: | Existing synthetic example | PASS; eligible, media-unverified warning retained |
+  72: | Simulator | 18/18 deterministic scenarios passed |
+  73: | Existing CLI on temporary SQLite | Initialization, validation, snapshot, restore and cleanup passed |
+  74: | Baseline core/schema/migration/test/wheel/data hashes | All unchanged |
+  75: | Isolated core import | No optional adapter/simulator modules loaded |
+  76: | Runtime dependency check | None |
+  77: | Static runtime source audit | No banned network/host imports, fixed external paths or common API-key patterns |
+  78: 
+  79: The audit is not a comprehensive secret detector or proof of production security.
+  80: Network-denied output is saved in verification/network-denied.txt.
+  81: Installed imports resolve to .venv-a2/Lib/site-packages, not src/. All packaged Python
+  82: module bytes match release source. Runtime imports were audited structurally with AST.
+  83: 
+  84: Two intermediate verification issues were corrected and rerun: a simulator test expected
+  85: 18 scenarios before its missing valid-readiness check was added; a lingering source-test
+  86: PYTHONPATH caused pip to skip candidate installation. Clearing PYTHONPATH, reinstalling,
+  87: and verifying the site-packages path resolved the latter. Final results above have no
+  88: failures. There were no pre-existing A1 failures or defects requiring core changes.
+  89: 
+  90: ## Simulator scenarios
+  91: 
+  92: All twelve requested demonstration categories are covered across eighteen checks:
+  93: approved DTO validation; rejected unapproved plan; missing and malformed digests; scene
+  94: substitution; stale revision before assignment; approved readiness; changed digest rejection
+  95: and stale assignment readiness; missing principal; ungranted identifier not authentication;
+  96: tenant and owner mismatch; idempotent replay and differing-payload conflict; concurrent
+  97: opposite decisions with one success/one conflict and retained first decision; database
+  98: integrity; and temporary database cleanup. Reports are deterministic; race winner identity
+  99: is deliberately unspecified. Socket-denied execution separately confirms offline operation.
+ 100: 
+ 101: Real authentication, real host authorization, durable tenant mappings, proof of approval,
+ 102: distributed transactions and media verification are intentionally unsupported; no scenario
+ 103: claims they are implemented. The simulator does not bypass A1 checks.
+ 104: 
+ 105: ## Database, isolation and artifacts
+ 106: 
+ 107: Database/schema changes: NONE. SQLite schema version remains 1. No migration added.
+ 108: Persistent data/asset_rights.sqlite3 and data/snapshot.sqlite3 have their original hashes;
+ 109: no synthetic simulator records were inserted there. Tests/simulator/CLI checks create
+ 110: isolated temporary SQLite databases and remove them afterward.
+ 111: All project edits, wheels, virtual environments and logs stayed in the standalone root;
+ 112: transient test databases used temporary storage. No live Defence Studio, QVault or Whisper
+ 113: Studio application, implementation or database was accessed or modified in this phase.
+ 114: No external project was imported. No network/media fetch, global install, production server,
+ 115: authentication service, OAuth flow, system change, commit or push occurred.
+ 116: 
+ 117: New wheel: dist/asset_rights_engine-1.1.0-py3-none-any.whl
+ 118: SHA-256: b626d9eed519b038f0fdd9e97d9fcb62c5b1128a2f2b4c93de4ea4b987dfa4ca
+ 119: Preserved 1.0.0 wheel SHA-256:
+ 120: 5abb6fcb0c86cb53482afc2148eaa0652340b0a457167070a469d875bbf614dd
+ 121: 
+ 122: ## Before a real Defence Studio adapter
+ 123: 
+ 124: Explicitly authorize a separate host-integration phase. Implement session authentication,
+ 125: operation/resource authorization, ownership/tenant mapping and authoritative approved-plan
+ 126: resolution in that host. Provide stable state across engine calls, scope-specific storage,
+ 127: audit identity provenance and a defined host/SQLite failure-recovery strategy. Keep raw
+ 128: Engine calls inaccessible to untrusted clients. Independently test host adapter behavior,
+ 129: revocation, concurrency and storage isolation; add media availability verification separately.
+ 130: ARE-A2 is a verified contract/simulator increment, not production integration readiness.
+FILE A2_BASELINE.json ENCODING utf-8
+   1: {
+   2:   "baseline_tests": 50,
+   3:   "failures": 0,
+   4:   "git": "not initialized",
+   5:   "sha256": {
+   6:     "src/asset_rights_engine/engine.py": "c1b93492c4aa7c1389077ffdd4b0e30fba72dd1f8ae8f94e9d0c2b55c9847209",
+   7:     "src/asset_rights_engine/contracts.py": "9e54e942ad934fecac7ed57844082836c1c780651cd1fa92bb89122db55c5596",
+   8:     "src/asset_rights_engine/evaluator.py": "8a9fd995ad89c1ee7f772ae6451a274114065a8ec877f01aa6648acf161cf97f",
+   9:     "src/asset_rights_engine/schema.sql": "04e45275550a86cfb5f6c3a103209a2f18c81e7d81fc3027bfd9f841a5add4ae",
+  10:     "migrations/001_initial.sql": "04e45275550a86cfb5f6c3a103209a2f18c81e7d81fc3027bfd9f841a5add4ae",
+  11:     "tests/test_engine.py": "bf993e5dd91a91ce767c3a321743d19522ba827978eab53f738b97aca628644b",
+  12:     "dist/asset_rights_engine-1.0.0-py3-none-any.whl": "5abb6fcb0c86cb53482afc2148eaa0652340b0a457167070a469d875bbf614dd",
+  13:     "data\\asset_rights.sqlite3": "a430c4ed5a500d1de707a43b71e264a4463b8550ea71b6e7e46922504b658290",
+  14:     "data\\snapshot.sqlite3": "abdabf30ad32d32c22996442091bccb8bec1b35a8980703c2a7dc110d97b2fcd"
+  15:   }
+  16: }
+FILE .gitignore ENCODING utf-8
+   1: .venv/
+   2: __pycache__/
+   3: build/
+   4: *.egg-info/
+   5: data/
+   6: .venv-a2/
+   7: .venv-a2-check/

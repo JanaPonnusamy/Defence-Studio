@@ -18,8 +18,8 @@ export function renderClaimsList(claims, selectedId) {
         <div class="chip-row">
           ${statusBadgeHtml(claim.review_status, { stale: claim.is_stale })}
           ${claim.has_conflict ? `<span class="badge CONFLICT_UNRESOLVED">Conflicting evidence</span>` : ""}
+          ${claim.evidence_class ? `<span class="chip">${escapeHtml(claim.evidence_class)}</span>` : ""}
           ${claim.has_negation ? `<span class="chip">Negation</span>` : ""}
-          ${(claim.qualifiers || []).length ? `<span class="chip">Qualified/attributed</span>` : ""}
         </div>
       </div>`;
   }).join("");
@@ -46,7 +46,8 @@ export function renderClaimDetail(claim, conflictPairs) {
   return `
     <h2>Claim</h2>
     <div class="chip-row">${statusBadgeHtml(claim.review_status, { stale: claim.is_stale })}
-      ${claim.has_conflict ? `<span class="badge CONFLICT_UNRESOLVED">Conflicting evidence</span>` : ""}</div>
+      ${claim.has_conflict ? `<span class="badge CONFLICT_UNRESOLVED">Conflicting evidence</span>` : ""}
+      ${claim.evidence_class ? `<span class="chip">${escapeHtml(claim.evidence_class)}</span>` : ""}</div>
     <div class="passage">${escapeHtml(claim.claim_text)}</div>
     <p class="meta">Exact normalized-text offsets: ${escapeHtml(String(claim.passage?.start_offset ?? "unknown"))}–${escapeHtml(String(claim.passage?.end_offset ?? "unknown"))}<br>
       Supporting artifact: ${escapeHtml(claim.passage?.artifact_uri || "unavailable")}</p>
@@ -61,8 +62,5 @@ export function renderClaimDetail(claim, conflictPairs) {
     ${chip("Designations", entities.designations)}
     ${(claim.warnings || []).length ? `<div class="chip-row">${claim.warnings.map((w) => `<span class="chip">${escapeHtml(w)}</span>`).join("")}</div>` : ""}
     ${conflictBlock}
-    <h4>Review decision</h4>
-    <div id="decision-panel-mount"></div>
-    <h4>History</h4>
-    <div id="history-mount"></div>`;
+    ${claim.has_conflict ? `<h4>Review decision</h4><div id="decision-panel-mount"></div><h4>History</h4><div id="history-mount"></div>` : ""}`;
 }

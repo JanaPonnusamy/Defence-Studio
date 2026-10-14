@@ -1,0 +1,8 @@
+from pathlib import Path
+p=Path('README.md');b=p.read_bytes()
+b=b.replace(b'## Install and verify (PowerShell, from this directory)',b'## Install accepted wheel and verify current source (PowerShell)')
+b=b.replace(b'.venv-a2\\Scripts\\python -m unittest discover',b'# Load the unreleased hardening source for the following checks.\n$env:PYTHONPATH=(Resolve-Path src).Path\n.venv-a2\\Scripts\\python -m unittest discover',1)
+b=b.replace(b'.venv-a2\\Scripts\\python scripts/check_temporary_database.py',b'.venv-a2\\Scripts\\python scripts/check_temporary_database.py\nRemove-Item Env:\\PYTHONPATH -ErrorAction SilentlyContinue',1)
+b=b.replace(b'The accepted-wheel verification commands above describe the original release; its full\ndiscovery command now includes new regressions that deliberately fail on that release.\nUse the source for the current verification (PowerShell, component directory):',b'The installation command above preserves the accepted release, while the subsequent\nchecks explicitly load current source. New regression tests deliberately fail when run\nagainst the unmodified accepted wheel. Source-only verification (component directory):')
+p.write_bytes(b)
+p=Path('tests/test_database_validation.py');s=p.read_text().replace('Engine, DomainError, RightsRecord, digest','Engine, DomainError, digest').replace('          with closing(sqlite3.connect(e.path)) as c:\n            records=', '            with closing(sqlite3.connect(e.path)) as c:\n                records=').replace('          with closing(sqlite3.connect(e.path)) as c:\n            self.assertEqual','            with closing(sqlite3.connect(e.path)) as c:\n                self.assertEqual');p.write_text(s)

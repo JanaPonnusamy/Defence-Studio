@@ -1,4 +1,4 @@
-import { createApiClient, ApiError } from "./api.js";
+import { createApiClient, ApiError, newIdempotencyKey } from "./api.js";
 import { escapeHtml } from "./components/status-badge.js";
 import { icon } from "./components/icons.js";
 import { mountEvidence } from "./views/evidence-view.js";
@@ -320,7 +320,7 @@ function renderFilters() {
       ${textFieldHtml({ id: "discovery-filter-query", label: "Filter by title", value: state.discoveryFilters.query, placeholder: "keyword" })}
       ${renderDiscoveryFilterFormHtml(state.discoveryTaxonomy, state.discoveryFilters)}
       <button type="button" id="discovery-confirm-btn" class="primary" disabled>Confirm selection</button>`
-      : `<p class="meta">Submit a discovery request below, queue the job, then refresh to browse ranked candidates.</p>`;
+      : `<p class="meta">Submit a topic below and queue the job. Discovered URLs are fetched and extracted automatically. Refresh to see candidates, sources, and claims.</p>`;
     const langInput = el.filters.querySelector("#discovery-filter-language");
     if (langInput) langInput.addEventListener("change", (e) => {
       state.discoveryFilters.language = e.target.value.trim(); loadDiscovery();
@@ -397,7 +397,17 @@ async function loadDashboard() {
 }
 
 async function loadDiscovery() {
-  if (!requireJob()) return;
+  if (!state.token) {
+    el.list.innerHTML = `<div class="empty-state">Sign in before starting a topic.</div>`;
+    return;
+  }
+  if (!state.jobId) {
+    el.detail.innerHTML = "";
+    el.detail.classList.remove("detail-overlay");
+    el.list.innerHTML = renderDiscoveryRequestFormHtml("");
+    wireDiscoveryRequestForm();
+    return;
+  }
   el.detail.innerHTML = "";
   el.detail.classList.remove("detail-overlay");
   el.list.innerHTML = `<div class="loading-state">Loading discovery…</div>`;
@@ -525,11 +535,18 @@ function wireDiscoveryRequestForm() {
       const language = el.list.querySelector("#discovery-language").value.trim() || "en";
       const terms = el.list.querySelector("#discovery-terms").value.trim();
       try {
+        if (!topic) throw new ApiError(422, "Enter a topic first.");
+        if (!state.jobId) {
+          const created = await api.createJob(topic, language, newIdempotencyKey());
+          state.jobId = created.job_id;
+          saveJobId(state.jobId);
+          renderTopbar();
+        }
         await api.createDiscoveryRequest(state.jobId, {
           topic, language,
           search_terms: terms ? terms.split(",").map((t) => t.trim()).filter(Boolean) : [],
         });
-        showToast("Discovery request saved. Now queue the job to run it.");
+        showToast("Topic saved. Queue the job so discovery, fetch, and extraction can run.");
       } catch (err) {
         showToast(err instanceof ApiError ? err.detail : "Could not save the discovery request.", { isError: true });
       }
@@ -540,7 +557,7 @@ function wireDiscoveryRequestForm() {
     queueBtn.addEventListener("click", async () => {
       try {
         await api.queueJob(state.jobId);
-        showToast("Job queued. Discovery will run on the next worker pass.");
+        showToast("Job queued. The worker will discover URLs, fetch pages, and extract claims. Evidence stays unapproved.");
       } catch (err) {
         showToast(err instanceof ApiError ? err.detail : "Could not queue the job.", { isError: true });
       }
@@ -666,15 +683,14 @@ async function loadClaimDetail(claimId) {
   el.detail.innerHTML = `<button type="button" class="back-button" id="back-btn">&larr; Back</button><div class="loading-state">Loading…</div>`;
   wireBackButton();
   try {
-    const [claim, history] = await Promise.all([
-      api.getClaim(state.jobId, claimId),
-      api.claimHistory(state.jobId, claimId),
-    ]);
+    const claim = await api.getClaim(state.jobId, claimId);
+    const history = claim.has_conflict ? await api.claimHistory(state.jobId, claimId) : [];
     const conflictPairs = await resolveConflictPairs(claim);
     el.detail.innerHTML = `<button type="button" class="back-button" id="back-btn">&larr; Back</button>${renderClaimDetail(claim, conflictPairs)}`;
     wireBackButton();
     const viewSourceBtn = el.detail.querySelector('[data-action="view-source"]');
     if (viewSourceBtn) viewSourceBtn.addEventListener("click", () => setHash("sources", viewSourceBtn.dataset.sourceId));
+    if (!claim.has_conflict) return;
     mountDecisionPanel({
       kind: "claim", subjectId: claimId,
       review: claim.review, isStale: claim.is_stale,

@@ -1,0 +1,7 @@
+.venv/
+__pycache__/
+build/
+*.egg-info/
+data/
+.venv-a2/
+.venv-a2-check/

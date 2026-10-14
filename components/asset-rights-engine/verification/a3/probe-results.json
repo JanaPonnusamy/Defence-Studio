@@ -1,0 +1,243 @@
+{
+  "wheel_1.0.0": {
+    "sha256": "5abb6fcb0c86cb53482afc2148eaa0652340b0a457167070a469d875bbf614dd",
+    "version_metadata_matches": true,
+    "source_comparison": [
+      [
+        "asset_rights_engine/contracts.py",
+        true
+      ],
+      [
+        "asset_rights_engine/engine.py",
+        true
+      ],
+      [
+        "asset_rights_engine/evaluator.py",
+        true
+      ],
+      [
+        "asset_rights_engine/schema.sql",
+        true
+      ]
+    ]
+  },
+  "wheel_1.1.0": {
+    "sha256": "b626d9eed519b038f0fdd9e97d9fcb62c5b1128a2f2b4c93de4ea4b987dfa4ca",
+    "version_metadata_matches": true,
+    "source_comparison": [
+      [
+        "asset_rights_engine/__init__.py",
+        true
+      ],
+      [
+        "asset_rights_engine/adapter_contracts.py",
+        true
+      ],
+      [
+        "asset_rights_engine/contracts.py",
+        true
+      ],
+      [
+        "asset_rights_engine/engine.py",
+        true
+      ],
+      [
+        "asset_rights_engine/evaluator.py",
+        true
+      ],
+      [
+        "asset_rights_engine/host_adapter.py",
+        true
+      ],
+      [
+        "asset_rights_engine/schema.sql",
+        true
+      ],
+      [
+        "asset_rights_engine/simulator.py",
+        true
+      ]
+    ]
+  },
+  "installed_package": {
+    "version": "1.1.0",
+    "location": "E:\\DefenceStudio-Components\\asset-rights-engine\\.venv-a2\\Lib\\site-packages\\asset_rights_engine\\__init__.py",
+    "runtime_dependencies": [],
+    "engine_public_signatures": {
+      "create_assignment": "(self, assignment_id: str, asset_id: str, binding: asset_rights_engine.contracts.SceneBinding, role: str, usage: asset_rights_engine.contracts.UseContext, state: str = 'DRAFT') -> asset_rights_engine.contracts.RevisionView",
+      "create_database_snapshot": "(self, name: str) -> pathlib.Path",
+      "create_rights_revision": "(self, asset_id: str, record: asset_rights_engine.contracts.RightsRecord, expected_revision: int = 0) -> asset_rights_engine.contracts.RevisionView",
+      "evaluate_assignment_readiness": "(self, assignment_id: str, current_binding: asset_rights_engine.contracts.SceneBinding, context: asset_rights_engine.contracts.UseContext) -> asset_rights_engine.contracts.Evaluation",
+      "evaluate_effective_rights": "(self, asset_id: str, context: asset_rights_engine.contracts.UseContext) -> asset_rights_engine.contracts.Evaluation",
+      "get_asset": "(self, asset_id: str) -> asset_rights_engine.contracts.AssetDescriptor",
+      "get_assignment": "(self, assignment_id: str) -> asset_rights_engine.contracts.RevisionView",
+      "get_review_history": "(self) -> tuple[asset_rights_engine.contracts.ReviewEvent, ...]",
+      "get_rights": "(self, asset_id: str) -> asset_rights_engine.contracts.RevisionView",
+      "list_assets": "(self) -> tuple[asset_rights_engine.contracts.AssetDescriptor, ...]",
+      "list_assignments": "(self) -> tuple[asset_rights_engine.contracts.RevisionView, ...]",
+      "register_asset": "(self, asset: asset_rights_engine.contracts.AssetDescriptor) -> asset_rights_engine.contracts.AssetDescriptor",
+      "review_assignment": "(self, assignment_id: str, request: asset_rights_engine.contracts.ReviewRequest, current_binding: asset_rights_engine.contracts.SceneBinding | None = None, context: asset_rights_engine.contracts.UseContext | None = None) -> asset_rights_engine.contracts.ReviewEvent",
+      "review_rights": "(self, asset_id: str, request: asset_rights_engine.contracts.ReviewRequest) -> asset_rights_engine.contracts.ReviewEvent",
+      "revise_assignment": "(self, assignment_id: str, binding: asset_rights_engine.contracts.SceneBinding, role: str, usage: asset_rights_engine.contracts.UseContext, expected_revision: int, state: str = 'PENDING_REVIEW') -> asset_rights_engine.contracts.RevisionView",
+      "validate_database": "(self) -> dict"
+    },
+    "exported_contract_names": [
+      "AssetDescriptor",
+      "AssignmentDescriptor",
+      "RightsRecord",
+      "RightsState",
+      "AssignmentState",
+      "UseContext",
+      "SceneBinding",
+      "ReviewRequest",
+      "RevisionView",
+      "Evaluation",
+      "ReviewEvent",
+      "DomainError",
+      "digest",
+      "Engine",
+      "evaluate_effective_rights"
+    ]
+  },
+  "P01_direct_engine_bypass": {
+    "review_accepted_without_host": "APPROVED",
+    "assignment_created_without_host": "audit-assignment",
+    "authentication_performed": false
+  },
+  "P02_synthetic_identifier_copy": {
+    "copied_granted_identifier_accepted": true,
+    "conclusion": "Synthetic grants match identifiers; not authentication. Documented limitation."
+  },
+  "P03_post_commit_host_failure": {
+    "returned_error": "AUDIT_HOST_EXIT_FAILURE",
+    "committed_history_count": 1,
+    "exact_retry_returned_committed_event": true,
+    "history_after_retry": 1
+  },
+  "P04_unstable_provider": {
+    "provider_current_revision": 2,
+    "stored_plan_version": "1",
+    "conclusion": "Gateway does not enforce stability on a noncompliant provider; host must."
+  },
+  "P05_missing_migration_row": {
+    "exception_type": "TypeError",
+    "message": "'NoneType' object is not subscriptable",
+    "structured_domain_error": false
+  },
+  "P06_missing_required_table": {
+    "validation": {
+      "valid": true,
+      "schema_version": 1
+    },
+    "subsequent_operation": {
+      "code": "DATABASE",
+      "message": "no such table: review_state"
+    }
+  },
+  "P07_privileged_trigger_replacement": {
+    "validation": {
+      "valid": true,
+      "schema_version": 1
+    },
+    "revision_rows_after_delete": 0,
+    "conclusion": "Validation checks trigger names, not definitions; no privileged tamper-proof guarantee exists."
+  },
+  "P08_invalid_json_error": {
+    "exception_type": "JSONDecodeError",
+    "structured_domain_error": false
+  },
+  "schema_mirror": true,
+  "review_event_fields": [
+    "sequence",
+    "kind",
+    "entity_id",
+    "revision",
+    "reviewer",
+    "decision",
+    "note",
+    "content_digest",
+    "reviewed_at",
+    "idempotency_key"
+  ],
+  "P09_simulator": {
+    "scenarios": [
+      [
+        "approved_context_valid",
+        true
+      ],
+      [
+        "unapproved_plan_rejected",
+        true
+      ],
+      [
+        "missing_hash_rejected",
+        true
+      ],
+      [
+        "malformed_hash_rejected",
+        true
+      ],
+      [
+        "scene_substitution_rejected",
+        true
+      ],
+      [
+        "stale_revision_rejected_before_assignment",
+        true
+      ],
+      [
+        "approved_assignment_ready",
+        true
+      ],
+      [
+        "changed_digest_old_context_rejected",
+        true
+      ],
+      [
+        "changed_digest_old_assignment_blocked",
+        true
+      ],
+      [
+        "missing_reviewer_rejected",
+        true
+      ],
+      [
+        "identifier_not_authentication",
+        true
+      ],
+      [
+        "tenant_boundary_rejected",
+        true
+      ],
+      [
+        "owner_boundary_rejected",
+        true
+      ],
+      [
+        "idempotent_review_replay",
+        true
+      ],
+      [
+        "idempotency_payload_conflict",
+        true
+      ],
+      [
+        "concurrent_conflict_preserves_first_decision",
+        true
+      ],
+      [
+        "temporary_database_integrity",
+        true
+      ],
+      [
+        "temporary_database_removed",
+        true
+      ]
+    ],
+    "authentication": "NOT_IMPLEMENTED"
+  },
+  "P10_documentation_version": {
+    "readme_header": "ARE-A1 \u00c2\u00b7 version 1.0.0 \u00c2\u00b7 Python 3.11+ \u00c2\u00b7 standard-library runtime",
+    "metadata_version": "1.1.0"
+  }
+}

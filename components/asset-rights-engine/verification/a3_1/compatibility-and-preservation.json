@@ -1,0 +1,54 @@
+{
+  "installed_module": "E:\\DefenceStudio-Components\\asset-rights-engine\\verification\\a3_1\\candidate-env\\Lib\\site-packages\\asset_rights_engine\\__init__.py",
+  "runtime_base_version": "1.1.0",
+  "public_signatures_unchanged": 16,
+  "business_methods_unchanged": true,
+  "legacy_compatibility": [
+    {
+      "environment": ".venv",
+      "accepted": {
+        "version": "1.0.0",
+        "validation": {
+          "valid": true,
+          "schema_version": 1
+        }
+      },
+      "candidate_valid": true,
+      "database_bytes_preserved": true,
+      "snapshot_restore": true
+    },
+    {
+      "environment": ".venv-a2",
+      "accepted": {
+        "version": "1.1.0",
+        "validation": {
+          "valid": true,
+          "schema_version": 1
+        }
+      },
+      "candidate_valid": true,
+      "database_bytes_preserved": true,
+      "snapshot_restore": true
+    }
+  ],
+  "candidate_sha256": "eb98ad3decc4ad0875c6e8b3fa58573e07d38fa3b0f2a8fb9ecca6e5d3771c3f",
+  "schema_and_migration_unchanged": true,
+  "protected_files": 59,
+  "authorized_changed_existing_files": [
+    "ARCHITECTURE.md",
+    "CHANGELOG.md",
+    "CONTRACTS.md",
+    "README.md",
+    "SECURITY.md",
+    "src/asset_rights_engine/engine.py"
+  ],
+  "missing_files": [],
+  "accepted_wheel_sha256": {
+    "dist/asset_rights_engine-1.0.0-py3-none-any.whl": "5abb6fcb0c86cb53482afc2148eaa0652340b0a457167070a469d875bbf614dd",
+    "dist/asset_rights_engine-1.1.0-py3-none-any.whl": "b626d9eed519b038f0fdd9e97d9fcb62c5b1128a2f2b4c93de4ea4b987dfa4ca"
+  },
+  "persistent_data_sha256": {
+    "data/asset_rights.sqlite3": "a430c4ed5a500d1de707a43b71e264a4463b8550ea71b6e7e46922504b658290",
+    "data/snapshot.sqlite3": "abdabf30ad32d32c22996442091bccb8bec1b35a8980703c2a7dc110d97b2fcd"
+  }
+}

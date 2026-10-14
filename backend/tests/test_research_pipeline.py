@@ -52,41 +52,38 @@ def pipeline(tmp_path):
     running = worker()
     assert running.run_once()  # actual foundation handler
     assert running.run_once()  # actual discovery handler
-    assert not running.run_once()  # human selection required; no acquisition attempts consumed
     return db, root, job, jobs, store, discovery, worker, calls
 
 
-def test_complete_pipeline_waits_for_selection_then_restarts_and_exports(tmp_path):
+def test_topic_acquires_discovered_urls_and_stops_for_human_review(tmp_path):
     db, root, job, jobs, store, discovery, worker, calls = pipeline(tmp_path)
     assert len(calls) == 1
-    state = jobs.get(job, OWNER)
-    assert state["stages"][2]["attempt_count"] == 0
     candidates = discovery.list_candidates(job, OWNER)["candidates"]
-    discovery.select_candidates(job, OWNER, [candidates[0]["candidate_id"]])
+    assert len(candidates) == 2
     restarted = worker()
-    assert restarted.run_once()  # real acquisition
-    assert restarted.run_once()  # real analysis
-    assert not restarted.run_once()  # human review, no downstream registration
-    assert jobs.get(job, OWNER)["status"] == "AWAITING_REVIEW"
+    assert restarted.run_once()  # acquisition of every discovered URL
+    assert restarted.run_once()  # analysis
+    assert not restarted.run_once()  # human review; script is not registered
+    state = jobs.get(job, OWNER)
+    assert state["status"] == "AWAITING_REVIEW"
+    assert state["stages"][4]["status"] == "AWAITING_REVIEW"
+    assert state["stages"][5]["status"] == "PENDING"
+    assert {c.split("/")[-1] for c in calls} >= {"feed", "one", "two"}
     review = ReviewService(db, root)
     sources = review.list_sources(job, OWNER)
     claims = review.list_claims(job, OWNER)
-    assert sources["sources"] and claims["claims"]
-    for source in sources["sources"]:
-        review.decide_source(job, OWNER, source["source_id"], "APPROVED_FOR_USE", sources["acquisition_artifact_sha256"], 0, "Offline fixture source inspected", source["source_id"])
+    assert len(sources["sources"]) == 2
+    assert all(source["status"] == "ACQUIRED" for source in sources["sources"])
+    assert claims["claims"]
+    assert all(claim["review_status"] == "PENDING" for claim in claims["claims"])
+    assert any(claim["evidence_class"] == "attributed" for claim in claims["claims"])
     for claim in claims["claims"]:
-        review.decide_claim(job, OWNER, claim["claim_id"], "APPROVED_FOR_USE", claims["analysis_artifact_sha256"], 0, "Offline fixture passage inspected", claim["claim_id"])
-    evidence = EvidenceService(db, root)
-    draft = evidence.draft(job, OWNER)
-    assert draft["package"]["ready"], draft["package"]["blockers"]
-    evidence.approve(job, OWNER, draft["revision"], "Offline integration check", "approve")
-    exported = EvidenceService(db, root).export(job, OWNER)
-    assert exported["status"] == "APPROVED"
-    assert len(exported["discovery"]["candidates"]) == 1
-    assert exported["sources"][0]["requested_url"] == candidates[0]["canonical_url"]
-    assert jobs.get(job, OWNER)["stages"][5]["status"] == "PENDING"
-    assert jobs.get(job, OWNER)["stages"][4]["status"] == "COMPLETED"
-    assert jobs.get(job, OWNER)["status"] == "PAUSED"
+        assert claim["passage"]["text"] == claim["claim_text"]
+        assert claim["source_id"] in {source["source_id"] for source in sources["sources"]}
+    draft = EvidenceService(db, root).draft(job, OWNER)
+    assert draft["package"]["ready"] is False
+    assert any("approved" in blocker.lower() for blocker in draft["package"]["blockers"])
+    assert draft["approvals"] == []
 
 
 def test_selection_revisions_are_immutable_and_locked_after_claim(tmp_path):

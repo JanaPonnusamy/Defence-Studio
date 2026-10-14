@@ -1,0 +1,4 @@
+{'valid': True, 'schema_version': 1}
+E:\DefenceStudio-Components\asset-rights-engine\verification\a3\tmp\are-a2-cli-28e35_m4\cli-snapshot.sqlite3
+Restored CLI snapshot: {'valid': True, 'schema_version': 1}
+Temporary CLI storage removed: True

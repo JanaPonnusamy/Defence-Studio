@@ -16,7 +16,7 @@ export function renderDiscoveryRequestFormHtml(defaultTopic) {
         ${textFieldHtml({ id: "discovery-terms", label: "Search terms (comma-separated)", value: "", placeholder: "optional" })}
         <button type="submit" class="primary">Submit discovery request</button>
       </form>
-      <p class="meta">After submitting, queue the job so the worker can run discovery.</p>
+      <p class="meta">After submitting, queue the job. The worker discovers article URLs, fetches them, and extracts claims. Evidence stays pending until you approve it.</p>
       <button type="button" id="discovery-queue-btn">Queue job</button>
     </div>`;
 }

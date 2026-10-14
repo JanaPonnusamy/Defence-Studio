@@ -1,0 +1,1086 @@
+{
+  "src\\asset_rights_engine\\adapter_contracts.py": [
+    {
+      "name": "PlanState",
+      "line": 7,
+      "end_line": 11
+    },
+    {
+      "name": "HostOperation",
+      "line": 14,
+      "end_line": 19
+    },
+    {
+      "name": "HostScope",
+      "line": 23,
+      "end_line": 30
+    },
+    {
+      "name": "HostSceneKey",
+      "line": 34,
+      "end_line": 42
+    },
+    {
+      "name": "HostSceneContext",
+      "line": 46,
+      "end_line": 78
+    },
+    {
+      "name": "HostPrincipal",
+      "line": 82,
+      "end_line": 89
+    },
+    {
+      "name": "HostOperationRequest",
+      "line": 93,
+      "end_line": 113
+    },
+    {
+      "name": "__post_init__",
+      "line": 28,
+      "end_line": 30
+    },
+    {
+      "name": "__post_init__",
+      "line": 39,
+      "end_line": 42
+    },
+    {
+      "name": "__post_init__",
+      "line": 56,
+      "end_line": 70
+    },
+    {
+      "name": "scene_binding",
+      "line": 72,
+      "end_line": 78
+    },
+    {
+      "name": "__post_init__",
+      "line": 87,
+      "end_line": 89
+    },
+    {
+      "name": "__post_init__",
+      "line": 100,
+      "end_line": 113
+    }
+  ],
+  "src\\asset_rights_engine\\contracts.py": [
+    {
+      "name": "DomainError",
+      "line": 7,
+      "end_line": 10
+    },
+    {
+      "name": "RightsState",
+      "line": 12,
+      "end_line": 18
+    },
+    {
+      "name": "AssignmentState",
+      "line": 20,
+      "end_line": 25
+    },
+    {
+      "name": "require",
+      "line": 27,
+      "end_line": 28
+    },
+    {
+      "name": "identifier",
+      "line": 30,
+      "end_line": 31
+    },
+    {
+      "name": "sha",
+      "line": 33,
+      "end_line": 34
+    },
+    {
+      "name": "instant",
+      "line": 36,
+      "end_line": 41
+    },
+    {
+      "name": "revision",
+      "line": 43,
+      "end_line": 44
+    },
+    {
+      "name": "canonical",
+      "line": 46,
+      "end_line": 48
+    },
+    {
+      "name": "digest",
+      "line": 50,
+      "end_line": 50
+    },
+    {
+      "name": "AssetDescriptor",
+      "line": 53,
+      "end_line": 85
+    },
+    {
+      "name": "RightsRecord",
+      "line": 88,
+      "end_line": 115
+    },
+    {
+      "name": "UseContext",
+      "line": 118,
+      "end_line": 129
+    },
+    {
+      "name": "SceneBinding",
+      "line": 132,
+      "end_line": 142
+    },
+    {
+      "name": "ReviewRequest",
+      "line": 145,
+      "end_line": 157
+    },
+    {
+      "name": "RevisionView",
+      "line": 160,
+      "end_line": 165
+    },
+    {
+      "name": "Evaluation",
+      "line": 168,
+      "end_line": 175
+    },
+    {
+      "name": "ReviewEvent",
+      "line": 178,
+      "end_line": 188
+    },
+    {
+      "name": "AssignmentDescriptor",
+      "line": 191,
+      "end_line": 206
+    },
+    {
+      "name": "__init__",
+      "line": 8,
+      "end_line": 10
+    },
+    {
+      "name": "__post_init__",
+      "line": 70,
+      "end_line": 85
+    },
+    {
+      "name": "__post_init__",
+      "line": 103,
+      "end_line": 115
+    },
+    {
+      "name": "__post_init__",
+      "line": 125,
+      "end_line": 129
+    },
+    {
+      "name": "__post_init__",
+      "line": 139,
+      "end_line": 142
+    },
+    {
+      "name": "__post_init__",
+      "line": 153,
+      "end_line": 157
+    },
+    {
+      "name": "__post_init__",
+      "line": 200,
+      "end_line": 206
+    }
+  ],
+  "src\\asset_rights_engine\\engine.py": [
+    {
+      "name": "Engine",
+      "line": 10,
+      "end_line": 224
+    },
+    {
+      "name": "__init__",
+      "line": 11,
+      "end_line": 18
+    },
+    {
+      "name": "_connection",
+      "line": 21,
+      "end_line": 37
+    },
+    {
+      "name": "_initialize",
+      "line": 39,
+      "end_line": 56
+    },
+    {
+      "name": "validate_database",
+      "line": 58,
+      "end_line": 69
+    },
+    {
+      "name": "register_asset",
+      "line": 71,
+      "end_line": 78
+    },
+    {
+      "name": "get_asset",
+      "line": 80,
+      "end_line": 85
+    },
+    {
+      "name": "list_assets",
+      "line": 87,
+      "end_line": 88
+    },
+    {
+      "name": "_view",
+      "line": 90,
+      "end_line": 101
+    },
+    {
+      "name": "get_rights",
+      "line": 103,
+      "end_line": 104
+    },
+    {
+      "name": "get_assignment",
+      "line": 106,
+      "end_line": 107
+    },
+    {
+      "name": "create_rights_revision",
+      "line": 109,
+      "end_line": 119
+    },
+    {
+      "name": "_rights_review",
+      "line": 121,
+      "end_line": 123
+    },
+    {
+      "name": "evaluate_effective_rights",
+      "line": 125,
+      "end_line": 128
+    },
+    {
+      "name": "_assignment_payload",
+      "line": 130,
+      "end_line": 135
+    },
+    {
+      "name": "create_assignment",
+      "line": 137,
+      "end_line": 144
+    },
+    {
+      "name": "revise_assignment",
+      "line": 146,
+      "end_line": 154
+    },
+    {
+      "name": "_readiness",
+      "line": 156,
+      "end_line": 172
+    },
+    {
+      "name": "evaluate_assignment_readiness",
+      "line": 174,
+      "end_line": 176
+    },
+    {
+      "name": "_review",
+      "line": 178,
+      "end_line": 203
+    },
+    {
+      "name": "review_rights",
+      "line": 205,
+      "end_line": 205
+    },
+    {
+      "name": "review_assignment",
+      "line": 206,
+      "end_line": 206
+    },
+    {
+      "name": "_event",
+      "line": 208,
+      "end_line": 208
+    },
+    {
+      "name": "get_review_history",
+      "line": 209,
+      "end_line": 210
+    },
+    {
+      "name": "list_assignments",
+      "line": 211,
+      "end_line": 212
+    },
+    {
+      "name": "create_database_snapshot",
+      "line": 213,
+      "end_line": 224
+    }
+  ],
+  "src\\asset_rights_engine\\evaluator.py": [
+    {
+      "name": "evaluate_effective_rights",
+      "line": 4,
+      "end_line": 19
+    }
+  ],
+  "src\\asset_rights_engine\\host_adapter.py": [
+    {
+      "name": "HostAdapter",
+      "line": 10,
+      "end_line": 20
+    },
+    {
+      "name": "AdapterGateway",
+      "line": 23,
+      "end_line": 105
+    },
+    {
+      "name": "operation_context",
+      "line": 11,
+      "end_line": 20
+    },
+    {
+      "name": "__init__",
+      "line": 25,
+      "end_line": 28
+    },
+    {
+      "name": "_context",
+      "line": 31,
+      "end_line": 40
+    },
+    {
+      "name": "create_assignment",
+      "line": 42,
+      "end_line": 49
+    },
+    {
+      "name": "_check_assignment",
+      "line": 51,
+      "end_line": 59
+    },
+    {
+      "name": "revise_assignment",
+      "line": 61,
+      "end_line": 70
+    },
+    {
+      "name": "_review_identity",
+      "line": 73,
+      "end_line": 77
+    },
+    {
+      "name": "review_rights",
+      "line": 79,
+      "end_line": 85
+    },
+    {
+      "name": "review_assignment",
+      "line": 87,
+      "end_line": 95
+    },
+    {
+      "name": "evaluate_assignment_readiness",
+      "line": 97,
+      "end_line": 105
+    }
+  ],
+  "src\\asset_rights_engine\\simulator.py": [
+    {
+      "name": "SyntheticHost",
+      "line": 16,
+      "end_line": 91
+    },
+    {
+      "name": "SimulationReport",
+      "line": 95,
+      "end_line": 99
+    },
+    {
+      "name": "run_simulation",
+      "line": 102,
+      "end_line": 225
+    },
+    {
+      "name": "__init__",
+      "line": 23,
+      "end_line": 30
+    },
+    {
+      "name": "set_scene",
+      "line": 32,
+      "end_line": 40
+    },
+    {
+      "name": "declare_asset_scope",
+      "line": 42,
+      "end_line": 48
+    },
+    {
+      "name": "declare_assignment_target",
+      "line": 50,
+      "end_line": 60
+    },
+    {
+      "name": "grant_synthetic_operations",
+      "line": 62,
+      "end_line": 70
+    },
+    {
+      "name": "operation_context",
+      "line": 73,
+      "end_line": 91
+    },
+    {
+      "name": "expect_error",
+      "line": 112,
+      "end_line": 119
+    },
+    {
+      "name": "attempt",
+      "line": 203,
+      "end_line": 213
+    }
+  ],
+  "src\\asset_rights_engine\\__init__.py": [],
+  "tests\\test_adapter_simulator.py": [
+    {
+      "name": "SimulatorTests",
+      "line": 6,
+      "end_line": 19
+    },
+    {
+      "name": "test_all_scenarios",
+      "line": 7,
+      "end_line": 13
+    },
+    {
+      "name": "test_deterministic_report",
+      "line": 14,
+      "end_line": 15
+    },
+    {
+      "name": "test_no_network_required",
+      "line": 16,
+      "end_line": 19
+    },
+    {
+      "name": "denied",
+      "line": 17,
+      "end_line": 17
+    }
+  ],
+  "tests\\test_engine.py": [
+    {
+      "name": "asset",
+      "line": 11,
+      "end_line": 12
+    },
+    {
+      "name": "rights",
+      "line": 13,
+      "end_line": 14
+    },
+    {
+      "name": "binding",
+      "line": 15,
+      "end_line": 15
+    },
+    {
+      "name": "usage",
+      "line": 16,
+      "end_line": 16
+    },
+    {
+      "name": "request",
+      "line": 17,
+      "end_line": 17
+    },
+    {
+      "name": "Contracts",
+      "line": 19,
+      "end_line": 37
+    },
+    {
+      "name": "EngineTests",
+      "line": 39,
+      "end_line": 179
+    },
+    {
+      "name": "test_asset_valid",
+      "line": 20,
+      "end_line": 20
+    },
+    {
+      "name": "test_asset_invalid",
+      "line": 21,
+      "end_line": 23
+    },
+    {
+      "name": "test_rights_validation",
+      "line": 24,
+      "end_line": 26
+    },
+    {
+      "name": "test_unknown_licence_not_inferred",
+      "line": 27,
+      "end_line": 29
+    },
+    {
+      "name": "test_arbitrary_licence_is_only_declared_metadata",
+      "line": 30,
+      "end_line": 30
+    },
+    {
+      "name": "test_binding_validation",
+      "line": 31,
+      "end_line": 33
+    },
+    {
+      "name": "test_review_validation",
+      "line": 34,
+      "end_line": 37
+    },
+    {
+      "name": "setUp",
+      "line": 40,
+      "end_line": 41
+    },
+    {
+      "name": "tearDown",
+      "line": 42,
+      "end_line": 42
+    },
+    {
+      "name": "approved_rights",
+      "line": 43,
+      "end_line": 44
+    },
+    {
+      "name": "assignment",
+      "line": 45,
+      "end_line": 46
+    },
+    {
+      "name": "test_initialization",
+      "line": 47,
+      "end_line": 47
+    },
+    {
+      "name": "test_register_idempotent",
+      "line": 48,
+      "end_line": 48
+    },
+    {
+      "name": "test_register_conflict",
+      "line": 49,
+      "end_line": 50
+    },
+    {
+      "name": "test_no_media_required",
+      "line": 51,
+      "end_line": 51
+    },
+    {
+      "name": "test_no_caller_approval",
+      "line": 52,
+      "end_line": 53
+    },
+    {
+      "name": "test_review_success",
+      "line": 54,
+      "end_line": 54
+    },
+    {
+      "name": "test_commercial_missing",
+      "line": 55,
+      "end_line": 55
+    },
+    {
+      "name": "test_noncommercial",
+      "line": 56,
+      "end_line": 56
+    },
+    {
+      "name": "test_unknown_pending_rejected_expired_revoked",
+      "line": 57,
+      "end_line": 61
+    },
+    {
+      "name": "test_expired_by_date",
+      "line": 62,
+      "end_line": 62
+    },
+    {
+      "name": "test_not_yet_valid",
+      "line": 63,
+      "end_line": 63
+    },
+    {
+      "name": "test_attribution",
+      "line": 64,
+      "end_line": 67
+    },
+    {
+      "name": "test_incomplete_attribution_review",
+      "line": 68,
+      "end_line": 71
+    },
+    {
+      "name": "test_restrictions",
+      "line": 72,
+      "end_line": 75
+    },
+    {
+      "name": "test_determinism",
+      "line": 76,
+      "end_line": 76
+    },
+    {
+      "name": "test_stale_review_revision",
+      "line": 77,
+      "end_line": 79
+    },
+    {
+      "name": "test_stale_digest",
+      "line": 80,
+      "end_line": 82
+    },
+    {
+      "name": "test_idempotency",
+      "line": 83,
+      "end_line": 86
+    },
+    {
+      "name": "test_review_rejection",
+      "line": 87,
+      "end_line": 88
+    },
+    {
+      "name": "test_concurrent_review",
+      "line": 89,
+      "end_line": 98
+    },
+    {
+      "name": "test_approved_assignment_restart",
+      "line": 99,
+      "end_line": 101
+    },
+    {
+      "name": "test_assignment_pending",
+      "line": 102,
+      "end_line": 102
+    },
+    {
+      "name": "test_stale_scene",
+      "line": 103,
+      "end_line": 106
+    },
+    {
+      "name": "test_changed_rights",
+      "line": 107,
+      "end_line": 109
+    },
+    {
+      "name": "test_changed_assignment",
+      "line": 110,
+      "end_line": 113
+    },
+    {
+      "name": "test_changed_usage",
+      "line": 114,
+      "end_line": 114
+    },
+    {
+      "name": "test_blocked_assignment",
+      "line": 115,
+      "end_line": 117
+    },
+    {
+      "name": "test_assignment_missing_attribution",
+      "line": 118,
+      "end_line": 120
+    },
+    {
+      "name": "test_transaction_rollback",
+      "line": 121,
+      "end_line": 126
+    },
+    {
+      "name": "test_foreign_keys",
+      "line": 127,
+      "end_line": 128
+    },
+    {
+      "name": "test_immutable_history",
+      "line": 129,
+      "end_line": 133
+    },
+    {
+      "name": "test_snapshot_restore",
+      "line": 134,
+      "end_line": 137
+    },
+    {
+      "name": "test_path_restriction",
+      "line": 138,
+      "end_line": 141
+    },
+    {
+      "name": "test_schema_rejection",
+      "line": 142,
+      "end_line": 145
+    },
+    {
+      "name": "test_unversioned_database_preserved",
+      "line": 146,
+      "end_line": 150
+    },
+    {
+      "name": "test_migration_rerun_preserves_data",
+      "line": 151,
+      "end_line": 151
+    },
+    {
+      "name": "test_missing_trigger_detected",
+      "line": 152,
+      "end_line": 154
+    },
+    {
+      "name": "test_wal_snapshot_includes_committed_rows",
+      "line": 155,
+      "end_line": 162
+    },
+    {
+      "name": "test_schema_migration_mirror",
+      "line": 163,
+      "end_line": 165
+    },
+    {
+      "name": "test_missing_rights_blocks_assignment",
+      "line": 166,
+      "end_line": 168
+    },
+    {
+      "name": "test_approval_does_not_survive_rights_revision",
+      "line": 169,
+      "end_line": 172
+    },
+    {
+      "name": "test_review_cannot_be_used_before_timestamp",
+      "line": 173,
+      "end_line": 175
+    },
+    {
+      "name": "test_core_isolation",
+      "line": 176,
+      "end_line": 179
+    },
+    {
+      "name": "run",
+      "line": 91,
+      "end_line": 94
+    }
+  ],
+  "tests\\test_host_adapter.py": [
+    {
+      "name": "review",
+      "line": 25,
+      "end_line": 28
+    },
+    {
+      "name": "AdapterContractTests",
+      "line": 31,
+      "end_line": 96
+    },
+    {
+      "name": "HostGatewayTests",
+      "line": 99,
+      "end_line": 316
+    },
+    {
+      "name": "test_valid_translation_preserves_a1_binding",
+      "line": 32,
+      "end_line": 36
+    },
+    {
+      "name": "test_context_is_immutable",
+      "line": 37,
+      "end_line": 38
+    },
+    {
+      "name": "test_invalid_identifiers",
+      "line": 39,
+      "end_line": 42
+    },
+    {
+      "name": "test_invalid_scope_identifiers",
+      "line": 43,
+      "end_line": 46
+    },
+    {
+      "name": "test_invalid_hashes",
+      "line": 47,
+      "end_line": 50
+    },
+    {
+      "name": "test_invalid_revisions",
+      "line": 51,
+      "end_line": 54
+    },
+    {
+      "name": "test_contradictory_approval",
+      "line": 55,
+      "end_line": 60
+    },
+    {
+      "name": "test_unapproved_structurally_valid_but_binding_rejected",
+      "line": 61,
+      "end_line": 64
+    },
+    {
+      "name": "test_missing_principal",
+      "line": 65,
+      "end_line": 68
+    },
+    {
+      "name": "test_principal_is_not_authentication",
+      "line": 69,
+      "end_line": 71
+    },
+    {
+      "name": "test_nested_types_and_contract_version",
+      "line": 72,
+      "end_line": 76
+    },
+    {
+      "name": "test_content_digest_preserved",
+      "line": 77,
+      "end_line": 79
+    },
+    {
+      "name": "test_operation_request_validation",
+      "line": 80,
+      "end_line": 87
+    },
+    {
+      "name": "test_rights_request_cannot_target_assignment",
+      "line": 88,
+      "end_line": 91
+    },
+    {
+      "name": "test_principal_scope_mismatch",
+      "line": 92,
+      "end_line": 96
+    },
+    {
+      "name": "setUp",
+      "line": 100,
+      "end_line": 115
+    },
+    {
+      "name": "approve_rights",
+      "line": 116,
+      "end_line": 117
+    },
+    {
+      "name": "create",
+      "line": 118,
+      "end_line": 120
+    },
+    {
+      "name": "test_valid_assignment_and_readiness",
+      "line": 121,
+      "end_line": 126
+    },
+    {
+      "name": "test_unapproved_rejected_before_engine",
+      "line": 127,
+      "end_line": 133
+    },
+    {
+      "name": "test_expected_approved_but_authoritative_unapproved",
+      "line": 134,
+      "end_line": 138
+    },
+    {
+      "name": "test_revision_mismatch_before_engine",
+      "line": 139,
+      "end_line": 144
+    },
+    {
+      "name": "test_digest_mismatch_before_engine",
+      "line": 145,
+      "end_line": 148
+    },
+    {
+      "name": "test_content_digest_change_detected",
+      "line": 149,
+      "end_line": 152
+    },
+    {
+      "name": "test_scene_substitution_before_engine",
+      "line": 153,
+      "end_line": 159
+    },
+    {
+      "name": "test_tenant_and_owner_boundaries_before_engine",
+      "line": 160,
+      "end_line": 168
+    },
+    {
+      "name": "test_asset_scope_boundary",
+      "line": 169,
+      "end_line": 173
+    },
+    {
+      "name": "test_missing_reviewer_and_mismatched_identity",
+      "line": 174,
+      "end_line": 181
+    },
+    {
+      "name": "test_supplied_identifier_does_not_grant_policy",
+      "line": 182,
+      "end_line": 187
+    },
+    {
+      "name": "test_policy_is_operation_specific",
+      "line": 188,
+      "end_line": 191
+    },
+    {
+      "name": "test_idempotent_replay_and_conflict",
+      "line": 192,
+      "end_line": 199
+    },
+    {
+      "name": "test_replay_rechecks_current_host_policy",
+      "line": 200,
+      "end_line": 205
+    },
+    {
+      "name": "test_review_context_stale_blocks_even_replay",
+      "line": 206,
+      "end_line": 218
+    },
+    {
+      "name": "test_revise_assignment_requires_new_review",
+      "line": 219,
+      "end_line": 233
+    },
+    {
+      "name": "test_engine_rights_checks_not_bypassed",
+      "line": 234,
+      "end_line": 239
+    },
+    {
+      "name": "test_unknown_provider_and_invalid_provider_response",
+      "line": 240,
+      "end_line": 249
+    },
+    {
+      "name": "test_provider_cannot_substitute_scene",
+      "line": 250,
+      "end_line": 259
+    },
+    {
+      "name": "test_assignment_asset_crosscheck",
+      "line": 260,
+      "end_line": 273
+    },
+    {
+      "name": "test_scene_binding_crosscheck",
+      "line": 274,
+      "end_line": 284
+    },
+    {
+      "name": "test_host_state_is_locked_through_engine_operation",
+      "line": 285,
+      "end_line": 297
+    },
+    {
+      "name": "test_temporary_storage_only",
+      "line": 298,
+      "end_line": 300
+    },
+    {
+      "name": "test_a1_signatures_remain_compatible",
+      "line": 301,
+      "end_line": 306
+    },
+    {
+      "name": "test_resource_mappings_cannot_silently_rebind",
+      "line": 307,
+      "end_line": 311
+    },
+    {
+      "name": "test_unknown_resource_denied",
+      "line": 312,
+      "end_line": 316
+    },
+    {
+      "name": "BadProvider",
+      "line": 242,
+      "end_line": 244
+    },
+    {
+      "name": "WrongSceneProvider",
+      "line": 251,
+      "end_line": 254
+    },
+    {
+      "name": "BrokenMapProvider",
+      "line": 266,
+      "end_line": 268
+    },
+    {
+      "name": "BrokenMapProvider",
+      "line": 277,
+      "end_line": 279
+    },
+    {
+      "name": "call",
+      "line": 288,
+      "end_line": 295
+    },
+    {
+      "name": "operation_context",
+      "line": 244,
+      "end_line": 244
+    },
+    {
+      "name": "operation_context",
+      "line": 253,
+      "end_line": 254
+    },
+    {
+      "name": "operation_context",
+      "line": 268,
+      "end_line": 268
+    },
+    {
+      "name": "operation_context",
+      "line": 279,
+      "end_line": 279
+    },
+    {
+      "name": "probe",
+      "line": 289,
+      "end_line": 292
+    }
+  ]
+}

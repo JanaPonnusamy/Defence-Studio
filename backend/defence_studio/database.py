@@ -3,7 +3,7 @@ from contextlib import closing
 from pathlib import Path
 
 
-SCHEMA_VERSION = 10
+SCHEMA_VERSION = 11
 
 
 def connect(path: Path) -> sqlite3.Connection:
@@ -31,7 +31,7 @@ def initialize_database(path: Path) -> None:
         version = connection.execute(
             "SELECT version FROM schema_info WHERE singleton = 1"
         ).fetchone()[0]
-        if version not in (1, 2, 3, 4, 5, 6, 7, 8, 9, SCHEMA_VERSION):
+        if version not in (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, SCHEMA_VERSION):
             raise RuntimeError(f"Unsupported Defence Studio schema version: {version}")
 
         connection.executescript(
@@ -129,6 +129,9 @@ def initialize_database(path: Path) -> None:
             version = 9
         if version == 9:
             _upgrade_v9_to_v10(connection)
+            version = 10
+        if version == 10:
+            _upgrade_v10_to_v11(connection)
 
 
 def _upgrade_v3_to_v4(connection: sqlite3.Connection) -> None:
@@ -598,6 +601,41 @@ def _upgrade_v9_to_v10(connection: sqlite3.Connection) -> None:
             );
         """)
         connection.execute("UPDATE schema_info SET version = 10 WHERE singleton = 1")
+        connection.commit()
+    except Exception:
+        connection.rollback()
+        raise
+
+
+def _upgrade_v10_to_v11(connection: sqlite3.Connection) -> None:
+    """Offline claim assessments. Does not alter human review tables."""
+    connection.execute("BEGIN EXCLUSIVE")
+    try:
+        connection.executescript("""
+            CREATE TABLE IF NOT EXISTS claim_assessments (
+                assessment_id TEXT PRIMARY KEY,
+                job_id TEXT NOT NULL REFERENCES workflow_jobs(job_id) ON DELETE CASCADE,
+                claim_id TEXT NOT NULL,
+                analysis_sha256 TEXT NOT NULL,
+                policy_version TEXT NOT NULL,
+                outcome TEXT NOT NULL CHECK(outcome IN (
+                    'SUPPORTED', 'PARTIALLY_SUPPORTED', 'CONTRADICTED',
+                    'UNSUPPORTED', 'NEEDS_REVIEW')),
+                source_id TEXT NOT NULL,
+                passage_sha256 TEXT NOT NULL,
+                start_offset INTEGER,
+                end_offset INTEGER,
+                explanation TEXT NOT NULL,
+                limitations TEXT NOT NULL,
+                actor TEXT NOT NULL,
+                assessor_version TEXT NOT NULL,
+                created_at TEXT NOT NULL,
+                UNIQUE(job_id, claim_id, analysis_sha256, policy_version)
+            );
+            CREATE INDEX IF NOT EXISTS ix_claim_assessments_job
+                ON claim_assessments(job_id, claim_id);
+        """)
+        connection.execute("UPDATE schema_info SET version = 11 WHERE singleton = 1")
         connection.commit()
     except Exception:
         connection.rollback()

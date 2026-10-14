@@ -4,7 +4,7 @@ Phase 5C, Workstream A. Read-only comparison; no product code was changed to pro
 document.
 
 **Sources compared**
-- Standalone: `E:\DefenceStudio-Components\asset-rights-engine\src\asset_rights_engine\{contracts.py,engine.py,adapter_contracts.py,host_adapter.py}`, `docs/HOST_ADAPTER.md`, `CONTRACTS.md`, `A2_ACCEPTANCE_REPORT.md`.
+- Standalone: `E:\DefenceStudio-Components\asset-rights-engine\src\asset_rights_engine\{contracts.py,engine.py,adapter_contracts.py,host_adapter.py}`, `docs/HOST_ADAPTER.md`, `CONTRACTS.md`, `A2_ACCEPTANCE_REPORT.md`. (Consolidated 2026-10-14 into `components/asset-rights-engine/` under the project root; historical path left as-is.)
 - Defence Studio: `backend/defence_studio/contracts/assets.py` (M2.0), `backend/defence_studio/services/assets.py` (M2.1), `backend/defence_studio/database.py` (schema v7), `backend/defence_studio/api/app.py` asset routes.
 
 The two systems were built independently against similar but not identical requirements.

@@ -1,0 +1,19 @@
+{
+  "protected_files": 37,
+  "changed_original_files": [],
+  "new_documents_checked": [
+    "INTEGRATION_THREAT_MODEL.md",
+    "PRODUCTION_HOST_INTEGRATION_SPEC.md",
+    "STORAGE_AND_CONSISTENCY_DECISION.md",
+    "INTEGRATION_GAP_REGISTER.md",
+    "INTEGRATION_ACCEPTANCE_PLAN.md",
+    "NEXT_PHASE_PROPOSAL.md",
+    "A3_VERIFICATION_REPORT.md"
+  ],
+  "threat_entries": 18,
+  "specified_operations": 11,
+  "required_fields_per_operation": 9,
+  "acceptance_test_entries": 31,
+  "temporary_databases_remaining": 0,
+  "doc_links_valid": true
+}

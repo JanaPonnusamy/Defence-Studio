@@ -376,13 +376,10 @@ class WorkerService:
                 return None
             if stage["retry_after"] and stage["retry_after"] > _stamp(now):
                 return None
-            # Discovery completion is not candidate selection. Wait without
-            # consuming retries until a human confirms an acquisition request.
-            if stage["stage_key"] == "topic_search_and_source_collection":
-                kinds = {r[0] for r in connection.execute(
-                    "SELECT artifact_type FROM workflow_artifacts WHERE job_id=?", (job_id,))}
-                if "discovery_result" in kinds and "acquisition_request" not in kinds:
-                    return None
+            # Topic search acquires the discovery result itself. An explicit
+            # acquisition_request, when one already exists, is the candidate
+            # subset; otherwise the acquisition handler builds targets from
+            # the discovered URLs. Evidence review stays the human gate.
             return stage if stage["stage_key"] in supported else None
         return None
 
