@@ -1,0 +1,43 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "video-render-package/1",
+  "title": "video-render-package v1 manifest (package.json)",
+  "type": "object",
+  "required": ["schema", "version", "timeline", "timeline_sha256", "narration", "assets"],
+  "additionalProperties": false,
+  "properties": {
+    "schema": {"const": "video-render-package"},
+    "version": {"enum": ["1", 1]},
+    "timeline": {"$ref": "#/$defs/relpath"},
+    "timeline_sha256": {"$ref": "#/$defs/sha256"},
+    "narration": {
+      "type": "object", "required": ["path", "sha256"], "additionalProperties": false,
+      "properties": {"path": {"$ref": "#/$defs/relpath"}, "sha256": {"$ref": "#/$defs/sha256"}}
+    },
+    "assets": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object", "required": ["path", "sha256", "mime_type"], "additionalProperties": false,
+        "properties": {
+          "path": {"$ref": "#/$defs/relpath"}, "sha256": {"$ref": "#/$defs/sha256"},
+          "mime_type": {"enum": ["image/png", "image/jpeg", "image/webp"]}
+        }
+      }
+    },
+    "output_profile": {
+      "type": ["object", "null"], "required": ["width", "height", "fps"], "additionalProperties": false,
+      "properties": {
+        "width": {"type": "integer", "minimum": 16, "maximum": 7680, "multipleOf": 2},
+        "height": {"type": "integer", "minimum": 16, "maximum": 4320, "multipleOf": 2},
+        "fps": {"type": "number", "minimum": 1, "maximum": 60}
+      }
+    },
+    "created_at": {"type": "string"},
+    "source": {"type": "object"},
+    "notes": {"type": "string"}
+  },
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "relpath": {"type": "string", "minLength": 1, "pattern": "^(?!/)(?![A-Za-z]:)(?!.*(^|/)\\.\\.(/|$))[^\\\\\\u0000:]+$"}
+  }
+}

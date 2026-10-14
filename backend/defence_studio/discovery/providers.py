@@ -28,7 +28,10 @@ from __future__ import annotations
 
 import json
 import os
+import random
+import re
 import threading
+import time
 import xml.etree.ElementTree as ET
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
@@ -36,6 +39,7 @@ from dataclasses import dataclass, field
 from defence_studio.acquisition.http_client import GuardedFetcher, HttpFetchError
 from defence_studio.acquisition.url_guard import UrlGuard, UrlValidationError
 from defence_studio.contracts.discovery import DiscoveryFilters, DiscoveryLimits, ProviderOutcome, ProviderStatus
+from defence_studio.discovery.taxonomy import FeedConfig, load_feed_configs
 
 _ATOM_NS = "{http://www.w3.org/2005/Atom}"
 
@@ -49,6 +53,47 @@ class RawCandidate:
     language: str | None = None
     source_type: str = "news_feed"
     original_metadata: dict = field(default_factory=dict)
+    snippet: str | None = None
+    feed_category: str | None = None
+    feed_source_class: str | None = None
+    feed_region: str | None = None
+    provider_tag: str | None = None
+    provider_rank: int | None = None
+
+
+MAX_RETRIES = 2
+RETRY_BACKOFF_SECONDS = (0.5, 1.0)
+SNIPPET_MAX = 500
+
+
+def fetch_with_retry(fetcher, url, cancel, sleep=time.sleep, max_retries=MAX_RETRIES):
+    """Idempotent GET with bounded retry: only connection errors / 5xx / 429
+    (``HttpFetchError.retryable``) are retried; 4xx are not. Returns
+    ``(response, attempts, rate_limited)``; on failure raises the last
+    HttpFetchError with ``attempts`` / ``rate_limited`` attached."""
+    attempts = 0
+    rate_limited = False
+    while True:
+        attempts += 1
+        try:
+            return fetcher.get(url, cancel=cancel), attempts, rate_limited
+        except HttpFetchError as exc:
+            if "429" in exc.message:
+                rate_limited = True
+            exc.attempts, exc.rate_limited = attempts, rate_limited
+            cancelled = exc.code == "cancelled" or (cancel is not None and cancel.is_set())
+            if cancelled or not exc.retryable or attempts > max_retries:
+                raise
+            delay = RETRY_BACKOFF_SECONDS[min(attempts - 1, len(RETRY_BACKOFF_SECONDS) - 1)]
+            sleep(delay + random.uniform(0, delay / 4))
+
+
+def _clip(text, limit=SNIPPET_MAX):
+    if not text:
+        return None
+    plain = re.sub(r"<[^>]+>", " ", text)
+    plain = re.sub(r"\s+", " ", plain).strip()
+    return plain[:limit] or None
 
 
 @dataclass(frozen=True)
@@ -74,6 +119,11 @@ class DiscoveryProvider(ABC):
     def discover(self, context: DiscoveryContext) -> tuple[ProviderOutcome, list[RawCandidate]]:
         """Return an honest outcome plus whatever real candidates were found."""
 
+    def describe(self) -> dict:
+        """Static, secret-free descriptor for GET /api/discovery/providers."""
+        return {"name": self.name, "configured": True, "requires_credentials": self.requires_credentials,
+                "supported_filters": [], "status_message": ""}
+
 
 class DiscoveryProviderRegistry:
     def __init__(self):
@@ -85,6 +135,9 @@ class DiscoveryProviderRegistry:
 
     def names(self) -> list[str]:
         return sorted(self._providers)
+
+    def describe_all(self) -> list[dict]:
+        return [self._providers[name].describe() for name in self.names()]
 
     def get(self, name: str) -> DiscoveryProvider | None:
         return self._providers.get(name)
@@ -107,12 +160,43 @@ class RssFeedProvider(DiscoveryProvider):
     name = "rss_feed"
     requires_credentials = False
 
-    def __init__(self, feeds_by_language: dict[str, tuple[str, ...]] | None = None, client_factory=None):
-        self._feeds_by_language = feeds_by_language if feeds_by_language is not None else _feeds_from_env()
+    def __init__(self, feeds_by_language: dict[str, tuple[str, ...]] | None = None, client_factory=None,
+                 feed_configs: list[FeedConfig] | None = None, sleep=time.sleep):
+        self._sleep = sleep
+        configs: list[FeedConfig] = []
+        if feeds_by_language is not None:
+            for lang, urls in feeds_by_language.items():
+                configs.extend(FeedConfig(url=url, language=lang) for url in urls)
+        elif feed_configs is not None:
+            configs = list(feed_configs)
+        else:
+            configs = load_feed_configs()
+            known = {c.url for c in configs}
+            for lang, urls in _feeds_from_env().items():
+                configs.extend(FeedConfig(url=u, language=lang) for u in urls if u not in known)
+        self._configs_by_language: dict[str, list[FeedConfig]] = {}
+        for config in configs:
+            self._configs_by_language.setdefault(config.language, []).append(config)
         self._client_factory = client_factory
 
+    def describe(self) -> dict:
+        count = sum(len(v) for v in self._configs_by_language.values())
+        return {
+            "name": self.name, "kind": "rss", "configured": count > 0, "requires_credentials": False,
+            "supported_filters": ["language", "topic", "date_from", "date_to", "source_types",
+                                  "categories", "regions", "source_classes"],
+            "rate_limit": "sequential requests, bounded retries",
+            "feeds_configured": count, "languages": sorted(self._configs_by_language),
+            "status_message": (f"{count} feed(s) configured." if count else
+                               "No feeds configured: set DEFENCE_STUDIO_DISCOVERY_CONFIG or DEFENCE_STUDIO_DISCOVERY_RSS_FEEDS."),
+        }
+
     def discover(self, context: DiscoveryContext) -> tuple[ProviderOutcome, list[RawCandidate]]:
-        feeds = self._feeds_by_language.get(context.language, ())
+        started = time.monotonic()
+        attempts_total = 0
+        rate_limited = False
+        feed_configs = self._configs_by_language.get(context.language, [])
+        feeds = tuple(c.url for c in feed_configs)
         if not feeds:
             return ProviderOutcome(
                 provider=self.name, status=ProviderStatus.UNAVAILABLE_NOT_CONFIGURED,
@@ -130,14 +214,20 @@ class RssFeedProvider(DiscoveryProvider):
         )
         candidates: list[RawCandidate] = []
         errors: list[str] = []
-        feeds = feeds[: context.limits.max_feeds_per_provider]
-        for feed_url in feeds:
+        feed_configs = feed_configs[: context.limits.max_feeds_per_provider]
+        feeds = tuple(c.url for c in feed_configs)
+        for feed in feed_configs:
+            feed_url = feed.url
             if context.cancel.is_set():
                 errors.append("Discovery cancelled before all feeds were read.")
                 break
             try:
-                response = fetcher.get(feed_url, cancel=context.cancel)
+                response, attempts, limited = fetch_with_retry(fetcher, feed_url, context.cancel, self._sleep)
+                attempts_total += attempts
+                rate_limited = rate_limited or limited
             except HttpFetchError as exc:
+                attempts_total += getattr(exc, "attempts", 1)
+                rate_limited = rate_limited or getattr(exc, "rate_limited", False)
                 errors.append(f"{feed_url}: {exc.message}")
                 continue
             except UrlValidationError as exc:
@@ -158,35 +248,44 @@ class RssFeedProvider(DiscoveryProvider):
                 candidates.append(RawCandidate(
                     requested_url=link,
                     title=entry.get("title"),
-                    publisher=entry.get("source") or feed_url,
+                    publisher=feed.publisher or entry.get("source") or feed_url,
                     published_at=entry.get("published_at"),
                     language=context.language,
                     source_type="news_feed",
                     original_metadata=entry,
+                    snippet=_clip(entry.get("summary")),
+                    feed_category=feed.category,
+                    feed_source_class=feed.source_class,
+                    feed_region=feed.region,
                 ))
+
+        stats = dict(
+            duration_ms=int((time.monotonic() - started) * 1000), http_attempts=attempts_total,
+            rate_limited=rate_limited, filters_applied=("language", "topic"),
+        )
 
         if not candidates and errors and len(errors) == len(feeds):
             return ProviderOutcome(
                 provider=self.name, status=ProviderStatus.ERROR,
                 message="All configured feeds failed: " + "; ".join(errors),
-                candidates_returned=0,
+                candidates_returned=0, **stats,
             ), []
         if errors:
             return ProviderOutcome(
                 provider=self.name, status=ProviderStatus.PARTIAL,
                 message=f"{len(errors)} of {len(feeds)} feed(s) failed: " + "; ".join(errors),
-                candidates_returned=len(candidates),
+                candidates_returned=len(candidates), **stats,
             ), candidates
         if not candidates:
             return ProviderOutcome(
                 provider=self.name, status=ProviderStatus.COMPLETED_NO_RESULTS,
                 message="Feeds were read successfully but no entry matched the topic/search terms.",
-                candidates_returned=0,
+                candidates_returned=0, **stats,
             ), []
         return ProviderOutcome(
             provider=self.name, status=ProviderStatus.OK,
             message=f"Matched {len(candidates)} entr{'y' if len(candidates) == 1 else 'ies'} across {len(feeds)} feed(s).",
-            candidates_returned=len(candidates),
+            candidates_returned=len(candidates), **stats,
         ), candidates
 
 
@@ -194,10 +293,22 @@ class ConfiguredSearchApiProvider(DiscoveryProvider):
     name = "configured_search_api"
     requires_credentials = True
 
-    def __init__(self, api_url: str | None = None, api_key: str | None = None, client_factory=None):
+    def __init__(self, api_url: str | None = None, api_key: str | None = None, client_factory=None,
+                 sleep=time.sleep):
         self._api_url = api_url if api_url is not None else os.environ.get("DEFENCE_STUDIO_DISCOVERY_SEARCH_API_URL", "")
         self._api_key = api_key if api_key is not None else os.environ.get("DEFENCE_STUDIO_DISCOVERY_SEARCH_API_KEY", "")
         self._client_factory = client_factory
+        self._sleep = sleep
+
+    def describe(self) -> dict:
+        configured = bool(self._api_url and self._api_key)
+        return {
+            "name": self.name, "kind": "search_api", "configured": configured, "requires_credentials": True,
+            "supported_filters": ["language", "topic", "source_types"],
+            "rate_limit": "one request per run, bounded retries",
+            "status_message": ("Configured (no call is made until a search runs)." if configured else
+                               "Missing DEFENCE_STUDIO_DISCOVERY_SEARCH_API_URL and/or _KEY; no network call is made."),
+        }
 
     def discover(self, context: DiscoveryContext) -> tuple[ProviderOutcome, list[RawCandidate]]:
         if not self._api_url or not self._api_key:
@@ -213,17 +324,21 @@ class ConfiguredSearchApiProvider(DiscoveryProvider):
         fetcher = GuardedFetcher(
             context.guard, context.limits.max_bytes_per_fetch, context.limits.timeout_seconds,
             context.limits.max_redirects, client_factory=self._client_factory,
+            extra_headers={"Authorization": f"Bearer {self._api_key}"},
         )
         query = " ".join([context.topic, *context.search_terms]).strip()
         separator = "&" if "?" in self._api_url else "?"
         url = f"{self._api_url}{separator}q={_url_quote(query)}&lang={_url_quote(context.language)}"
+        started = time.monotonic()
         try:
-            response = fetcher.get(url, cancel=context.cancel)
+            response, attempts, rate_limited = fetch_with_retry(fetcher, url, context.cancel, self._sleep)
         except (HttpFetchError, UrlValidationError) as exc:
             return ProviderOutcome(
                 provider=self.name, status=ProviderStatus.ERROR,
-                message=f"Search API request failed: {exc}",
+                message=f"Search API request failed: {_redact(str(exc), self._api_key)}",
                 candidates_returned=0, requires_credentials=True,
+                duration_ms=int((time.monotonic() - started) * 1000),
+                http_attempts=getattr(exc, "attempts", 1), rate_limited=getattr(exc, "rate_limited", False),
             ), []
         try:
             payload = json.loads(response.content.decode("utf-8"))
@@ -252,18 +367,28 @@ class ConfiguredSearchApiProvider(DiscoveryProvider):
                 language=context.language,
                 source_type="search_result",
                 original_metadata=item,
+                snippet=_clip(item.get("snippet")),
+                provider_tag=item.get("category") if isinstance(item.get("category"), str) else None,
+                provider_rank=len(candidates) + 1,
             ))
         if not candidates:
             return ProviderOutcome(
                 provider=self.name, status=ProviderStatus.COMPLETED_NO_RESULTS,
                 message="The configured search API returned no results for this query.",
-                candidates_returned=0, requires_credentials=True,
+                candidates_returned=0, requires_credentials=True, http_attempts=attempts,
+                rate_limited=rate_limited, duration_ms=int((time.monotonic() - started) * 1000),
             ), []
         return ProviderOutcome(
             provider=self.name, status=ProviderStatus.OK,
             message=f"Search API returned {len(candidates)} result(s).",
-            candidates_returned=len(candidates), requires_credentials=True,
+            candidates_returned=len(candidates), requires_credentials=True, http_attempts=attempts,
+            rate_limited=rate_limited, duration_ms=int((time.monotonic() - started) * 1000),
+            filters_applied=("language", "topic"),
         ), candidates
+
+
+def _redact(text: str, secret: str) -> str:
+    return text.replace(secret, "***") if secret else text
 
 
 def _url_quote(value: str) -> str:

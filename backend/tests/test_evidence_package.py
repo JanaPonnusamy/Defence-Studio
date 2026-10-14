@@ -182,7 +182,7 @@ def test_migration_from_reconstructed_v3_preserves_legacy_data(tmp_path):
     initialize_database(db)
     initialize_database(db)
     with closing(connect(db)) as con:
-        assert con.execute("SELECT version FROM schema_info").fetchone()[0] == 7
+        assert con.execute("SELECT version FROM schema_info").fetchone()[0] == 9
         assert con.execute("SELECT note FROM source_reviews").fetchone()[0] == "old note"
         assert con.execute("SELECT topic FROM workflow_jobs").fetchone()[0] == "Legacy topic"
         assert con.execute("SELECT COUNT(*) FROM evidence_packages").fetchone()[0] == 0

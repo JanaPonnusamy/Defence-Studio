@@ -33,6 +33,16 @@ async function handle(response) {
 export function createApiClient(getToken) {
   const base = "/api";
   return {
+    authHeader() { return authHeaders(getToken()); },
+    // Generic authenticated call for stage routes (scene/visual/audio/render/...).
+    // `path` is relative to /api. Throws ApiError with the server's message.
+    async request(method, path, { body, idempotencyKey } = {}) {
+      const extra = idempotencyKey ? { "Idempotency-Key": idempotencyKey } : undefined;
+      return handle(await fetch(`${base}${path}`, {
+        method, headers: authHeaders(getToken(), extra),
+        body: body === undefined ? undefined : JSON.stringify(body),
+      }));
+    },
     // Canonical Phase 2 surface is /package/* + /timeline (core-design route
     // names). Method names kept stable for the evidence view that calls them.
     async evidencePackage(jobId) {
@@ -140,16 +150,33 @@ export function createApiClient(getToken) {
         method: "POST", headers: authHeaders(getToken()), body: JSON.stringify(body),
       }));
     },
-    async listDiscoveryCandidates(jobId, { language, sourceType, provider, minScore, query } = {}) {
+    async listDiscoveryCandidates(jobId, opts = {}) {
+      const map = {
+        language: "language", sourceType: "source_type", provider: "provider", minScore: "min_score",
+        query: "query", category: "category", region: "region", sourceClass: "source_class",
+        dateFrom: "date_from", dateTo: "date_to", publisher: "publisher", cursor: "cursor", pageSize: "page_size",
+      };
       const params = new URLSearchParams();
-      if (language) params.set("language", language);
-      if (sourceType) params.set("source_type", sourceType);
-      if (provider) params.set("provider", provider);
-      if (minScore) params.set("min_score", minScore);
-      if (query) params.set("query", query);
+      for (const [key, name] of Object.entries(map)) {
+        if (opts[key]) params.set(name, opts[key]);
+      }
       const qs = params.toString() ? `?${params.toString()}` : "";
       return handle(await fetch(`${base}/jobs/${encodeURIComponent(jobId)}/discovery/candidates${qs}`, {
         headers: authHeaders(getToken()),
+      }));
+    },
+    async getDiscoveryProviders() {
+      return handle(await fetch(`${base}/discovery/providers`, { headers: authHeaders(getToken()) }));
+    },
+    async getDiscoveryTaxonomy() {
+      return handle(await fetch(`${base}/discovery/taxonomy`, { headers: authHeaders(getToken()) }));
+    },
+    async listDiscoverySearches() {
+      return handle(await fetch(`${base}/discovery/searches`, { headers: authHeaders(getToken()) }));
+    },
+    async rerunDiscovery(jobId) {
+      return handle(await fetch(`${base}/jobs/${encodeURIComponent(jobId)}/discovery/rerun`, {
+        method: "POST", headers: authHeaders(getToken()),
       }));
     },
     async selectDiscoveryCandidates(jobId, candidateIds) {
@@ -174,6 +201,22 @@ export function createApiClient(getToken) {
         `${base}/jobs/${encodeURIComponent(jobId)}/script/revisions/${encodeURIComponent(language)}/${version}`,
         { headers: authHeaders(getToken()) },
       ));
+    },
+    async getScriptStaleness(jobId, language) {
+      const qs = language ? `?language=${encodeURIComponent(language)}` : "";
+      return handle(await fetch(`${base}/jobs/${encodeURIComponent(jobId)}/script/staleness${qs}`, {
+        headers: authHeaders(getToken()),
+      }));
+    },
+    async compareScriptRevisions(jobId, language, oldVersion, newVersion) {
+      return handle(await fetch(
+        `${base}/jobs/${encodeURIComponent(jobId)}/script/compare/${encodeURIComponent(language)}?old=${oldVersion}&new=${newVersion}`,
+        { headers: authHeaders(getToken()) }));
+    },
+    async getScriptRepetition(jobId, language, version) {
+      return handle(await fetch(
+        `${base}/jobs/${encodeURIComponent(jobId)}/script/revisions/${encodeURIComponent(language)}/${version}/repetition`,
+        { headers: authHeaders(getToken()) }));
     },
     async getScriptRevisionHistory(jobId, language, version) {
       return handle(await fetch(

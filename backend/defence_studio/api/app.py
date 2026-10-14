@@ -1,7 +1,7 @@
 from contextlib import asynccontextmanager
 from pathlib import Path
 
-from fastapi import Depends, FastAPI, Header, Query, Request
+from fastapi import Depends, FastAPI, Header, HTTPException, Query, Request
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field, ConfigDict
@@ -17,6 +17,11 @@ from defence_studio.services.worker import WorkerService
 from defence_studio.services.evidence import EvidenceService
 from defence_studio.services.script import ScriptService
 from defence_studio.services.scene import SceneService
+from defence_studio.services.visual import VisualService
+from defence_studio.services.audio import AudioService
+from defence_studio.services.render import RenderService
+from defence_studio.services.package import PackageService
+from defence_studio.api.integration_routes import register_integration_routes
 from defence_studio.services.assets import AssetService
 from defence_studio.contracts.evidence import ApprovalBody
 from defence_studio.contracts.script import GenerationConfigV1
@@ -117,6 +122,7 @@ def create_app(
     signing_secret: str | None = None,
     storage_root_path: Path | None = None,
     dev_auth: DevAuthConfig | None = None,
+    integration_clients: dict | None = None,
 ) -> FastAPI:
     db_path = Path(database_file) if database_file else database_path()
     secret = signing_secret if signing_secret is not None else auth_secret()
@@ -139,11 +145,19 @@ def create_app(
     scripts = ScriptService(db_path, store_root)
     scenes = SceneService(db_path, store_root)
     assets = AssetService(db_path, store_root)
+    clients = integration_clients or {}
+    qc = PackageService(db_path, store_root)  # PackageService extends QcService
+    package = qc
+    visual = VisualService(db_path, store_root, visual_client=clients.get("visual"))
+    audio = AudioService(db_path, store_root, audio_client=clients.get("audio"))
+    render = RenderService(db_path, store_root, renderer_client=clients.get("renderer"),
+                           visual_client=clients.get("visual"))
 
     @asynccontextmanager
     async def lifespan(_app):
         initialize_database(db_path)
         worker_service.recover_expired()
+        visual.recover_interrupted()  # one sweep covers every integration kind
         yield
 
     app = FastAPI(title="Defence Studio API", version="0.1.0", lifespan=lifespan)
@@ -317,12 +331,45 @@ def create_app(
         provider: str | None = Query(default=None),
         min_score: float | None = Query(default=None),
         query: str | None = Query(default=None),
+        category: str | None = Query(default=None),
+        region: str | None = Query(default=None),
+        source_class: str | None = Query(default=None),
+        date_from: str | None = Query(default=None),
+        date_to: str | None = Query(default=None),
+        publisher: str | None = Query(default=None),
+        cursor: str | None = Query(default=None),
+        page_size: int | None = Query(default=None),
         owner_id: str = Depends(require_owner),
     ):
         return discovery.list_candidates(
             job_id, owner_id, language=language, source_type=source_type,
-            provider=provider, min_score=min_score, query=query,
+            provider=provider, min_score=min_score, query=query, category=category,
+            region=region, source_class=source_class, date_from=date_from, date_to=date_to,
+            publisher=publisher, cursor=cursor, page_size=page_size,
         )
+
+    @app.get("/api/discovery/providers")
+    def list_discovery_providers(owner_id: str = Depends(require_owner)):
+        from defence_studio.discovery.providers import default_registry
+        from defence_studio.discovery.taxonomy import DiscoveryConfigError
+        try:
+            return {"providers": default_registry().describe_all()}
+        except DiscoveryConfigError as exc:
+            raise HTTPException(status_code=500, detail=f"Discovery configuration is invalid: {exc}")
+
+    @app.get("/api/discovery/taxonomy")
+    def get_discovery_taxonomy(owner_id: str = Depends(require_owner)):
+        from defence_studio.discovery.taxonomy import taxonomy_payload
+        return taxonomy_payload()
+
+    @app.get("/api/discovery/searches")
+    def list_discovery_searches(limit: int = Query(default=50, ge=1, le=200),
+                                owner_id: str = Depends(require_owner)):
+        return discovery.list_searches(owner_id, limit=limit)
+
+    @app.post("/api/jobs/{job_id}/discovery/rerun", status_code=201)
+    def rerun_discovery(job_id: str, owner_id: str = Depends(require_owner)):
+        return discovery.rerun(job_id, owner_id)
 
     @app.get("/api/jobs/{job_id}/discovery/candidates/{candidate_id}")
     def get_discovery_candidate(job_id: str, candidate_id: str, owner_id: str = Depends(require_owner)):
@@ -411,6 +458,20 @@ def create_app(
         owner_id: str = Depends(require_owner),
     ):
         return scripts.get_revision(job_id, owner_id, language, version)
+
+    @app.get("/api/jobs/{job_id}/script/staleness")
+    def script_staleness(job_id: str, language: str | None = Query(default=None),
+                         owner_id: str = Depends(require_owner)):
+        return scripts.revision_staleness(job_id, owner_id, language)
+
+    @app.get("/api/jobs/{job_id}/script/compare/{language}")
+    def compare_script_revisions(job_id: str, language: str, old: int = Query(gt=0), new: int = Query(gt=0),
+                                 owner_id: str = Depends(require_owner)):
+        return scripts.compare(job_id, owner_id, language, old, new)
+
+    @app.get("/api/jobs/{job_id}/script/revisions/{language}/{version}/repetition")
+    def script_repetition(job_id: str, language: str, version: int, owner_id: str = Depends(require_owner)):
+        return scripts.repetition_report(job_id, owner_id, language, version)
 
     @app.get("/api/jobs/{job_id}/script/revisions/{language}/{version}/history")
     def get_script_revision_history(
@@ -601,6 +662,8 @@ def create_app(
         job_id: str, language: str, owner_id: str = Depends(require_owner),
     ):
         return assets.assignment_readiness(job_id, owner_id, language)
+
+    register_integration_routes(app, require_owner, {"visual": visual, "audio": audio, "render": render, "qc": qc, "package": package})
 
     frontend_dir = PROJECT_ROOT / "frontend"
     if frontend_dir.is_dir():

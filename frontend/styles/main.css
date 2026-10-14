@@ -928,3 +928,23 @@ details[open] > summary { margin-bottom: 0.3rem; }
     scroll-behavior: auto !important;
   }
 }
+
+/* RM-1 search: coverage banners, snippets, history */
+.banner { padding: 0.55rem 0.75rem; border-radius: 8px; margin: 0 0 0.6rem; overflow-wrap: anywhere; }
+.banner.error { background: var(--danger-bg); border: 1px solid var(--rejected); }
+.banner.warn { background: var(--pending-bg); border: 1px solid var(--pending); }
+.candidate-card .snippet { margin: 0.3rem 0; overflow-wrap: anywhere; }
+.candidate-card .meta.warn { color: var(--pending); }
+.search-history { list-style: none; margin: 0.4rem 0 0; padding: 0; display: grid; gap: 0.5rem; }
+.search-run { display: flex; flex-wrap: wrap; gap: 0.4rem; align-items: center; overflow-wrap: anywhere; }
+.search-history-panel { margin-top: 1rem; }
+
+/* RM-3+ production tab */
+.prod-section { margin: 0 0 1.4rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border, rgba(127,127,127,.25)); }
+.scene-list, .run-list { list-style: none; margin: 0 0 .8rem; padding: 0; display: grid; gap: .6rem; }
+.scene-row { padding: .6rem .75rem; border-radius: 8px; background: var(--surface-3); overflow-wrap: anywhere; }
+.scene-actions { display: flex; flex-wrap: wrap; gap: .4rem; margin-top: .4rem; }
+.qc-table { width: 100%; border-collapse: collapse; margin: .6rem 0; font-size: .9rem; display: block; overflow-x: auto; }
+.qc-table th, .qc-table td { text-align: left; padding: .35rem .5rem; border-bottom: 1px solid rgba(127,127,127,.25); overflow-wrap: anywhere; }
+.qc-fail td:nth-child(2) { color: var(--rejected, #e5534b); font-weight: 600; }
+.qc-warn td:nth-child(2) { color: var(--pending, #d4a72c); }

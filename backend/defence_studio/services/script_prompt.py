@@ -40,9 +40,12 @@ def system_prompt(language: str) -> str:
 
 
 def user_prompt(*, topic: str, language: str, audience: str, tone: str, script_format: str,
-                target_words: int, terminology: dict, eligible_claims: list[dict]) -> str:
+                target_words: int, terminology: dict, eligible_claims: list[dict],
+                corroboration: dict | None = None) -> str:
+    corroboration = corroboration or {}
     claims_payload = [
-        {"claim_id": c["claim_id"], "text": c.get("claim_text", ""), "source_id": c.get("source_id", "")}
+        {"claim_id": c["claim_id"], "text": c.get("claim_text", ""), "source_id": c.get("source_id", ""),
+         "independent_sources": corroboration.get(c["claim_id"], 1)}
         for c in eligible_claims
     ]
     schema_hint = {
@@ -53,6 +56,7 @@ def user_prompt(*, topic: str, language: str, audience: str, tone: str, script_f
             "heading": "string (optional)",
             "narration": "string, spoken narration only, no citation IDs inside it",
             "requires_evidence": "boolean",
+            "statement_kind": "one of VERIFIED_FACT (only if independent_sources >= 2), ATTRIBUTED_CLAIM, ANALYSIS, UNRESOLVED",
             "evidence": {"claim_ids": ["only from the supplied claim_id list"], "source_ids": ["informational"],
                         "qualification": "short human-readable note on what is and isn't established"},
             "presentation_note": "string (optional)",

@@ -1,5 +1,38 @@
 # Defence Studio — Project Status
 
+## CURRENT STATE — reconciled 2026-10-14 (RM-0)
+
+Source of truth for current phase status: `DEFENCE_ERA_PHASE_STATUS.md` (25 rows: COMPLETE 3 · PARTIAL 13 · FAILED 0 · BLOCKED 1 · NOT_STARTED 6 · UNVERIFIED 2). Pending items: `DEFENCE_ERA_PENDING_WORK.md`. Order: `DEFENCE_ERA_IMPLEMENTATION_ROADMAP.md` (RM-0..RM-10, standing authorization recorded in the master directive of 2026-10-14). Everything below the "Historical record" divider is preserved evidence; where it says "NOT authorized" / "Next task", this block supersedes it.
+
+**Verified baselines (audit 2026-10-14):** core backend 287 passed / 2 skipped · core frontend 7 passed · Audio Module 31 · Video Visual Module 206 passed / 2 skipped · Video Renderer 117 passed / 1 skipped. Renderer sample: 600 s H.264/AAC, full decode clean.
+
+| Area | Verified status |
+|---|---|
+| Phase 0, F1, F2 | COMPLETE (F2 "REVIEW REQUIRED" text below is stale) |
+| F3–F5, Phase 1A–1D, Phase 2, Phase 3 | PARTIAL — backend TESTED; live HTTP/YouTube/OpenAI unverified; browser populated-data pass owed |
+| Phase 4 scene planning, Phase 5 asset service | PARTIAL — contract+service TESTED, no UI, not integrated with Visual Module |
+| Standalone Audio / Visual / Renderer | TESTED standalone; NOT INTEGRATED with core; now source-tracked (RM-0) |
+| Phase 8 QC, Phase 9 branding/publish, YouTube, Phase 10, orchestration (X1), per-user credentials (X2), history (X3) | NOT_STARTED / BLOCKED on prerequisites |
+
+**RM ledger** (machine-readable copy: `DEFENCE_ERA_PHASE_LEDGER.json`):
+
+| RM | Status | Notes |
+|---|---|---|
+| RM-0 | ACCEPTED 2026-10-14 | Docs reconciled; `.gitignore` now tracks `standalone/audio-module` and `standalone/video-renderer` source (runtime `storage/`, `.env`, `.venv` stay ignored by module-level `.gitignore`); single-writer rule added to `CLAUDE.md`. No product code changed. |
+| RM-1 | IMPLEMENTED + TESTED 2026-10-14 | Backend 300 passed/2 skipped (was 287), frontend 14 (was 7), discovery 39. Live RSS verified on BBC, Defense News, Breaking Defense, The Hindu. NOT done: browser visual pass; hosted search API (no credential); `discovery_searches` table from spec §10 deliberately replaced by history derived from jobs (single source of truth). |
+| RM-2 | IMPLEMENTED + TESTED (offline); live OpenAI generation NOT live-verified (no key) | Backend 313 passed/2 skipped, FE 17. Statement kinds (verified/attributed/analysis/unresolved) enforced deterministically; offline extractive provider (explicit env opt-in); pre-call budget guard; compare/repetition/staleness. Live OpenAI generation: BLOCKED (no key), NOT LIVE-VERIFIED. |
+| RM-3 | IMPLEMENTED + TESTED + INTEGRATED (real Visual Module over HTTP); browser pass pending | Backend 324 passed/2 skipped, FE 20. Approved scene plan -> real Visual Module (public API) -> hashed renderer-neutral timeline artifact bound to plan+script; stale detection; retry/idempotent replay/restart recovery. Shots without rights-cleared assets remain GAPs (honest). Schema v8. |
+| RM-4 | IMPLEMENTED + TESTED + INTEGRATED (real Audio Module, English local OS voice); TAMIL TTS BLOCKED (no Tamil voice/provider) | Audio per approved scene via real module, bytes SHA-256 verified+stored, measured duration, approximate alignment recorded, mock needs double opt-in, stale/replay/recovery. Tamil narration BLOCKED: no Tamil voice installed; request fails closed rather than using a wrong-language voice. |
+| RM-5 | IMPLEMENTED + TESTED + INTEGRATED (3 real modules chained, English); Tamil subtitle shaping VERIFIED visually; Tamil narration BLOCKED | Package builder + real Renderer + libass subtitle burn-in (SRT/VTT/ASS exports), measured-timing visual rebuild, content-addressed outputs, cancel/retry/recovery. Real 3-module English chain verified; Tamil text shaping verified in a rendered frame. Remaining gap: asset byte ingestion (frames are VISUAL GAP cards). |
+| RM-6 | IMPLEMENTED + TESTED (fake renderer w/ real MP4s + real ffmpeg analysis); approval gate TESTED | QC report v1 (+markdown) with 22 checks from ffprobe/ffmpeg/hash/font analysis; deliberately invalid fixtures (black, clipped, wrong size, tampered, gaps) fail as expected; approval bound to exact render+QC versions, warnings must be acknowledged, newer QC/render invalidates it; selective rerun stages reported. |
+| RM-7 | IMPLEMENTED + TESTED (real FFmpeg); package approval gate TESTED; not published anywhere | Branded video (intro+main+outro, optional ducked music with licence provenance), JPEG thumbnail (Tamil via libass, <=2MB 1280x720), validated metadata, YouTube-rule chapters from measured spans, source register from cited evidence only, duplicate-title check, hashed manifest; requires exact QC approval; always private/unpublished. |
+| RM-2 … RM-10 | see ledger | updated as each phase is accepted |
+
+**Single-writer rule:** one session edits the tree at a time; check `git status` first; never overwrite foreign changes; no commit/push without explicit user authorization.
+
+---
+## Historical record (pre-2026-10-14; kept verbatim)
+
 **Updated:** 2026-10-10 (Asia/Calcutta)  
 **Authoritative plan:** `DEFENCE_STUDIO_CORE_PROJECT_DESIGN.md`  
 **Phase 0:** COMPLETE and accepted by user. Audit: `REPOSITORY_AUDIT.md`.  

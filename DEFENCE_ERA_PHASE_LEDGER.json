@@ -1,0 +1,151 @@
+{
+  "updated": "2026-10-14",
+  "phases": {
+    "RM-0": {
+      "status": "ACCEPTED",
+      "evidence": "docs reconciled; .gitignore updated; no product code changed"
+    },
+    "RM-1": {
+      "status": "IMPLEMENTED+TESTED (not browser-verified; hosted search API not live-verified)",
+      "tests": {
+        "backend_full": "300 passed, 2 skipped (baseline 287/2)",
+        "discovery": "39 passed (26 prior + 13 new)",
+        "frontend": "14 passed (baseline 7)"
+      },
+      "live": "rss_feed ran against 4 real public feeds on 2026-10-14 via DiscoveryService (3 topics, results with real publishers/dates); configured_search_api never called (no credential)",
+      "schema": "result v2 additive, no DB migration; history derived from jobs",
+      "files": [
+        "discovery/taxonomy.py",
+        "discovery/providers.py",
+        "discovery/service.py",
+        "services/discovery.py",
+        "contracts/discovery.py",
+        "api/app.py",
+        "config/discovery_feeds.json",
+        "frontend discovery-view/app/api",
+        "tests/test_discovery_f1a.py",
+        "frontend/tests/discovery.test.mjs"
+      ]
+    },
+    "RM-2": {
+      "status": "IMPLEMENTED + TESTED (offline); live OpenAI generation NOT live-verified (no key)",
+      "tests": {
+        "backend_full": "313 passed, 2 skipped",
+        "rm2": "13 new in test_script_rm2.py",
+        "frontend": "17 passed"
+      },
+      "added": [
+        "services/script_integrity.py",
+        "providers/offline_text.py",
+        "validator v2 (statement kinds, corroboration, conflict, unsupported numbers, stale/undated sources)",
+        "budget guard",
+        "compare/repetition/staleness API + UI"
+      ],
+      "not_verified": [
+        "live OpenAI call",
+        "Tamil quality review",
+        "browser pass"
+      ]
+    },
+    "RM-3": {
+      "status": "IMPLEMENTED + TESTED + INTEGRATED (real Visual Module over HTTP); browser pass pending",
+      "tests": {
+        "backend_full": "324 passed, 2 skipped (includes 1 real-module integration test)",
+        "rm3": "11 in test_visual_rm3.py",
+        "frontend": "20 passed"
+      },
+      "schema": "v8 additive: integration_artifacts + integration_events",
+      "added": [
+        "integrations/visual_module.py",
+        "services/integration.py",
+        "services/visual.py",
+        "api/integration_routes.py",
+        "frontend production tab (scene editor + visual timeline)"
+      ],
+      "not_verified": [
+        "browser rendering",
+        "asset byte ingestion into module (gaps remain until rights-cleared assets imported)",
+        "AI image generation (deliberately not enabled)"
+      ]
+    },
+    "RM-4": {
+      "status": "IMPLEMENTED + TESTED + INTEGRATED (real Audio Module, English local OS voice); TAMIL TTS BLOCKED (no Tamil voice/provider)",
+      "tests": {
+        "rm4": "9 in test_audio_rm4.py incl. real-module run",
+        "frontend": "21 passed"
+      },
+      "blockers": [
+        "No Tamil-capable TTS voice installed (module audited: Hazel/Zira en only). Tamil requests fail closed LANGUAGE_UNSUPPORTED until a Tamil voice/provider is declared via DEFENCE_STUDIO_TTS_PROVIDER_LANGUAGES."
+      ],
+      "limits": [
+        "Word alignment is the module approximate VAD-proportional (confidence ~0.4), carried through honestly",
+        "rate/pitch not applicable through module public API (recorded applied:false)",
+        "no emotional modulation claimed"
+      ]
+    },
+    "RM-5": {
+      "status": "IMPLEMENTED + TESTED + INTEGRATED (3 real modules chained, English); Tamil subtitle shaping VERIFIED visually; Tamil narration BLOCKED",
+      "evidence": {
+        "tamil_burn_in_frame": "inspected: conjuncts shaped correctly (Nirmala UI via libass/HarfBuzz)",
+        "e2e_real": "English chain audio->measured visual->renderer->subtitles: h264/aac 1280x720, decode errors 0, duration within 0.25s of audio"
+      },
+      "limits": [
+        "Pillow lacks raqm/harfbuzz so Tamil is burned by FFmpeg/libass post-render, renderer module itself unchanged",
+        "cue timing inside a scene is proportional (scene boundaries measured)",
+        "video shows VISUAL GAP cards: no rights-cleared asset bytes are imported into the Visual Module yet (core asset service is reference-only)"
+      ]
+    },
+    "RM-6": {
+      "status": "IMPLEMENTED + TESTED (fake renderer w/ real MP4s + real ffmpeg analysis); approval gate TESTED",
+      "tests": {
+        "rm6": "6 in test_qc_rm6.py",
+        "frontend": "23 passed"
+      },
+      "checks": [
+        "MANIFEST_CONSISTENCY",
+        "OUTPUT_INTEGRITY",
+        "AUDIO_INTEGRITY",
+        "CONTAINER_STREAMS",
+        "DURATION_MATCH",
+        "DURATION_LIMITS",
+        "FULL_DECODE",
+        "VISUAL_COVERAGE",
+        "BLACK_FRAMES",
+        "FROZEN_FRAMES",
+        "AUDIO_CLIPPING",
+        "AUDIO_SILENCE",
+        "LOUDNESS(EBU R128)",
+        "SUBTITLES_PRESENT",
+        "SUBTITLE_SYNC",
+        "SUBTITLE_OVERFLOW",
+        "SUBTITLE_GLYPHS(cmap)",
+        "ASSET_RIGHTS",
+        "AI_LABELLING",
+        "ATTRIBUTION_REQUIRED",
+        "EVIDENCE_REFS",
+        "BRANDING_ASSETS"
+      ],
+      "not_verified": [
+        "QC UI browser pass",
+        "QC against a long real render (>1 min) not measured"
+      ]
+    },
+    "RM-7": {
+      "status": "IMPLEMENTED + TESTED (real FFmpeg); package approval gate TESTED; not published anywhere",
+      "tests": {
+        "backend_full": "359 passed, 2 skipped",
+        "rm7": "9 in test_package_rm7.py",
+        "frontend": "24 passed"
+      },
+      "defects_fixed": [
+        "cross-owner write: start_package created a row before ownership was checked (found by HTTP isolation test, fixed + asserted)",
+        "QcService/PackageService _run name collision"
+      ],
+      "limits": [
+        "music mixing tested with a synthetic bed only; no licensed music library shipped",
+        "thumbnail uses a video frame + title; no designer templates",
+        "branding cards are text-only"
+      ]
+    }
+  }
+}

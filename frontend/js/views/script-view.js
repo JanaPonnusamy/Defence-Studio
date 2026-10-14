@@ -48,8 +48,11 @@ export async function mountScript({ api, jobId, list, detail, filters, isCurrent
       if (!isCurrent()) return;
       const revisions = result.revisions || [];
       const evidenceReady = !!(evidence && evidence.current_approval);
+      const staleness = await api.getScriptStaleness(jobId).catch(() => null);
+      state.stale = new Map(((staleness && staleness.revisions) || [])
+        .filter(r => r.state === "STALE").map(r => [`${r.language}:${r.version}`, r.reason]));
       const byLanguage = { ta: revisions.filter(r => r.language === "ta"), en: revisions.filter(r => r.language === "en") };
-      list.innerHTML = `<h2>Script generation</h2>
+      list.innerHTML = `${renderStalenessBannerHtml(staleness)}<h2>Script generation</h2>
         ${readinessHtml(evidence)}
         <form id="script-generate-form">
           <fieldset><legend>Generate a draft</legend>
@@ -70,9 +73,9 @@ export async function mountScript({ api, jobId, list, detail, filters, isCurrent
         </form>
         <div id="script-gen-status" role="status"></div>
         <h3>Tamil revisions (${byLanguage.ta.length})</h3>
-        ${renderRevisionList(byLanguage.ta, state.selected)}
+        ${renderRevisionList(byLanguage.ta, state.selected, state.stale)}
         <h3>English revisions (${byLanguage.en.length})</h3>
-        ${renderRevisionList(byLanguage.en, state.selected)}`;
+        ${renderRevisionList(byLanguage.en, state.selected, state.stale)}`;
       list.querySelectorAll("[data-open-revision]").forEach(btn => {
         btn.addEventListener("click", () => {
           const [language, version] = btn.dataset.openRevision.split(":");
@@ -134,8 +137,25 @@ export async function mountScript({ api, jobId, list, detail, filters, isCurrent
       if (!isCurrent()) return;
       detail.innerHTML = renderRevisionDetail(revision, history);
       wireRevisionActions(revision);
+      loadAnalysisPanels(revision);
     } catch (error) {
       if (isCurrent()) detail.innerHTML = `<p role="alert" class="error-state">${esc(error.message)}</p>`;
+    }
+  }
+
+  async function loadAnalysisPanels(revision) {
+    const slot = detail.querySelector("#script-analysis-panels");
+    if (!slot) return;
+    try {
+      const repetition = await api.getScriptRepetition(jobId, revision.language, revision.version);
+      const older = (await api.listScriptRevisions(jobId, revision.language)).revisions
+        .filter(r => r.version < revision.version).map(r => r.version);
+      const diff = older.length
+        ? await api.compareScriptRevisions(jobId, revision.language, Math.max(...older), revision.version) : null;
+      if (!isCurrent()) return;
+      slot.innerHTML = renderRepetitionHtml(repetition) + renderComparisonHtml(diff);
+    } catch (error) {
+      if (isCurrent()) slot.innerHTML = `<p role="alert" class="error-state">${esc(error.message)}</p>`;
     }
   }
 
@@ -179,13 +199,45 @@ export async function mountScript({ api, jobId, list, detail, filters, isCurrent
   await render();
 }
 
-function renderRevisionList(revisions, selected) {
+export function renderStalenessBannerHtml(staleness) {
+  if (!staleness) return "";
+  const stale = (staleness.revisions || []).filter(r => r.state === "STALE");
+  if (!stale.length) return "";
+  return `<div class="banner warn" role="status">${stale.length} script revision(s) no longer match the current approved
+    evidence (${esc(stale[0].reason)}). They cannot be approved or exported; regenerate after re-approving evidence.</div>`;
+}
+
+export function renderRepetitionHtml(report) {
+  if (!report) return "";
+  if (!report.matches.length) {
+    return `<p class="meta">No repeated wording found against ${Number(report.compared_against)} other script(s).</p>`;
+  }
+  return `<div class="banner warn"><strong>Repeated wording</strong><ul>${report.matches.map(m =>
+    `<li>${esc(m.topic || m.job_id)} v${m.version}: ${Math.round(m.overlap_ratio * 100)}% shared phrases</li>`).join("")}</ul></div>`;
+}
+
+export function renderComparisonHtml(diff) {
+  if (!diff) return '<p class="meta">No earlier revision to compare with.</p>';
+  return `<details><summary>Changes since v${diff.old_version}</summary>
+    <ul><li>${Math.round(diff.overlap_ratio * 100)}% phrase overlap, ${diff.word_delta >= 0 ? "+" : ""}${diff.word_delta} words</li>
+    <li>Sections added: ${diff.sections_added.map(esc).join(", ") || "none"}; removed: ${diff.sections_removed.map(esc).join(", ") || "none"};
+      changed: ${diff.sections_changed.map(esc).join(", ") || "none"}</li>
+    <li>Claims added: ${diff.claims_added.map(esc).join(", ") || "none"}; removed: ${diff.claims_removed.map(esc).join(", ") || "none"}</li>
+    ${diff.package_changed ? "<li>Built on different evidence than the earlier revision.</li>" : ""}</ul></details>`;
+}
+
+const KIND_LABELS = {
+  VERIFIED_FACT: "Verified fact (corroborated)", ATTRIBUTED_CLAIM: "Attributed claim",
+  ANALYSIS: "Analysis", UNRESOLVED: "Unresolved",
+};
+
+function renderRevisionList(revisions, selected, stale = new Map()) {
   if (!revisions.length) return '<p class="meta">No revisions generated yet.</p>';
   return `<ul class="revision-list">${revisions.map(r => `
     <li>
       <button type="button" data-open-revision="${esc(r.language)}:${r.version}"
         class="${selected && selected.language === r.language && selected.version === r.version ? "selected" : ""}">
-        v${r.version} · ${esc(r.status)} · ${esc(r.created_at)}
+        v${r.version} · ${esc(r.status)}${stale.has(`${r.language}:${r.version}`) ? " · STALE" : ""} · ${esc(r.created_at)}
       </button>
     </li>`).join("")}</ul>`;
 }
@@ -206,10 +258,12 @@ function renderRevisionDetail(revision, history) {
       ? `Measured cost: ₹${revision.usage.measured_text_cost_inr} (${esc(revision.usage.pricing_source)})`
       : "Measured cost unavailable for this call."}</p>
     ${revision.opening_hook ? `<h3>Opening hook</h3><p>${esc(revision.opening_hook)}</p>` : ""}
+    <div id="script-analysis-panels"><p class="loading-state">Checking repeated wording…</p></div>
     <h3>Narration sections</h3>
     ${revision.sections.map(s => `
       <article class="script-section">
         <h4>${esc(s.heading || s.section_id)}</h4>
+        <p class="meta"><span class="chip">${esc(KIND_LABELS[s.statement_kind] || "Epistemic status not declared")}</span></p>
         <p>${esc(s.narration)}</p>
         ${s.presentation_note ? `<p class="meta">Presentation note: ${esc(s.presentation_note)}</p>` : ""}
         <details><summary>Evidence mapping</summary>

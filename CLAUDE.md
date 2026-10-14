@@ -26,3 +26,5 @@ Applies to every phase, component, bug fix, and review. Full text in
 
 - **Component registry:** every component we build is kept as one canonical copy with a README and registered in `component_registry/` (`REGISTRY.md`). UI primitives (input box, date picker, …) are built once and reused, never re-implemented per page.
 - **Phased order is locked** (core design §3). Begin at the current task in `project_status.md`; do not skip the review gate.
+- **Single-writer rule:** only one agent/session edits the working tree at a time. Before editing, check `git status --short`; never overwrite or revert changes you did not make. Do not commit or push without explicit user authorization.
+- **Status trackers:** `project_status.md`, `DEFENCE_ERA_PHASE_STATUS.md`, `DEFENCE_ERA_PENDING_WORK.md`, `DEFENCE_ERA_IMPLEMENTATION_ROADMAP.md` are updated from verified evidence only. Labels: IMPLEMENTED / TESTED / INTEGRATED / LIVE-VERIFIED / ACCEPTED are not interchangeable.

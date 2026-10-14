@@ -1,0 +1,74 @@
+:root {
+  --bg: #0f1420;
+  --panel: #161c2b;
+  --card: #1c2436;
+  --accent: #5ec8d8;
+  --accent2: #e0a85e;
+  --text: #e8ecf4;
+  --muted: #8d97ab;
+  --border: #2a3348;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Segoe UI', system-ui, sans-serif;
+}
+.topbar {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  padding: 12px 24px;
+  background: var(--panel);
+  border-bottom: 1px solid var(--border);
+}
+.topbar h1 { font-size: 18px; margin: 0; color: var(--accent); }
+.topbar nav { display: flex; gap: 8px; flex: 1; }
+.tab {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--muted);
+  padding: 8px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+.tab.active { color: var(--bg); background: var(--accent); border-color: var(--accent); }
+.api-status { font-size: 12px; color: var(--muted); }
+main { padding: 24px; }
+.panel { display: none; }
+.panel.active { display: block; }
+.panel-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+.card h2 { margin-top: 0; font-size: 15px; color: var(--accent2); }
+label { display: block; margin-bottom: 10px; font-size: 13px; color: var(--muted); }
+input, textarea, select {
+  width: 100%;
+  margin-top: 4px;
+  padding: 8px;
+  background: #0f1420;
+  border: 1px solid var(--border);
+  color: var(--text);
+  border-radius: 6px;
+  font-family: inherit;
+}
+button {
+  background: var(--accent);
+  color: #0a0f18;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+}
+table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 13px; }
+th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--border); }
+.scroll-box { max-height: 300px; overflow: auto; background: #0f1420; padding: 10px; border-radius: 6px; font-size: 12px; }
+audio { width: 100%; }
+canvas { width: 100%; background: #0a0f18; border-radius: 6px; }

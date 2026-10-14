@@ -4,6 +4,7 @@ import { icon } from "./components/icons.js";
 import { mountEvidence } from "./views/evidence-view.js";
 import { mountScript } from "./views/script-view.js";
 import { mountScene } from "./views/scene-view.js";
+import { mountProduction } from "./views/production-view.js";
 import { loadSession, saveToken, saveJobId } from "./state.js";
 import { textFieldHtml } from "./components/text-field.js";
 import { showToast } from "./components/toast.js";
@@ -13,8 +14,9 @@ import { renderDecisionPanelHtml, wireDecisionPanel, renderHistoryHtml } from ".
 import { renderDashboardHtml } from "./views/dashboard-view.js";
 import { renderLoginHtml } from "./views/login-view.js";
 import {
-  renderDiscoveryRequestFormHtml, renderProviderOutcomesHtml,
-  renderDiscoveryCandidatesListHtml, renderSelectionSummaryHtml,
+  renderDiscoveryRequestFormHtml, renderDiscoveryCandidatesListHtml, renderSelectionSummaryHtml,
+  renderDiscoveryFilterFormHtml, renderCoverageHtml, renderEmptyResultsHtml, renderPaginationHtml,
+  renderSearchHistoryHtml,
 } from "./views/discovery-view.js";
 
 const session = loadSession();
@@ -33,7 +35,10 @@ const state = {
   claimsResult: null,
   discoveryResult: null,
   discoverySelection: null,
-  discoveryFilters: { language: "", sourceType: "", provider: "", query: "" },
+  discoveryFilters: { language: "", sourceType: "", provider: "", query: "", category: "", region: "",
+    sourceClass: "", dateFrom: "", dateTo: "" },
+  discoveryTaxonomy: null,
+  discoveryHistory: [],
   selectedCandidateIds: new Set(),
 };
 
@@ -236,6 +241,8 @@ function parseHash() {
     state.tab = "script";
   } else if (parts[0] === "scene") {
     state.tab = "scene";
+  } else if (parts[0] === "production") {
+    state.tab = "production";
   } else {
     state.tab = "sources";
     state.selectedSourceId = parts[1] ? decodeURIComponent(parts[1]) : null;
@@ -293,7 +300,8 @@ function renderTabs() {
     ${tab("claims", "claims", "Claims")}
     ${tab("evidence", "shield", "Evidence")}
     ${tab("script", "script", "Script")}
-    ${tab("scene", "scene", "Scene")}`;
+    ${tab("scene", "scene", "Scene")}
+    ${tab("production", "layers", "Production")}`;
   el.tabs.querySelectorAll("[data-tab]").forEach((btn) => {
     btn.addEventListener("click", () => {
       setHash(btn.dataset.tab, null);
@@ -302,7 +310,7 @@ function renderTabs() {
 }
 
 function renderFilters() {
-  if (state.tab === "evidence" || state.tab === "script" || state.tab === "scene" || state.tab === "dashboard") { el.filters.innerHTML = ""; return; }
+  if (state.tab === "evidence" || state.tab === "script" || state.tab === "scene" || state.tab === "production" || state.tab === "dashboard") { el.filters.innerHTML = ""; return; }
   const statusOptions = ["", "PENDING", "APPROVED_FOR_USE", "REJECTED", "NEEDS_MORE_EVIDENCE", "CONFLICT_UNRESOLVED"];
   const optionHtml = (value) => `<option value="${value}">${value || "All statuses"}</option>`;
   if (state.tab === "discovery") {
@@ -310,6 +318,7 @@ function renderFilters() {
     el.filters.innerHTML = hasRun ? `
       ${textFieldHtml({ id: "discovery-filter-language", label: "Filter by language", value: state.discoveryFilters.language, placeholder: "en" })}
       ${textFieldHtml({ id: "discovery-filter-query", label: "Filter by title", value: state.discoveryFilters.query, placeholder: "keyword" })}
+      ${renderDiscoveryFilterFormHtml(state.discoveryTaxonomy, state.discoveryFilters)}
       <button type="button" id="discovery-confirm-btn" class="primary" disabled>Confirm selection</button>`
       : `<p class="meta">Submit a discovery request below, queue the job, then refresh to browse ranked candidates.</p>`;
     const langInput = el.filters.querySelector("#discovery-filter-language");
@@ -319,6 +328,12 @@ function renderFilters() {
     const queryInput = el.filters.querySelector("#discovery-filter-query");
     if (queryInput) queryInput.addEventListener("change", (e) => {
       state.discoveryFilters.query = e.target.value.trim(); loadDiscovery();
+    });
+    [["#discovery-filter-category", "category"], ["#discovery-filter-region", "region"],
+      ["#discovery-filter-source-class", "sourceClass"], ["#discovery-filter-date-from", "dateFrom"],
+      ["#discovery-filter-date-to", "dateTo"]].forEach(([selector, key]) => {
+      const input = el.filters.querySelector(selector);
+      if (input) input.addEventListener("change", (e) => { state.discoveryFilters[key] = e.target.value; loadDiscovery(); });
     });
     const confirmBtn = el.filters.querySelector("#discovery-confirm-btn");
     if (confirmBtn) confirmBtn.addEventListener("click", confirmDiscoverySelection);
@@ -387,11 +402,20 @@ async function loadDiscovery() {
   el.detail.classList.remove("detail-overlay");
   el.list.innerHTML = `<div class="loading-state">Loading discovery…</div>`;
   try {
+    if (!state.discoveryTaxonomy) {
+      state.discoveryTaxonomy = await api.getDiscoveryTaxonomy().catch(() => null);
+    }
     const result = await api.listDiscoveryCandidates(state.jobId, {
       language: state.discoveryFilters.language || undefined,
       query: state.discoveryFilters.query || undefined,
+      category: state.discoveryFilters.category || undefined,
+      region: state.discoveryFilters.region || undefined,
+      sourceClass: state.discoveryFilters.sourceClass || undefined,
+      dateFrom: state.discoveryFilters.dateFrom || undefined,
+      dateTo: state.discoveryFilters.dateTo || undefined,
     });
     state.discoveryResult = result;
+    state.discoveryHistory = await api.listDiscoverySearches().then((r) => r.searches).catch(() => []);
     if (result.empty_reason && !result.candidates.length) {
       const requestInfo = await api.getDiscoveryRequest(state.jobId).catch(() => null);
       el.list.innerHTML = renderDiscoveryRequestFormHtml(requestInfo && requestInfo.request ? requestInfo.request.topic : "");
@@ -401,9 +425,15 @@ async function loadDiscovery() {
     state.discoverySelection = await api.getDiscoverySelection(state.jobId).catch(() => null);
     state.selectedCandidateIds = new Set((state.discoverySelection && state.discoverySelection.selected_candidate_ids) || []);
     el.list.innerHTML = `
-      ${renderProviderOutcomesHtml(result.providers)}
+      ${renderCoverageHtml(result)}
       ${renderSelectionSummaryHtml(state.discoverySelection)}
-      ${renderDiscoveryCandidatesListHtml(result.candidates, state.selectedCandidateIds)}`;
+      ${result.candidates.length
+        ? renderDiscoveryCandidatesListHtml(result.candidates, state.selectedCandidateIds)
+        : renderEmptyResultsHtml(result)}
+      ${renderPaginationHtml(result)}
+      <details class="search-history-panel"><summary>Previous searches (${state.discoveryHistory.length})</summary>
+        ${renderSearchHistoryHtml(state.discoveryHistory)}</details>`;
+    wireDiscoveryExtras();
     el.list.querySelectorAll("[data-select-candidate]").forEach((box) => {
       box.addEventListener("change", (e) => {
         const id = e.target.dataset.selectCandidate;
@@ -416,6 +446,66 @@ async function loadDiscovery() {
   } catch (err) {
     el.list.innerHTML = errorHtml(err);
   }
+}
+
+function wireDiscoveryExtras() {
+  const more = el.list.querySelector("#discovery-load-more");
+  if (more) {
+    more.addEventListener("click", async () => {
+      more.disabled = true;
+      try {
+        const page = await api.listDiscoveryCandidates(state.jobId, {
+          language: state.discoveryFilters.language || undefined,
+          query: state.discoveryFilters.query || undefined,
+          category: state.discoveryFilters.category || undefined,
+          region: state.discoveryFilters.region || undefined,
+          sourceClass: state.discoveryFilters.sourceClass || undefined,
+          dateFrom: state.discoveryFilters.dateFrom || undefined,
+          dateTo: state.discoveryFilters.dateTo || undefined,
+          cursor: more.dataset.cursor,
+        });
+        const list = el.list.querySelector(".candidate-list");
+        if (list) list.insertAdjacentHTML("beforeend",
+          renderDiscoveryCandidatesListHtml(page.candidates, state.selectedCandidateIds)
+            .replace(/^<ul class="candidate-list">/, "").replace(/<\/ul>$/, ""));
+        state.discoveryResult = { ...page, candidates: [...state.discoveryResult.candidates, ...page.candidates] };
+        more.outerHTML = renderPaginationHtml(state.discoveryResult);
+        wireDiscoveryExtras();
+        el.list.querySelectorAll("[data-select-candidate]").forEach((box) => {
+          box.onchange = (e) => {
+            const id = e.target.dataset.selectCandidate;
+            if (e.target.checked) state.selectedCandidateIds.add(id); else state.selectedCandidateIds.delete(id);
+            updateConfirmButtonState();
+          };
+        });
+      } catch (err) {
+        more.disabled = false;
+        showToast(err instanceof ApiError ? err.detail : "Could not load more results.", { isError: true });
+      }
+    });
+  }
+  el.list.querySelectorAll("[data-reopen-search]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      state.jobId = btn.dataset.reopenSearch;
+      saveJobId(state.jobId);
+      renderTopbar();
+      loadDiscovery();
+    });
+  });
+  el.list.querySelectorAll("[data-rerun-search]").forEach((btn) => {
+    btn.addEventListener("click", async () => {
+      try {
+        const created = await api.rerunDiscovery(btn.dataset.rerunSearch);
+        state.jobId = created.job_id;
+        saveJobId(state.jobId);
+        renderTopbar();
+        showToast("New search created. Queue the job to run it.");
+        loadDiscovery();
+      } catch (err) {
+        showToast(err instanceof ApiError ? err.detail : "Could not rerun the search.", { isError: true });
+      }
+    });
+  });
 }
 
 function updateConfirmButtonState() {
@@ -669,6 +759,12 @@ function dispatchTab() {
     const jobId = state.jobId;
     mountScene({api, jobId, list:el.list, detail:el.detail, filters:el.filters,
       isCurrent:() => state.tab === "scene" && state.jobId === jobId});
+  }
+  else if (state.tab === "production") {
+    if (!requireJob()) return;
+    const jobId = state.jobId;
+    mountProduction({api, jobId, list:el.list, detail:el.detail, filters:el.filters,
+      isCurrent:() => state.tab === "production" && state.jobId === jobId});
   }
   else if (state.tab === "discovery") loadDiscovery();
   else if (state.tab === "sources") loadSources();

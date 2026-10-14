@@ -406,7 +406,7 @@ def test_migration_from_a_real_v2_database_adds_review_tables_without_disturbing
 
     with closing(connect(database_file)) as connection:
         version = connection.execute("SELECT version FROM schema_info WHERE singleton = 1").fetchone()[0]
-        assert version == 7
+        assert version == 9
         for table in ("claim_reviews", "claim_review_history", "source_reviews", "source_review_history"):
             connection.execute(f"SELECT COUNT(*) FROM {table}")  # does not raise
         preserved = connection.execute(

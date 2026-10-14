@@ -52,8 +52,12 @@ node_modules/
 .vscode/
 .idea/
 
-# Standalone module builds (independent projects). Ignored by default; only the
-# video-visual-module is tracked here (it keeps its own .gitignore for .venv, .env,
-# storage/ and backups/).
+# Standalone module builds (independent projects). Each tracked module keeps its
+# own .gitignore for .venv, .env, storage/ (runtime data) and caches, so only
+# source, tests and docs are tracked. Audio fixtures' generated audit output stays local.
 /standalone/*
 !/standalone/video-visual-module/
+!/standalone/audio-module/
+!/standalone/video-renderer/
+/standalone/audio-module/fixtures/_female_voice_audit_out/
+*.wav.tmp

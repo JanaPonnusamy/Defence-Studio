@@ -10,8 +10,9 @@ import re
 from datetime import datetime, timezone
 
 from defence_studio.contracts.script import ValidationIssueV1, ValidationResultV1
+from defence_studio.services.script_integrity import integrity_issues
 
-VALIDATOR_VERSION = "defence-studio.script-validator.v1"
+VALIDATOR_VERSION = "defence-studio.script-validator.v2"
 
 # A material-fact heuristic: sections whose narration contains a number, a
 # quotation mark, or a 4-digit year are treated as needing evidence support
@@ -85,6 +86,7 @@ def validate_revision_body(revision: dict, approved_package: dict) -> dict:
     if not (revision.get("title") or "").strip():
         issues.append(dict(code="MISSING_TITLE", severity="ERROR", detail="A script revision must have a title"))
 
+    issues.extend(integrity_issues(revision, approved_package))
     passed = not any(i["severity"] == "ERROR" for i in issues)
     result = dict(
         passed=passed, validator_version=VALIDATOR_VERSION,

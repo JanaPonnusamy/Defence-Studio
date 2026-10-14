@@ -1,0 +1,1 @@
+This is a test fixture. It is generated synthetically for automated testing. The audio module should process this file end to end. Alignment and analysis results on this fixture are approximate by design.

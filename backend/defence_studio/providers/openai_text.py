@@ -76,6 +76,9 @@ def estimate_cost_inr(model: str, input_tokens: int, output_tokens: int) -> floa
 
 
 class OpenAiTextProvider:
+    name = "openai"
+    is_paid = True
+
     """Bounded, retrying Chat-Completions client behind a testable seam.
 
     Never called implicitly: the caller (ScriptService) only invokes this on an

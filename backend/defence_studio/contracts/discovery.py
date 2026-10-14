@@ -30,7 +30,8 @@ from enum import Enum
 from defence_studio.contracts.acquisition import MetadataStatus
 
 DISCOVERY_REQUEST_SCHEMA = "defence-studio.discovery-request.v1"
-DISCOVERY_RESULT_SCHEMA = "defence-studio.discovery-result.v1"
+DISCOVERY_RESULT_SCHEMA = "defence-studio.discovery-result.v2"
+DISCOVERY_RESULT_SCHEMA_V1 = "defence-studio.discovery-result.v1"  # still readable (additive v2)
 
 # The locked pipeline stage this module executes under (see contracts/jobs.py).
 # Its predecessor, `application_foundation`, carries the owner-submitted
@@ -81,6 +82,9 @@ class DiscoveryFilters:
     providers: tuple[str, ...] = ()  # empty/absent means "all enabled providers"
     date_from: str | None = None  # ISO date (YYYY-MM-DD)
     date_to: str | None = None
+    categories: tuple[str, ...] = ()
+    regions: tuple[str, ...] = ()
+    source_classes: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -107,6 +111,12 @@ class ProviderOutcome:
     candidates_returned: int
     requires_credentials: bool = False
     optional_dependency: bool = False
+    duration_ms: int = 0
+    http_attempts: int = 0
+    rate_limited: bool = False
+    filters_applied: tuple[str, ...] = ()
+    filters_not_supported: tuple[str, ...] = ()
+    truncated: bool = False
 
 
 @dataclass(frozen=True)
@@ -145,6 +155,16 @@ class DiscoveryCandidateV1:
     original_metadata: dict
     merged_from_providers: tuple[str, ...] = ()  # other providers that returned the same canonical URL
     warnings: tuple[str, ...] = ()
+    # --- v2 additive fields (spec §8) ---
+    category: str = "UNCLASSIFIED"
+    category_basis: str = "UNCLASSIFIED"
+    regions: tuple[str, ...] = ()
+    region_basis: str = "UNCLASSIFIED"
+    source_class: str = "UNKNOWN"
+    retrieved_at: str | None = None
+    snippet: str | None = None
+    provider_rank: int | None = None
+    filter_flags: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -228,8 +248,25 @@ def request_from_dict(payload: dict, job_id: str | None = None) -> DiscoveryRequ
     date_to = _validate_date(raw_filters.get("date_to"), "filters.date_to")
     if date_from and date_to and date_from > date_to:
         raise RequestValidationError("filters.date_from must not be after filters.date_to")
+    from defence_studio.discovery import taxonomy as tx
+    categories = _string_tuple(raw_filters.get("categories", []), "filters.categories")
+    regions = _string_tuple(raw_filters.get("regions", []), "filters.regions")
+    source_classes = _string_tuple(raw_filters.get("source_classes", []), "filters.source_classes")
+    for value, allowed, name in (
+        (categories, tx.CATEGORIES + (tx.UNCLASSIFIED,), "category"),
+        (regions, tx.REGIONS, "region"),
+        (source_classes, tx.SOURCE_CLASSES, "source class"),
+    ):
+        for item in value:
+            if item not in allowed:
+                raise RequestValidationError(f"Unknown {name} {item!r}")
+    known = {"source_types", "providers", "date_from", "date_to", "categories", "regions", "source_classes"}
+    unknown = sorted(set(raw_filters) - known)
+    if unknown:
+        raise RequestValidationError(f"Unknown filter key(s): {unknown}")
     filters = DiscoveryFilters(
         source_types=source_types, providers=providers, date_from=date_from, date_to=date_to,
+        categories=categories, regions=regions, source_classes=source_classes,
     )
 
     raw_limits = payload.get("limits") or {}

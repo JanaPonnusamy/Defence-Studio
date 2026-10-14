@@ -60,8 +60,10 @@ class FetchResponse:
 
 class GuardedFetcher:
     def __init__(self, guard: UrlGuard, max_bytes: int, timeout: float, max_redirects: int,
-                 client_factory=None):
+                 client_factory=None, extra_headers: dict | None = None):
         self.guard = guard
+        # Sent on the first hop only (never forwarded across redirects).
+        self._extra_headers = dict(extra_headers or {})
         self.max_bytes = int(max_bytes)
         self.timeout = float(timeout)
         self.max_redirects = int(max_redirects)
@@ -75,7 +77,7 @@ class GuardedFetcher:
             while True:
                 if cancel is not None and cancel.is_set():
                     raise HttpFetchError("cancelled", "Acquisition was cancelled", retryable=True)
-                response = self._single_get(client, current.url)
+                response = self._single_get(client, current.url, first_hop=(hops == 0))
                 if response.status_code in _REDIRECT_STATUSES and response.headers.get("location"):
                     hops += 1
                     if hops > self.max_redirects:
@@ -106,8 +108,10 @@ class GuardedFetcher:
                     content=response.content,
                 )
 
-    def _single_get(self, client, url: str):
+    def _single_get(self, client, url: str, first_hop: bool = True):
         headers = {"User-Agent": _USER_AGENT, "Accept": "*/*"}
+        if first_hop:
+            headers.update(self._extra_headers)
         try:
             with client.stream("GET", url, headers=headers) as response:
                 declared = response.headers.get("content-length")

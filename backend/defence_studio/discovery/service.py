@@ -35,6 +35,7 @@ from defence_studio.contracts.discovery import (
     DiscoveryResultV1,
 )
 from defence_studio.discovery import ranking as ranking_mod
+from defence_studio.discovery import taxonomy as tx
 from defence_studio.discovery.providers import DiscoveryContext, DiscoveryProviderRegistry, default_registry
 
 HARD_MAX_RESULTS = 50
@@ -152,6 +153,31 @@ class DiscoveryService:
         if request.filters.source_types and raw.source_type not in request.filters.source_types:
             return
 
+        category, category_basis = tx.classify(raw.title, raw.snippet, raw.feed_category, raw.provider_tag)
+        regions, region_basis = tx.classify_regions(raw.title, raw.snippet, raw.feed_region)
+        source_class = raw.feed_source_class or "UNKNOWN"
+        flags: list[str] = []
+        f = request.filters
+        # Server-side taxonomy filters. A candidate whose metadata cannot be
+        # determined is kept and flagged (never silently dropped or kept).
+        if f.categories:
+            if category == tx.UNCLASSIFIED and tx.UNCLASSIFIED not in f.categories:
+                flags.append("category_filter_unverifiable")
+            elif category not in f.categories:
+                return
+        if f.regions:
+            if not regions:
+                flags.append("region_filter_unverifiable")
+            elif not set(regions) & set(f.regions):
+                return
+        if f.source_classes:
+            if source_class == "UNKNOWN" and "UNKNOWN" not in f.source_classes:
+                flags.append("source_class_filter_unverifiable")
+            elif source_class not in f.source_classes:
+                return
+        if (f.date_from or f.date_to) and not raw.published_at:
+            flags.append("date_filter_unverifiable")
+
         factors = ranking_mod.score_candidate(
             title=raw.title, published_at=raw.published_at, candidate_language=raw.language,
             candidate_type=raw.source_type, topic=request.topic, search_terms=request.search_terms,
@@ -170,6 +196,22 @@ class DiscoveryService:
                 )
             return
 
+        # Near-duplicate: same publisher, same normalized title, same day
+        # (spec §9). Merge, never delete; syndication across publishers is F4's job.
+        near_key = _near_key(raw.title, raw.publisher, raw.published_at)
+        if near_key is not None:
+            for existing in merged.values():
+                meta = existing.declared_metadata
+                if _near_key(meta.title, meta.publisher, meta.published_at) == near_key:
+                    dedup_notes.append(
+                        f"{canonical} merged into {existing.canonical_url}: same publisher, title and day."
+                    )
+                    merged[existing.candidate_id] = DiscoveryCandidateV1(**{
+                        **existing.__dict__,
+                        "warnings": existing.warnings + (f"near-duplicate URL merged: {canonical}",),
+                    })
+                    return
+
         merged[candidate_id] = DiscoveryCandidateV1(
             candidate_id=candidate_id, requested_url=raw.requested_url, canonical_url=canonical,
             source_type=raw.source_type, provider=provider_name, provider_version=provider_version,
@@ -184,4 +226,18 @@ class DiscoveryService:
                 language_status=MetadataStatus.COLLECTED if raw.language else MetadataStatus.UNAVAILABLE,
             ),
             ranking=factors, original_metadata=dict(raw.original_metadata),
+            category=category, category_basis=category_basis, regions=tuple(regions),
+            region_basis=region_basis, source_class=source_class, retrieved_at=discovered_at,
+            snippet=raw.snippet, provider_rank=raw.provider_rank, filter_flags=tuple(flags),
         )
+
+
+def _near_key(title, publisher, published_at):
+    if not title or not publisher or not published_at or publisher.startswith("http"):
+        return None  # a URL fallback is not a declared publisher
+    parsed = ranking_mod.parse_date(published_at)
+    if parsed is None:
+        return None
+    import re
+    norm = re.sub(r"[^\w]+", " ", title.lower(), flags=re.UNICODE).strip()
+    return (norm, publisher.strip().lower(), parsed.isoformat()) if norm else None

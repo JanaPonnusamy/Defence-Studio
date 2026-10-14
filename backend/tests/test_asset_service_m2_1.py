@@ -388,7 +388,7 @@ def test_migration_v6_to_v7_additive_preserves_data_and_fails_closed():
 
     D.initialize_database(dbp)  # must additively upgrade 6->7
     conn2 = D.connect(dbp)
-    assert conn2.execute("SELECT version FROM schema_info").fetchone()[0] == 7
+    assert conn2.execute("SELECT version FROM schema_info").fetchone()[0] == 9
     assert conn2.execute("SELECT job_id FROM workflow_jobs").fetchone()[0] == "j1"  # preserved
     for t in ("assets", "asset_rights", "asset_assignments", "asset_reviews", "asset_review_history"):
         assert conn2.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name=?", (t,)).fetchone()

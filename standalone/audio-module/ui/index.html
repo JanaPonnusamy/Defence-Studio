@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Voice Audio Lab</title>
+<link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+<header class="topbar">
+  <h1>Voice Audio Lab</h1>
+  <nav>
+    <button data-tab="library" class="tab active">Reference Library</button>
+    <button data-tab="queue" class="tab">Processing Queue</button>
+    <button data-tab="workspace" class="tab">Workspace</button>
+    <button data-tab="profiles" class="tab">Performance Profiles</button>
+    <button data-tab="creator" class="tab">Audio Creator</button>
+  </nav>
+  <div class="api-status" id="apiStatus">checking API…</div>
+</header>
+
+<main>
+  <!-- REFERENCE LIBRARY -->
+  <section id="panel-library" class="panel active">
+    <div class="panel-grid">
+      <div class="card">
+        <h2>Add Reference</h2>
+        <form id="addReferenceForm">
+          <label>Title<input type="text" name="title" required></label>
+          <label>Language<input type="text" name="language" value="en"></label>
+          <label>Audio file<input type="file" name="audio_file" accept=".wav,.mp3,.m4a,.flac,.ogg" required></label>
+          <label>Transcript text (plain / SRT / VTT)<textarea name="transcript_text" rows="4" placeholder="Optional. Paste plain text, or SRT/VTT cues."></textarea></label>
+          <label>Transcript format
+            <select name="transcript_format">
+              <option value="plain">plain</option>
+              <option value="srt">srt</option>
+              <option value="vtt">vtt</option>
+            </select>
+          </label>
+          <label>Rights metadata (JSON)<input type="text" name="rights_metadata" value='{"authorized": true, "notes": "self-generated test fixture"}'></label>
+          <button type="submit">Add Reference</button>
+        </form>
+      </div>
+      <div class="card">
+        <h2>References</h2>
+        <button id="refreshReferences">Refresh</button>
+        <table id="referencesTable">
+          <thead><tr><th>Title</th><th>Status</th><th>Duration</th><th>Actions</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- PROCESSING QUEUE / JOB STATUS -->
+  <section id="panel-queue" class="panel">
+    <div class="card">
+      <h2>Processing Queue / Job Status</h2>
+      <button id="refreshJobs">Refresh</button>
+      <table id="jobsTable">
+        <thead><tr><th>Job</th><th>Type</th><th>Status</th><th>Stage</th><th>Progress</th><th>Result</th><th>Error</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- WORKSPACE: waveform / transcript / playback / analysis overlay -->
+  <section id="panel-workspace" class="panel">
+    <div class="card">
+      <h2>Inspect Reference</h2>
+      <label>Reference ID<input type="text" id="workspaceRefId" placeholder="paste reference_id"></label>
+      <button id="loadWorkspace">Load</button>
+    </div>
+    <div class="card">
+      <h2>Audio Playback</h2>
+      <audio id="player" controls></audio>
+    </div>
+    <div class="card">
+      <h2>Waveform / Timeline</h2>
+      <canvas id="waveformCanvas" width="1000" height="140"></canvas>
+    </div>
+    <div class="card">
+      <h2>Transcript</h2>
+      <div id="transcriptView" class="scroll-box"></div>
+    </div>
+    <div class="card">
+      <h2>Analysis Overlay</h2>
+      <pre id="analysisView" class="scroll-box"></pre>
+    </div>
+  </section>
+
+  <!-- PERFORMANCE PROFILE -->
+  <section id="panel-profiles" class="panel">
+    <div class="card">
+      <h2>Build Profile From Analyses</h2>
+      <form id="buildProfileForm">
+        <label>Profile name<input type="text" name="profile_name" required></label>
+        <label>Analysis IDs (comma-separated)<input type="text" name="analysis_ids" required></label>
+        <button type="submit">Build Profile (job)</button>
+      </form>
+    </div>
+    <div class="card">
+      <h2>Profiles</h2>
+      <button id="refreshProfiles">Refresh</button>
+      <table id="profilesTable">
+        <thead><tr><th>Name</th><th>Tempo</th><th>Pause</th><th>Energy</th><th>Emphasis</th><th>Pitch</th><th>ID</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+    <div class="card">
+      <h2>Performance Plan</h2>
+      <form id="buildPlanForm">
+        <label>Profile ID<input type="text" name="profile_id" required></label>
+        <label>Script<textarea name="script" rows="4" required></textarea></label>
+        <button type="submit">Build Plan</button>
+      </form>
+      <pre id="planView" class="scroll-box"></pre>
+    </div>
+  </section>
+
+  <!-- AUDIO CREATOR -->
+  <section id="panel-creator" class="panel">
+    <div class="card">
+      <h2>Audio Creator</h2>
+      <form id="ttsForm">
+        <label>Text<textarea name="text" rows="4" required></textarea></label>
+        <label>Voice ID (optional)<input type="text" name="voice_id"></label>
+        <label>Provider
+          <select name="provider" id="providerSelect"></select>
+        </label>
+        <label>Performance Plan ID (optional)<input type="text" name="performance_plan_id"></label>
+        <button type="submit">Generate</button>
+      </form>
+      <div id="ttsJobStatus"></div>
+      <div id="ttsResult"></div>
+    </div>
+  </section>
+</main>
+
+<script src="app.js"></script>
+</body>
+</html>

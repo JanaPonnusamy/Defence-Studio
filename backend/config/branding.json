@@ -1,0 +1,14 @@
+{
+  "_comment": "Default channel branding template. Per-video overrides are supplied when a package is built; the effective values are recorded in the package manifest.",
+  "version": "1",
+  "channel_name": "Defence Era",
+  "tagline": "Evidence-checked defence news",
+  "colors": {"background": "0b1d33", "accent": "d4a72c", "text": "ffffff"},
+  "intro_seconds": 3.0,
+  "outro_seconds": 4.0,
+  "end_card_text": ["Thanks for watching", "Sources are listed in the description"],
+  "default_category_id": "25",
+  "default_hashtags": ["#DefenceEra", "#Defence"],
+  "default_tags": ["defence", "defense news", "military analysis"],
+  "music": {"enabled": false, "duck_db": -18}
+}

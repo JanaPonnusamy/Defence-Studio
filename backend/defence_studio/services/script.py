@@ -32,6 +32,10 @@ from defence_studio.services.evidence import EvidenceService
 from defence_studio.services.review import ReviewError, ReviewNotFound, ReviewValidationError, StaleRevision
 from defence_studio.services.script_prompt import system_prompt, user_prompt
 from defence_studio.services.script_validation import validate_revision_body
+from defence_studio.services.script_integrity import (
+    compare_revisions, corroboration_count, repetition_against,
+)
+from pydantic import ValidationError as _PydanticValidationError
 
 __all__ = ["ScriptService", "ScriptGenerationFailed", "ScriptNotFound", "ScriptValidationError", "ScriptStaleRevision"]
 
@@ -68,6 +72,10 @@ class ScriptService(EvidenceService):
     def _resolve_provider(self):
         if self._provider is not None:
             return self._provider
+        import os
+        if os.environ.get("DEFENCE_STUDIO_SCRIPT_PROVIDER", "").lower() == "offline":
+            from defence_studio.providers.offline_text import OfflineExtractiveProvider
+            return OfflineExtractiveProvider()
         from defence_studio.providers.openai_text import OpenAiTextProvider
         return OpenAiTextProvider()
 
@@ -155,16 +163,19 @@ class ScriptService(EvidenceService):
         request_sha = digest(request_body)
 
         provider = self._resolve_provider()
+        corroboration = {c["claim_id"]: corroboration_count(approved_package, c["claim_id"]) for c in eligible_claims}
+        prompt_text = user_prompt(
+            topic=approved_package.get("topic", ""), language=parsed_config.language,
+            audience=parsed_config.audience, tone=parsed_config.tone,
+            script_format=parsed_config.script_format, target_words=parsed_config.target_words,
+            terminology=parsed_config.terminology, eligible_claims=eligible_claims, corroboration=corroboration,
+        )
+        self._budget_guard(provider, parsed_config, system_prompt(parsed_config.language), prompt_text)
         try:
             result = provider.generate(
                 model=parsed_config.model,
                 system_prompt=system_prompt(parsed_config.language),
-                user_prompt=user_prompt(
-                    topic=approved_package.get("topic", ""), language=parsed_config.language,
-                    audience=parsed_config.audience, tone=parsed_config.tone,
-                    script_format=parsed_config.script_format, target_words=parsed_config.target_words,
-                    terminology=parsed_config.terminology, eligible_claims=eligible_claims,
-                ),
+                user_prompt=prompt_text,
             )
         except ProviderError as exc:
             # Provider failures never corrupt job/review state: nothing was
@@ -176,6 +187,8 @@ class ScriptService(EvidenceService):
             parsed_body = json.loads(result.text)
         except json.JSONDecodeError as exc:
             raise ScriptGenerationFailed(f"Provider returned malformed JSON: {exc}") from exc
+        if not isinstance(parsed_body, dict):
+            raise ScriptGenerationFailed("Provider output must be a JSON object")
         if result.measured_text_cost_inr is not None and result.measured_text_cost_inr > parsed_config.max_text_cost_inr:
             raise ScriptGenerationFailed("Measured text generation cost exceeds the configured budget")
 
@@ -195,7 +208,7 @@ class ScriptService(EvidenceService):
             "closing": parsed_body.get("closing", ""),
             "config": parsed_config.model_dump(),
             "usage": {
-                "model": parsed_config.model, "provider": "openai",
+                "model": parsed_config.model, "provider": getattr(provider, "name", "openai"),
                 "input_tokens": result.input_tokens, "output_tokens": result.output_tokens,
                 "tokens_available": result.tokens_available, "retries": result.retries,
                 "measured_text_cost_inr": result.measured_text_cost_inr,
@@ -216,7 +229,13 @@ class ScriptService(EvidenceService):
         revision_body["validation"] = validation
         revision_body["status"] = "AWAITING_REVIEW" if validation["passed"] else "VALIDATION_FAILED"
         # Validate the whole persisted shape (also re-checks status/approval integrity).
-        canonical_body = validate_revision(revision_body)
+        # A schema-invalid model output fails explicitly; it never becomes an empty success.
+        try:
+            canonical_body = validate_revision(revision_body)
+        except _PydanticValidationError as exc:
+            raise ScriptGenerationFailed(
+                f"Provider output does not match the script schema ({exc.error_count()} problem(s)): "
+                f"{'; '.join(str(e['loc']) for e in exc.errors()[:5])}") from exc
 
         data = canonical(canonical_body)
         sha = hashlib.sha256(data).hexdigest()
@@ -254,6 +273,82 @@ class ScriptService(EvidenceService):
                 "SELECT * FROM script_revisions WHERE job_id=? AND language=? AND version=?",
                 (job_id, parsed_config.language, version),
             ).fetchone()))
+
+    # -- budget guard ---------------------------------------------------------
+
+    def _budget_guard(self, provider, config, system_text: str, prompt_text: str) -> None:
+        """Refuse a *paid* call whose pre-call estimate exceeds the budget, or
+        whose cost cannot be estimated. Estimate only: real cost is measured
+        from provider usage afterwards. Free/offline providers skip the guard."""
+        if not getattr(provider, "is_paid", False):
+            return
+        from defence_studio.providers.openai_text import estimate_cost_inr
+        chars = len(system_text) + len(prompt_text)
+        # Conservative: Tamil/mixed text tokenizes at roughly 1 token / 1.5 chars.
+        est_in = int(chars / 1.5) + 1
+        est_out = int(config.target_words * 4) + 200
+        estimate = estimate_cost_inr(config.model, est_in, est_out)
+        if estimate is None:
+            raise ScriptGenerationFailed(
+                f"Budget guard: no pricing is known for model {config.model!r}; refusing a paid call "
+                "whose cost cannot be bounded.")
+        if estimate > config.max_text_cost_inr:
+            raise ScriptGenerationFailed(
+                f"Budget guard: estimated cost INR {estimate:.2f} exceeds the configured budget "
+                f"INR {config.max_text_cost_inr:.2f}; no paid call was made.")
+
+    # -- comparison, repetition, staleness ------------------------------------
+
+    def compare(self, job_id: str, owner_id: str, language: str, old_version: int, new_version: int) -> dict:
+        old = self.get_revision(job_id, owner_id, language, old_version)
+        new = self.get_revision(job_id, owner_id, language, new_version)
+        return compare_revisions(old, new)
+
+    def repetition_report(self, job_id: str, owner_id: str, language: str, version: int) -> dict:
+        """Compare a revision against this owner's other scripts (earlier
+        versions of this job and any other job) to surface repeated wording."""
+        current = self.get_revision(job_id, owner_id, language, version)
+        others = []
+        with closing(connect(self.database_file)) as connection:
+            rows = connection.execute(
+                "SELECT r.*, j.topic AS topic FROM script_revisions r JOIN workflow_jobs j ON j.job_id=r.job_id "
+                "WHERE j.owner_id=? AND r.language=? AND NOT (r.job_id=? AND r.version=?) "
+                "ORDER BY r.job_id, r.version",
+                (owner_id, language, job_id, version),
+            ).fetchall()
+        for row in rows:
+            row = dict(row)
+            try:
+                body = self._read_json_artifact(row["job_id"], row)
+            except ReviewError:
+                continue
+            others.append({"job_id": row["job_id"], "version": row["version"], "topic": row["topic"], "body": body})
+        matches = repetition_against(current, others)
+        return {"job_id": job_id, "language": language, "version": version,
+                "compared_against": len(others), "matches": matches,
+                "threshold": 0.35, "method": "5-word-phrase-overlap.v1"}
+
+    def revision_staleness(self, job_id: str, owner_id: str, language: str | None = None) -> dict:
+        """Which stored revisions still rest on the current approved evidence.
+        Revisions are immutable; staleness is derived, never written back."""
+        self._check_ownership(job_id, owner_id)
+        try:
+            with closing(connect(self.database_file)) as connection:
+                current = self._snapshot(connection, job_id, owner_id)
+            current_sha, ready = digest(current), bool(current["ready"])
+        except ReviewError:
+            current_sha, ready = None, False
+        out = []
+        for row in self.list_revisions(job_id, owner_id, language)["revisions"]:
+            if current_sha is None or not ready:
+                state, reason = "STALE", "The evidence package is not currently ready/approved"
+            elif row["package_sha256"] != current_sha:
+                state, reason = "STALE", "Upstream evidence changed after this revision was generated"
+            else:
+                state, reason = "CURRENT", ""
+            out.append({"language": row["language"], "version": row["version"], "status": row["status"],
+                        "state": state, "reason": reason, "package_sha256": row["package_sha256"]})
+        return {"job_id": job_id, "current_package_sha256": current_sha, "evidence_ready": ready, "revisions": out}
 
     def _snapshot_current_approved(self, connection, job_id: str, owner_id: str) -> dict:
         """Mirrors `EvidenceService.export()`'s ledger check: `_snapshot` always

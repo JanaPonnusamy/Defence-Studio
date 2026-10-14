@@ -47,7 +47,10 @@ class EvidenceService(ReviewService):
                 "discovery_result": "defence-studio.discovery-result.v1",
                 "acquisition_request": "defence-studio.acquisition-request.v1",
             }[kind]
-            if ref["schema_version"] != expected_schema or payloads[kind].get("schema_version") != expected_schema:
+            accepted = {expected_schema}
+            if kind == "discovery_result":
+                accepted.add("defence-studio.discovery-result.v2")  # additive v2; v1 stays readable
+            if ref["schema_version"] not in accepted or payloads[kind].get("schema_version") not in accepted:
                 raise ReviewValidationError(f"Unsupported {kind} schema")
         acq, analysis = payloads.get("acquisition_manifest", {}), payloads.get("analysis_result", {})
         by_type = {r["artifact_type"]: r for r in refs}

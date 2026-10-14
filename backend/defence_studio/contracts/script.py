@@ -146,6 +146,9 @@ class NarrationSectionV1(StrictModel):
     narration: str = Field(min_length=1, max_length=20000)
     # Whether this section asserts material facts that require evidence support.
     requires_evidence: bool = True
+    # Epistemic status (RM-2). None = undeclared (validator warns); never
+    # inferred from model confidence. See services/script_integrity.py.
+    statement_kind: Literal["VERIFIED_FACT", "ATTRIBUTED_CLAIM", "ANALYSIS", "UNRESOLVED"] | None = None
     evidence: EvidenceRefV1 = Field(default_factory=EvidenceRefV1)
     # Optional presentation/transition note, clearly separated from narration.
     presentation_note: str = Field(default="", max_length=2000)

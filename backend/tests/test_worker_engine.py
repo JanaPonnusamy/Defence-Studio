@@ -250,13 +250,13 @@ def test_f1_schema_migrates_additively_and_preserves_job_and_artifacts(tmp_path)
 
     initialize_database(path)
     state = jobs.get(job_id, OWNER)
-    assert SCHEMA_VERSION == 7
+    assert SCHEMA_VERSION == 9
     assert state["topic"] == "Rafale update"
     assert state["stages"][0]["status"] == "RUNNING"
     assert state["stages"][0]["attempt_count"] == 0
     assert state["artifacts"][0]["sha256"] == "c" * 64
     with sqlite3.connect(path) as db:
-        assert db.execute("SELECT version FROM schema_info").fetchone()[0] == 7
+        assert db.execute("SELECT version FROM schema_info").fetchone()[0] == 9
 
 
 def test_unsupported_database_schema_fails_closed(tmp_path):

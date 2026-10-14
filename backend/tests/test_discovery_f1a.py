@@ -527,3 +527,195 @@ def test_api_cross_owner_candidate_listing_denied(tmp_path):
     assert mine.status_code == 200
     assert len(mine.json()["candidates"]) == 1
     assert other.status_code == 404
+
+
+# ---------------------------------------------------------------------------
+# 8. RM-1: taxonomy, filters, pagination, retry, history, providers
+# ---------------------------------------------------------------------------
+
+from defence_studio.discovery import taxonomy as tx  # noqa: E402
+from defence_studio.contracts.discovery import result_to_dict  # noqa: E402
+from defence_studio.discovery.providers import fetch_with_retry  # noqa: E402
+from defence_studio.acquisition.http_client import HttpFetchError  # noqa: E402
+
+
+def test_classify_prefers_feed_config_then_tag_then_keywords():
+    assert tx.classify("Anything", None, feed_category="NEIGHBOURHOOD") == ("NEIGHBOURHOOD", "FEED_CONFIG")
+    assert tx.classify("Anything", None, provider_tag="RUSSIA_UKRAINE") == ("RUSSIA_UKRAINE", "PROVIDER_TAG")
+    assert tx.classify("Ukraine drone strike overnight", None) == ("RUSSIA_UKRAINE", "KEYWORD_RULE")
+    assert tx.classify("Cooking tips", None) == ("UNCLASSIFIED", "UNCLASSIFIED")
+    regions, basis = tx.classify_regions("Pakistan tests missile", None)
+    assert regions == ["PAKISTAN"] and basis == "KEYWORD_RULE"
+
+
+def test_invalid_feed_config_fails_closed(tmp_path):
+    path = tmp_path / "feeds.json"
+    path.write_text(json.dumps({"feeds": [{"url": "https://x.example/f", "category": "NOPE"}]}))
+    with pytest.raises(tx.DiscoveryConfigError):
+        tx.load_feed_configs(path)
+    path.write_text("{not json")
+    with pytest.raises(tx.DiscoveryConfigError):
+        tx.load_feed_configs(path)
+
+
+def test_shipped_feed_config_is_valid():
+    feeds = tx.load_feed_configs()
+    assert feeds and all(f.url.startswith("https://") for f in feeds)
+
+
+def test_request_rejects_unknown_filter_values():
+    with pytest.raises(RequestValidationError):
+        request_from_dict({"topic": "x", "filters": {"categories": ["BOGUS"]}}, job_id="j")
+    with pytest.raises(RequestValidationError):
+        request_from_dict({"topic": "x", "filters": {"surprise": ["a"]}}, job_id="j")
+    ok = request_from_dict({"topic": "x", "filters": {"categories": ["INDIAN_DEFENCE"], "regions": ["INDIA"]}}, job_id="j")
+    assert ok.filters.categories == ("INDIAN_DEFENCE",)
+
+
+def _feed_service_run(filters, configs=None):
+    registry = DiscoveryProviderRegistry()
+    if configs is None:
+        configs = [tx.FeedConfig(url="https://a.example/feed.xml", language="en", category="INDIAN_DEFENCE",
+                                 source_class="OFFICIAL", publisher="Pub A", region="INDIA")]
+    registry.register(RssFeedProvider(
+        feed_configs=configs, client_factory=_rss_client_factory({"https://a.example/feed.xml": RSS_XML})))
+    service = DiscoveryService(guard=UrlGuard(resolver=_resolver), registry=registry)
+    return service.run(request_from_dict({"topic": "Rafale", "filters": filters}, job_id="j"))
+
+
+def test_taxonomy_fields_filled_from_feed_config_and_filters_apply():
+    result = _feed_service_run({})
+    assert result.returned >= 1
+    c = result.candidates[0]
+    assert (c.category, c.category_basis, c.source_class) == ("INDIAN_DEFENCE", "FEED_CONFIG", "OFFICIAL")
+    assert c.regions == ("INDIA",) and c.retrieved_at == result.discovered_at
+    assert _feed_service_run({"categories": ["INDIAN_DEFENCE"]}).returned == result.returned
+    assert _feed_service_run({"categories": ["RUSSIA_UKRAINE"]}).returned == 0
+    assert _feed_service_run({"source_classes": ["COMPANY_RELEASE"]}).returned == 0
+
+
+def test_unverifiable_filter_flags_not_drops():
+    result = _feed_service_run({"source_classes": ["OFFICIAL"]},
+                               configs=[tx.FeedConfig(url="https://a.example/feed.xml", language="en")])
+    assert result.returned >= 1
+    assert all("source_class_filter_unverifiable" in c.filter_flags for c in result.candidates)
+
+
+class _Flaky:
+    def __init__(self, failures, retryable=True, message="Source returned HTTP 503"):
+        self.calls, self.failures, self.retryable, self.message = 0, failures, retryable, message
+
+    def get(self, url, cancel=None):
+        self.calls += 1
+        if self.calls <= self.failures:
+            raise HttpFetchError("http_status", self.message, retryable=self.retryable)
+        return "ok"
+
+
+def test_fetch_with_retry_retries_retryable_only_and_counts_attempts():
+    sleeps = []
+    assert fetch_with_retry(_Flaky(2), "u", None, sleeps.append) == ("ok", 3, False)
+    assert len(sleeps) == 2
+    g = _Flaky(5, retryable=False)
+    with pytest.raises(HttpFetchError) as err:
+        fetch_with_retry(g, "u", None, lambda s: None)
+    assert g.calls == 1 and err.value.attempts == 1
+    h = _Flaky(9)
+    with pytest.raises(HttpFetchError):
+        fetch_with_retry(h, "u", None, lambda s: None)
+    assert h.calls == 3  # 1 try + 2 retries
+
+
+def test_429_marks_rate_limited():
+    with pytest.raises(HttpFetchError) as err:
+        fetch_with_retry(_Flaky(9, message="Source returned HTTP 429"), "u", None, lambda s: None)
+    assert err.value.rate_limited is True
+
+
+def test_provider_descriptor_has_no_secret():
+    d = ConfiguredSearchApiProvider(api_url="https://search.example/api", api_key="SUPER-SECRET-KEY").describe()
+    assert d["configured"] is True and "SUPER-SECRET-KEY" not in json.dumps(d)
+    assert ConfiguredSearchApiProvider(api_url="", api_key="").describe()["configured"] is False
+
+
+def test_search_api_sends_key_as_bearer_and_redacts_errors():
+    seen = {}
+
+    def handler(request):
+        seen["auth"] = request.headers.get("authorization")
+        return httpx.Response(401)
+
+    def factory(**kw):
+        return httpx.Client(transport=httpx.MockTransport(handler), **kw)
+
+    registry = DiscoveryProviderRegistry()
+    registry.register(ConfiguredSearchApiProvider(api_url="https://search.example/api", api_key="SUPER-SECRET-KEY",
+                                                  client_factory=factory, sleep=lambda s: None))
+    result = DiscoveryService(guard=UrlGuard(resolver=_resolver), registry=registry).run(
+        request_from_dict({"topic": "Rafale"}, job_id="j"))
+    assert seen["auth"] == "Bearer SUPER-SECRET-KEY"
+    assert result.providers[0].status.value == "ERROR"
+    assert "SUPER-SECRET-KEY" not in json.dumps(result_to_dict(result))
+
+
+def test_near_duplicate_same_publisher_title_day_merged():
+    def handler(request):
+        return httpx.Response(200, json={"results": [
+            {"title": "Rafale jets deployed", "publisher": "Pub", "url": "https://p.example/a?x=1", "published_at": "2026-10-05"},
+            {"title": "Rafale Jets Deployed!", "publisher": "Pub", "url": "https://p.example/amp/a", "published_at": "2026-10-05"},
+        ]})
+
+    def factory(**kw):
+        return httpx.Client(transport=httpx.MockTransport(handler), **kw)
+
+    registry = DiscoveryProviderRegistry()
+    registry.register(ConfiguredSearchApiProvider(api_url="https://search.example/api", api_key="k", client_factory=factory))
+    result = DiscoveryService(guard=UrlGuard(resolver=_resolver), registry=registry).run(
+        request_from_dict({"topic": "Rafale jets"}, job_id="j"))
+    assert result.returned == 1 and result.candidates[0].warnings
+
+
+def test_api_listing_pagination_history_rerun(tmp_path):
+    from defence_studio.services.discovery import DiscoveryNotFound, DiscoveryValidationError
+    db, store_root, job_id, api = _api(tmp_path)
+    api.create_request(job_id, OWNER, {"topic": "Rafale jets"})
+    WorkerService(db).queue(job_id, OWNER)
+    _drive_to_completed_discovery(tmp_path, job_id, db, store_root)
+    page = api.list_candidates(job_id, OWNER, page_size=1)
+    assert page["total_count"] >= 1 and len(page["candidates"]) == 1
+    if page["next_cursor"]:
+        second = api.list_candidates(job_id, OWNER, page_size=1, cursor=page["next_cursor"])
+        assert second["candidates"][0]["candidate_id"] != page["candidates"][0]["candidate_id"]
+    with pytest.raises(DiscoveryValidationError):
+        api.list_candidates(job_id, OWNER, page_size=0)
+    with pytest.raises(DiscoveryValidationError):
+        api.list_candidates(job_id, OWNER, cursor="abc")
+    flagged = api.list_candidates(job_id, OWNER, category="RUSSIA_UKRAINE")["candidates"]
+    assert all("category_filter_unverifiable" in c["filter_flags"] for c in flagged)  # kept + flagged, not dropped
+    history = api.list_searches(OWNER)
+    assert history["count"] == 1 and history["searches"][0]["status"] in ("COMPLETED", "COMPLETED_WITH_FAILURES")
+    assert api.list_searches("someone-else")["count"] == 0
+    rerun = api.rerun(job_id, OWNER)
+    assert rerun["job_id"] != job_id and rerun["rerun_of"] == job_id
+    assert api.list_searches(OWNER)["count"] == 2
+    with pytest.raises(DiscoveryNotFound):
+        api.rerun(job_id, "someone-else")
+
+
+def test_http_routes_providers_taxonomy_searches_auth_and_no_secrets(tmp_path, monkeypatch):
+    monkeypatch.setenv("DEFENCE_STUDIO_DISCOVERY_SEARCH_API_URL", "https://search.example/api")
+    monkeypatch.setenv("DEFENCE_STUDIO_DISCOVERY_SEARCH_API_KEY", "ENV-SECRET-KEY")
+    db, store_root, job_id, api = _api(tmp_path)
+    app = create_app(db, SECRET, store_root)
+    headers = {"Authorization": f"Bearer {_access_token(OWNER)}"}
+    with TestClient(app) as client:
+        for path in ("/api/discovery/providers", "/api/discovery/taxonomy", "/api/discovery/searches"):
+            assert client.get(path).status_code == 401
+        providers = client.get("/api/discovery/providers", headers=headers)
+        assert providers.status_code == 200
+        assert "ENV-SECRET-KEY" not in providers.text
+        names = {p["name"]: p for p in providers.json()["providers"]}
+        assert names["configured_search_api"]["configured"] is True
+        assert "INDIAN_DEFENCE" in client.get("/api/discovery/taxonomy", headers=headers).json()["categories"]
+        assert client.get("/api/discovery/searches", headers=headers).json()["count"] == 0
+        assert client.get(f"/api/jobs/{job_id}/discovery/candidates?page_size=0", headers=headers).status_code == 422

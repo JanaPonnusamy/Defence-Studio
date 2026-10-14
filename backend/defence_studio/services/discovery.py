@@ -59,6 +59,8 @@ ACQUISITION_REQUEST_ARTIFACT_TYPE = "acquisition_request"
 ACQUISITION_REQUEST_SCHEMA_VERSION = "defence-studio.acquisition-request.v1"
 
 MAX_SELECTION = 50
+DEFAULT_PAGE_SIZE = 50
+MAX_PAGE_SIZE = 100
 
 __all__ = [
     "DiscoveryApiService", "DiscoveryError", "DiscoveryNotFound",
@@ -134,7 +136,20 @@ class DiscoveryApiService:
 
     def list_candidates(self, job_id: str, owner_id: str, language: str | None = None,
                         source_type: str | None = None, provider: str | None = None,
-                        min_score: float | None = None, query: str | None = None) -> dict:
+                        min_score: float | None = None, query: str | None = None,
+                        category: str | None = None, region: str | None = None,
+                        source_class: str | None = None, date_from: str | None = None,
+                        date_to: str | None = None, publisher: str | None = None,
+                        cursor: str | None = None, page_size: int | None = None) -> dict:
+        size = DEFAULT_PAGE_SIZE if page_size is None else page_size
+        if size < 1 or size > MAX_PAGE_SIZE:
+            raise DiscoveryValidationError(f"page_size must be between 1 and {MAX_PAGE_SIZE}")
+        try:
+            offset = int(cursor) if cursor else 0
+            if offset < 0:
+                raise ValueError
+        except ValueError:
+            raise DiscoveryValidationError("cursor is invalid") from None
         job = self._check_ownership(job_id, owner_id)
         result_ref = self._latest_artifact(job, DISCOVERY_RESULT_ARTIFACT_TYPE)
         if result_ref is None:
@@ -160,15 +175,115 @@ class DiscoveryApiService:
                 haystack = f"{declared.get('title') or ''} {declared.get('publisher') or ''}".lower()
                 if query.lower() not in haystack:
                     continue
-            candidates.append({**candidate, "selected": candidate.get("candidate_id") in selected_ids})
+            # v1 artifacts lack taxonomy fields: treat as UNCLASSIFIED / UNKNOWN, flag don't drop.
+            flags = list(candidate.get("filter_flags") or [])
+            if category:
+                cat = candidate.get("category", "UNCLASSIFIED")
+                if cat != category:
+                    if cat == "UNCLASSIFIED":
+                        flags.append("category_filter_unverifiable")
+                    else:
+                        continue
+            if region:
+                regions = candidate.get("regions") or []
+                if region not in regions:
+                    if not regions:
+                        flags.append("region_filter_unverifiable")
+                    else:
+                        continue
+            if source_class:
+                sc = candidate.get("source_class", "UNKNOWN")
+                if sc != source_class:
+                    if sc == "UNKNOWN":
+                        flags.append("source_class_filter_unverifiable")
+                    else:
+                        continue
+            if publisher and publisher.lower() not in (declared.get("publisher") or "").lower():
+                continue
+            if date_from or date_to:
+                published = _iso_date(declared.get("published_at"))
+                if published is None:
+                    flags.append("date_filter_unverifiable")
+                elif (date_from and published < date_from) or (date_to and published > date_to):
+                    continue
+            candidates.append({**candidate, "filter_flags": sorted(set(flags)),
+                               "selected": candidate.get("candidate_id") in selected_ids})
+        candidates.sort(key=lambda c: (
+            -float((c.get("ranking") or {}).get("total_score", 0)),
+            _neg_date(((c.get("declared_metadata") or {}).get("published_at"))),
+            c.get("candidate_id", "")))
+        total_count = len(candidates)
+        page = candidates[offset: offset + size]
+        next_cursor = str(offset + size) if offset + size < total_count else None
+        candidates = page
         return {
             "job_id": job_id, "discovery_result_sha256": result_ref["sha256"],
             "discovery_result_uri": result_ref["uri"],
             "topic": result.get("topic"), "language": result.get("language"),
             "status": result.get("status"), "providers": result.get("providers", []),
             "dedup_notes": result.get("dedup_notes", []), "warnings": result.get("warnings", []),
-            "candidates": candidates,
+            "candidates": candidates, "total_count": total_count, "next_cursor": next_cursor,
+            "page_size": size, "result_schema_version": result.get("schema_version"),
+            "discovered_at": result.get("discovered_at"),
+            "coverage_note": "Results come only from the providers listed above; absence of a result "
+                             "does not mean the web has none.",
         }
+
+    # -- history ------------------------------------------------------------------
+
+    def list_searches(self, owner_id: str, limit: int = 50) -> dict:
+        """Owner's discovery runs, newest first. Each discovery run is a job
+        (SQLite is the single source of truth); history is derived, so it can
+        never disagree with the persisted request/result artifacts."""
+        runs = []
+        for summary in self.jobs.list_for_owner(owner_id)[: max(1, min(limit, 200))]:
+            job = self.jobs.get(summary["job_id"], owner_id)
+            request_ref = self._latest_artifact(job, DISCOVERY_REQUEST_ARTIFACT_TYPE)
+            if request_ref is None:
+                continue
+            entry = {
+                "search_run_id": job["job_id"], "job_id": job["job_id"], "topic": job["topic"],
+                "language": job["language"], "job_status": job["status"],
+                "created_at": job.get("created_at"), "request_sha256": request_ref["sha256"],
+                "status": "REQUESTED", "candidate_count": None, "provider_outcomes": [],
+                "filters": None, "completed_at": None,
+            }
+            try:
+                request = self._read_json(job["job_id"], request_ref)
+                entry["filters"] = request.get("filters")
+            except DiscoveryError:
+                entry["status"] = "UNREADABLE"
+            result_ref = self._latest_artifact(job, DISCOVERY_RESULT_ARTIFACT_TYPE)
+            stage = self._stage(job, DISCOVERY_STAGE)
+            if result_ref is not None:
+                try:
+                    result = self._read_json(job["job_id"], result_ref)
+                    entry.update(status=result.get("status", "COMPLETED"), candidate_count=result.get("returned"),
+                                 provider_outcomes=result.get("providers", []),
+                                 completed_at=result.get("discovered_at"))
+                except DiscoveryError:
+                    entry["status"] = "UNREADABLE"
+            elif stage["status"] == "FAILED":
+                entry["status"] = "FAILED"
+            elif stage["status"] in ("RUNNING", "AWAITING_REVIEW") or job["status"] in ("QUEUED", "RUNNING"):
+                entry["status"] = "RUNNING" if stage["status"] == "RUNNING" else "QUEUED"
+            runs.append(entry)
+        return {"searches": runs, "count": len(runs)}
+
+    def rerun(self, job_id: str, owner_id: str, idempotency_key: str | None = None) -> dict:
+        """Create a NEW job + identical request from a past run (history is
+        immutable). The caller still queues the job explicitly."""
+        job = self._check_ownership(job_id, owner_id)
+        ref = self._latest_artifact(job, DISCOVERY_REQUEST_ARTIFACT_TYPE)
+        if ref is None:
+            raise DiscoveryNotFound("This job has no discovery request to rerun")
+        request = self._read_json(job_id, ref)
+        key = idempotency_key or f"rerun-{uuid.uuid4()}"
+        new_job = self.jobs.create(owner_id, key, job["topic"], job["language"])
+        payload = {k: request.get(k) for k in ("topic", "language", "search_terms", "filters", "limits")
+                   if request.get(k) is not None}
+        created = self.create_request(new_job["job_id"], owner_id, payload)
+        return {"job_id": new_job["job_id"], "rerun_of": job_id, "request": created["request"]}
 
     def get_candidate(self, job_id: str, owner_id: str, candidate_id: str) -> dict:
         result = self.list_candidates(job_id, owner_id)
@@ -313,3 +428,20 @@ class DiscoveryApiService:
             "artifact_type": ref["artifact_type"], "uri": ref["uri"], "sha256": ref["sha256"],
             "schema_version": ref["schema_version"], "version": ref.get("version"),
         }
+
+
+def _iso_date(value) -> str | None:
+    """ISO date (YYYY-MM-DD) of a feed/API timestamp, or None if unparseable."""
+    if not value or not isinstance(value, str):
+        return None
+    from defence_studio.discovery.ranking import parse_date
+    parsed = parse_date(value)
+    return parsed.isoformat() if parsed else None
+
+
+def _neg_date(value) -> str:
+    """Sort key for 'newest first' within equal scores; undated sort last."""
+    iso = _iso_date(value)
+    if iso is None:
+        return "~"
+    return "".join(chr(0x7e - (ord(ch) - 0x30)) if ch.isdigit() else ch for ch in iso)

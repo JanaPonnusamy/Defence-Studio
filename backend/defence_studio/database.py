@@ -3,7 +3,7 @@ from contextlib import closing
 from pathlib import Path
 
 
-SCHEMA_VERSION = 7
+SCHEMA_VERSION = 9
 
 
 def connect(path: Path) -> sqlite3.Connection:
@@ -31,7 +31,7 @@ def initialize_database(path: Path) -> None:
         version = connection.execute(
             "SELECT version FROM schema_info WHERE singleton = 1"
         ).fetchone()[0]
-        if version not in (1, 2, 3, 4, 5, 6, SCHEMA_VERSION):
+        if version not in (1, 2, 3, 4, 5, 6, 7, 8, SCHEMA_VERSION):
             raise RuntimeError(f"Unsupported Defence Studio schema version: {version}")
 
         connection.executescript(
@@ -120,6 +120,12 @@ def initialize_database(path: Path) -> None:
             version = 6
         if version == 6:
             _upgrade_v6_to_v7(connection)
+            version = 7
+        if version == 7:
+            _upgrade_v7_to_v8(connection)
+            version = 8
+        if version == 8:
+            _upgrade_v8_to_v9(connection)
 
 
 def _upgrade_v3_to_v4(connection: sqlite3.Connection) -> None:
@@ -377,6 +383,197 @@ def _upgrade_v6_to_v7(connection: sqlite3.Connection) -> None:
                 ON asset_review_history(job_id, asset_id, occurred_at);
         """)
         connection.execute("UPDATE schema_info SET version = 7 WHERE singleton = 1")
+        connection.commit()
+    except Exception:
+        connection.rollback()
+        raise
+
+
+def _upgrade_v7_to_v8(connection: sqlite3.Connection) -> None:
+    """RM-3..RM-7: durable cross-module integration artifacts + audit events.
+
+    Additive only. ``integration_artifacts`` holds one row per
+    ``(job, language, kind, version)`` for outputs of the standalone Visual /
+    Audio / Renderer modules and the QC / package stages. The row carries the
+    exact upstream bindings (``input_binding``, canonical JSON of upstream
+    hashes) so a changed upstream artifact makes it detectably stale; bytes
+    live in the artifact store and are identified by ``sha256``. Rows are
+    immutable except ``status`` and ``detail`` (state machine), and every
+    transition is appended to ``integration_events``.
+    """
+    connection.execute("BEGIN EXCLUSIVE")
+    try:
+        connection.executescript("""
+            CREATE TABLE IF NOT EXISTS integration_artifacts (
+                job_id TEXT NOT NULL REFERENCES workflow_jobs(job_id) ON DELETE CASCADE,
+                language TEXT NOT NULL,
+                kind TEXT NOT NULL,
+                version INTEGER NOT NULL CHECK(version > 0),
+                status TEXT NOT NULL CHECK(status IN
+                    ('QUEUED','RUNNING','SUCCEEDED','FAILED','INTERRUPTED','CANCELLED',
+                     'AWAITING_REVIEW','APPROVED','REJECTED','SUPERSEDED')),
+                uri TEXT,
+                sha256 TEXT,
+                input_binding TEXT NOT NULL,
+                detail TEXT NOT NULL DEFAULT '',
+                progress REAL NOT NULL DEFAULT 0,
+                created_by TEXT NOT NULL,
+                created_at TEXT NOT NULL,
+                updated_at TEXT NOT NULL,
+                idempotency_key TEXT NOT NULL,
+                PRIMARY KEY(job_id, language, kind, version),
+                UNIQUE(job_id, language, kind, idempotency_key)
+            );
+            CREATE INDEX IF NOT EXISTS ix_integration_artifacts_status
+                ON integration_artifacts(status, updated_at);
+
+            CREATE TABLE IF NOT EXISTS integration_events (
+                event_id TEXT PRIMARY KEY,
+                job_id TEXT NOT NULL REFERENCES workflow_jobs(job_id) ON DELETE CASCADE,
+                language TEXT NOT NULL,
+                kind TEXT NOT NULL,
+                version INTEGER NOT NULL,
+                event TEXT NOT NULL,
+                detail TEXT NOT NULL DEFAULT '',
+                actor_id TEXT NOT NULL,
+                occurred_at TEXT NOT NULL
+            );
+            CREATE INDEX IF NOT EXISTS ix_integration_events_subject
+                ON integration_events(job_id, language, kind, version, occurred_at);
+        """)
+        connection.execute("UPDATE schema_info SET version = 8 WHERE singleton = 1")
+        connection.commit()
+    except Exception:
+        connection.rollback()
+        raise
+
+
+def _upgrade_v8_to_v9(connection: sqlite3.Connection) -> None:
+    """RM-8: YouTube connection, publishing profiles, durable publishing jobs.
+
+    Additive. Refresh tokens are stored only as Fernet ciphertext
+    (``encrypted_refresh_token``); resumable-session URLs likewise
+    (``session_ref_encrypted``). ``publishing_job_events`` is append-only.
+    """
+    connection.execute("BEGIN EXCLUSIVE")
+    try:
+        connection.executescript("""
+            CREATE TABLE IF NOT EXISTS youtube_oauth_states (
+                state TEXT PRIMARY KEY,
+                owner_id TEXT NOT NULL,
+                redirect_uri TEXT NOT NULL,
+                created_at TEXT NOT NULL,
+                expires_at TEXT NOT NULL,
+                used INTEGER NOT NULL DEFAULT 0
+            );
+            CREATE TABLE IF NOT EXISTS youtube_connections (
+                connection_id TEXT PRIMARY KEY,
+                owner_id TEXT NOT NULL,
+                channel_id TEXT NOT NULL,
+                channel_title TEXT NOT NULL,
+                channel_handle TEXT,
+                thumbnail_url TEXT,
+                encrypted_refresh_token TEXT,
+                granted_scopes TEXT NOT NULL,
+                status TEXT NOT NULL CHECK(status IN
+                    ('PENDING_CONFIRMATION','CONNECTED','REAUTH_REQUIRED','ERROR','DISCONNECTED')),
+                confirmed_at TEXT,
+                connected_at TEXT NOT NULL,
+                last_checked_at TEXT,
+                last_error_code TEXT,
+                updated_at TEXT NOT NULL
+            );
+            CREATE INDEX IF NOT EXISTS ix_youtube_connections_owner
+                ON youtube_connections(owner_id, status);
+            CREATE TABLE IF NOT EXISTS publishing_profiles (
+                profile_id TEXT PRIMARY KEY,
+                owner_id TEXT NOT NULL,
+                connection_id TEXT NOT NULL REFERENCES youtube_connections(connection_id),
+                name TEXT NOT NULL,
+                title_prefix TEXT NOT NULL DEFAULT '',
+                description_template TEXT NOT NULL DEFAULT '',
+                tags_json TEXT NOT NULL DEFAULT '[]',
+                category_id TEXT NOT NULL DEFAULT '25',
+                language TEXT NOT NULL DEFAULT 'en',
+                default_visibility TEXT NOT NULL DEFAULT 'private'
+                    CHECK(default_visibility IN ('private','unlisted','public')),
+                timezone TEXT NOT NULL DEFAULT 'Asia/Calcutta',
+                caption_languages_json TEXT NOT NULL DEFAULT '[]',
+                made_for_kids INTEGER NOT NULL DEFAULT 0,
+                created_at TEXT NOT NULL,
+                updated_at TEXT NOT NULL
+            );
+            CREATE TABLE IF NOT EXISTS publishing_jobs (
+                publish_id TEXT PRIMARY KEY,
+                owner_id TEXT NOT NULL,
+                job_id TEXT NOT NULL REFERENCES workflow_jobs(job_id) ON DELETE CASCADE,
+                language TEXT NOT NULL,
+                package_version INTEGER NOT NULL,
+                package_sha256 TEXT NOT NULL,
+                connection_id TEXT NOT NULL REFERENCES youtube_connections(connection_id),
+                target_channel_id TEXT NOT NULL,
+                youtube_video_id TEXT,
+                title TEXT NOT NULL,
+                description TEXT NOT NULL,
+                tags_json TEXT NOT NULL,
+                category_id TEXT NOT NULL,
+                default_language TEXT NOT NULL,
+                visibility TEXT NOT NULL CHECK(visibility IN ('private','unlisted','public')),
+                scheduled_utc TEXT,
+                timezone TEXT NOT NULL,
+                made_for_kids INTEGER NOT NULL DEFAULT 0,
+                state TEXT NOT NULL,
+                progress REAL NOT NULL DEFAULT 0,
+                bytes_total INTEGER NOT NULL DEFAULT 0,
+                bytes_uploaded INTEGER NOT NULL DEFAULT 0,
+                session_ref_encrypted TEXT,
+                attempts INTEGER NOT NULL DEFAULT 0,
+                max_attempts INTEGER NOT NULL DEFAULT 5,
+                next_retry_at TEXT,
+                error_code TEXT,
+                error_message TEXT,
+                approved_by TEXT,
+                approved_at TEXT,
+                approval_digest TEXT,
+                approval_note TEXT,
+                thumbnail_state TEXT NOT NULL DEFAULT 'NONE',
+                verified_at TEXT,
+                remote_status_json TEXT,
+                quota_units_used INTEGER NOT NULL DEFAULT 0,
+                idempotency_key TEXT NOT NULL,
+                created_at TEXT NOT NULL,
+                updated_at TEXT NOT NULL,
+                UNIQUE(owner_id, idempotency_key)
+            );
+            CREATE INDEX IF NOT EXISTS ix_publishing_jobs_state ON publishing_jobs(state, next_retry_at);
+            CREATE INDEX IF NOT EXISTS ix_publishing_jobs_package
+                ON publishing_jobs(job_id, language, package_sha256);
+            CREATE TABLE IF NOT EXISTS publishing_caption_tracks (
+                track_id TEXT PRIMARY KEY,
+                publish_id TEXT NOT NULL REFERENCES publishing_jobs(publish_id) ON DELETE CASCADE,
+                language TEXT NOT NULL,
+                name TEXT NOT NULL,
+                source_sha256 TEXT NOT NULL,
+                youtube_caption_id TEXT,
+                state TEXT NOT NULL CHECK(state IN ('PENDING','UPLOADING','UPLOADED','FAILED')),
+                error_code TEXT,
+                updated_at TEXT NOT NULL,
+                UNIQUE(publish_id, language)
+            );
+            CREATE TABLE IF NOT EXISTS publishing_job_events (
+                event_id TEXT PRIMARY KEY,
+                publish_id TEXT NOT NULL REFERENCES publishing_jobs(publish_id) ON DELETE CASCADE,
+                event TEXT NOT NULL,
+                prev_state TEXT,
+                new_state TEXT,
+                detail TEXT NOT NULL DEFAULT '',
+                actor TEXT NOT NULL,
+                occurred_at TEXT NOT NULL
+            );
+            CREATE INDEX IF NOT EXISTS ix_publishing_events_job
+                ON publishing_job_events(publish_id, occurred_at);
+        """)
+        connection.execute("UPDATE schema_info SET version = 9 WHERE singleton = 1")
         connection.commit()
     except Exception:
         connection.rollback()
