@@ -221,6 +221,124 @@ implements none of it.
   operation above; it must never be derivable as "lossy" relative to what was actually
   written.
 
+## Phase 5D addendum — frozen integration boundary design
+
+This section refines Option A around the decisions frozen in `DECISION_REGISTER.md`. It
+is still a specification: no adapter module, route, dependency, or ARE import was added
+by this phase. Every item below is explicitly labeled by its status so the reader never
+has to guess whether something already works or is merely proposed.
+
+### Existing verified behavior (already true today, unaffected by any future adapter)
+
+- Authentication (`auth.py::authenticated_user`) and ownership (`_check_ownership`/
+  `_check_ownership_locked`) happen before any service method body runs, for every asset
+  route — re-confirmed this phase by re-reading `api/app.py:534-603` and
+  `services/assets.py`.
+- Every mutating `AssetService` method wraps its ownership re-check and its write in one
+  `BEGIN IMMEDIATE` transaction — re-confirmed this phase, unchanged since Phase 5C.
+- No code anywhere in `backend/defence_studio` imports `asset_rights_engine` — re-confirmed
+  this phase (`grep -rln "asset_rights_engine" backend/defence_studio` → no matches).
+- DS job IDs are `uuid.uuid4()` strings (`services/jobs.py:68`) — confirmed this phase,
+  which is why Decision Register invariant 6 (tenant-isolation section) can require a
+  full, untruncated UUID in any future ARE storage path rather than a lossy prefix.
+
+### Proposed adapter behavior (not implemented; this is the design this phase freezes)
+
+1. **Single import boundary.** One new module (e.g.
+   `backend/defence_studio/services/asset_rights_adapter.py`) is the only place in the
+   entire codebase permitted to `import asset_rights_engine`. No route, no other service
+   module, and no test outside this module's own unit tests may import it directly. This
+   must be enforceable by code review (and ideally an import-linting rule) once the
+   module exists.
+2. **Identity derivation happens only after ownership succeeds.** The adapter module
+   receives `job_id` only from a caller (`AssetService`) that has already called
+   `_check_ownership`/`_check_ownership_locked` for that exact `job_id` in the current
+   transaction. The adapter itself performs no independent authentication or ownership
+   check — it trusts its caller completely, the same way every other DS service trusts
+   `owner_id` once it has passed through `require_owner`. This mirrors Decision Register
+   Tenant Isolation invariant 1.
+3. **Engine lifecycle: per-job, lazily constructed, optionally cached.** The adapter
+   constructs (or retrieves from an in-process cache keyed by the exact `job_id` string)
+   one `Engine(data_directory=f"{storage_root}/are/{job_id}/")` instance per job
+   (Decision Register Option T1). The cache, if implemented, never substitutes for the
+   per-call ownership check performed by the caller (invariant 3 of the tenant-isolation
+   section) — it only avoids repeating `Engine.__init__`'s path setup and schema check.
+4. **Reviewer/principal identity is always the authenticated `owner_id`.** Wherever the
+   adapter constructs an ARE `ReviewRequest`/`HostPrincipal`, the `reviewer`/
+   `principal_id` field is always exactly the `owner_id` already authenticated by
+   `require_owner` — never a value read from the request body (there is none to read, per
+   `SECURITY_REVIEW.md` §4) and never a value the adapter itself invents.
+5. **Scene-plan authority stays with Defence Studio.** The adapter never asks ARE to
+   determine whether a scene plan is approved; it reads DS's own `scene_plans` table
+   (exactly as `AssetService._current_approved_plan` does today) and constructs whatever
+   ARE-facing `SceneBinding`/`HostSceneContext` representation is needed *from* that
+   already-authoritative DS read, inside the same transaction — never the reverse.
+6. **Error translation is an explicit, enumerated table, not a catch-all.** Per Decision
+   9, every ARE `DomainError` code the adapter can encounter is mapped to a specific DS
+   `ReviewError` subclass; an unrecognized code (e.g. from a future ARE version) must
+   raise a generic, clearly-logged 500-class failure rather than being silently absorbed
+   into any existing 2xx/4xx path.
+7. **Idempotency keys are not shared verbatim across the boundary.** Per
+   `COMPATIBILITY.md` §6, DS's idempotency-key scope (`(job_id, asset_id, reviewer_id,
+   key)`) and ARE's (shared across all review kinds) differ; the adapter must derive a
+   distinct, deterministically-namespaced key for any ARE call it makes (e.g.
+   `f"{job_id}:{key}"`) rather than forwarding DS's raw key, so a DS-side key reused in a
+   different DS call-site context can never accidentally collide with an unrelated ARE
+   call.
+8. **Audit correlation.** Every adapter call that reaches ARE logs (at minimum, in
+   whatever structured logging DS already uses) the DS `job_id`, authenticated `owner_id`,
+   and the specific ARE operation invoked, so a future incident investigation can
+   correlate a DS-side audit row with the corresponding ARE-side `review_history`/
+   `rights_revisions` row without guessing.
+9. **Recovery for ambiguous commits.** Because DS's transaction (its own SQLite file) and
+   ARE's transaction (a separate SQLite file) cannot commit atomically together (confirmed
+   in the original Option A/B comparison above), the adapter must define, for each
+   operation, which side is allowed to commit first and what the retry behavior is if the
+   second side's call fails after the first side already committed. The recommended
+   default (not yet implemented): **DS commits first, then calls ARE; if the ARE call
+   fails, the operation is reported as failed to the caller and the specific idempotency
+   key is recorded as "ARE call pending" so a retry of the same idempotent request can
+   complete the ARE-side call without repeating the DS-side write** (DS's existing
+   idempotency-replay logic already returns the existing DS state on a key replay, so a
+   retry naturally skips re-doing the DS write and only needs to re-attempt the ARE call).
+   This requires a new, small piece of DS-side state (a "pending ARE call" marker) that
+   does not exist today — explicitly flagged as a **required host framework change**, not
+   something already present.
+10. **No raw `Engine` access is reachable from an untrusted caller.** Consistent with
+    `SECURITY_REVIEW.md` §8's conclusion: the adapter module's public functions are the
+    only entry point; nothing resembling a debug endpoint, admin route, or test-only
+    backdoor may construct an `Engine` pointed at a caller-influenced path outside the
+    adapter's own job-id-derived convention.
+
+### Required host framework changes (do not exist today; needed before the adapter can be built)
+
+- The "pending ARE call" idempotency-retry marker described in item 9 above — a new,
+  small, additive piece of state (e.g. one column or one small table), **not
+  implemented by this phase** per the task's explicit no-migration restriction, and
+  requiring its own schema-change proposal.
+- A per-job `Engine` cache/lifecycle manager, if caching is adopted (item 3) — does not
+  exist today; would be new code in the adapter module itself, not a dependency DS
+  already has.
+- An explicit ARE `DomainError`-code-to-DS-exception mapping table (item 6; Decision
+  Register Decision 9) — does not exist today; must be written and reviewed before the
+  adapter's first call into ARE.
+- A stable, server-generated per-asset identifier distinct from DS's content-addressed
+  `asset_id` (Decision Register Decision 1) — requires an additive schema change, not
+  implemented by this phase.
+
+### Unresolved external/product decisions (cannot be resolved by this document alone)
+
+- Whether Decision 3 (rights-state ownership) resolves toward "ARE pure-evaluator only, no
+  ARE persistence" or toward "ARE's stateful `Engine` persists rights/assignment state" —
+  this single choice determines whether Decisions 5, 6, and 8 have any code path to apply
+  to at all, and is the most consequential open question in `DECISION_REGISTER.md`.
+- Whether Defence Studio's product owner wants the modification/distribution permission
+  axes (Decision 4) badly enough to justify a future schema-change phase, or whether
+  passing inert `False`/`False` to ARE indefinitely is acceptable.
+- The backup/restore operational procedure for per-job ARE SQLite files under Option
+  T1 — this phase recommends treating them the same as DS's existing per-job artifact
+  directories, but no one has written or tested that procedure.
+
 ## Mandatory honesty statement (per task instruction, carried into the contract)
 
 **Declared rights are not proof of legal ownership, and an asset's availability (or its

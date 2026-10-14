@@ -1,3 +1,9 @@
+> **Phase 5D gate: BLOCKED (2026-10-12).** A current-code readiness defect was
+> reproduced on disposable SQLite below (F5D-01). The request requires a real code
+> defect to be documented separately and work stopped. No integration design is
+> frozen or approved by this session; preserved Phase 5C/pre-existing Phase 5D
+> recommendations must not be treated as implementation authorization.
+
 # Phase 5C Workstream C — authentication/authorization trace for the asset-service request path
 
 Read-only review of the real request path from HTTP authentication through
@@ -218,3 +224,140 @@ No control above is weakened, removed, or newly added by this review; it is a re
 code as it already exists in the working tree plus the already-present regression tests
 (see `ACCEPTANCE_PLAN.md`/final report for what remains to be exercised once an ARE
 integration actually exists).
+
+## Phase 5D separate code finding — F5D-01: obsolete approval accepted by readiness
+
+**Status: reproduced; unfixed; design-freeze work stopped.** Severity: high integrity
+risk (P1); a blocking review finding, not proof of publishing or external exploitation.
+The user instruction says: "If a real code defect is discovered, document it separately
+and stop rather than expanding the scope." This section is the separate finding within
+an explicitly permitted deliverable; no production repair was attempted.
+
+### Verified current behavior and evidence
+
+`backend/defence_studio/services/assets.py::set_rights`, lines 253–259, changes a formerly
+APPROVED asset to PENDING_REVIEW and updates its current descriptor/rights digests. It
+retains the existing `asset_reviews` record pinned to the prior descriptor/rights. This
+is legitimate retained history/current-review data which consumers must check for staleness.
+
+`AssetService.assignment_readiness`, lines 516–566, loads current asset/review rows but
+checks only the cached asset effective_rights == CLEAR (554–555) and review decision ==
+APPROVED (556–558). It does not require the current asset review_status to be APPROVED or
+compare the review's reviewed_asset_sha256/reviewed_rights_sha256 with current digests.
+Therefore the old approval can authorize a readiness result after explicit invalidation.
+
+A one-scene synthetic fixture was created in a new `tempfile.TemporaryDirectory` with
+existing schema-v7 initialization, a newly generated job UUID, and a directly seeded
+synthetic approved-plan row/artifact. No source/claim decision or live plan approval was
+submitted. Actual current AssetService methods registered an asset, set rights, reviewed
+it APPROVED, assigned it, and then set a different still-CLEAR rights record. This isolates
+the readiness predicate; it is not an end-to-end research/publishing workflow test.
+
+Observed results (asserted in the offline Python probe):
+
+```json
+{
+  "before_ready": true,
+  "after_ready": true,
+  "after_blockers": [],
+  "current_review_status": "PENDING_REVIEW",
+  "rights_digest_changed": true,
+  "review_pins_old_rights": true,
+  "review_matches_current_rights": false,
+  "current_effective_rights": "CLEAR",
+  "source_or_claim_decisions_submitted": false,
+  "temporary_database_only": true
+}
+```
+
+Expected safety behavior: readiness must be false until current content has a matching
+explicit approval; history must remain intact. Returning ready:true here contradicts
+rights-change invalidation and the digest-pinned review contract. The stored assignment
+remaining a historical point-in-time record does not justify a current readiness result
+accepting approval of different rights content.
+
+### Reproduction recipe (disposable fixture only)
+
+The executed probe ran as a Python stdin script, with PYTHONPATH set to the backend and
+`python -B -`. It imported existing database/services/contracts directly, not api.app,
+not ARE, and used only a new TemporaryDirectory database and artifact root. Steps:
+
+1. Initialize a fresh temporary schema-v7 database; create a new synthetic owner/job.
+2. Seed one synthetic approved `scene_plans` row and a digest-checked plan artifact
+   containing `scene-1`; create AssetService with that temporary database/root.
+3. Register an image descriptor with documented_origin='Synthetic disposable fixture'.
+4. `set_rights`: creator_owned, commercial_use=allowed, attribution_required=false,
+   permitted_uses=['web']; retain returned asset/rights digests.
+5. `review_asset`: APPROVED, those current digests, expected_revision=0, synthetic note/key.
+6. `assign_asset`: ta/scene-1, target_use=web; assert readiness true.
+7. `set_rights` again, changing permitted_uses to ['web', 'broadcast'] (still CLEAR).
+8. Assert the current review_status is PENDING_REVIEW, the rights digest changed,
+   and asset_reviews still pins the first rights digest.
+9. Actual `assignment_readiness` returns ready:true with no blockers; assert this to
+   reproduce the defect. All probe data is deleted on TemporaryDirectory exit.
+
+### Narrow proposed repair and acceptance gate (not implemented)
+
+A separately authorized repair should require approval for the current descriptor AND
+rights digest and current approved lifecycle before declaring readiness. Preserve
+append-only history, keep readiness read-only, and retain owner/job scoping. Define the
+current-readiness snapshot consistently; do not solve this by rewriting old reviews or
+quietly approving updated rights. No standalone ARE change or migration is justified by
+this finding. Required future regressions:
+
+- Approved assignment + changed still-CLEAR rights -> readiness false with a specific
+  stale/unapproved-content blocker; review_status remains PENDING_REVIEW.
+- Old review/assignment history is preserved; no implicit rebinding or approval.
+- Explicit approval against current digests restores readiness when all other gates pass.
+- Stale descriptor digest or rights digest blocks readiness independently.
+- Wrong owner/job remains denied and competing rights/review writes cannot produce a
+  readiness result from mismatched content snapshots.
+
+These tests are **planned**, not added or passed in this phase.
+
+### Relationship to ARE-A3.1 and remaining production risks
+
+ARE-A3.1 is an unpublished candidate; its report records 140 passing source/installed
+tests and complete-schema/trigger/JSON/reference validation. Accepted ARE 1.1.0 remains
+unchanged and does not contain those repairs. No ARE import exists in this DS execution
+path; standalone validation cannot repair DS's current readiness predicate and must not
+be copied into DS to work around it. The report/source were inspected read-only.
+
+Authentication, resource authorization, legal rights, media availability and privileged
+tampering protection are not supplied by database validation. A3 G01–G07 remain
+production gates: trusted identity/revocation, ownership/scope mapping, exclusive custody,
+host reservations, durable intent/receipts/reconciliation, authenticated audit provenance,
+and trusted storage/restore identity. No P0 was closed by this probe/documentation.
+
+### Phase 5D execution and preservation record
+
+- Branch before work: main. HEAD: 32798548750630c85114d13544425f054f64e0c5.
+- Pre-existing Git changes: modified ACCEPTANCE_PLAN.md and INTEGRATION_SPEC.md;
+  untracked DECISION_REGISTER.md, all under docs/asset_rights_integration/.
+- This session changes only SECURITY_REVIEW.md, adding this finding/banner while
+  preserving all original bytes. The other four design documents remain byte-identical
+  to session start, including all pre-existing uncommitted work.
+- Before editing, 105 DS production/test/frontend/integration-document files and 27
+  standalone runtime/schema/migration/wheel/report/design files were hashed in memory.
+  Preservation is checked after this edit; no verification files were added to either
+  project. Persistent database contents and the protected research job were not accessed.
+- Current verification: one disposable defect probe passed all assertions reproducing
+  the bad readiness result. No pytest/full-suite run was performed. Existing asset tests
+  were inspected: test_setting_rights_invalidates_prior_approval asserts only lifecycle
+  invalidation; test_readiness_reports_specific_blockers covers the original approval.
+  Neither composes rights change with a subsequent readiness assertion. Historical
+  Phase 5C test claims are not represented as current test execution.
+- Inspected: CLAUDE.md; core design §§1/1A; project_status.md relevant status/test notes;
+  integration COMPATIBILITY/SECURITY_REVIEW/INTEGRATION_SPEC/ACCEPTANCE_PLAN and existing
+  DECISION_REGISTER; backend pyproject/test conftest; asset contracts/service; auth/dev-auth;
+  database initialization/asset/scene DDL; JobService; inherited ownership/artifact reads;
+  app initialization/request-path source; relevant asset contract/service tests; and
+  standalone ARE-A3.1 report. Project_Master_Document.md was not found in the workspace;
+  CLAUDE.md names DEFENCE_STUDIO_CORE_PROJECT_DESIGN.md as the authoritative master.
+- Git after: the same three pre-existing entries plus modified SECURITY_REVIEW.md.
+  No commit/push, production Python/frontend change, database-data change, new migration,
+  ARE import or standalone edit occurred. QVault and Whisper Studio were not accessed.
+- All nine compatibility choices remain unapproved; no new tenant/provenance policy is
+  approved or design-frozen here. T1 and other pre-existing recommendations are preserved,
+  not newly endorsed. Some require evidence corrections before a future freeze; this
+  phase stops at the confirmed code finding as instructed.
