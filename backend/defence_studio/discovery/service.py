@@ -69,6 +69,11 @@ class DiscoveryService:
         cancel = cancel or threading.Event()
         limits = clamp_limits(request.limits)
         providers = self.registry.enabled(request.filters.providers)
+        if not request.filters.providers:
+            # manual_url runs only for seeded requests (alone, by default); requests
+            # without seed_urls behave exactly as before.
+            providers = ([p for p in providers if p.name == "manual_url"] if request.seed_urls
+                         else [p for p in providers if p.name != "manual_url"])
         outcomes = []
         merged: dict[str, DiscoveryCandidateV1] = {}
         warnings: list[str] = []
@@ -85,7 +90,7 @@ class DiscoveryService:
             context = DiscoveryContext(
                 job_id=request.job_id, topic=request.topic, search_terms=request.search_terms,
                 language=request.language, filters=request.filters, limits=limits,
-                guard=self.guard, cancel=cancel,
+                guard=self.guard, cancel=cancel, seed_urls=request.seed_urls,
             )
             try:
                 outcome, raw_candidates = provider.discover(context)

@@ -7,7 +7,9 @@ import { newIdempotencyKey } from "../api.js";
 
 export const SECTIONS = [];
 
-export function registerSection(section) { SECTIONS.push(section); }
+export function registerSection(section) {
+  if (section.first) SECTIONS.unshift(section); else SECTIONS.push(section);
+}
 
 export async function mountProduction({ api, jobId, list, detail, filters, isCurrent }) {
   detail.innerHTML = "";
@@ -15,6 +17,10 @@ export async function mountProduction({ api, jobId, list, detail, filters, isCur
   filters.innerHTML = `<label for="prod-language">Language
       <select id="prod-language"><option value="ta">Tamil</option><option value="en">English</option></select></label>`;
   const languageSelect = filters.querySelector("#prod-language");
+  try {  // default to the job's own language so a populated job is not shown as empty
+    const jobInfo = await api.request("GET", `/jobs/${encodeURIComponent(jobId)}`);
+    if (["ta", "en"].includes(jobInfo.language)) languageSelect.value = jobInfo.language;
+  } catch (_) { /* keep the default */ }
   const ctx = {
     api, jobId, isCurrent, language: languageSelect.value,
     refresh: () => render(),
@@ -462,5 +468,216 @@ registerSection({
     }));
     const active = (ctx.pkgStatus.items || []).some((i) => ["QUEUED", "RUNNING"].includes(i.status));
     if (active) setTimeout(() => ctx.isCurrent() && ctx.refresh(), 2500);
+  },
+});
+
+// -- YouTube connection and publishing queue (RM-8) ----------------------------------
+
+export function renderYoutubeConnectionHtml(data) {
+  const cfg = (data && data.config) || {};
+  const conns = (data && data.connections) || [];
+  const warn = cfg.configured ? "" : `<div class="banner warn">YouTube is not configured on the server. Missing:
+    ${(cfg.missing || []).map(esc).join(", ")}. Nothing can be connected or uploaded until these are set.</div>`;
+  const rows = conns.map((c) => `
+    <li>${statusChip(c.status)} <strong>${esc(c.channel_title)}</strong>
+      <span class="meta">${esc(c.channel_id)} ${c.channel_handle ? "· " + esc(c.channel_handle) : ""}
+      · scopes: ${(c.granted_scopes || []).length}</span>
+      ${c.channel_mismatch ? '<span class="chip">NOT THE EXPECTED CHANNEL</span>' : ""}
+      ${c.status === "PENDING_CONFIRMATION" ? `<button type="button" data-act="yt-confirm" data-id="${esc(c.connection_id)}"
+          data-channel="${esc(c.channel_id)}">This is my channel — confirm</button>` : ""}
+      ${["CONNECTED", "REAUTH_REQUIRED", "PENDING_CONFIRMATION"].includes(c.status)
+        ? `<button type="button" data-act="yt-disconnect" data-id="${esc(c.connection_id)}">Disconnect</button>` : ""}
+    </li>`).join("");
+  return `${warn}${rows ? `<ul class="run-list">${rows}</ul>` : '<p class="meta">No YouTube channel connected.</p>'}
+    <p class="meta">Tokens are stored encrypted on the server and never shown here. Real upload behaviour is unverified
+    until a private test upload has succeeded on a connected channel.</p>
+    <button type="button" data-act="yt-connect" ${cfg.configured ? "" : "disabled"}>Connect YouTube</button>`;
+}
+
+export function renderPublishQueueHtml(queue, packages, connections) {
+  const jobs = (queue && queue.jobs) || [];
+  const rows = jobs.map((j) => {
+    const phrase = j.required_confirmation;
+    const awaiting = j.state === "AWAITING_APPROVAL";
+    return `<li class="scene-row" data-publish="${esc(j.publish_id)}">
+      <div><strong>${esc(j.title)}</strong> ${statusChip(j.state)}
+        <span class="chip">${esc(j.visibility)}${j.scheduled_utc ? " · scheduled " + esc(j.scheduled_utc) : ""}</span>
+        ${j.youtube_video_id ? `<a href="https://www.youtube.com/watch?v=${encodeURIComponent(j.youtube_video_id)}" target="_blank" rel="noopener">open on YouTube</a>` : ""}
+      </div>
+      <div class="meta">Progress ${Math.round((j.progress || 0) * 100)}% · ${Number(j.bytes_uploaded || 0)}/${Number(j.bytes_total || 0)} bytes ·
+        thumbnail ${esc(j.thumbnail_state)} · attempts ${j.attempts}/${j.max_attempts}
+        ${j.error_message ? "· " + esc(j.error_message) : ""}</div>
+      ${awaiting && !j.approved ? `
+        <label>Approval note <input type="text" data-note maxlength="500"></label>
+        ${phrase ? `<label>Type <code>${esc(phrase)}</code> to confirm <input type="text" data-confirm></label>` : ""}
+        <button type="button" data-act="yt-approve" data-id="${esc(j.publish_id)}">Approve exactly this metadata</button>` : ""}
+      ${awaiting && j.approved ? `<button type="button" data-act="yt-queue" data-id="${esc(j.publish_id)}">Upload now</button>` : ""}
+      ${["FAILED_RETRYABLE", "REAUTH_REQUIRED"].includes(j.state) && j.approved
+        ? `<button type="button" data-act="yt-queue" data-id="${esc(j.publish_id)}">Resume</button>` : ""}
+      ${j.youtube_video_id && j.thumbnail_state === "FAILED"
+        ? `<button type="button" data-act="yt-retry" data-part="thumbnail" data-id="${esc(j.publish_id)}">Retry thumbnail</button>` : ""}
+      ${!j.is_terminal ? `<button type="button" data-act="yt-cancel" data-id="${esc(j.publish_id)}">Cancel</button>` : ""}
+      <button type="button" data-act="yt-detail" data-id="${esc(j.publish_id)}">Timeline</button>
+      <ol class="yt-events" data-events-for="${esc(j.publish_id)}" hidden></ol>
+    </li>`;
+  }).join("");
+  const eligible = (packages || []).filter((p) => p.status === "APPROVED" && !p.stale);
+  const connected = (connections || []).filter((c) => c.status === "CONNECTED");
+  const ready = eligible.length > 0 && connected.length > 0;
+  return `${rows ? `<ul class="scene-list">${rows}</ul>` : '<p class="meta">No publishing jobs.</p>'}
+    <p class="meta">Quota used today (estimate): ${Number((queue && queue.quota_used_today_estimate) || 0)} /
+    ${Number((queue && queue.daily_quota_limit) || 0)}. Uploads are always created private; any other outcome needs a typed confirmation.</p>
+    <button type="button" data-act="yt-create" ${ready ? "" : "disabled"}>Create publishing job from latest approved package (private)</button>
+    ${ready ? "" : '<p class="meta">Needs an approved, current package and a confirmed channel connection.</p>'}`;
+}
+
+registerSection({
+  id: "yt-connection", title: "YouTube channel",
+  async render(ctx) {
+    const data = await ctx.api.request("GET", "/youtube/connections");
+    ctx.ytConnections = data;
+    return renderYoutubeConnectionHtml(data) + '<div data-action-status role="status"></div>';
+  },
+  wire(ctx, node) {
+    node.querySelectorAll("[data-act]").forEach((btn) => btn.addEventListener("click", async () => {
+      const act = btn.dataset.act;
+      if (act === "yt-connect") {
+        try {
+          const r = await ctx.api.request("POST", "/youtube/connect/start");
+          window.location.assign(r.authorization_url);
+        } catch (e) { node.querySelector("[data-action-status]").textContent = e.message; }
+      } else if (act === "yt-confirm") {
+        runAction(ctx, node, "Confirming", () => ctx.api.request("POST", `/youtube/connections/${btn.dataset.id}/confirm`,
+          { body: { channel_id: btn.dataset.channel } }));
+      } else if (act === "yt-disconnect") {
+        runAction(ctx, node, "Disconnecting", () => ctx.api.request("POST", `/youtube/connections/${btn.dataset.id}/disconnect`));
+      }
+    }));
+  },
+});
+
+registerSection({
+  id: "yt-queue", title: "Publishing queue",
+  async render(ctx) {
+    const queue = await ctx.api.request("GET", "/youtube/jobs");
+    ctx.ytQueue = queue;
+    return renderPublishQueueHtml(queue, (ctx.pkgStatus && ctx.pkgStatus.items) || [],
+      (ctx.ytConnections && ctx.ytConnections.connections) || []) + '<div data-action-status role="status"></div>';
+  },
+  wire(ctx, node) {
+    node.querySelectorAll("[data-act]").forEach((btn) => btn.addEventListener("click", async () => {
+      const act = btn.dataset.act, id = btn.dataset.id;
+      const row = btn.closest("[data-publish]");
+      if (act === "yt-create") {
+        const pkg = [...ctx.pkgStatus.items].reverse().find((p) => p.status === "APPROVED" && !p.stale);
+        const conn = ctx.ytConnections.connections.find((c) => c.status === "CONNECTED");
+        runAction(ctx, node, "Creating job", () => ctx.api.request("POST", "/youtube/jobs", {
+          body: { job_id: ctx.jobId, language: ctx.language, package_version: pkg.version, connection_id: conn.connection_id },
+          idempotencyKey: newIdempotencyKey() }));
+      } else if (act === "yt-approve") {
+        const note = row.querySelector("[data-note]").value.trim();
+        const confirmEl = row.querySelector("[data-confirm]");
+        const confirmation = confirmEl ? confirmEl.value.trim() : null;
+        if (!note) { node.querySelector("[data-action-status]").textContent = "Enter an approval note."; return; }
+        runAction(ctx, node, "Approving", async () => {
+          const job = await ctx.api.request("GET", `/youtube/jobs/${id}`);
+          await ctx.api.request("POST", `/youtube/jobs/${id}/approve`,
+            { body: { approval_digest: job.approval_digest_current, note, confirmation } });
+        });
+      } else if (act === "yt-queue") {
+        runAction(ctx, node, "Queueing", () => ctx.api.request("POST", `/youtube/jobs/${id}/queue`));
+      } else if (act === "yt-cancel") {
+        runAction(ctx, node, "Cancelling", () => ctx.api.request("POST", `/youtube/jobs/${id}/cancel`));
+      } else if (act === "yt-retry") {
+        runAction(ctx, node, "Retrying", () => ctx.api.request("POST", `/youtube/jobs/${id}/retry-part`,
+          { body: { part: btn.dataset.part } }));
+      } else if (act === "yt-detail") {
+        const job = await ctx.api.request("GET", `/youtube/jobs/${id}`);
+        const list = row.querySelector("[data-events-for]");
+        list.innerHTML = job.events.map((e) => `<li>${esc(e.occurred_at)} — ${esc(e.event)} ${esc(e.new_state || "")}
+          <span class="meta">${esc(e.detail)}</span></li>`).join("");
+        list.hidden = false;
+      }
+    }));
+    const live = ["QUEUED", "VALIDATING", "UPLOADING", "UPLOAD_RETRY_WAIT", "THUMBNAIL_UPLOADING",
+      "CAPTIONS_UPLOADING", "PUBLISHING", "VERIFYING"];
+    const active = ((ctx.ytQueue && ctx.ytQueue.jobs) || []).some((j) => live.includes(j.state));
+    if (active) setTimeout(() => ctx.isCurrent() && ctx.refresh(), 3000);
+  },
+});
+
+// -- Pipeline overview, usage and credentials (RM-9) -----------------------------------
+
+export function renderOverviewHtml(overview) {
+  if (!overview) return "";
+  const rows = overview.stages.map((s) => `
+    <li data-stage="${esc(s.stage)}">${statusChip(s.status)} <strong>${esc(s.stage.replace(/_/g, " "))}</strong>
+      ${s.version != null ? `<span class="meta">v${s.version}</span>` : ""}
+      ${s.detail ? `<span class="meta">${esc(s.detail)}</span>` : ""}</li>`).join("");
+  const attention = overview.needs_attention.length
+    ? `<div class="banner warn">Needs attention: ${overview.needs_attention.map((x) => esc(x)).join(", ")}</div>` : "";
+  return `${attention}<ol class="run-list">${rows}</ol>
+    <p class="meta">Derived from saved state; the same on every device and after a restart.</p>`;
+}
+
+export function renderUsageHtml(usage) {
+  if (!usage) return "";
+  const t = usage.text_generation;
+  const money = (v) => (v == null ? "not measured" : `₹${Number(v).toFixed(2)}`);
+  return `<ul class="run-list">
+    <li>Text generation: ${money(t.total_inr)} of a ₹${t.target_inr} target
+      ${t.within_target === true ? "· within target" : t.within_target === false ? "· OVER target" : ""}
+      <span class="meta">(${t.calls.length} call(s); ${t.unmeasured_calls} unmeasured)</span></li>
+    <li>Voice (TTS): ${money(usage.tts.total_inr)}</li>
+    <li>Image generation: ${usage.image_generation.enabled ? money(usage.image_generation.total_inr) : "not enabled"}</li>
+    <li>YouTube quota (estimate): ${Number(usage.youtube_quota_units_estimate)} units</li></ul>
+    <p class="meta">${esc(t.note)}</p>`;
+}
+
+export function renderCredentialsHtml(status) {
+  const rows = ((status && status.credentials) || []).map((c) => `
+    <li><strong>${esc(c.provider)}</strong> ${statusChip(c.configured ? "CONFIGURED" : "NOT SET")}
+      ${c.source ? `<span class="meta">source: ${esc(c.source)}${c.last4 ? ` · ends ${esc(c.last4)}` : ""}</span>` : ""}
+      <input type="password" autocomplete="off" data-cred-input="${esc(c.provider)}" placeholder="paste new key">
+      <button type="button" data-act="cred-set" data-provider="${esc(c.provider)}">Save</button>
+      ${c.source === "owner" ? `<button type="button" data-act="cred-del" data-provider="${esc(c.provider)}">Remove</button>` : ""}
+    </li>`).join("");
+  return `<ul class="run-list">${rows}</ul>
+    <p class="meta">Keys are encrypted on the server and never displayed again; only the last four characters are shown.</p>`;
+}
+
+registerSection({
+  id: "overview", title: "Pipeline status", first: true,
+  async render(ctx) {
+    const job = encodeURIComponent(ctx.jobId);
+    return renderOverviewHtml(await ctx.api.request("GET", `/jobs/${job}/pipeline/${ctx.language}`));
+  },
+});
+
+registerSection({
+  id: "usage", title: "Usage and cost",
+  async render(ctx) {
+    return renderUsageHtml(await ctx.api.request("GET", `/jobs/${encodeURIComponent(ctx.jobId)}/usage`));
+  },
+});
+
+registerSection({
+  id: "credentials", title: "Provider credentials",
+  async render(ctx) {
+    return renderCredentialsHtml(await ctx.api.request("GET", "/settings/credentials"))
+      + '<div data-action-status role="status"></div>';
+  },
+  wire(ctx, node) {
+    node.querySelectorAll("[data-act]").forEach((btn) => btn.addEventListener("click", () => {
+      const provider = btn.dataset.provider;
+      if (btn.dataset.act === "cred-set") {
+        const input = node.querySelector(`[data-cred-input="${provider}"]`);
+        const value = input.value.trim();
+        input.value = "";  // never keep the secret in the page
+        runAction(ctx, node, "Saving", () => ctx.api.request("PUT", `/settings/credentials/${provider}`, { body: { value } }));
+      } else {
+        runAction(ctx, node, "Removing", () => ctx.api.request("DELETE", `/settings/credentials/${provider}`));
+      }
+    }));
   },
 });

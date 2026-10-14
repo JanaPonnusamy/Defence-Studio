@@ -1,3 +1,5 @@
+import os
+import threading
 from contextlib import asynccontextmanager
 from pathlib import Path
 
@@ -20,7 +22,7 @@ from defence_studio.services.scene import SceneService
 from defence_studio.services.visual import VisualService
 from defence_studio.services.audio import AudioService
 from defence_studio.services.render import RenderService
-from defence_studio.services.package import PackageService
+from defence_studio.services.youtube import YouTubeService
 from defence_studio.api.integration_routes import register_integration_routes
 from defence_studio.services.assets import AssetService
 from defence_studio.contracts.evidence import ApprovalBody
@@ -60,6 +62,7 @@ class DiscoveryRequestBody(BaseModel):
     search_terms: list[str] = Field(default_factory=list)
     filters: dict = Field(default_factory=dict)
     limits: dict = Field(default_factory=dict)
+    seed_urls: list[str] = Field(default_factory=list, max_length=20)
 
 
 class DiscoverySelectionBody(BaseModel):
@@ -146,8 +149,9 @@ def create_app(
     scenes = SceneService(db_path, store_root)
     assets = AssetService(db_path, store_root)
     clients = integration_clients or {}
-    qc = PackageService(db_path, store_root)  # PackageService extends QcService
+    qc = YouTubeService(db_path, store_root, youtube_api=clients.get("youtube"))  # extends Package/Qc
     package = qc
+    yt = qc
     visual = VisualService(db_path, store_root, visual_client=clients.get("visual"))
     audio = AudioService(db_path, store_root, audio_client=clients.get("audio"))
     render = RenderService(db_path, store_root, renderer_client=clients.get("renderer"),
@@ -157,8 +161,20 @@ def create_app(
     async def lifespan(_app):
         initialize_database(db_path)
         worker_service.recover_expired()
-        visual.recover_interrupted()  # one sweep covers every integration kind
-        yield
+        yt.recover_interrupted()  # integration artifacts + publishing jobs, audited
+        stop = threading.Event()
+        if os.environ.get("DEFENCE_STUDIO_YT_WORKER") == "1":
+            def _tick():
+                while not stop.wait(30):
+                    try:
+                        yt.process_due()
+                    except Exception:  # a tick must never kill the loop
+                        pass
+            threading.Thread(target=_tick, daemon=True, name="yt-scheduler").start()
+        try:
+            yield
+        finally:
+            stop.set()
 
     app = FastAPI(title="Defence Studio API", version="0.1.0", lifespan=lifespan)
     app.state.database_file = db_path
@@ -663,7 +679,7 @@ def create_app(
     ):
         return assets.assignment_readiness(job_id, owner_id, language)
 
-    register_integration_routes(app, require_owner, {"visual": visual, "audio": audio, "render": render, "qc": qc, "package": package})
+    register_integration_routes(app, require_owner, {"visual": visual, "audio": audio, "render": render, "qc": qc, "package": package, "yt": yt})
 
     frontend_dir = PROJECT_ROOT / "frontend"
     if frontend_dir.is_dir():

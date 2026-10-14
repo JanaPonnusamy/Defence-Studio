@@ -58,6 +58,9 @@ def safe_filename(name: str, fallback_seed: str, extension: str) -> str:
     return stem if stem.lower().endswith(extension.lower()) else stem + extension
 
 
+MAX_WINDOWS_PATH = 240  # MAX_PATH 260 minus headroom for the .part temp suffix
+
+
 class ArtifactStore:
     def __init__(self, storage_root: Path):
         self.root = Path(storage_root).resolve()
@@ -96,6 +99,10 @@ class ArtifactStore:
         self, job_id: str, relative_uri: str, data: bytes, media_type: str
     ) -> StoredArtifact:
         uri, target = self._resolve(job_id, relative_uri)
+        if os.name == "nt" and len(str(target)) > MAX_WINDOWS_PATH:
+            raise StoragePathError(
+                f"Artifact path is {len(str(target))} characters, over the Windows limit of {MAX_WINDOWS_PATH}; "
+                "use a shorter DEFENCE_STUDIO_STORAGE_ROOT")
         target.parent.mkdir(parents=True, exist_ok=True)
         fd, tmp_name = tempfile.mkstemp(dir=str(target.parent), suffix=".part")
         tmp_path = Path(tmp_name)

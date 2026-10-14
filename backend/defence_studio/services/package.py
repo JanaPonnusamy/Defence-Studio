@@ -139,9 +139,14 @@ class PackageService(QcService):
                         "licence": a.get("licence"), "attribution": a.get("attribution"), "source_url": a.get("source_url")}
                        for a in timeline.get("attributions", []) if a.get("attribution_required")]
             intro_s, outro_s = float(template["intro_seconds"]), float(template["outro_seconds"])
+            if h > w:  # short-form vertical: keep brand cards brief so the Short stays under 60 s
+                intro_s, outro_s = min(intro_s, 1.0), min(outro_s, 2.0)
             scene_titles = {s["scene_id"]: (s.get("title") or s["narration"][:60]) for s in plan["scenes"]}
             chapters, chapter_note = build_chapters(render["scene_spans"], intro_s, scene_titles)
-            hashtags = ov.get("hashtags", template["default_hashtags"])
+            hashtags = list(ov.get("hashtags", template["default_hashtags"]))
+            vertical_short = h > w and render["audio_duration_seconds"] + intro_s + outro_s <= 60
+            if vertical_short and "#Shorts" not in hashtags:
+                hashtags.append("#Shorts")  # vertical and <= 60 s: eligible to surface as a Short
             tags = ov.get("tags", template["default_tags"])
             lines = [ov.get("description_intro") or script.get("opening_hook") or title, ""]
             if chapters:
@@ -197,7 +202,9 @@ class PackageService(QcService):
                 self._transition(job_id, language, PACKAGE_KIND, version, "RUNNING", detail="Creating thumbnail",
                                  progress=0.7)
                 thumb = work / "thumb.jpg"
-                tinfo = branding.make_thumbnail(main_path, title, language, template, thumb,
+                # Frame source is the video WITHOUT burned-in subtitles.
+                plain_path = self.store.job_dir(job_id) / render["video_plain"]["uri"].split(f"jobs/{job_id}/", 1)[1]
+                tinfo = branding.make_thumbnail(plain_path, title, language, template, thumb,
                                                 at_seconds=max(1.0, render["audio_duration_seconds"] * 0.25))
                 if not tinfo["within_youtube_limit"]:
                     raise IntegrationValidationError(f"Thumbnail invalid: {tinfo}")

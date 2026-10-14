@@ -39,7 +39,8 @@ DISCOVERY_RESULT_SCHEMA_V1 = "defence-studio.discovery-result.v1"  # still reada
 DISCOVERY_STAGE = "news_feed_and_topic_discovery"
 DISCOVERY_PREDECESSOR_STAGE = "application_foundation"
 
-SUPPORTED_PROVIDERS = ("rss_feed", "configured_search_api")
+SUPPORTED_PROVIDERS = ("rss_feed", "configured_search_api", "manual_url")
+MAX_SEED_URLS = 20
 SUPPORTED_LANGUAGES_HINT = ("en", "ta")  # documentation only; any 2-20 char tag is accepted
 
 
@@ -96,6 +97,8 @@ class DiscoveryRequestV1:
     filters: DiscoveryFilters = field(default_factory=DiscoveryFilters)
     limits: DiscoveryLimits = field(default_factory=DiscoveryLimits)
     schema_version: str = DISCOVERY_REQUEST_SCHEMA
+    # Operator-supplied source URLs (manual_url provider); empty keeps old behaviour.
+    seed_urls: tuple[str, ...] = ()
 
 
 # ---------------------------------------------------------------------------
@@ -286,9 +289,26 @@ def request_from_dict(payload: dict, job_id: str | None = None) -> DiscoveryRequ
     if limits.max_results <= 0:
         raise RequestValidationError("limits.max_results must be a positive integer")
 
+    raw_seeds = payload.get("seed_urls", [])
+    if not isinstance(raw_seeds, list) or len(raw_seeds) > MAX_SEED_URLS:
+        raise RequestValidationError(f"seed_urls must be a list of at most {MAX_SEED_URLS} URLs")
+    from defence_studio.acquisition.url_guard import UrlValidationError, normalize_url
+    seeds: list[str] = []
+    for item in raw_seeds:
+        if not isinstance(item, str) or len(item) > 2000:
+            raise RequestValidationError("Each seed URL must be a string of at most 2000 characters")
+        try:
+            norm = normalize_url(item)
+        except UrlValidationError as exc:
+            raise RequestValidationError(f"Invalid seed URL: {exc}") from None
+        if not norm.lower().startswith(("http://", "https://")):
+            raise RequestValidationError("Seed URLs must use http or https")
+        if norm not in seeds:
+            seeds.append(norm)
+
     return DiscoveryRequestV1(
         job_id=effective_job_id, topic=topic, language=language.strip(),
-        search_terms=tuple(terms), filters=filters, limits=limits,
+        search_terms=tuple(terms), filters=filters, limits=limits, seed_urls=tuple(seeds),
     )
 
 

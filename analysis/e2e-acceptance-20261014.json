@@ -1,0 +1,181 @@
+{
+  "started_at": "2026-10-14T06:00:11.909830+00:00",
+  "steps": [
+    {
+      "step": "discovery: real RSS feeds",
+      "ok": true,
+      "seconds": 3.7,
+      "candidates": 3,
+      "selected": [
+        "https://breakingdefense.com/2026/10/democratic-midterm-gains-could-speed-us-military-aid-to-ukraine-lawmaker-says/",
+        "https://www.defensenews.com/industry/2026/10/13/lockheed-eyes-fresh-pac-3-interceptor-production-options-for-ukraine-europe/"
+      ],
+      "providers": [
+        [
+          "configured_search_api",
+          "UNAVAILABLE_MISSING_CREDENTIALS"
+        ],
+        [
+          "rss_feed",
+          "OK"
+        ]
+      ]
+    },
+    {
+      "step": "acquisition + analysis: real article fetch",
+      "ok": true,
+      "seconds": 3.2,
+      "stages": {
+        "application_foundation": "COMPLETED",
+        "news_feed_and_topic_discovery": "COMPLETED",
+        "topic_search_and_source_collection": "COMPLETED",
+        "extraction_validation_normalization_deduplication": "COMPLETED",
+        "evidence_analysis_and_review": "AWAITING_REVIEW",
+        "script_generation_and_approval": "PENDING",
+        "scene_creation_and_voice_direction": "PENDING",
+        "asset_rights_review_and_assignment": "PENDING",
+        "voice_audio_finishing_and_alignment": "PENDING",
+        "video_rendering": "PENDING",
+        "quality_control_final_review_and_export": "PENDING",
+        "channel_branding_and_publishing_package": "PENDING",
+        "cross_domain_and_format_reuse": "PENDING"
+      },
+      "sources": 2,
+      "claims_extracted": 19
+    },
+    {
+      "step": "evidence review (simulated reviewer) + package approval",
+      "ok": true,
+      "seconds": 0.2,
+      "claims_approved": 4,
+      "eligible": 4
+    },
+    {
+      "step": "script: offline extractive provider, validation, approval",
+      "ok": true,
+      "seconds": 0.1,
+      "words": 90,
+      "provider": "offline-extractive",
+      "warnings": [
+        "TARGET_LENGTH_MISSED"
+      ]
+    },
+    {
+      "step": "scene plan: generate + approve",
+      "ok": true,
+      "seconds": 0.1,
+      "scenes": 5
+    },
+    {
+      "step": "assets: ingest, rights review, assign (synthetic rights-cleared still)",
+      "ok": true,
+      "seconds": 0.2,
+      "assigned_scenes": 5
+    },
+    {
+      "step": "audio: real Audio Module (local OS English voice)",
+      "ok": true,
+      "seconds": 43.469,
+      "version": 1,
+      "scenes": 5,
+      "mock": false
+    },
+    {
+      "step": "visual: real Visual Module, measured timing, imported asset",
+      "ok": true,
+      "seconds": 1.1,
+      "version": 1,
+      "shots": 10,
+      "gaps": 0,
+      "assignments_honored": 5
+    },
+    {
+      "step": "render: real Renderer + FFmpeg + subtitles",
+      "ok": true,
+      "seconds": 43.469,
+      "version": 1,
+      "probe": {
+        "avg_frame_rate": "25/1",
+        "codec": "h264",
+        "height": 720,
+        "pix_fmt": "yuv420p",
+        "width": 1280
+      },
+      "cues": 12
+    },
+    {
+      "step": "qc + final approval",
+      "ok": true,
+      "seconds": 2.3,
+      "qc_version": 1,
+      "checks": {
+        "MANIFEST_CONSISTENCY": "PASS",
+        "OUTPUT_INTEGRITY": "PASS",
+        "AUDIO_INTEGRITY": "PASS",
+        "CONTAINER_STREAMS": "PASS",
+        "DURATION_MATCH": "PASS",
+        "DURATION_LIMITS": "PASS",
+        "FULL_DECODE": "PASS",
+        "VISUAL_COVERAGE": "PASS",
+        "BLACK_FRAMES": "PASS",
+        "FROZEN_FRAMES": "WARN",
+        "AUDIO_CLIPPING": "PASS",
+        "AUDIO_SILENCE": "PASS",
+        "LOUDNESS": "PASS",
+        "SUBTITLES_PRESENT": "PASS",
+        "SUBTITLE_SYNC": "PASS",
+        "SUBTITLE_OVERFLOW": "PASS",
+        "SUBTITLE_GLYPHS": "PASS",
+        "ASSET_RIGHTS": "PASS",
+        "AI_LABELLING": "PASS",
+        "ATTRIBUTION_REQUIRED": "PASS",
+        "EVIDENCE_REFS": "PASS",
+        "BRANDING_ASSETS": "NOT_CHECKED"
+      },
+      "loudness": -21.8
+    },
+    {
+      "step": "package: branding, thumbnail, metadata, source register",
+      "ok": true,
+      "seconds": 8.7,
+      "version": 1,
+      "title": "Ukraine",
+      "sources": 1,
+      "duration": 50.498,
+      "thumbnail_ok": true
+    },
+    {
+      "step": "youtube: configuration check only (no credentials, nothing uploaded)",
+      "ok": true,
+      "seconds": 0.0,
+      "configured": false,
+      "missing": [
+        "DEFENCE_STUDIO_YT_CLIENT_ID",
+        "DEFENCE_STUDIO_YT_CLIENT_SECRET",
+        "DEFENCE_STUDIO_YT_REDIRECT_URI",
+        "DEFENCE_STUDIO_YT_TOKEN_KEY"
+      ]
+    },
+    {
+      "step": "persistence: fresh service instances read the same state",
+      "ok": true,
+      "seconds": 0.0,
+      "recovered_rows": 0,
+      "package_status": "APPROVED",
+      "approved_render": 1
+    }
+  ],
+  "simulated": [
+    "human review decisions (harness acts as owner/reviewer)",
+    "script text: offline extractive provider restating approved claims, no LLM",
+    "rights-cleared still: synthetic image created by the harness"
+  ],
+  "not_done": [
+    "YouTube OAuth/upload: blocked, missing DEFENCE_STUDIO_YT_CLIENT_ID, DEFENCE_STUDIO_YT_CLIENT_SECRET, DEFENCE_STUDIO_YT_REDIRECT_URI, DEFENCE_STUDIO_YT_TOKEN_KEY"
+  ],
+  "job_id": "31549bcb-db6b-4a1c-b714-5a3503504e93",
+  "topic": "Ukraine",
+  "database": "C:\\dstmp\\e2e\\e2e-1791957611.sqlite3",
+  "finished_at": "2026-10-14T06:01:03.786867+00:00",
+  "ok": true
+}

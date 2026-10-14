@@ -3,7 +3,7 @@ from contextlib import closing
 from pathlib import Path
 
 
-SCHEMA_VERSION = 9
+SCHEMA_VERSION = 10
 
 
 def connect(path: Path) -> sqlite3.Connection:
@@ -31,7 +31,7 @@ def initialize_database(path: Path) -> None:
         version = connection.execute(
             "SELECT version FROM schema_info WHERE singleton = 1"
         ).fetchone()[0]
-        if version not in (1, 2, 3, 4, 5, 6, 7, 8, SCHEMA_VERSION):
+        if version not in (1, 2, 3, 4, 5, 6, 7, 8, 9, SCHEMA_VERSION):
             raise RuntimeError(f"Unsupported Defence Studio schema version: {version}")
 
         connection.executescript(
@@ -126,6 +126,9 @@ def initialize_database(path: Path) -> None:
             version = 8
         if version == 8:
             _upgrade_v8_to_v9(connection)
+            version = 9
+        if version == 9:
+            _upgrade_v9_to_v10(connection)
 
 
 def _upgrade_v3_to_v4(connection: sqlite3.Connection) -> None:
@@ -574,6 +577,27 @@ def _upgrade_v8_to_v9(connection: sqlite3.Connection) -> None:
                 ON publishing_job_events(publish_id, occurred_at);
         """)
         connection.execute("UPDATE schema_info SET version = 9 WHERE singleton = 1")
+        connection.commit()
+    except Exception:
+        connection.rollback()
+        raise
+
+
+def _upgrade_v9_to_v10(connection: sqlite3.Connection) -> None:
+    """Per-owner provider credentials (Fernet ciphertext only; additive)."""
+    connection.execute("BEGIN EXCLUSIVE")
+    try:
+        connection.executescript("""
+            CREATE TABLE IF NOT EXISTS provider_credentials (
+                owner_id TEXT NOT NULL,
+                provider TEXT NOT NULL,
+                encrypted_value TEXT NOT NULL,
+                last4 TEXT NOT NULL,
+                updated_at TEXT NOT NULL,
+                PRIMARY KEY(owner_id, provider)
+            );
+        """)
+        connection.execute("UPDATE schema_info SET version = 10 WHERE singleton = 1")
         connection.commit()
     except Exception:
         connection.rollback()

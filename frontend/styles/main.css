@@ -948,3 +948,17 @@ details[open] > summary { margin-bottom: 0.3rem; }
 .qc-table th, .qc-table td { text-align: left; padding: .35rem .5rem; border-bottom: 1px solid rgba(127,127,127,.25); overflow-wrap: anywhere; }
 .qc-fail td:nth-child(2) { color: var(--rejected, #e5534b); font-weight: 600; }
 .qc-warn td:nth-child(2) { color: var(--pending, #d4a72c); }
+
+.prod-section { min-width: 0; max-width: 100%; }
+.prod-section * { min-width: 0; overflow-wrap: anywhere; }
+.prod-section pre { white-space: pre-wrap; }
+.prod-section input[type=text], .prod-section input[type=password], .prod-section select { max-width: 100%; }
+
+/* tab strip scrolls inside itself instead of widening the page */
+.tabs { overflow-x: auto; max-width: 100%; flex-wrap: nowrap; -webkit-overflow-scrolling: touch; }
+.tabs button { flex: 0 0 auto; white-space: nowrap; }
+
+/* The `hidden` attribute must always win over component display rules; without
+   this the app shell stayed visible behind the login gate and pushed the login
+   card below the fold (blank "Awaiting session" workspace). */
+[hidden] { display: none !important; }

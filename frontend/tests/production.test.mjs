@@ -96,3 +96,50 @@ test("package section: build gated on QC approval, metadata escaped, duplicate w
   const stale = renderPackageHtml({ items: [{ version: 1, status: "AWAITING_REVIEW", stale: true, uri: "u" }] }, null, true);
   assert.ok(!stale.includes("approve-pkg") && stale.includes("STALE"));
 });
+
+import { renderYoutubeConnectionHtml, renderPublishQueueHtml } from "../js/views/production-view.js";
+
+test("YouTube connection: unconfigured server blocks connect, no secrets, confirmation required", () => {
+  const unconf = renderYoutubeConnectionHtml({ config: { configured: false, missing: ["DEFENCE_STUDIO_YT_CLIENT_ID"] }, connections: [] });
+  assert.ok(unconf.includes("DEFENCE_STUDIO_YT_CLIENT_ID") && /yt-connect"[^>]*disabled/.test(unconf));
+  const pending = renderYoutubeConnectionHtml({ config: { configured: true, missing: [] }, connections: [
+    { connection_id: "c1", status: "PENDING_CONFIRMATION", channel_title: "<b>X</b>", channel_id: "UC1", granted_scopes: ["a"], channel_mismatch: true }] });
+  assert.ok(pending.includes("yt-confirm") && pending.includes("NOT THE EXPECTED CHANNEL") && !pending.includes("<b>X</b>"));
+});
+
+test("publish queue: typed confirmation shown for public, upload only after approval, thumbnail retry independent", () => {
+  const base = { publish_id: "p1", title: "T", visibility: "public", state: "AWAITING_APPROVAL", progress: 0, attempts: 0,
+    max_attempts: 5, thumbnail_state: "NONE", required_confirmation: "PUBLISH PUBLIC", approved: false, is_terminal: false };
+  const html = renderPublishQueueHtml({ jobs: [base], daily_quota_limit: 10000, quota_used_today_estimate: 1600 },
+    [{ status: "APPROVED", stale: false, version: 2 }], [{ status: "CONNECTED" }]);
+  assert.ok(html.includes("PUBLISH PUBLIC") && html.includes("yt-approve") && !html.includes('data-act="yt-queue"'));
+  const approved = renderPublishQueueHtml({ jobs: [{ ...base, approved: true }] }, [], []);
+  assert.ok(approved.includes('data-act="yt-queue"') && /yt-create"[^>]*disabled/.test(approved));
+  const failedThumb = renderPublishQueueHtml({ jobs: [{ ...base, state: "FAILED_RETRYABLE", approved: true,
+    youtube_video_id: "VID1", thumbnail_state: "FAILED" }] }, [], []);
+  assert.ok(failedThumb.includes('data-part="thumbnail"') && failedThumb.includes("youtube.com/watch?v=VID1"));
+});
+
+import { renderOverviewHtml, renderUsageHtml, renderCredentialsHtml } from "../js/views/production-view.js";
+
+test("overview flags stages needing attention and escapes", () => {
+  const html = renderOverviewHtml({ stages: [{ stage: "render", status: "FAILED", version: 2, detail: "<b>x</b>" }],
+    needs_attention: ["render"] });
+  assert.ok(html.includes("Needs attention: render") && !html.includes("<b>x</b>") && html.includes("v2"));
+  assert.equal(renderOverviewHtml(null), "");
+});
+
+test("usage never shows an unmeasured cost as zero", () => {
+  const html = renderUsageHtml({ text_generation: { total_inr: null, target_inr: 10, within_target: null, calls: [], unmeasured_calls: 1, note: "n" },
+    tts: { total_inr: null }, image_generation: { enabled: false }, youtube_quota_units_estimate: 0 });
+  assert.ok(html.includes("not measured") && !html.includes("₹0.00") && html.includes("not enabled"));
+  const over = renderUsageHtml({ text_generation: { total_inr: 12, target_inr: 10, within_target: false, calls: [1], unmeasured_calls: 0, note: "n" },
+    tts: { total_inr: 0 }, image_generation: { enabled: false }, youtube_quota_units_estimate: 3 });
+  assert.ok(over.includes("OVER target") && over.includes("₹12.00"));
+});
+
+test("credentials show only last four and a password field", () => {
+  const html = renderCredentialsHtml({ credentials: [{ provider: "openai", configured: true, source: "owner", last4: "9876" }] });
+  assert.ok(html.includes("ends 9876") && html.includes('type="password"') && html.includes("cred-del"));
+  assert.ok(!html.includes("sk-"));
+});

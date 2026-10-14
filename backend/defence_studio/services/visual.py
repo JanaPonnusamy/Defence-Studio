@@ -13,6 +13,7 @@ surfaced, never filled.
 """
 from __future__ import annotations
 
+import hashlib
 from contextlib import closing
 
 from defence_studio.database import connect
@@ -80,17 +81,20 @@ class VisualService(IntegrationService):
                 "AI image generation is not enabled from this endpoint; it is a separately budgeted, "
                 "approved action (cost must be authorized first).")
         audio = None
+        assigned = self.assigned_assets(job_id, language, row["plan_sha256"])
         binding = {"scene_plan_sha256": row["plan_sha256"], "scene_plan_version": row["version"],
                    "script_revision_sha256": row["script_revision_sha256"], "package_sha256": row["package_sha256"],
-                   "options": opts, "timing": "scene_plan_estimate"}
+                   "options": opts, "timing": "scene_plan_estimate",
+                   "assets": [{"asset_id": a["asset_id"], "sha256": a["asset_sha256"], "scenes": a["scene_ids"]}
+                              for a in assigned]}
         if audio_version is not None:
             audio = self._measured_audio(job_id, owner_id, language, audio_version, row["plan_sha256"])
             arow = self.get_integration(job_id, owner_id, language, "audio_set", audio_version)
             binding.update(timing="measured_audio", audio_version=audio_version, audio_set_sha256=arow["sha256"])
         item, created = self._create_row(job_id, owner_id, language, VISUAL_KIND, binding, idempotency_key)
         if created:
-            self._launch(lambda: self._run(job_id, owner_id, language, item["version"], plan, binding, opts, audio),
-                         background)
+            self._launch(lambda: self._run(job_id, owner_id, language, item["version"], plan, binding, opts, audio,
+                                           assigned), background)
         return self.get_integration(job_id, owner_id, language, VISUAL_KIND, item["version"])
 
     def retry_visual_plan(self, job_id: str, owner_id: str, language: str, version: int,
@@ -103,16 +107,18 @@ class VisualService(IntegrationService):
         if binding["scene_plan_sha256"] != row["plan_sha256"]:
             raise IntegrationStale("The scene plan changed since that run; start a new visual plan instead")
         audio = None
+        assigned = self.assigned_assets(job_id, language, row["plan_sha256"])
         if binding.get("audio_version") is not None:
             audio = self._measured_audio(job_id, owner_id, language, binding["audio_version"], row["plan_sha256"])
         item, created = self._create_row(job_id, owner_id, language, VISUAL_KIND, binding, idempotency_key,
                                          reuse_active=True)
         if created:
             self._launch(lambda: self._run(job_id, owner_id, language, item["version"], plan, binding,
-                                           binding["options"], audio), background)
+                                           binding["options"], audio, assigned), background)
         return self.get_integration(job_id, owner_id, language, VISUAL_KIND, item["version"])
 
-    def _run(self, job_id, owner_id, language, version, plan, binding, options, audio=None) -> None:
+    def _run(self, job_id, owner_id, language, version, plan, binding, options, audio=None,
+             assigned=None) -> None:
         try:
             self._transition(job_id, language, VISUAL_KIND, version, "RUNNING", detail="Calling Visual Module",
                              progress=0.05, allowed_from=("QUEUED",))
@@ -122,9 +128,11 @@ class VisualService(IntegrationService):
                 self._transition(job_id, language, VISUAL_KIND, version, "RUNNING", detail=stage,
                                  progress=round(0.1 + 0.8 * p, 3))
 
+            scene_text = {s["scene_id"]: s["narration"] for s in plan["scenes"]}
+            uploads = [self._asset_upload(job_id, a, scene_text) for a in (assigned or [])]
             result = self._client().build_timeline(
                 f"{job_id}:{language}:v{version}", segments, options,
-                idempotency_key=f"ds-{job_id}-{language}-{version}", on_progress=progress)
+                idempotency_key=f"ds-{job_id}-{language}-{version}", on_progress=progress, assets=uploads)
             timeline = result["timeline"]
             shots = timeline.get("shots", [])
             gaps = [s for s in shots if s.get("status") == "GAP"]
@@ -136,6 +144,7 @@ class VisualService(IntegrationService):
                                   "project_id": result["project_id"], "visual_plan_id": result["visual_plan_id"]},
                 "timing_origin": binding.get("timing", "scene_plan_estimate"),
                 "scene_map": [{"scene_id": s["scene_id"], "start": s["start"], "end": s["end"]} for s in segments],
+                "assignments": self._assignment_report(assigned or [], shots, result.get("imported_assets", {})),
                 "summary": {"shot_count": len(shots), "gap_count": len(gaps),
                             "duration_seconds": timeline.get("duration"),
                             "gaps_by_code": _count(g.get("gap_code") for g in gaps),
@@ -154,6 +163,39 @@ class VisualService(IntegrationService):
         except Exception as exc:  # never leave a row RUNNING
             self._transition(job_id, language, VISUAL_KIND, version, "FAILED",
                              detail=f"internal: {type(exc).__name__}: {exc}")
+
+    def _asset_upload(self, job_id: str, a: dict, scene_text: dict) -> dict:
+        import re
+        d, r = a["descriptor"], a.get("rights") or {}
+        data = self.store.read_bytes(job_id, a["uri"])
+        if hashlib.sha256(data).hexdigest() != d["content"]["content_sha256"]:
+            raise IntegrationValidationError(f"Asset {a['asset_id'][:12]} failed its integrity check")
+        basis = r.get("rights_basis", "unknown")
+        open_basis = basis in ("public_domain", "cc_by", "cc_by_sa")
+        words = {w for sid in a["scene_ids"] for w in re.findall(r"[^\W\d_]{4,}", scene_text.get(sid, "").lower())}
+        ext = d["content"]["media_type"].split("/")[-1].replace("jpeg", "jpg")
+        prov = d.get("provenance") or {}
+        return {
+            "core_asset_id": a["asset_id"], "data": data, "filename": f"{a['asset_id'][:16]}.{ext}",
+            "mime_type": d["content"]["media_type"], "title": d["title"], "description": d.get("description", ""),
+            "creator": (prov.get("creator") or {}).get("value"), "source_url": prov.get("source_url"),
+            "rights_status": "OPEN" if open_basis else "LICENSED",
+            "licence": r.get("licence_name") or r.get("licence_id") or basis,
+            "attribution": r.get("attribution_text"), "attribution_required": r.get("attribution_required", False),
+            "keywords": sorted(words)[:60],
+        }
+
+    @staticmethod
+    def _assignment_report(assigned, shots, imported) -> list[dict]:
+        """Did each core assignment actually reach a shot of its scene?"""
+        by_scene: dict = {}
+        for sh in shots:
+            if sh.get("status") == "READY" and sh.get("asset_id") in imported:
+                for sid in sh.get("narration_anchor", {}).get("segment_ids", []):
+                    by_scene.setdefault(sid, set()).add(imported[sh["asset_id"]])
+        return [{"scene_id": sid, "core_asset_id": a["asset_id"],
+                 "honored": a["asset_id"] in by_scene.get(sid, set())}
+                for a in assigned for sid in a["scene_ids"]]
 
     # -- reads ----------------------------------------------------------------
 

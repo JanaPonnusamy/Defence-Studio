@@ -18,7 +18,20 @@ import os
 import time
 from dataclasses import dataclass
 
+import re
+
 import httpx
+
+_KEY_LIKE = re.compile(r"sk-[A-Za-z0-9_\-*.]{4,}|Bearer\s+[A-Za-z0-9_\-.]{8,}")
+
+
+def scrub_secrets(text: str, *secrets_: str) -> str:
+    """Remove the configured key and any key-shaped token from provider text."""
+    for s in secrets_:
+        if s:
+            text = text.replace(s, "***")
+    return _KEY_LIKE.sub("***", text)
+
 
 _DEFAULT_BASE_URL = "https://api.openai.com/v1"
 _DEFAULT_TIMEOUT = 60.0
@@ -125,7 +138,7 @@ class OpenAiTextProvider:
                     time.sleep(0)
                     continue
                 except httpx.HTTPError as exc:
-                    raise ProviderError("network_error", f"Network error contacting provider: {exc}", retryable=True) from exc
+                    raise ProviderError("network_error", f"Network error contacting provider: {scrub_secrets(str(exc), self.api_key)}", retryable=True) from exc
                 if response.status_code == 429 or response.status_code >= 500:
                     last_error = ProviderError(
                         "rate_limited" if response.status_code == 429 else "provider_error",
@@ -137,7 +150,9 @@ class OpenAiTextProvider:
                     time.sleep(0)
                     continue
                 if response.status_code >= 400:
-                    raise ProviderError("provider_rejected", f"Provider returned HTTP {response.status_code}: {response.text[:500]}",
+                    raise ProviderError("provider_rejected",
+                                        f"Provider returned HTTP {response.status_code}: "
+                                        f"{scrub_secrets(response.text[:500], self.api_key)}",
                                         retryable=False)
                 try:
                     parsed = response.json()

@@ -199,6 +199,95 @@ class IntegrationService(AssetService):
         self.store.write_bytes(job_id, uri, data, "application/json")
         return uri, sha
 
+    # -- asset byte ingestion (rights-reviewed stills) ---------------------------
+
+    MAX_ASSET_BYTES = 15 * 1024 * 1024
+    _IMG_EXT = {"PNG": ("png", "image/png"), "JPEG": ("jpg", "image/jpeg"), "WEBP": ("webp", "image/webp")}
+
+    def ingest_asset_upload(self, job_id: str, owner_id: str, data: bytes, metadata: dict,
+                            idempotency_key: str) -> dict:
+        """Store real image bytes (verified decodable still: PNG/JPEG/WebP),
+        measure SHA-256, and register a DRAFT asset descriptor with MEASURED
+        content. Ingestion is never approval: rights review + assignment follow
+        through the existing asset service."""
+        import io
+        from PIL import Image
+        self._check_ownership(job_id, owner_id)
+        if not data or len(data) > self.MAX_ASSET_BYTES:
+            raise IntegrationValidationError(f"Asset must be 1 byte to {self.MAX_ASSET_BYTES // (1024 * 1024)} MiB")
+        try:
+            with Image.open(io.BytesIO(data)) as im:
+                im.verify()
+            with Image.open(io.BytesIO(data)) as im:
+                fmt, size = im.format, im.size
+        except Exception:
+            raise IntegrationValidationError("The file is not a valid, complete image") from None
+        if fmt not in self._IMG_EXT:
+            raise IntegrationValidationError(f"Unsupported image format {fmt!r}; use PNG, JPEG or WebP")
+        ext, mime = self._IMG_EXT[fmt]
+        title = (metadata.get("title") or "").strip()
+        if not title:
+            raise IntegrationValidationError("An asset title is required")
+        sha = hashlib.sha256(data).hexdigest()
+        uri = f"jobs/{job_id}/assets/files/{sha}.{ext}"
+        self.store.write_bytes(job_id, uri, data, mime)
+        declared = lambda v: ({"value": v, "status": "COLLECTED"} if v else {"value": None, "status": "NOT_COLLECTED"})
+        descriptor = {
+            "kind": "image", "title": title, "description": (metadata.get("description") or "")[:4000],
+            "content": {"status": "MEASURED", "content_sha256": sha, "media_type": mime, "byte_size": len(data)},
+            "provenance": {"source_url": metadata.get("source_url") or None,
+                           "documented_origin": metadata.get("documented_origin") or None,
+                           "source_title": declared(metadata.get("source_title")),
+                           "creator": declared(metadata.get("creator")),
+                           "publisher": declared(metadata.get("publisher")),
+                           "acquired_at": _now()},
+            "review_status": "DRAFT",
+        }
+        asset = self.register_asset(job_id, owner_id, descriptor, idempotency_key)
+        return {**asset, "file": {"uri": uri, "sha256": sha, "media_type": mime, "width": size[0], "height": size[1]}}
+
+    def asset_file_uri(self, job_id: str, descriptor: dict) -> str | None:
+        c = descriptor.get("content") or {}
+        if c.get("status") != "MEASURED":
+            return None
+        ext = {"image/png": "png", "image/jpeg": "jpg", "image/webp": "webp"}.get(c.get("media_type"))
+        return f"jobs/{job_id}/assets/files/{c['content_sha256']}.{ext}" if ext else None
+
+    def assigned_assets(self, job_id: str, language: str, plan_sha256: str) -> list[dict]:
+        """ACTIVE assignments on the current approved plan whose asset has real
+        bytes, an APPROVED review and CLEAR/RESTRICTED effective rights."""
+        with closing(connect(self.database_file)) as c:
+            rows = c.execute(
+                "SELECT a.scene_id, a.asset_id, a.version FROM asset_assignments a WHERE a.job_id=? AND a.language=? "
+                "AND a.scene_plan_sha256=? AND a.status='ACTIVE' ORDER BY a.scene_id, a.asset_id, a.version",
+                (job_id, language, plan_sha256)).fetchall()
+            latest: dict = {}
+            for r in rows:
+                latest[(r["scene_id"], r["asset_id"])] = r
+            out: dict = {}
+            for (scene_id, asset_id), _r in latest.items():
+                ar = c.execute("SELECT * FROM assets WHERE job_id=? AND asset_id=?", (job_id, asset_id)).fetchone()
+                if ar is None or ar["review_status"] != "APPROVED" or ar["effective_rights"] not in ("CLEAR", "RESTRICTED"):
+                    continue
+                entry = out.setdefault(asset_id, {"asset_id": asset_id, "scene_ids": [], "row": dict(ar)})
+                entry["scene_ids"].append(scene_id)
+        result = []
+        for asset_id, e in out.items():
+            descriptor = self._read_json_artifact(job_id, e["row"])
+            uri = self.asset_file_uri(job_id, descriptor)
+            if not uri:
+                continue
+            rights = None
+            if e["row"].get("rights_sha256"):
+                with closing(connect(self.database_file)) as c:
+                    rr = c.execute("SELECT * FROM asset_rights WHERE job_id=? AND asset_id=? AND rights_sha256=?",
+                                   (job_id, asset_id, e["row"]["rights_sha256"])).fetchone()
+                rights = self._read_json_artifact(job_id, dict(rr)) if rr else None
+            result.append({"asset_id": asset_id, "scene_ids": sorted(e["scene_ids"]), "descriptor": descriptor,
+                           "rights": rights, "uri": uri, "asset_sha256": e["row"]["sha256"],
+                           "effective_rights": e["row"]["effective_rights"]})
+        return sorted(result, key=lambda x: x["asset_id"])
+
     # -- recovery / execution -------------------------------------------------
 
     def recover_interrupted(self) -> int:

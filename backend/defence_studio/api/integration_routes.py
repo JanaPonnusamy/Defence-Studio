@@ -6,14 +6,15 @@ errors use the existing ReviewError handler (404/409/422/502).
 """
 from __future__ import annotations
 
-from fastapi import Depends, FastAPI, Header
-from fastapi.responses import Response
+from fastapi import Depends, FastAPI, File, Form, Header, UploadFile
+from fastapi.responses import RedirectResponse, Response
 from pydantic import BaseModel, ConfigDict, Field
 
 
 class VisualPlanBody(BaseModel):
     model_config = ConfigDict(extra="forbid")
     options: dict = Field(default_factory=dict)
+    format: str | None = None
 
 
 class AudioBody(BaseModel):
@@ -35,6 +36,7 @@ class QcBody(BaseModel):
     model_config = ConfigDict(extra="forbid")
     render_version: int = Field(gt=0)
     requirements: dict = Field(default_factory=dict)
+    format: str | None = None
 
 
 class QcDecisionBody(BaseModel):
@@ -56,10 +58,66 @@ class PackageReviewBody(BaseModel):
     note: str = Field(min_length=1, max_length=4000)
 
 
+class YtConfirmBody(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    channel_id: str = Field(min_length=1, max_length=100)
+
+
+class YtProfileBody(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    connection_id: str
+    data: dict = Field(default_factory=dict)
+
+
+class YtJobBody(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    job_id: str
+    language: str
+    package_version: int = Field(gt=0)
+    connection_id: str
+    profile_id: str | None = None
+    overrides: dict = Field(default_factory=dict)
+
+
+class YtApproveBody(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    approval_digest: str = Field(min_length=64, max_length=64)
+    note: str = Field(min_length=1, max_length=500)
+    confirmation: str | None = Field(default=None, max_length=100)
+
+
+class YtEditBody(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    changes: dict = Field(min_length=1)
+
+
+class YtPartBody(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    part: str = Field(pattern="^(thumbnail|captions)$")
+
+
+class CredentialBody(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    value: str = Field(min_length=8, max_length=500)
+
+
 class MeasuredVisualBody(BaseModel):
     model_config = ConfigDict(extra="forbid")
     audio_version: int = Field(gt=0)
     options: dict = Field(default_factory=dict)
+    format: str | None = None
+
+
+def _with_format(name: str | None, options: dict) -> dict:
+    """Format preset first, explicit options win. Unknown preset -> 422."""
+    if not name:
+        return options
+    from defence_studio import formats as fmt
+    from defence_studio.services.integration import IntegrationValidationError
+    try:
+        return {**fmt.visual_options(name), **options}
+    except fmt.UnknownFormat as exc:
+        raise IntegrationValidationError(str(exc)) from None
 
 
 def register_integration_routes(app: FastAPI, require_owner, services: dict) -> None:
@@ -68,6 +126,7 @@ def register_integration_routes(app: FastAPI, require_owner, services: dict) -> 
     render = services["render"]
     qc = services["qc"]
     package = services["package"]
+    yt = services["yt"]
 
     def idem(value: str) -> str:
         return value
@@ -78,7 +137,8 @@ def register_integration_routes(app: FastAPI, require_owner, services: dict) -> 
         idempotency_key: str = Header(min_length=1, max_length=200, alias="Idempotency-Key"),
         owner_id: str = Depends(require_owner),
     ):
-        return visual.start_visual_plan(job_id, owner_id, language, idempotency_key, body.options)
+        return visual.start_visual_plan(job_id, owner_id, language, idempotency_key,
+                                        _with_format(body.format, body.options))
 
     @app.post("/api/jobs/{job_id}/visual/{language}/plan/{version}/retry", status_code=202)
     def retry_visual_plan(
@@ -100,6 +160,11 @@ def register_integration_routes(app: FastAPI, require_owner, services: dict) -> 
     def integration_events(job_id: str, language: str, kind: str, version: int,
                            owner_id: str = Depends(require_owner)):
         return {"events": visual.integration_events(job_id, owner_id, language, kind, version)}
+
+    @app.get("/api/formats")
+    def list_formats(owner_id: str = Depends(require_owner)):
+        from defence_studio import formats as fmt
+        return {"formats": fmt.listing(), "default": fmt.DEFAULT_FORMAT}
 
     # -- RM-4 audio -----------------------------------------------------------
 
@@ -155,8 +220,8 @@ def register_integration_routes(app: FastAPI, require_owner, services: dict) -> 
         idempotency_key: str = Header(min_length=1, max_length=200, alias="Idempotency-Key"),
         owner_id: str = Depends(require_owner),
     ):
-        return visual.start_visual_plan(job_id, owner_id, language, idempotency_key, body.options,
-                                        audio_version=body.audio_version)
+        return visual.start_visual_plan(job_id, owner_id, language, idempotency_key,
+                                        _with_format(body.format, body.options), audio_version=body.audio_version)
 
     @app.post("/api/jobs/{job_id}/render/{language}/start", status_code=202)
     def start_render(
@@ -200,8 +265,13 @@ def register_integration_routes(app: FastAPI, require_owner, services: dict) -> 
         idempotency_key: str = Header(min_length=1, max_length=200, alias="Idempotency-Key"),
         owner_id: str = Depends(require_owner),
     ):
-        return qc.start_qc(job_id, owner_id, language, body.render_version, idempotency_key,
-                           requirements=body.requirements)
+        from defence_studio import formats as fmt
+        try:
+            reqs = {**fmt.qc_requirements(body.format), **body.requirements} if body.format else body.requirements
+        except fmt.UnknownFormat as exc:
+            from defence_studio.services.integration import IntegrationValidationError
+            raise IntegrationValidationError(str(exc)) from None
+        return qc.start_qc(job_id, owner_id, language, body.render_version, idempotency_key, requirements=reqs)
 
     @app.get("/api/jobs/{job_id}/qc/{language}")
     def qc_status(job_id: str, language: str, owner_id: str = Depends(require_owner)):
@@ -265,3 +335,126 @@ def register_integration_routes(app: FastAPI, require_owner, services: dict) -> 
     def package_file(job_id: str, language: str, version: int, name: str, owner_id: str = Depends(require_owner)):
         data, mime = package.package_file(job_id, owner_id, language, version, name)
         return Response(content=data, media_type=mime, headers={"X-Content-Type-Options": "nosniff"})
+
+    # -- RM-8 YouTube ----------------------------------------------------------------
+
+    @app.get("/api/youtube/config")
+    def yt_config(owner_id: str = Depends(require_owner)):
+        return yt.config_status()
+
+    @app.post("/api/youtube/connect/start")
+    def yt_connect_start(owner_id: str = Depends(require_owner)):
+        return yt.connect_start(owner_id)
+
+    @app.get("/api/youtube/oauth/callback")
+    def yt_callback(state: str = "", code: str | None = None, error: str | None = None):
+        # Browser redirect from Google: no bearer token. The single-use state
+        # row binds this callback to the owner who started it.
+        from urllib.parse import quote
+        try:
+            result = yt.connect_callback(state, code, error)
+        except Exception as exc:  # never show internals / tokens
+            return RedirectResponse(f"/#youtube?error={quote(str(exc)[:200])}", status_code=303)
+        return RedirectResponse(f"/#youtube?status={quote(result['status'])}", status_code=303)
+
+    @app.get("/api/youtube/connections")
+    def yt_connections(owner_id: str = Depends(require_owner)):
+        return yt.list_connections(owner_id)
+
+    @app.post("/api/youtube/connections/{connection_id}/confirm")
+    def yt_confirm(connection_id: str, body: YtConfirmBody, owner_id: str = Depends(require_owner)):
+        return yt.confirm_channel(owner_id, connection_id, body.channel_id)
+
+    @app.post("/api/youtube/connections/{connection_id}/disconnect")
+    def yt_disconnect(connection_id: str, owner_id: str = Depends(require_owner)):
+        return yt.disconnect(owner_id, connection_id)
+
+    @app.get("/api/youtube/profiles")
+    def yt_profiles(owner_id: str = Depends(require_owner)):
+        return {"profiles": yt.list_profiles(owner_id)}
+
+    @app.post("/api/youtube/profiles", status_code=201)
+    def yt_profile_create(body: YtProfileBody, owner_id: str = Depends(require_owner)):
+        return yt.save_profile(owner_id, body.connection_id, body.data)
+
+    @app.put("/api/youtube/profiles/{profile_id}")
+    def yt_profile_update(profile_id: str, body: YtProfileBody, owner_id: str = Depends(require_owner)):
+        return yt.save_profile(owner_id, body.connection_id, body.data, profile_id)
+
+    @app.post("/api/youtube/jobs", status_code=201)
+    def yt_job_create(
+        body: YtJobBody,
+        idempotency_key: str = Header(min_length=1, max_length=200, alias="Idempotency-Key"),
+        owner_id: str = Depends(require_owner),
+    ):
+        return yt.create_job(owner_id, body.job_id, body.language, body.package_version, body.connection_id,
+                             idempotency_key, profile_id=body.profile_id, overrides=body.overrides)
+
+    @app.get("/api/youtube/jobs")
+    def yt_jobs(owner_id: str = Depends(require_owner)):
+        return yt.list_jobs(owner_id)
+
+    @app.get("/api/youtube/jobs/{publish_id}")
+    def yt_job(publish_id: str, owner_id: str = Depends(require_owner)):
+        return yt.get_job(owner_id, publish_id)
+
+    @app.patch("/api/youtube/jobs/{publish_id}")
+    def yt_job_edit(publish_id: str, body: YtEditBody, owner_id: str = Depends(require_owner)):
+        return yt.edit_job(owner_id, publish_id, body.changes)
+
+    @app.post("/api/youtube/jobs/{publish_id}/approve")
+    def yt_job_approve(publish_id: str, body: YtApproveBody, owner_id: str = Depends(require_owner)):
+        return yt.approve_job(owner_id, publish_id, body.approval_digest, body.note, body.confirmation)
+
+    @app.post("/api/youtube/jobs/{publish_id}/queue", status_code=202)
+    def yt_job_queue(publish_id: str, owner_id: str = Depends(require_owner)):
+        return yt.queue_job(owner_id, publish_id)
+
+    @app.post("/api/youtube/jobs/{publish_id}/cancel")
+    def yt_job_cancel(publish_id: str, owner_id: str = Depends(require_owner)):
+        return yt.cancel_job(owner_id, publish_id)
+
+    @app.post("/api/youtube/jobs/{publish_id}/retry-part", status_code=202)
+    def yt_job_retry(publish_id: str, body: YtPartBody, owner_id: str = Depends(require_owner)):
+        return yt.retry_part(owner_id, publish_id, body.part)
+
+    # -- asset byte ingestion (stills) ----------------------------------------------
+
+    @app.post("/api/jobs/{job_id}/assets/upload", status_code=201)
+    async def upload_asset(
+        job_id: str,
+        file: UploadFile = File(...),
+        title: str = Form(...),
+        description: str = Form(""),
+        creator: str = Form(""),
+        source_url: str = Form(""),
+        documented_origin: str = Form(""),
+        idempotency_key: str = Header(min_length=1, max_length=200, alias="Idempotency-Key"),
+        owner_id: str = Depends(require_owner),
+    ):
+        data = await file.read(visual.MAX_ASSET_BYTES + 1)
+        return visual.ingest_asset_upload(job_id, owner_id, data, {
+            "title": title, "description": description, "creator": creator, "source_url": source_url,
+            "documented_origin": documented_origin}, idempotency_key)
+
+    # -- RM-9 operations: overview, usage, credentials -------------------------------
+
+    @app.get("/api/jobs/{job_id}/pipeline/{language}")
+    def pipeline_overview(job_id: str, language: str, owner_id: str = Depends(require_owner)):
+        return yt.pipeline_overview(job_id, owner_id, language)
+
+    @app.get("/api/jobs/{job_id}/usage")
+    def usage_report(job_id: str, owner_id: str = Depends(require_owner)):
+        return yt.usage_report(job_id, owner_id)
+
+    @app.get("/api/settings/credentials")
+    def credential_status(owner_id: str = Depends(require_owner)):
+        return yt.credential_status(owner_id)
+
+    @app.put("/api/settings/credentials/{provider}")
+    def set_credential(provider: str, body: CredentialBody, owner_id: str = Depends(require_owner)):
+        return yt.set_credential(owner_id, provider, body.value)
+
+    @app.delete("/api/settings/credentials/{provider}")
+    def delete_credential(provider: str, owner_id: str = Depends(require_owner)):
+        return yt.delete_credential(owner_id, provider)

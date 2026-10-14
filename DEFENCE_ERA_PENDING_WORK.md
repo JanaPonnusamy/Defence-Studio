@@ -66,3 +66,7 @@ No failing test was found. The items below are defects of record or integrity ri
 | E4 | Per-module duplicated job queues (backend, Audio, VVM, renderer) | P3 | Decision recorded whether to unify |
 | E5 | `component_registry/REGISTRY.md` lacks standalone modules and UI primitives | P3 | Registry rows for each reusable component |
 | E6 | Dev-auth bypass with fixed owner | P3 | Startup warning and docs; disabled in non-dev config |
+
+## Update 2026-10-14 (post RM-0..RM-10)
+
+Closed: A1, A2, A3, A4, B2, B3, B4*, B5, B6, B7, B8, B10, B11, B12 (Production tab), C1, C2, C3, E5(partial). *B4: English only. Open/blocked: B1 hosted vendor, B9 live YouTube, D1/D2 live generation + Tamil quality, D3/D4 live acquisition opt-ins (D4 exercised implicitly by the e2e run), D6 Tamil voice, D7 AI images (deliberately disabled), D10 licensing review, C4 QVault interface doc, C5 AI extraction seam, E2 frontend per-view coverage (production/discovery/script have node tests).

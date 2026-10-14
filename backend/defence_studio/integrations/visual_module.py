@@ -68,7 +68,8 @@ class VisualModuleClient:
             return self._request(client, "GET", "/health")
 
     def build_timeline(self, project_name: str, scenes: list[dict], options: dict | None = None,
-                       idempotency_key: str | None = None, on_progress=None) -> dict:
+                       idempotency_key: str | None = None, on_progress=None,
+                       assets: list[dict] | None = None) -> dict:
         """``scenes``: ``[{scene_id, text, start, end}]`` in order. Returns
         ``{project_id, visual_plan_id, job_id, module_version, scenes, timeline}``."""
         if not scenes:
@@ -80,6 +81,10 @@ class VisualModuleClient:
             health = self._request(client, "GET", "/health")
             project = self._request(client, "POST", "/projects", json={"name": project_name[:200]})
             pid = project["project_id"]
+            imported: dict[str, str] = {}  # module asset_id -> core asset_id
+            for a in assets or []:
+                resp = self._import_asset(client, pid, a)
+                imported[resp["asset_id"]] = a["core_asset_id"]
             segments = [{"text": s["text"], "start": round(s["start"], 3), "end": round(s["end"], 3),
                          "segment_id": s["scene_id"], "scene": s["scene_id"]} for s in scenes]
             scene_resp = self._request(client, "POST", "/scenes", json={"project_id": pid, "segments": segments})
@@ -104,7 +109,36 @@ class VisualModuleClient:
                                     f"Unsupported timeline {timeline.get('schema')!r} v{timeline.get('version')!r}")
         return {"project_id": pid, "visual_plan_id": plan_id, "job_id": job["job_id"],
                 "module_version": health.get("version"), "scenes": scene_resp.get("scenes", []),
-                "timeline": timeline}
+                "timeline": timeline, "imported_assets": imported}
+
+    def _import_asset(self, client, project_id: str, a: dict) -> dict:
+        """Multipart ``POST /assets/import`` with the rights fields the module requires."""
+        import json as _json
+        headers = {"X-API-Key": self.api_key} if self.api_key else {}
+        fields = {"project_id": project_id, "asset_type": "SOURCE_PHOTO",
+                  "source_type": "EXTERNAL_SOURCE" if a.get("source_url") else "USER_PROVIDED",
+                  "rights_status": a["rights_status"], "title": a["title"][:200],
+                  "description": (a.get("description") or "")[:1000], "creator": a.get("creator") or "",
+                  "licence": a.get("licence") or "", "attribution": a.get("attribution") or "",
+                  "source_url": a.get("source_url") or "",
+                  "attribution_required": "true" if a.get("attribution_required") else "false",
+                  "editorial_category": a.get("editorial_category", "ILLUSTRATIVE_VISUAL"),
+                  "extra_metadata": _json.dumps({"keywords": a.get("keywords", []),
+                                                 "core_asset_id": a["core_asset_id"]})}
+        fields = {k: v for k, v in fields.items() if v != ""}
+        try:
+            response = client.post(f"{self.base_url}/assets/import", data=fields, headers=headers,
+                                   files={"file": (a["filename"], a["data"], a["mime_type"])})
+        except httpx.HTTPError as exc:
+            raise VisualModuleError("unreachable", f"Asset import failed: {exc}", retryable=True) from exc
+        if response.status_code not in (200, 201):
+            try:
+                body = response.json()
+            except ValueError:
+                body = {}
+            raise VisualModuleError(body.get("error_code") or f"http_{response.status_code}",
+                                    f"Asset import rejected: {body.get('error_message') or response.text[:200]}")
+        return response.json()
 
     def fetch_asset(self, asset_id: str) -> bytes:
         """Stored bytes of one module asset (public ``GET /assets/{id}/file``)."""

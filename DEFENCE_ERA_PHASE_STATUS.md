@@ -1,4 +1,7 @@
-# Defence Era — Phase Status (audit 2026-10-14)
+# Defence Era — Phase Status (audit 2026-10-14; updated after RM-0..RM-10 run, see `DEFENCE_ERA_PHASE_LEDGER.json` and `project_status.md`)
+
+> Update 2026-10-14: rows P1A/P1B, P2–P9, X1–X5 below describe the *audit baseline*. Since then: RM-1 (search taxonomy/filters/history), RM-2 (statement-kind integrity gate), RM-3 (visual integration), RM-4 (audio; Tamil BLOCKED), RM-5 (render+subtitles), RM-6 (QC), RM-7 (package), RM-8 (YouTube, mocked only), RM-9 (assets, credentials, usage, overview), RM-10 (formats) were implemented; X1 orchestration is delivered as persistent integration artifacts + pipeline overview; X2 per-owner credentials delivered; X3 duplicate-title/script-repetition checks delivered.
+
 
 Official numbering is the core design's Phase 0–10. F1–F5 are the foundation increments recorded in `project_status.md`; they are shown under the phase they serve and are not renumbered. "Re-verified" = I ran it on 2026-10-14. "Claimed" = documented but not re-run.
 

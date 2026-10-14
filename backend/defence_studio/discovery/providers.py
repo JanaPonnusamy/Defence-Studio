@@ -26,6 +26,7 @@ All network access goes through `defence_studio.acquisition.http_client` and
 
 from __future__ import annotations
 
+import hashlib
 import json
 import os
 import random
@@ -35,9 +36,11 @@ import time
 import xml.etree.ElementTree as ET
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
+from html.parser import HTMLParser
+from urllib.parse import urljoin, urlsplit
 
 from defence_studio.acquisition.http_client import GuardedFetcher, HttpFetchError
-from defence_studio.acquisition.url_guard import UrlGuard, UrlValidationError
+from defence_studio.acquisition.url_guard import UrlGuard, UrlValidationError, normalize_url
 from defence_studio.contracts.discovery import DiscoveryFilters, DiscoveryLimits, ProviderOutcome, ProviderStatus
 from defence_studio.discovery.taxonomy import FeedConfig, load_feed_configs
 
@@ -107,6 +110,7 @@ class DiscoveryContext:
     guard: UrlGuard
     cancel: threading.Event
     client_factory = None
+    seed_urls: tuple[str, ...] = ()
 
 
 class DiscoveryProvider(ABC):
@@ -460,8 +464,198 @@ def _atom_entry(entry) -> dict:
     }
 
 
+class _PageMetaParser(HTMLParser):
+    """Collects <title>, meta tags, canonical link, <time> and visible text."""
+
+    _SKIP = {"script", "style", "noscript", "template", "svg"}
+
+    def __init__(self):
+        super().__init__(convert_charrefs=True)
+        self.meta: dict[str, str] = {}
+        self.canonical: str | None = None
+        self.title: str | None = None
+        self.time_values: list[str] = []
+        self.text: list[str] = []
+        self._skip_depth = 0
+        self._in_title = False
+
+    def handle_starttag(self, tag, attrs):
+        a = {k.lower(): (v or "") for k, v in attrs}
+        if tag in self._SKIP:
+            self._skip_depth += 1
+        elif tag == "title":
+            self._in_title = True
+        elif tag == "meta":
+            key = (a.get("property") or a.get("name") or a.get("itemprop") or "").lower()
+            if key and a.get("content"):
+                self.meta.setdefault(key, a["content"].strip())
+        elif tag == "link" and a.get("rel", "").lower() == "canonical" and a.get("href"):
+            self.canonical = a["href"].strip()
+        elif tag == "time" and a.get("datetime"):
+            self.time_values.append(a["datetime"].strip())
+
+    def handle_endtag(self, tag):
+        if tag in self._SKIP and self._skip_depth:
+            self._skip_depth -= 1
+        elif tag == "title":
+            self._in_title = False
+
+    def handle_data(self, data):
+        if self._in_title and self.title is None:
+            self.title = data.strip() or None
+        if not self._skip_depth and data.strip():
+            self.text.append(data.strip())
+
+
+_DATE_META_KEYS = ("article:published_time", "citation_publication_date", "citation_date", "dc.date",
+                   "dcterms.created", "datepublished", "date")
+MIN_EXTRACTED_CHARS = 200
+
+
+def decode_html(content: bytes, content_type: str = "") -> str:
+    """Decode with the declared charset (header, then <meta>), else strict UTF-8,
+    else cp1252 -- never silently replace undecodable bytes with U+FFFD."""
+    import codecs
+    m = re.search(r"charset=([\w-]+)", content_type or "", re.I) or re.search(
+        rb"charset=[\"']?([\w-]+)", content[:4096], re.I)
+    declared = m.group(1) if m else None
+    if isinstance(declared, bytes):
+        declared = declared.decode("ascii", "ignore")
+    if declared:
+        try:
+            codecs.lookup(declared)
+            return content.decode(declared, errors="replace")
+        except LookupError:
+            pass
+    try:
+        return content.decode("utf-8")
+    except UnicodeDecodeError:
+        return content.decode("cp1252", errors="replace")
+
+
+def extract_page(content: bytes, base_url: str, content_type: str = "") -> dict:
+    """Pure HTML metadata/text extraction. A date is returned only when the page
+    itself declares one; nothing is inferred."""
+    parser = _PageMetaParser()
+    try:
+        parser.feed(decode_html(content, content_type))
+        parser.close()
+    except Exception:  # malformed markup must not abort discovery
+        pass
+    text = re.sub(r"\s+", " ", " ".join(parser.text)).strip()
+    published = next((parser.meta[k] for k in _DATE_META_KEYS if k in parser.meta), None)
+    if not published and parser.time_values:
+        published = parser.time_values[0]
+    canonical = None
+    if parser.canonical:
+        try:
+            joined = urljoin(base_url, parser.canonical)
+            # A declared canonical is honoured only when it stays on the fetched host.
+            if urlsplit(joined).hostname == urlsplit(base_url).hostname:
+                canonical = joined
+        except ValueError:
+            canonical = None
+    return {
+        "title": parser.meta.get("og:title") or parser.title,
+        "publisher": parser.meta.get("og:site_name") or parser.meta.get("application-name"),
+        "published_at": published, "canonical_url": canonical, "text": text,
+    }
+
+
+class ManualUrlProvider(DiscoveryProvider):
+    """Operator-supplied URLs. Every fetch goes through the SSRF-guarded fetcher
+    (each redirect hop re-validated). A 200 proves reachability only, never that
+    the page's claims are accurate."""
+
+    name = "manual_url"
+    requires_credentials = False
+
+    def __init__(self, client_factory=None, sleep=time.sleep):
+        self._client_factory = client_factory
+        self._sleep = sleep
+
+    def describe(self) -> dict:
+        return {"name": self.name, "kind": "manual", "configured": True, "requires_credentials": False,
+                "supported_filters": ["source_types"], "rate_limit": "sequential requests, bounded retries",
+                "status_message": "Fetches operator-supplied seed_urls through the guarded fetcher."}
+
+    def discover(self, context: DiscoveryContext) -> tuple[ProviderOutcome, list[RawCandidate]]:
+        started = time.monotonic()
+        if not context.seed_urls:
+            return ProviderOutcome(provider=self.name, status=ProviderStatus.COMPLETED_NO_RESULTS,
+                                   message="No seed_urls were supplied.", candidates_returned=0), []
+        fetcher = GuardedFetcher(context.guard, context.limits.max_bytes_per_fetch, context.limits.timeout_seconds,
+                                 context.limits.max_redirects, client_factory=self._client_factory)
+        out: list[RawCandidate] = []
+        errors: list[str] = []
+        seen_urls: set[str] = set()
+        seen_text: dict[str, str] = {}
+        attempts_total = 0
+        for url in context.seed_urls:
+            if context.cancel.is_set():
+                errors.append("Discovery cancelled before all seed URLs were fetched.")
+                break
+            try:
+                resp, attempts, _ = fetch_with_retry(fetcher, url, context.cancel, self._sleep)
+                attempts_total += attempts
+            except HttpFetchError as exc:
+                attempts_total += getattr(exc, "attempts", 1)
+                errors.append(f"{url}: {exc.message}")
+                continue
+            except UrlValidationError as exc:
+                errors.append(f"{url}: {exc}")
+                continue
+            if resp.media_type not in ("text/html", "application/xhtml+xml", "text/plain"):
+                errors.append(f"{url}: unsupported media type {resp.media_type or 'unknown'}; no text extracted")
+                continue
+            page = extract_page(resp.content, resp.final_url, resp.headers.get("content-type", ""))
+            if len(page["text"]) < MIN_EXTRACTED_CHARS:
+                errors.append(f"{url}: extraction failed (only {len(page['text'])} characters of text)")
+                continue
+            try:
+                final = normalize_url(page["canonical_url"] or resp.final_url)
+            except UrlValidationError as exc:
+                errors.append(f"{url}: {exc}")
+                continue
+            digest = hashlib.sha256(page["text"].encode("utf-8")).hexdigest()
+            if final in seen_urls:
+                continue
+            if digest in seen_text:
+                errors.append(f"{url}: duplicate of {seen_text[digest]} (identical extracted text); skipped")
+                continue
+            seen_urls.add(final)
+            seen_text[digest] = final
+            out.append(RawCandidate(
+                requested_url=final, title=page["title"],
+                publisher=page["publisher"] or (urlsplit(final).hostname or None),
+                published_at=page["published_at"], language=context.language, source_type="web_page",
+                original_metadata={
+                    "seed_url": url, "final_url": resp.final_url, "http_status": resp.status_code,
+                    "media_type": resp.media_type, "fetch_status": "REACHABLE", "reachability_only": True,
+                    "text_sha256": digest, "text_chars": len(page["text"]),
+                    "declared_canonical_url": page["canonical_url"],
+                    "publisher_declared": bool(page["publisher"]),
+                },
+                snippet=page["text"][:SNIPPET_MAX], provider_tag="manual",
+            ))
+        stats = dict(duration_ms=int((time.monotonic() - started) * 1000), http_attempts=attempts_total,
+                     filters_applied=("seed_urls",))
+        if not out and errors:
+            return ProviderOutcome(provider=self.name, status=ProviderStatus.ERROR,
+                                   message="All seed URLs failed: " + "; ".join(errors),
+                                   candidates_returned=0, **stats), []
+        if errors:
+            return ProviderOutcome(provider=self.name, status=ProviderStatus.PARTIAL,
+                                   message=f"{len(errors)} issue(s): " + "; ".join(errors),
+                                   candidates_returned=len(out), **stats), out
+        return ProviderOutcome(provider=self.name, status=ProviderStatus.OK,
+                               message=f"Fetched {len(out)} seed URL(s); HTTP 200 shows reachability only.",
+                               candidates_returned=len(out), **stats), out
+
+
 def default_registry(client_factory=None) -> DiscoveryProviderRegistry:
     registry = DiscoveryProviderRegistry()
     registry.register(RssFeedProvider(client_factory=client_factory))
     registry.register(ConfiguredSearchApiProvider(client_factory=client_factory))
+    registry.register(ManualUrlProvider(client_factory=client_factory))
     return registry

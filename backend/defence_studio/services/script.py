@@ -69,7 +69,7 @@ class ScriptService(EvidenceService):
         super().__init__(database_file, storage_root)
         self._provider = provider  # injected for tests; real provider built lazily otherwise
 
-    def _resolve_provider(self):
+    def _resolve_provider(self, owner_id: str | None = None):
         if self._provider is not None:
             return self._provider
         import os
@@ -77,7 +77,14 @@ class ScriptService(EvidenceService):
             from defence_studio.providers.offline_text import OfflineExtractiveProvider
             return OfflineExtractiveProvider()
         from defence_studio.providers.openai_text import OpenAiTextProvider
-        return OpenAiTextProvider()
+        key = None
+        if owner_id:
+            try:
+                from defence_studio.services import credentials
+                key = credentials.resolve_credential(self.database_file, owner_id, "openai")
+            except Exception:
+                key = None  # unreadable/unconfigured store: fall back to the server environment key
+        return OpenAiTextProvider(api_key=key) if key else OpenAiTextProvider()
 
     # -- reads ----------------------------------------------------------------
 
@@ -162,7 +169,7 @@ class ScriptService(EvidenceService):
         }
         request_sha = digest(request_body)
 
-        provider = self._resolve_provider()
+        provider = self._resolve_provider(owner_id)
         corroboration = {c["claim_id"]: corroboration_count(approved_package, c["claim_id"]) for c in eligible_claims}
         prompt_text = user_prompt(
             topic=approved_package.get("topic", ""), language=parsed_config.language,

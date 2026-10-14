@@ -146,6 +146,104 @@
         "thumbnail uses a video frame + title; no designer templates",
         "branding cards are text-only"
       ]
+    },
+    "RM-8": {
+      "status": "IMPLEMENTED + TESTED (MOCKED Google only); NOT LIVE-VERIFIED — blocked on Google OAuth credentials + channel authorization",
+      "tests": {
+        "rm8": "22 in test_youtube_rm8.py (all against FakeGoogle mock)",
+        "frontend": "26 passed"
+      },
+      "live_blockers": [
+        "DEFENCE_STUDIO_YT_CLIENT_ID/_SECRET/_REDIRECT_URI",
+        "DEFENCE_STUDIO_YT_TOKEN_KEY (Fernet key)",
+        "Google Cloud project with YouTube Data API v3 + OAuth consent screen + test user",
+        "owner completes consent for the intended channel; then one private test upload"
+      ],
+      "not_verified_live": [
+        "OAuth consent/callback",
+        "resumable upload",
+        "thumbnails.set",
+        "captions.insert (en/ta)",
+        "schedule acceptance",
+        "quota unit costs (defaults, configurable)"
+      ],
+      "safety": [
+        "uploads always created private",
+        "non-private/scheduled needs digest-bound approval + typed confirmation",
+        "video id persisted immediately; reconcile before any retry",
+        "refresh token Fernet-encrypted, session URL encrypted, nothing secret in API/events"
+      ]
+    },
+    "RM-9": {
+      "status": "IMPLEMENTED + TESTED + browser-checked (3 widths, populated job); partial vs full RM-9 scope",
+      "tests": {
+        "backend_full": "403 passed, 2 skipped",
+        "frontend": "29 passed",
+        "browser": "real Chrome CDP, 390/768/1440px, 11 sections, 0 JS exceptions, no horizontal overflow"
+      },
+      "done": [
+        "asset byte ingestion -> rights review -> assignment -> real module import",
+        "per-owner encrypted credentials + owner-aware script provider",
+        "usage/cost report (categories separate, unmeasured never zero)",
+        "pipeline overview from persisted state",
+        "Windows MAX_PATH guard",
+        "schema v8,v9,v10 additive migrations with data-preservation test",
+        "cross-owner write bug fixed",
+        "tab strip overflow fixed"
+      ],
+      "not_done": [
+        "secret redaction audit across all logs not performed",
+        "load/concurrency testing of multi-job parallel renders",
+        "licensing review by a qualified person"
+      ]
+    },
+    "RM-10": {
+      "status": "IMPLEMENTED + TESTED + INTEGRATED (vertical Short end-to-end on the 3 real modules)",
+      "tests": {
+        "rm10": "3 in test_formats_rm10.py incl. real-module 720x1280 render+QC+package"
+      },
+      "formats": [
+        "landscape_1080p",
+        "landscape_720p",
+        "vertical_short",
+        "vertical_short_720",
+        "square"
+      ],
+      "limits": [
+        "Shorts duration limit enforced by QC (<=60s) and #Shorts hashtag; no other-domain taxonomy beyond configurable categories/feeds",
+        "other languages need a declared TTS voice and subtitle font"
+      ]
     }
+  },
+  "e2e_acceptance": {
+    "date": "2026-10-14",
+    "report": "analysis/e2e-acceptance-20261014.json",
+    "result": "OK (13/13 steps)",
+    "real": [
+      "RSS discovery (BBC/Defense News/Breaking Defense/The Hindu)",
+      "article fetch + extraction (2 real articles, 19 claims)",
+      "Visual/Audio/Renderer modules over HTTP",
+      "FFmpeg encode + subtitle burn-in",
+      "QC measurements",
+      "branding/thumbnail/package"
+    ],
+    "simulated": [
+      "human review decisions",
+      "script text (offline extractive, no LLM)",
+      "synthetic rights-cleared still"
+    ],
+    "not_done": [
+      "Tamil narration (no Tamil voice)",
+      "YouTube OAuth/upload (no credentials)",
+      "live OpenAI generation (no key)",
+      "hosted search API (no vendor)"
+    ]
+  },
+  "post_implementation_gate": {
+    "security": "TESTED: key-scrubbing fix + test_security_gate.py (4 passed); concurrent-render isolation and load test NOT verified",
+    "regression": "backend 407 passed, 2 skipped, 0 failed; frontend 29 passed",
+    "youtube": "IMPLEMENTED+TESTED (mocked Google); LIVE-VERIFIED: no - BLOCKED on OAuth client + env",
+    "openai": "IMPLEMENTED+TESTED (mock transport); LIVE-VERIFIED: no - BLOCKED on API key + spend authorization",
+    "tamil_tts": "NOT AVAILABLE: only en-GB/en-US SAPI voices installed; Tamil narration unverified"
   }
 }
