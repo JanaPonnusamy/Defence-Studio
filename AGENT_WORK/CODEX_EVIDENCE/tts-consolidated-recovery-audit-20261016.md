@@ -83,6 +83,18 @@ decide whether Jaya or Kavitha is acceptable or whether a different provider is
 needed. Keep `DEFENCE_ERA_FEMALE_001` unprovisioned until that review and a
 separate licensing/integration decision are complete.
 
+## Independent Claude review
+
+Claude's read-only report is retained at
+`AGENT_WORK/CLAUDE_EVIDENCE/tts-independent-audit-20261016.md`. It independently
+confirmed the WAV format and SHA-256, the CPU-bound 618.65-second inference,
+absence of a Parler provider adapter, the reference-video access limitation,
+and the need for native listening. It found no production defect requiring a
+source fix. Its pre-push hygiene finding about the loose root dependency file
+was resolved by labeling `requirements.txt` explicitly trial-only; no venv,
+cache, log, WAV, or `.env` file was staged. Claude's report remains unmodified
+and unstaged.
+
 ## Audit changes and safety
 
 This audit added this report and an append-only entry to `AGENT_WORK/CODEX.md`.

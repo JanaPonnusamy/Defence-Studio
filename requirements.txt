@@ -1,1 +1,5 @@
+# TRIAL-ONLY dependency manifest for AGENT_WORK/indic-parler-trial/.venv.
+# This is not the Defence Studio backend production manifest. Install it only
+# in the disposable Parler trial environment; the immutable upstream commit is
+# retained to reproduce the existing isolated sample.
 parler-tts @ git+https://github.com/huggingface/parler-tts.git@d108732cd57788ec86bc857d99a6cabd66663d68
