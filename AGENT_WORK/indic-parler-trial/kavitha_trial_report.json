@@ -1,0 +1,42 @@
+{
+  "model_id": "ai4bharat/indic-parler-tts",
+  "speaker_preset": "Kavitha",
+  "device": "cpu",
+  "cuda_available": false,
+  "hf_home": "E:\\Jana Soft\\hf-cache\\indic-parler-trial",
+  "prompt": "வணக்கம்! இது Defence Era செய்தி அறிக்கை. இந்தியாவின் பாதுகாப்புத் துறையில் இன்று முக்கியமான முன்னேற்றங்கள் வெளியாகியுள்ளன. உறுதிப்படுத்தப்பட்ட தகவல்களைத் தெளிவாகப் பார்ப்போம்.",
+  "description": "A young adult female Tamil news presenter with a bright, clear, youthful voice. Modern Indian Tamil broadcast style, confident and engaging, with a lively medium-fast pace, crisp Tamil pronunciation, natural conversational intonation, light vocal energy, and precise emphasis on important facts. Smooth, fresh-sounding delivery with controlled pitch variation and short natural pauses. Professional contemporary digital news presentation, not a mature radio announcer, not deep, not slow, not theatrical. Clean studio audio.",
+  "local_files_only": true,
+  "output": "E:\\Jana Soft\\DefenceStudio\\AGENT_WORK\\indic-parler-trial\\output\\tamil_female_youth_trial.wav",
+  "load_seconds": 16.97,
+  "sampling_rate": 44100,
+  "text_encoder": "google/flan-t5-large",
+  "generation_seconds": 618.65,
+  "wav": {
+    "path": "E:\\Jana Soft\\DefenceStudio\\AGENT_WORK\\indic-parler-trial\\output\\tamil_female_youth_trial.wav",
+    "bytes": 861228,
+    "sha256": "c3c355f37583efc427a4497046464e5476453420379a3cb0e25eeeca1b41746d",
+    "channels": 1,
+    "sample_width": 2,
+    "sample_rate": 44100,
+    "frames": 430592,
+    "duration_s": 9.764,
+    "peak_amplitude": 0.43847,
+    "rms": 0.0615,
+    "silent": false,
+    "clipped": false,
+    "nonempty": true
+  },
+  "peak_rss_mb": 922.6,
+  "total_seconds": 635.7,
+  "ok": true,
+  "tamil_readiness": "BLOCKED_PENDING_NATIVE_LISTENING_AND_PRONUNCIATION_REVIEW",
+  "recheck": {
+    "existing_artifact_reused": true,
+    "hf_token_configured": true,
+    "download_required": false,
+    "generation_repeated": false,
+    "verification_log": "kavitha-recheck.log",
+    "verification_exit": 0
+  }
+}
