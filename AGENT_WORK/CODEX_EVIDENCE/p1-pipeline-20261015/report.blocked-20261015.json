@@ -1,0 +1,134 @@
+{
+  "generated_at": "2026-10-15T18:00:00+00:00",
+  "verification_session": "p1-pipeline-20261015",
+  "environment_blocker": {
+    "shell_available": false,
+    "error": "Terminal unavailable: this machine cannot enforce the 'workspace_readwrite' sandbox policy this command requires, because no working sandbox backend is available (Windows sandbox helper only provides network proxy, not filesystem isolation). This is not a permission denial. Commands requiring this policy cannot run here unless sandbox support is set up on this machine.",
+    "subagent_retry": "Task subagent b2df8d17-1fe9-4c79-83c5-358a89588b7e hit the same spawn error"
+  },
+  "git": {
+    "branch_from_HEAD_ref": "main",
+    "branch_show_current": null,
+    "status_short": null,
+    "note": "git status --short and git branch --show-current could not be executed; .git/HEAD reads refs/heads/main"
+  },
+  "mp4": {
+    "path": "E:\\Jana Soft\\DefenceStudio\\AGENT_WORK\\CODEX_EVIDENCE\\master-readiness-20261015\\real-module-subtitled.mp4",
+    "present": true,
+    "present_evidence": "Read tool rejects file as binary mp4 (not missing)",
+    "expected_sha256": "914f576bb18575e023fe23ea01debf9c187ce1f198abe8ade07af1f531fda265",
+    "sha256_this_session": null,
+    "sha256_match_this_session": null,
+    "retained_evidence_sha256": "914f576bb18575e023fe23ea01debf9c187ce1f198abe8ade07af1f531fda265",
+    "retained_evidence_bytes": 153069
+  },
+  "decode": {
+    "exit_code_this_session": null,
+    "retained_evidence_exit_code": 0,
+    "source": "AGENT_WORK/CODEX_EVIDENCE/master-readiness-20261015/media-validation.json"
+  },
+  "ffprobe": {
+    "this_session": null,
+    "retained_evidence": {
+      "video_duration_s": 8.72,
+      "audio_duration_s": 8.716,
+      "av_duration_delta_ms": 4.0,
+      "video": "h264 1280x720",
+      "audio": "aac mono 48000"
+    }
+  },
+  "speech": {
+    "this_session_pcm_metrics": null,
+    "retained_qc_measurements": {
+      "path": "AGENT_WORK/CODEX_EVIDENCE/master-readiness-20261015/real-output-qc-measurements.json",
+      "integrated_lufs": -21.7,
+      "max_volume_db": -7.4,
+      "true_peak_dbfs": -7.4,
+      "mean_volume_db": -22.6,
+      "silences": [],
+      "silence_threshold_note": "prior QC used 3s threshold, not 0.25s/-35dB PCM frame analysis requested for p1"
+    }
+  },
+  "subtitle_frames": {
+    "frame_paths": [],
+    "lower_third_analysis": null,
+    "note": "ffmpeg frame extraction not run (terminal blocked); run run_p1_verify.py locally"
+  },
+  "subtitle_timings": {
+    "sidecar_next_to_mp4": false,
+    "burned_in_only": true,
+    "video_duration_s_retained": 8.72,
+    "prior_test_assertions": {
+      "cue_count_gte_scene_count": true,
+      "abs_video_duration_minus_audio_duration_lt_0.25s": true,
+      "source": "backend/tests/test_render_rm5.py::test_real_end_to_end_audio_visual_render_subtitles"
+    },
+    "narration_scenes_english": [
+      "Here is what officials said.",
+      "The army ordered new jets last week.",
+      "That is the latest update."
+    ]
+  },
+  "tts_controls": {
+    "this_session": null,
+    "python_candidates_checked": {
+      "temp_defence_master_audio": "C:\\Users\\Pharma\\AppData\\Local\\Temp\\defence-master-audio-20261015\\Scripts\\python.exe (not probed; no shell)",
+      "venv_tts_pyttsx3": "AGENT_WORK/CURSOR_EVIDENCE/modules-e2e/venv-tts has pyttsx3 + soundfile",
+      "venv_tts_librosa": "not present under venv-tts site-packages (pitch likely ImportError at runtime)"
+    },
+    "planned_output_dir": "AGENT_WORK/CODEX_EVIDENCE/p1-pipeline-20261015/tts/",
+    "sentence": "The army ordered new jets last week.",
+    "rate_wpm_110_vs_230": null,
+    "volume_0_25_vs_1_0_rms": null,
+    "pitch_semitones_0_vs_3": {
+      "code_present": true,
+      "runtime_tested": false,
+      "expected_runtime": "ImportError for librosa in venv-tts unless another python on PATH has librosa"
+    }
+  },
+  "pipeline_voice_controls_honesty": {
+    "audio_module_synthesize_post_body": [
+      "text",
+      "provider",
+      "language",
+      "voice_id"
+    ],
+    "no_controls_in_core_pipeline": true,
+    "audio_service_voice_direction_applied": false,
+    "audio_service_note": "Rate/pitch are not applied by the module's public API; pause_after_ms is applied by the renderer when mixing.",
+    "controls_profile": {
+      "pauses": "provider punctuation; explicit pause-duration control unsupported",
+      "emphasis": "provider punctuation only; no guaranteed word emphasis",
+      "energy": "performance-plan mapping to volume only (resolve_controls)"
+    },
+    "renderer_pause_after_ms": "mix-time PCM silence in RenderService._concat_narration (not TTS pause control)"
+  },
+  "commands_run": [],
+  "commands_attempted": [
+    "git -C E:/Jana Soft/DefenceStudio status --short",
+    "git -C E:/Jana Soft/DefenceStudio branch --show-current",
+    "echo test (shell probe)"
+  ],
+  "commands_pending_local": [
+    "AGENT_WORK/CURSOR_EVIDENCE/modules-e2e/venv-tts/Scripts/python.exe AGENT_WORK/CODEX_EVIDENCE/p1-pipeline-20261015/run_p1_verify.py"
+  ],
+  "source_files_changed": {
+    "production": false,
+    "evidence_only": [
+      "AGENT_WORK/CODEX_EVIDENCE/p1-pipeline-20261015/run_p1_verify.py",
+      "AGENT_WORK/CODEX_EVIDENCE/p1-pipeline-20261015/report.json",
+      "AGENT_WORK/CODEX_EVIDENCE/p1-pipeline-20261015/report.md"
+    ]
+  },
+  "protected_resources": {
+    "data_defence_studio_sqlite3": "not accessed",
+    "job_522dc4ce-16d0-4680-a450-fcd841180c69": "not accessed",
+    "review_history_approvals": "not accessed"
+  },
+  "remaining_gaps": [
+    "Runtime p1 checks blocked: sha256 re-check, ffmpeg decode, PCM speech metrics (0.25s/-35dB), subtitle frame PNGs, pyttsx3 control WAVs",
+    "git status --short not captured this session",
+    "Tamil TTS blocked (do not claim working)",
+    "Human episode sign-off"
+  ]
+}

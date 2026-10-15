@@ -39,7 +39,7 @@ def wav_bytes(seconds=1.0, rate=8000) -> bytes:
 class FakeAudioModule:
     def __init__(self, fail_after=None, invalid=False, corrupt_download=False):
         self.fail_after, self.invalid = fail_after, invalid
-        self.synth_calls, self.texts, self.alignments, self.jobs = 0, [], 0, {}
+        self.synth_calls, self.texts, self.controls, self.alignments, self.jobs = 0, [], [], 0, {}
 
     def handler(self, request: httpx.Request) -> httpx.Response:
         path, method = request.url.path, request.method
@@ -51,6 +51,7 @@ class FakeAudioModule:
                 return httpx.Response(500, json={"error": {"code": "internal_error", "message": "engine crashed"}})
             body = json.loads(request.content)
             self.texts.append((body["text"], body["provider"], body["language"]))
+            self.controls.append(body.get("controls", {}))
             jid = f"job{self.synth_calls}"
             self.jobs[jid] = f"gen{self.synth_calls}"
             return httpx.Response(200, json={"job_id": jid, "status": "SUCCEEDED", "result_id": f"gen{self.synth_calls}"})
@@ -61,7 +62,10 @@ class FakeAudioModule:
             return httpx.Response(200, json={
                 "generated_id": f"gen{n}", "provider": "local-pyttsx3", "model": "sapi5", "duration": 1.0 + n,
                 "sample_rate": 8000, "channels": 1, "validation_status": "FAILED" if self.invalid else "PASSED",
-                "validation_details": {}, "provider_metadata": {"is_mock": False, "voice": "os-default"}})
+                "validation_details": {}, "provider_metadata": {"is_mock": False, "voice": "os-default",
+                                                                     "controls": {"rate_wpm": 170, "volume": 0.85,
+                                                                                  "pitch_semitones": 0,
+                                                                                  **self.controls[n - 1]}}})
         if path == "/references" and method == "POST":
             return httpx.Response(200, json={"reference_id": "ref1"})
         if path == "/references/ref1/process":
@@ -149,6 +153,28 @@ def test_audio_set_is_bound_hashed_measured_and_verifiable(approved_script):
     path.write_bytes(b"tampered")
     v = svc.verify_audio_set(s["job"], OWNER, "en", item["version"])
     assert v["ok"] is False and "checksum mismatch" in v["problems"][0]
+
+
+def test_scene_voice_direction_controls_reach_provider_and_are_reported(approved_script, monkeypatch):
+    s = approved_script
+    _english_plan(s)
+    fake = FakeAudioModule()
+    svc = _service(s, fake)
+    row, plan = svc._approved_plan(s["job"], OWNER, "en")
+    plan["scenes"][0]["voice_direction"] = {
+        "tone": "urgent", "rate": 1.2, "pitch": 1.1, "pause_after_ms": 0,
+    }
+    monkeypatch.setattr(svc, "_approved_plan", lambda *_args: (row, plan))
+
+    item = svc.start_audio(s["job"], OWNER, "en", "voice-controls", background=False)
+
+    assert item["status"] == "SUCCEEDED"
+    assert fake.controls[0] == {"rate_wpm": 204, "pitch_semitones": 1.65}
+    body = svc.read_integration_body(s["job"], OWNER, "en", "audio_set", item["version"])
+    result = body["scenes"][0]["voice_direction"]
+    assert result["applied"] is True
+    assert result["applied_controls"] == {"rate_wpm": 204, "pitch_semitones": 1.65}
+    assert result["unsupported_controls"] == ["tone"]
 
 
 def test_failure_mid_run_is_recorded_and_retry_creates_new_version(approved_script):

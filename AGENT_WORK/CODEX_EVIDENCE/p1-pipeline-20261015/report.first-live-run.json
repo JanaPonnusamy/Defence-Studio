@@ -1,0 +1,267 @@
+{
+  "generated_at": "2026-10-15T18:00:33.389803+00:00",
+  "repo": "E:\\Jana Soft\\DefenceStudio",
+  "mp4_path": "E:\\Jana Soft\\DefenceStudio\\AGENT_WORK\\CODEX_EVIDENCE\\master-readiness-20261015\\real-module-subtitled.mp4",
+  "commands_run": [
+    "git status --short; git branch --show-current",
+    "sha256 real-module-subtitled.mp4",
+    "ffmpeg -f null full decode",
+    "ffprobe json",
+    "ffmpeg pcm extract + RMS/silence analysis",
+    "ffmpeg frame extract @ 1.0/3.5/6.5s",
+    "C:\\Users\\Pharma\\AppData\\Local\\Temp\\defence-master-audio-20261015\\Scripts\\python.exe LocalPyttsx3Adapter control WAVs"
+  ],
+  "git": {
+    "branch": "main",
+    "status_short": [
+      "?? AGENT_WORK/CODEX_EVIDENCE/p1-pipeline-20261015/"
+    ],
+    "exit_code": 0,
+    "stderr": null
+  },
+  "mp4": {
+    "present": true,
+    "sha256": "914f576bb18575e023fe23ea01debf9c187ce1f198abe8ade07af1f531fda265",
+    "expected_sha256": "914f576bb18575e023fe23ea01debf9c187ce1f198abe8ade07af1f531fda265",
+    "sha256_match": true,
+    "bytes": 153069
+  },
+  "decode": {
+    "exit_code": 0,
+    "stderr": null
+  },
+  "ffprobe": {
+    "streams": [
+      {
+        "index": 0,
+        "codec_name": "h264",
+        "codec_long_name": "H.264 / AVC / MPEG-4 AVC / MPEG-4 part 10",
+        "profile": "High",
+        "codec_type": "video",
+        "codec_tag_string": "avc1",
+        "codec_tag": "0x31637661",
+        "mime_codec_string": "avc1.64001f",
+        "width": 1280,
+        "height": 720,
+        "coded_width": 1280,
+        "coded_height": 720,
+        "has_b_frames": 2,
+        "pix_fmt": "yuv420p",
+        "level": 31,
+        "color_range": "tv",
+        "color_space": "bt709",
+        "chroma_location": "left",
+        "field_order": "progressive",
+        "is_avc": "true",
+        "nal_length_size": "4",
+        "id": "0x1",
+        "r_frame_rate": "25/1",
+        "avg_frame_rate": "25/1",
+        "time_base": "1/12800",
+        "start_pts": 0,
+        "start_time": "0.000000",
+        "duration_ts": 111616,
+        "duration": "8.720000",
+        "bit_rate": "28704",
+        "bits_per_raw_sample": "8",
+        "nb_frames": "218",
+        "extradata_size": 47,
+        "disposition": {
+          "default": 1,
+          "dub": 0,
+          "original": 0,
+          "comment": 0,
+          "lyrics": 0,
+          "karaoke": 0,
+          "forced": 0,
+          "hearing_impaired": 0,
+          "visual_impaired": 0,
+          "clean_effects": 0,
+          "attached_pic": 0,
+          "timed_thumbnails": 0,
+          "non_diegetic": 0,
+          "captions": 0,
+          "descriptions": 0,
+          "metadata": 0,
+          "dependent": 0,
+          "still_image": 0,
+          "multilayer": 0
+        },
+        "tags": {
+          "language": "und",
+          "handler_name": "VideoHandler",
+          "encoder": "Lavc62.28.101 libx264"
+        }
+      },
+      {
+        "index": 1,
+        "codec_name": "aac",
+        "codec_long_name": "AAC (Advanced Audio Coding)",
+        "profile": "LC",
+        "codec_type": "audio",
+        "codec_tag_string": "mp4a",
+        "codec_tag": "0x6134706d",
+        "mime_codec_string": "mp4a.40.2",
+        "sample_fmt": "fltp",
+        "sample_rate": "48000",
+        "channels": 1,
+        "channel_layout": "mono",
+        "bits_per_sample": 0,
+        "initial_padding": 0,
+        "id": "0x2",
+        "r_frame_rate": "0/0",
+        "avg_frame_rate": "0/0",
+        "time_base": "1/48000",
+        "start_pts": 0,
+        "start_time": "0.000000",
+        "duration_ts": 418368,
+        "duration": "8.716000",
+        "bit_rate": "104109",
+        "nb_frames": "410",
+        "extradata_size": 5,
+        "disposition": {
+          "default": 1,
+          "dub": 0,
+          "original": 0,
+          "comment": 0,
+          "lyrics": 0,
+          "karaoke": 0,
+          "forced": 0,
+          "hearing_impaired": 0,
+          "visual_impaired": 0,
+          "clean_effects": 0,
+          "attached_pic": 0,
+          "timed_thumbnails": 0,
+          "non_diegetic": 0,
+          "captions": 0,
+          "descriptions": 0,
+          "metadata": 0,
+          "dependent": 0,
+          "still_image": 0,
+          "multilayer": 0
+        },
+        "tags": {
+          "language": "und",
+          "handler_name": "SoundHandler"
+        }
+      }
+    ],
+    "format": {
+      "filename": "E:\\Jana Soft\\DefenceStudio\\AGENT_WORK\\CODEX_EVIDENCE\\master-readiness-20261015\\real-module-subtitled.mp4",
+      "nb_streams": 2,
+      "nb_programs": 0,
+      "nb_stream_groups": 0,
+      "format_name": "mov,mp4,m4a,3gp,3g2,mj2",
+      "format_long_name": "QuickTime / MOV",
+      "start_time": "0.000000",
+      "duration": "8.720000",
+      "size": "153069",
+      "bit_rate": "140430",
+      "probe_score": 100,
+      "tags": {
+        "major_brand": "isom",
+        "minor_version": "512",
+        "compatible_brands": "isomiso2avc1mp41",
+        "encoder": "Lavf62.12.101"
+      }
+    }
+  },
+  "av_duration_delta_ms": 4.0,
+  "speech": {
+    "extract_exit": 4294967274,
+    "error": "ffmpeg version 8.1.1-essentials_build-www.gyan.dev Copyright (c) 2000-2026 the FFmpeg developers\n  built with gcc 15.2.0 (Rev13, Built by MSYS2 project)\n  configuration: --enable-gpl --enable-version3 --enable-static --disable-w32threads --disable-autodetect --enable-cairo --enable-fontconfig --enable-iconv --enable-gnutls --enable-libxml2 --enable-gmp --enable-bzlib --enable-lzma --enable-zlib --enable-libsrt --enable-libssh --enable-libzmq --enable-avisynth --enable-sdl2 --enable-libwebp --enable-libx264 --enable-libx265 --enable-libxvid --enable-libaom --enable-libopenjpeg --enable-libvpx --enable-mediafoundation --enable-libass --enable-libfreetype --enable-libfribidi --enable-libharfbuzz --enable-libvidstab --enable-libvmaf --enable-libzimg --enable-amf --enable-cuda-llvm --enable-cuvid --enable-dxva2 --enable-d3d11va --enable-d3d12va --enable-ffnvcodec --enable-libvpl --enable-nvdec --enable-nvenc --enable-vaapi --enable-openal --enable-libgme --enable-libopenmpt --enable-libopencore-amrwb --enable-libmp3lame --enable-libtheora --enable-libvo-amrwbenc --enable-libgsm --enable-libopencore-amrnb --enable-libopus --enable-libspeex --enable-libvorbis --enable-librubberband\n  libavutil      60. 26.101 / 60. 26.101\n  libavcodec     62. 28.101 / 62. 28.101\n  libavformat    62. 12.101 / 62. 12.101\n  libavdevice    62.  3.101 / 62.  3.101\n  libavfilter    11. 14.101 / 11. 14.101\n  libswscale      9.  5.101 /  9.  5.101\n  libswresample   6.  3.101 /  6.  3.101\nInput #0, mov,mp4,m4a,3gp,3g2,mj2, from 'E:\\Jana Soft\\DefenceStudio\\AGENT_WORK\\CODEX_EVIDENCE\\master-readiness-20261015\\real-module-subtitled.mp4':\n  Metadata:\n    major_brand     : isom\n    minor_version   : 512\n    compatible_brands: isomiso2avc1mp41\n    encoder         : Lavf62.12.101\n  Duration: 00:00:08.72, start: 0.000000, bitrate: 140 kb/s\n  Stream #0:0[0x1](und): Video: h264 (High) (avc1 / 0x31637661), yuv420p(tv, bt709/unknown/unknown, progressive), 1280x720, 28 kb/s, 25 fps, 25 tbr, 12800 tbn (default)\n    Metadata:\n      handler_name    : VideoHandler\n      encoder         : Lavc62.28.101 libx264\n  Stream #0:1[0x2](und): Audio: aac (LC) (mp4a / 0x6134706D), 48000 Hz, mono, fltp, 104 kb/s (default)\n    Metadata:\n      handler_name    : SoundHandler\nStream mapping:\n  Stream #0:1 -> #0:0 (aac (native) -> pcm_s16le (native))\nPress [q] to stop, [?] for help\n[alp @ 000002127308f200] alp muxer supports only codec adpcm_ima_alp for type audio\n[out#0/alp @ 0000021273085680] Could not write header (incorrect codec parameters ?): Invalid argument\n[af#0:0 @ 000002127310e4c0] Error sending frames to consumers: Invalid argument\n[af#0:0 @ 000002127310e4c0] Task finished with error code: -22 (Invalid argument)\n[af#0:0 @ 000002127310e4c0] Terminating thread with return code -22 (Invalid argument)\n[out#0/alp @ 0000021273085680] Nothing was written into output file, because at least one of its streams received no packets.\nsize=       0KiB time=N/A bitrate=N/A speed=N/A elapsed=0:00:00.00    \nConversion failed!\n"
+  },
+  "subtitle_frames": [
+    {
+      "time_s": 1.0,
+      "path": "E:\\Jana Soft\\DefenceStudio\\AGENT_WORK\\CODEX_EVIDENCE\\p1-pipeline-20261015\\frames\\frame_1.0s.png",
+      "extract_exit": 0,
+      "lower_third_mean_luma": 29.23,
+      "lower_third_std_luma": 16.35,
+      "dark_pixel_fraction": 0.9688,
+      "bright_pixel_fraction": 0.0032,
+      "glyph_like_contrast": false
+    },
+    {
+      "time_s": 3.5,
+      "path": "E:\\Jana Soft\\DefenceStudio\\AGENT_WORK\\CODEX_EVIDENCE\\p1-pipeline-20261015\\frames\\frame_3.5s.png",
+      "extract_exit": 0,
+      "lower_third_mean_luma": 29.55,
+      "lower_third_std_luma": 18.48,
+      "dark_pixel_fraction": 0.9666,
+      "bright_pixel_fraction": 0.0045,
+      "glyph_like_contrast": false
+    },
+    {
+      "time_s": 6.5,
+      "path": "E:\\Jana Soft\\DefenceStudio\\AGENT_WORK\\CODEX_EVIDENCE\\p1-pipeline-20261015\\frames\\frame_6.5s.png",
+      "extract_exit": 0,
+      "lower_third_mean_luma": 29.22,
+      "lower_third_std_luma": 16.2,
+      "dark_pixel_fraction": 0.969,
+      "bright_pixel_fraction": 0.003,
+      "glyph_like_contrast": false
+    }
+  ],
+  "subtitle_timings": {
+    "sidecar_next_to_mp4": false,
+    "note": "Burned-in ASS only in MP4; prior integration test asserted cue_count >= scene count and |video-audio duration| < 0.25s",
+    "narration_scenes": [
+      "Here is what officials said.",
+      "The army ordered new jets last week.",
+      "That is the latest update."
+    ],
+    "video_duration_s": 8.72
+  },
+  "tts_controls": {
+    "python": "C:\\Users\\Pharma\\AppData\\Local\\Temp\\defence-master-audio-20261015\\Scripts\\python.exe",
+    "measurements": {
+      "rate_volume": {
+        "rate_110": {
+          "path": "E:\\Jana Soft\\DefenceStudio\\AGENT_WORK\\CODEX_EVIDENCE\\p1-pipeline-20261015\\tts\\rate_110.wav",
+          "duration_s": 4.794
+        },
+        "rate_230": {
+          "path": "E:\\Jana Soft\\DefenceStudio\\AGENT_WORK\\CODEX_EVIDENCE\\p1-pipeline-20261015\\tts\\rate_230.wav",
+          "duration_s": 2.497
+        },
+        "volume_0.25": {
+          "path": "E:\\Jana Soft\\DefenceStudio\\AGENT_WORK\\CODEX_EVIDENCE\\p1-pipeline-20261015\\tts\\volume_0.25.wav",
+          "rms_linear": 0.013997
+        },
+        "volume_1.0": {
+          "path": "E:\\Jana Soft\\DefenceStudio\\AGENT_WORK\\CODEX_EVIDENCE\\p1-pipeline-20261015\\tts\\volume_1.0.wav",
+          "rms_linear": 0.121279
+        }
+      },
+      "pitch": {
+        "code_present": true,
+        "runtime_deps": "ok",
+        "pitch_0": {
+          "path": "E:\\Jana Soft\\DefenceStudio\\AGENT_WORK\\CODEX_EVIDENCE\\p1-pipeline-20261015\\tts\\pitch_0.wav",
+          "duration_s": 3.459
+        },
+        "pitch_3": {
+          "path": "E:\\Jana Soft\\DefenceStudio\\AGENT_WORK\\CODEX_EVIDENCE\\p1-pipeline-20261015\\tts\\pitch_3.wav",
+          "duration_s": 3.459
+        }
+      }
+    }
+  },
+  "pipeline_voice_controls_honesty": {
+    "core_post_synthesize_fields": [
+      "text",
+      "provider",
+      "language",
+      "voice_id"
+    ],
+    "voice_direction_applied_in_audio_service": false,
+    "renderer_pause_after_ms": "mix-time silence in RenderService._concat_narration",
+    "profile_pauses_emphasis": "unsupported via TTS controls",
+    "profile_energy": "performance-plan mapping to volume only"
+  },
+  "remaining_gaps": [
+    "Tamil TTS blocked (font/TTC parsing verified elsewhere; not claimed working)",
+    "Human episode sign-off"
+  ]
+}

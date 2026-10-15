@@ -1,0 +1,494 @@
+{
+  "generated_at": "2026-10-15T18:02:38.828836+00:00",
+  "repo": "E:\\Jana Soft\\DefenceStudio",
+  "mp4_path": "E:\\Jana Soft\\DefenceStudio\\AGENT_WORK\\CODEX_EVIDENCE\\master-readiness-20261015\\real-module-subtitled.mp4",
+  "commands_run": [
+    "git status --short; git branch --show-current",
+    "sha256 real-module-subtitled.mp4",
+    "ffmpeg -f null full decode",
+    "ffprobe json",
+    "ffmpeg pcm extract + RMS/silence analysis",
+    "ffmpeg frame extract @ 1.0/3.5/6.5s",
+    "C:\\Users\\Pharma\\AppData\\Local\\Temp\\defence-master-audio-20261015\\Scripts\\python.exe LocalPyttsx3Adapter control WAVs"
+  ],
+  "git": {
+    "branch": "main",
+    "status_short": [
+      "?? AGENT_WORK/CODEX_EVIDENCE/p1-pipeline-20261015/"
+    ],
+    "exit_code": 0,
+    "stderr": null
+  },
+  "mp4": {
+    "present": true,
+    "sha256": "914f576bb18575e023fe23ea01debf9c187ce1f198abe8ade07af1f531fda265",
+    "expected_sha256": "914f576bb18575e023fe23ea01debf9c187ce1f198abe8ade07af1f531fda265",
+    "sha256_match": true,
+    "bytes": 153069
+  },
+  "decode": {
+    "exit_code": 0,
+    "stderr": null
+  },
+  "ffprobe": {
+    "streams": [
+      {
+        "index": 0,
+        "codec_name": "h264",
+        "codec_long_name": "H.264 / AVC / MPEG-4 AVC / MPEG-4 part 10",
+        "profile": "High",
+        "codec_type": "video",
+        "codec_tag_string": "avc1",
+        "codec_tag": "0x31637661",
+        "mime_codec_string": "avc1.64001f",
+        "width": 1280,
+        "height": 720,
+        "coded_width": 1280,
+        "coded_height": 720,
+        "has_b_frames": 2,
+        "pix_fmt": "yuv420p",
+        "level": 31,
+        "color_range": "tv",
+        "color_space": "bt709",
+        "chroma_location": "left",
+        "field_order": "progressive",
+        "is_avc": "true",
+        "nal_length_size": "4",
+        "id": "0x1",
+        "r_frame_rate": "25/1",
+        "avg_frame_rate": "25/1",
+        "time_base": "1/12800",
+        "start_pts": 0,
+        "start_time": "0.000000",
+        "duration_ts": 111616,
+        "duration": "8.720000",
+        "bit_rate": "28704",
+        "bits_per_raw_sample": "8",
+        "nb_frames": "218",
+        "extradata_size": 47,
+        "disposition": {
+          "default": 1,
+          "dub": 0,
+          "original": 0,
+          "comment": 0,
+          "lyrics": 0,
+          "karaoke": 0,
+          "forced": 0,
+          "hearing_impaired": 0,
+          "visual_impaired": 0,
+          "clean_effects": 0,
+          "attached_pic": 0,
+          "timed_thumbnails": 0,
+          "non_diegetic": 0,
+          "captions": 0,
+          "descriptions": 0,
+          "metadata": 0,
+          "dependent": 0,
+          "still_image": 0,
+          "multilayer": 0
+        },
+        "tags": {
+          "language": "und",
+          "handler_name": "VideoHandler",
+          "encoder": "Lavc62.28.101 libx264"
+        }
+      },
+      {
+        "index": 1,
+        "codec_name": "aac",
+        "codec_long_name": "AAC (Advanced Audio Coding)",
+        "profile": "LC",
+        "codec_type": "audio",
+        "codec_tag_string": "mp4a",
+        "codec_tag": "0x6134706d",
+        "mime_codec_string": "mp4a.40.2",
+        "sample_fmt": "fltp",
+        "sample_rate": "48000",
+        "channels": 1,
+        "channel_layout": "mono",
+        "bits_per_sample": 0,
+        "initial_padding": 0,
+        "id": "0x2",
+        "r_frame_rate": "0/0",
+        "avg_frame_rate": "0/0",
+        "time_base": "1/48000",
+        "start_pts": 0,
+        "start_time": "0.000000",
+        "duration_ts": 418368,
+        "duration": "8.716000",
+        "bit_rate": "104109",
+        "nb_frames": "410",
+        "extradata_size": 5,
+        "disposition": {
+          "default": 1,
+          "dub": 0,
+          "original": 0,
+          "comment": 0,
+          "lyrics": 0,
+          "karaoke": 0,
+          "forced": 0,
+          "hearing_impaired": 0,
+          "visual_impaired": 0,
+          "clean_effects": 0,
+          "attached_pic": 0,
+          "timed_thumbnails": 0,
+          "non_diegetic": 0,
+          "captions": 0,
+          "descriptions": 0,
+          "metadata": 0,
+          "dependent": 0,
+          "still_image": 0,
+          "multilayer": 0
+        },
+        "tags": {
+          "language": "und",
+          "handler_name": "SoundHandler"
+        }
+      }
+    ],
+    "format": {
+      "filename": "E:\\Jana Soft\\DefenceStudio\\AGENT_WORK\\CODEX_EVIDENCE\\master-readiness-20261015\\real-module-subtitled.mp4",
+      "nb_streams": 2,
+      "nb_programs": 0,
+      "nb_stream_groups": 0,
+      "format_name": "mov,mp4,m4a,3gp,3g2,mj2",
+      "format_long_name": "QuickTime / MOV",
+      "start_time": "0.000000",
+      "duration": "8.720000",
+      "size": "153069",
+      "bit_rate": "140430",
+      "probe_score": 100,
+      "tags": {
+        "major_brand": "isom",
+        "minor_version": "512",
+        "compatible_brands": "isomiso2avc1mp41",
+        "encoder": "Lavf62.12.101"
+      }
+    }
+  },
+  "av_duration_delta_ms": 4.0,
+  "speech": {
+    "extract_exit": 0,
+    "sample_rate": 48000,
+    "duration_s": 8.725333333333333,
+    "overall_rms_linear": 0.074499,
+    "overall_rms_db": -22.56,
+    "silence_threshold_db": -35,
+    "silence_frame_s": 0.25,
+    "silent_frame_fraction": 0.3429,
+    "silent_run_count": 3,
+    "longest_silent_run_s": 1.0,
+    "silent_runs_over_0_25s": 3,
+    "frame_rms_cv": 0.8263,
+    "energy_varies": true
+  },
+  "subtitle_frames": [
+    {
+      "time_s": 1.0,
+      "path": "E:\\Jana Soft\\DefenceStudio\\AGENT_WORK\\CODEX_EVIDENCE\\p1-pipeline-20261015\\frames-live-20261015\\frame_1.0s.png",
+      "extract_exit": 0,
+      "lower_third_mean_luma": 29.23,
+      "lower_third_std_luma": 16.35,
+      "dark_pixel_fraction": 0.9688,
+      "bright_pixel_fraction": 0.0032,
+      "glyph_like_contrast": false
+    },
+    {
+      "time_s": 3.5,
+      "path": "E:\\Jana Soft\\DefenceStudio\\AGENT_WORK\\CODEX_EVIDENCE\\p1-pipeline-20261015\\frames-live-20261015\\frame_3.5s.png",
+      "extract_exit": 0,
+      "lower_third_mean_luma": 29.55,
+      "lower_third_std_luma": 18.48,
+      "dark_pixel_fraction": 0.9666,
+      "bright_pixel_fraction": 0.0045,
+      "glyph_like_contrast": false
+    },
+    {
+      "time_s": 6.5,
+      "path": "E:\\Jana Soft\\DefenceStudio\\AGENT_WORK\\CODEX_EVIDENCE\\p1-pipeline-20261015\\frames-live-20261015\\frame_6.5s.png",
+      "extract_exit": 0,
+      "lower_third_mean_luma": 29.22,
+      "lower_third_std_luma": 16.2,
+      "dark_pixel_fraction": 0.969,
+      "bright_pixel_fraction": 0.003,
+      "glyph_like_contrast": false
+    }
+  ],
+  "subtitle_timings": {
+    "sidecar_next_to_mp4": false,
+    "note": "Burned-in ASS only in MP4; prior integration test asserted cue_count >= scene count and |video-audio duration| < 0.25s",
+    "narration_scenes": [
+      "Here is what officials said.",
+      "The army ordered new jets last week.",
+      "That is the latest update."
+    ],
+    "video_duration_s": 8.72
+  },
+  "tts_controls": {
+    "python": "C:\\Users\\Pharma\\AppData\\Local\\Temp\\defence-master-audio-20261015\\Scripts\\python.exe",
+    "measurements": {
+      "rate_volume": {
+        "rate_110": {
+          "analysis_version": "output-measurement-1.0",
+          "sha256": "68f33961fca03d8ab92e5af924e61d151ce0ceb2bd490ebf7ea2db886969c6c1",
+          "bytes": 211476,
+          "sample_rate": 22050,
+          "channels": 1,
+          "duration_seconds": 4.794331065759637,
+          "word_count": 7,
+          "speaking_rate_wpm": 87.60346213876933,
+          "activity_ratio": 0.6633333333333333,
+          "voiced_ratio": 0.33,
+          "pitch_probability_mean": 0.2942708119775098,
+          "pitch_hz": {
+            "median": 180.8384017769491,
+            "p05": 157.33830011643124,
+            "p95": 211.35980966307562,
+            "std": 14.374132429120582
+          },
+          "rms_dbfs": -22.0369491884987,
+          "peak_dbfs": -7.770792807191144,
+          "dynamic_range_p95_p10_db": 183.68048095703125,
+          "pause_seconds": [
+            0.352,
+            1.1143310657596373
+          ],
+          "mean_phrase_seconds": 0.796,
+          "warnings": [
+            "Energy activity is not a speech classifier; music/noise can contaminate it.",
+            "Pitch uses pYIN with probability >= 0.5; octave errors remain possible.",
+            "WPM uses supplied whitespace-delimited words / complete duration, not recognized speech.",
+            "No word alignment or native emotion measurement; listening review required."
+          ],
+          "path": "E:\\Jana Soft\\DefenceStudio\\AGENT_WORK\\CODEX_EVIDENCE\\p1-pipeline-20261015\\tts-live-20261015\\rate_110.wav",
+          "voice_id": "HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Speech\\Voices\\Tokens\\TTS_MS_EN-GB_HAZEL_11.0",
+          "controls": {
+            "rate_wpm": 110,
+            "volume": 0.85,
+            "pitch_semitones": 0
+          }
+        },
+        "rate_230": {
+          "analysis_version": "output-measurement-1.0",
+          "sha256": "06eb0fba457e07e336aff61883bd56e8a10d3c0fc8d4f661659ee6631ec21ee3",
+          "bytes": 110176,
+          "sample_rate": 22050,
+          "channels": 1,
+          "duration_seconds": 2.4972789115646257,
+          "word_count": 7,
+          "speaking_rate_wpm": 168.18305638790522,
+          "activity_ratio": 0.6942675159235668,
+          "voiced_ratio": 0.19745222929936307,
+          "pitch_probability_mean": 0.22364379624221462,
+          "pitch_hz": {
+            "median": 182.93964279069144,
+            "p05": 176.70804697206307,
+            "p95": 211.35980966307562,
+            "std": 11.496323291281547
+          },
+          "rms_dbfs": -22.09999693598881,
+          "peak_dbfs": -7.800024037989109,
+          "dynamic_range_p95_p10_db": 183.36288452148438,
+          "pause_seconds": [
+            0.176,
+            0.5612789115646257
+          ],
+          "mean_phrase_seconds": 0.872,
+          "warnings": [
+            "Energy activity is not a speech classifier; music/noise can contaminate it.",
+            "Pitch uses pYIN with probability >= 0.5; octave errors remain possible.",
+            "WPM uses supplied whitespace-delimited words / complete duration, not recognized speech.",
+            "No word alignment or native emotion measurement; listening review required."
+          ],
+          "path": "E:\\Jana Soft\\DefenceStudio\\AGENT_WORK\\CODEX_EVIDENCE\\p1-pipeline-20261015\\tts-live-20261015\\rate_230.wav",
+          "voice_id": "HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Speech\\Voices\\Tokens\\TTS_MS_EN-GB_HAZEL_11.0",
+          "controls": {
+            "rate_wpm": 230,
+            "volume": 0.85,
+            "pitch_semitones": 0
+          }
+        },
+        "volume_0.25": {
+          "analysis_version": "output-measurement-1.0",
+          "sha256": "257e3f8a948381fc90e6c11fedf95a572b7b61ebea83597786bf9ae4cdfb6eb5",
+          "bytes": 152570,
+          "sample_rate": 22050,
+          "channels": 1,
+          "duration_seconds": 3.45859410430839,
+          "word_count": 7,
+          "speaking_rate_wpm": 121.43662636699798,
+          "activity_ratio": 0.6129032258064516,
+          "voiced_ratio": 0.2534562211981567,
+          "pitch_probability_mean": 0.2629240573046827,
+          "pitch_hz": {
+            "median": 181.88598798124778,
+            "p05": 172.37367428857817,
+            "p95": 211.35980966307562,
+            "std": 12.701017173018675
+          },
+          "rms_dbfs": -37.07920845820367,
+          "peak_dbfs": -22.832375797717752,
+          "dynamic_range_p95_p10_db": 168.42515563964844,
+          "pause_seconds": [
+            0.256,
+            0.81859410430839
+          ],
+          "mean_phrase_seconds": 0.42560000000000003,
+          "warnings": [
+            "Energy activity is not a speech classifier; music/noise can contaminate it.",
+            "Pitch uses pYIN with probability >= 0.5; octave errors remain possible.",
+            "WPM uses supplied whitespace-delimited words / complete duration, not recognized speech.",
+            "No word alignment or native emotion measurement; listening review required."
+          ],
+          "path": "E:\\Jana Soft\\DefenceStudio\\AGENT_WORK\\CODEX_EVIDENCE\\p1-pipeline-20261015\\tts-live-20261015\\volume_0.25.wav",
+          "voice_id": "HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Speech\\Voices\\Tokens\\TTS_MS_EN-GB_HAZEL_11.0",
+          "controls": {
+            "rate_wpm": 170,
+            "volume": 0.25,
+            "pitch_semitones": 0
+          }
+        },
+        "volume_1.0": {
+          "analysis_version": "output-measurement-1.0",
+          "sha256": "3c01b4dbe87b9031a1240a39498c56f2df3f242e0c83a598eec66938c419ffd2",
+          "bytes": 152570,
+          "sample_rate": 22050,
+          "channels": 1,
+          "duration_seconds": 3.45859410430839,
+          "word_count": 7,
+          "speaking_rate_wpm": 121.43662636699798,
+          "activity_ratio": 0.6774193548387096,
+          "voiced_ratio": 0.2534562211981567,
+          "pitch_probability_mean": 0.26292400811575756,
+          "pitch_hz": {
+            "median": 181.88598798124778,
+            "p05": 172.37367428857817,
+            "p95": 211.35980966307562,
+            "std": 12.701017173018675
+          },
+          "rms_dbfs": -18.32431391111986,
+          "peak_dbfs": -4.079855331573749,
+          "dynamic_range_p95_p10_db": 187.17916870117188,
+          "pause_seconds": [
+            0.256,
+            0.7865941043083899
+          ],
+          "mean_phrase_seconds": 0.7840000000000001,
+          "warnings": [
+            "Energy activity is not a speech classifier; music/noise can contaminate it.",
+            "Pitch uses pYIN with probability >= 0.5; octave errors remain possible.",
+            "WPM uses supplied whitespace-delimited words / complete duration, not recognized speech.",
+            "No word alignment or native emotion measurement; listening review required."
+          ],
+          "path": "E:\\Jana Soft\\DefenceStudio\\AGENT_WORK\\CODEX_EVIDENCE\\p1-pipeline-20261015\\tts-live-20261015\\volume_1.0.wav",
+          "voice_id": "HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Speech\\Voices\\Tokens\\TTS_MS_EN-GB_HAZEL_11.0",
+          "controls": {
+            "rate_wpm": 170,
+            "volume": 1.0,
+            "pitch_semitones": 0
+          }
+        }
+      },
+      "pitch": {
+        "code_present": true,
+        "runtime_deps": "ok",
+        "pitch_0": {
+          "analysis_version": "output-measurement-1.0",
+          "sha256": "b70f00f77750cfb6d6850813648d69cb6864701eb4dcc581f6344eeff00c2a32",
+          "bytes": 152570,
+          "sample_rate": 22050,
+          "channels": 1,
+          "duration_seconds": 3.45859410430839,
+          "word_count": 7,
+          "speaking_rate_wpm": 121.43662636699798,
+          "activity_ratio": 0.6774193548387096,
+          "voiced_ratio": 0.2534562211981567,
+          "pitch_probability_mean": 0.2629240064505723,
+          "pitch_hz": {
+            "median": 181.88598798124778,
+            "p05": 172.37367428857817,
+            "p95": 211.35980966307562,
+            "std": 12.701017173018675
+          },
+          "rms_dbfs": -22.075178649019584,
+          "peak_dbfs": -7.830006877557815,
+          "dynamic_range_p95_p10_db": 183.42849731445312,
+          "pause_seconds": [
+            0.256,
+            0.7865941043083899
+          ],
+          "mean_phrase_seconds": 0.7840000000000001,
+          "warnings": [
+            "Energy activity is not a speech classifier; music/noise can contaminate it.",
+            "Pitch uses pYIN with probability >= 0.5; octave errors remain possible.",
+            "WPM uses supplied whitespace-delimited words / complete duration, not recognized speech.",
+            "No word alignment or native emotion measurement; listening review required."
+          ],
+          "path": "E:\\Jana Soft\\DefenceStudio\\AGENT_WORK\\CODEX_EVIDENCE\\p1-pipeline-20261015\\tts-live-20261015\\pitch_0.wav",
+          "voice_id": "HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Speech\\Voices\\Tokens\\TTS_MS_EN-GB_HAZEL_11.0",
+          "controls": {
+            "rate_wpm": 170,
+            "volume": 0.85,
+            "pitch_semitones": 0
+          }
+        },
+        "pitch_3": {
+          "analysis_version": "output-measurement-1.0",
+          "sha256": "9847849ae1751cf2866ca7432a67c074550cd4abcc3afde42892b8b7060c2c8a",
+          "bytes": 152568,
+          "sample_rate": 22050,
+          "channels": 1,
+          "duration_seconds": 3.45859410430839,
+          "word_count": 7,
+          "speaking_rate_wpm": 121.43662636699798,
+          "activity_ratio": 0.695852534562212,
+          "voiced_ratio": 0.25806451612903225,
+          "pitch_probability_mean": 0.2624944934257222,
+          "pitch_hz": {
+            "median": 218.81339725397203,
+            "p05": 202.18247753467097,
+            "p95": 250.26483482550276,
+            "std": 16.261442658022077
+          },
+          "rms_dbfs": -25.284386601120453,
+          "peak_dbfs": -10.526234214878576,
+          "dynamic_range_p95_p10_db": 181.2541961669922,
+          "pause_seconds": [
+            0.24,
+            0.7865941043083899
+          ],
+          "mean_phrase_seconds": 1.2080000000000002,
+          "warnings": [
+            "Energy activity is not a speech classifier; music/noise can contaminate it.",
+            "Pitch uses pYIN with probability >= 0.5; octave errors remain possible.",
+            "WPM uses supplied whitespace-delimited words / complete duration, not recognized speech.",
+            "No word alignment or native emotion measurement; listening review required."
+          ],
+          "path": "E:\\Jana Soft\\DefenceStudio\\AGENT_WORK\\CODEX_EVIDENCE\\p1-pipeline-20261015\\tts-live-20261015\\pitch_3.wav",
+          "voice_id": "HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Speech\\Voices\\Tokens\\TTS_MS_EN-GB_HAZEL_11.0",
+          "controls": {
+            "rate_wpm": 170,
+            "volume": 0.85,
+            "pitch_semitones": 3
+          }
+        }
+      }
+    }
+  },
+  "pipeline_voice_controls_honesty": {
+    "core_post_synthesize_fields": [
+      "text",
+      "provider",
+      "language",
+      "voice_id"
+    ],
+    "voice_direction_applied_in_audio_service": false,
+    "renderer_pause_after_ms": "mix-time silence in RenderService._concat_narration",
+    "profile_pauses_emphasis": "unsupported via TTS controls",
+    "profile_energy": "performance-plan mapping to volume only"
+  },
+  "remaining_gaps": [
+    "Tamil TTS blocked (font/TTC parsing verified elsewhere; not claimed working)",
+    "Human episode sign-off"
+  ]
+}
