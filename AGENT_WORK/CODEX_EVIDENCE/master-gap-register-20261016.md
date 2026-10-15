@@ -76,8 +76,10 @@ No files were deleted. Retained evidence includes all Codex/Claude/Cursor report
 ## Git and push verification
 
 - Before this report, `HEAD == origin/main == 931da89e8e758bfeb1a20793384a3f38f86a332f`.
-- The only files intended for the next Codex commit are this report and the append-only `AGENT_WORK/CODEX.md` line. Concurrent Cursor/Claude files and generated output remain excluded.
-- After commit, run `git diff --check`, inspect the staged diff, fetch `origin`, push only `main`, and verify `git ls-remote origin refs/heads/main` equals the new local `HEAD`. No force-push or history rewrite is permitted.
+- The gap register and append-only Codex log were the only files staged. Concurrent Cursor/Claude files and generated output were excluded.
+- Gap register commit: `bbdd71d00a2849d9ce8ce03c73ed143c5cd3cc69`; final Codex log commit: `1f1df28523b5e5182f7bbf11d84b188b86b5d992`.
+- Pushes to `origin/main` exited 0. Fresh fetch and `git ls-remote origin refs/heads/main` report `1f1df28523b5e5182f7bbf11d84b188b86b5d992`; `HEAD_MATCH=True`. Staged `git diff --check` exited 0. The remaining unstaged warning is the pre-existing blank line at EOF in concurrently modified `AGENT_WORK/CURSOR.md`.
+- No force-push or history rewrite was used.
 
 ## Next safe action and shutdown readiness
 
