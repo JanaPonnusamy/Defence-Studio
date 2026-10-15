@@ -1,4 +1,5 @@
 import os
+import uuid
 import threading
 from contextlib import asynccontextmanager
 from pathlib import Path
@@ -17,6 +18,7 @@ from defence_studio.services.jobs import JobError, JobService
 from defence_studio.services.review import ReviewError, ReviewService
 from defence_studio.services.worker import WorkerService
 from defence_studio.services.evidence import EvidenceService
+from defence_studio.services.pipeline_trace import PipelineTraceService
 from defence_studio.services.script import ScriptService
 from defence_studio.services.scene import SceneService
 from defence_studio.services.visual import VisualService
@@ -24,6 +26,12 @@ from defence_studio.services.audio import AudioService
 from defence_studio.services.render import RenderService
 from defence_studio.services.youtube import YouTubeService
 from defence_studio.api.integration_routes import register_integration_routes
+from defence_studio.api.voice_routes import register_voice_routes
+from defence_studio.api.factcheck_routes import register_factcheck_routes
+from defence_studio.api.evidence_policy_routes import register_evidence_policy_routes
+from defence_studio.api.monitor_routes import register_monitor_routes
+from defence_studio.services.voice import VoiceService
+from defence_studio.services.factcheck import FactcheckService, FactcheckError
 from defence_studio.services.assets import AssetService
 from defence_studio.contracts.evidence import ApprovalBody
 from defence_studio.contracts.script import GenerationConfigV1
@@ -146,6 +154,7 @@ def create_app(
     discovery = DiscoveryApiService(db_path, store_root)
     evidence = EvidenceService(db_path, store_root)
     scripts = ScriptService(db_path, store_root)
+    pipeline_trace = PipelineTraceService(db_path, store_root)
     scenes = SceneService(db_path, store_root)
     assets = AssetService(db_path, store_root)
     clients = integration_clients or {}
@@ -157,12 +166,21 @@ def create_app(
     render = RenderService(db_path, store_root, renderer_client=clients.get("renderer"),
                            visual_client=clients.get("visual"))
 
+    voice = VoiceService(db_path, store_root)
+    factcheck = FactcheckService(db_path, store_root)
+
     @asynccontextmanager
     async def lifespan(_app):
         initialize_database(db_path)
         worker_service.recover_expired()
+        voice.purge_stale_uploads()
         yt.recover_interrupted()  # integration artifacts + publishing jobs, audited
         stop = threading.Event()
+        if os.environ.get("DEFENCE_STUDIO_VOICE_WORKER") == "1":
+            from defence_studio.services.worker import Worker
+            vworker = Worker(db_path, f"voice-{uuid.uuid4()}", voice.handlers(), retry_safe_stages=set(voice.handlers()))
+            threading.Thread(target=vworker.run_forever, daemon=True, name="voice-worker").start()
+            _app.state.voice_worker = vworker
         if os.environ.get("DEFENCE_STUDIO_YT_WORKER") == "1":
             def _tick():
                 while not stop.wait(30):
@@ -175,9 +193,15 @@ def create_app(
             yield
         finally:
             stop.set()
+            if getattr(_app.state, "voice_worker", None):
+                _app.state.voice_worker.shutdown()
 
     app = FastAPI(title="Defence Studio API", version="0.1.0", lifespan=lifespan)
     app.state.database_file = db_path
+
+    @app.exception_handler(FactcheckError)
+    async def factcheck_error_handler(_request, exc: FactcheckError):
+        return JSONResponse(status_code=exc.status_code, content={"detail": str(exc)})
 
     @app.exception_handler(JobError)
     async def job_error_handler(_request, exc: JobError):
@@ -475,6 +499,18 @@ def create_app(
     ):
         return scripts.get_revision(job_id, owner_id, language, version)
 
+    @app.get("/api/jobs/{job_id}/research/pipeline-trace")
+    def get_pipeline_trace(job_id: str, owner_id: str = Depends(require_owner)):
+        return pipeline_trace.pipeline_trace(job_id, owner_id)
+
+    @app.get("/api/jobs/{job_id}/script/inspections/{language}")
+    def list_script_inspections(job_id: str, language: str, owner_id: str = Depends(require_owner)):
+        return scripts.list_inspections(job_id, owner_id, language)
+
+    @app.get("/api/jobs/{job_id}/script/inspections/{language}/{record_id}")
+    def get_script_inspection(job_id: str, language: str, record_id: str, owner_id: str = Depends(require_owner)):
+        return scripts.get_inspection(job_id, owner_id, language, record_id)
+
     @app.get("/api/jobs/{job_id}/script/staleness")
     def script_staleness(job_id: str, language: str | None = Query(default=None),
                          owner_id: str = Depends(require_owner)):
@@ -679,6 +715,12 @@ def create_app(
     ):
         return assets.assignment_readiness(job_id, owner_id, language)
 
+    register_voice_routes(app, require_owner, voice)
+    register_factcheck_routes(app, require_owner, factcheck)
+    from defence_studio.services.evidence_policy import EvidencePolicyService
+    register_evidence_policy_routes(app, require_owner, EvidencePolicyService(db_path, store_root))
+    from defence_studio.services.research_monitor import ResearchMonitorService
+    register_monitor_routes(app, require_owner, ResearchMonitorService(db_path, store_root))
     register_integration_routes(app, require_owner, {"visual": visual, "audio": audio, "render": render, "qc": qc, "package": package, "yt": yt})
 
     frontend_dir = PROJECT_ROOT / "frontend"

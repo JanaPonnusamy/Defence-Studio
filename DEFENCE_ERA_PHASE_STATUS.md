@@ -7,7 +7,7 @@ Official numbering is the core design's Phase 0–10. F1–F5 are the foundation
 
 Statuses: COMPLETE · PARTIAL · FAILED · BLOCKED · NOT_STARTED · UNVERIFIED. No row is FAILED: no test failed.
 
-**Totals (25 rows): COMPLETE 3 · PARTIAL 13 · FAILED 0 · BLOCKED 1 · NOT_STARTED 6 · UNVERIFIED 2.**
+**Totals (27 rows): COMPLETE 3 · PARTIAL 15 · FAILED 0 · BLOCKED 1 · NOT_STARTED 6 · UNVERIFIED 2.** (Rows FC and V were added 2026-10-15; the first 25 rows are unchanged audit/RM history.)
 
 | ID | Phase / Capability | Status | Evidence | Missing Work | Dependencies | Acceptance Criteria |
 |---|---|---|---|---|---|---|
@@ -36,3 +36,5 @@ Statuses: COMPLETE · PARTIAL · FAILED · BLOCKED · NOT_STARTED · UNVERIFIED.
 | X3 | Previous-video history / duplicate prevention (§10) | NOT_STARTED | None | History store, repeated-content flagging | P3 | Reused topics flagged with prior-video link |
 | X4 | Responsive UI acceptance (UI-06) | UNVERIFIED | Claimed CDP sweep at 8 widths; `main.css`; 7 node tests | Not re-run; populated-pipeline pass listed as outstanding; views untested | — | Rendered-pixel pass at 320–1440 px with populated data |
 | X5 | Real-content end-to-end research run | UNVERIFIED | `project_status.md` 2026-10-11 (BBC, Defense News feeds) | Not re-run; dev DB holds 1 job only | Network, RSS feeds | Reproducible run to a reviewed, exported package |
+| FC | Fact check + media-context verification (supplemental to P1D/P2/P3) | PARTIAL | `verification/*`, `services/factcheck.py`, schema v13; claim/media/package tests, gates audit, frame-timestamp and RSS hardening tests passing (see `project_status.md`); real local ffmpeg run | Hosted search, reverse-image, OCR, detection not live/dependency-ready; ARE adapter and browser pass not started | tesseract, reverse-image gateway, hosted search key, ARE contract decision | Live provider evidence recorded per capability; browser approval flow re-run Browser 2026-10-15: 24/24 scripted headless-Chrome checks passed (3 viewports, temp DB, dev auth); 2 UI defects fixed; human correction, video upload, real device, other browsers, production-like volume not tested. |
+| V | Voice Analyzer + Voice Generation engines (supplemental to P4/P6) | PARTIAL | `components/voice-engine/`, schema v12, `/api/voice/*`, Voice tab; 59 standalone + 20 integration tests; one real English SAPI run | Tamil provider/verification, forced alignment, reference acquisition, browser pass | Licensed Tamil TTS, aligner model + licence | Verified Tamil audio and measured alignment on real narration Browser 2026-10-15: 24/24 scripted headless-Chrome checks passed (3 viewports, real local English SAPI); 2 UI defects fixed; cancel/retry/discard, Tamil, alignment, real device not tested. |

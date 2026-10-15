@@ -65,7 +65,13 @@ def corroboration_count(package: dict, claim_id: str) -> int:
     for group in package.get("claim_groups", []):
         if claim_id in group.get("member_claim_ids", []):
             members.update(group.get("member_claim_ids", []))
-    return len({cluster.get(claims[m]["source_id"], claims[m]["source_id"]) for m in members if m in claims})
+    textual = len({cluster.get(claims[m]["source_id"], claims[m]["source_id"]) for m in members if m in claims})
+    # The automatic evidence policy counts independent, non-manufacturer source GROUPS that state the same
+    # assertion or figure. Honour it so the prompt, the policy and this validator agree.
+    policy = ((package.get("automated_decisions") or {}).get("claims") or {}).get(claim_id) or {}
+    if policy.get("state") == "AUTO_ACCEPTED" and isinstance(policy.get("independent_groups"), int):
+        return max(textual, policy["independent_groups"])
+    return textual
 
 
 def conflicted_claim_ids(package: dict) -> set[str]:

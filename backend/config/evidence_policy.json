@@ -1,0 +1,302 @@
+{
+  "_comment": "Deterministic automatic evidence policy. Numeric thresholds are owner-configurable DEFAULTS, not facts: see _rationale. An allowlisted source never makes a claim true; AUTO_ACCEPTED means only 'passed every mandatory check below'.",
+  "version": "defence-studio.evidence-policy.v1",
+  "claim": {
+    "min_words": 6,
+    "bibliography_patterns": [
+      "[\\u201c\\\"][^\\u201d\\\"]{3,}[\\u201d\\\"],?\\s*(?:in\\s+)?[A-Z][^.]{0,120}\\b(?:19|20)\\d{2}\\b",
+      "\\((?:London|New York|Washington|Moscow|Delhi|New Delhi|Paris)[^)]*\\b(?:19|20)\\d{2}\\)",
+      "\\b(?:Retrieved|Accessed|ibid\\.?|op\\. cit\\.)\\b",
+      "^\\s*(?:See|Cf\\.)\\s.*\\b(?:map|figure|table)\\b"
+    ],
+    "uncertainty_markers": [
+      "unclear",
+      "disputed",
+      "questions remain",
+      "unconfirmed",
+      "uncertain",
+      "allegedly",
+      "purportedly",
+      "rumou?red"
+    ],
+    "time_sensitive_markers": [
+      "currently",
+      "recently",
+      "at present",
+      "as of",
+      "to date",
+      "now ",
+      "is expected to",
+      "will be"
+    ],
+    "attribution_markers": [
+      "according to",
+      "said",
+      "stated",
+      "announced",
+      "reported by",
+      "claims",
+      "claimed",
+      "officials"
+    ]
+  },
+  "relevance": {
+    "min_source_anchor_mentions": 3,
+    "topic_profiles": [],
+    "fallback": "digit-or-hyphen tokens of the topic",
+    "anchor_stopwords": [
+      "the",
+      "and",
+      "for",
+      "with",
+      "how",
+      "what",
+      "why",
+      "from",
+      "about",
+      "its",
+      "their",
+      "into",
+      "works",
+      "work",
+      "capabilities",
+      "capability",
+      "limitations",
+      "limitation",
+      "strategic",
+      "importance",
+      "overview",
+      "analysis",
+      "system",
+      "systems",
+      "defence",
+      "defense",
+      "air",
+      "military",
+      "armed",
+      "forces",
+      "force",
+      "announcement",
+      "news",
+      "latest",
+      "update",
+      "updates",
+      "explained",
+      "guide",
+      "introduction",
+      "role",
+      "impact",
+      "future",
+      "india",
+      "indian"
+    ],
+    "_note": "Anchors are derived from the job topic itself; topic_profiles may add aliases for a topic (empty by default). 'india'/'indian' are stop-words because they are scope words, not distinctive subjects; subject_categories handle scope."
+  },
+  "corroboration": {
+    "quantitative_min_independent_groups": 2,
+    "descriptive_min_sources": 1,
+    "similarity_threshold": 0.5,
+    "_note": "Independence = distinct source independence groups (registry), manufacturers never count; similarity is Jaccard over content words, not truth."
+  },
+  "readiness": {
+    "min_accepted_claims": 8,
+    "min_accepted_sources": 2,
+    "required_source_categories_any": [
+      "RESEARCH_INSTITUTION",
+      "GOVERNMENT_OFFICIAL",
+      "OFFICIAL_TECHNICAL",
+      "INDEPENDENT_REPORTING"
+    ],
+    "_rationale": "Defaults chosen so a ~9-minute explainer (about 1,300 words, 7 required topics) has coverage across at least two independently owned sources; quantitative figures need two independent source groups. These are NOT taken from the core design (which sets no number) and are an owner policy decision.",
+    "require_source_publisher": true
+  },
+  "strict_claims": {
+    "min_independent_groups": 2,
+    "patterns": [
+      "\\brange\\b",
+      "\\bkm\\b",
+      "\\bkilometres?\\b",
+      "\\bmach\\b",
+      "\\bkill probability\\b",
+      "\\bshot down\\b",
+      "\\bintercept(?:ed|s|ion)?\\b",
+      "\\bcasualt",
+      "\\bkilled\\b",
+      "\\bcombat\\b",
+      "\\boperational(?:ly)?\\b",
+      "\\bdeployed\\b"
+    ]
+  },
+  "scoring": {
+    "version": "defence-studio.claim-score.v1",
+    "auto_accept_min_score": 70,
+    "weights": {
+      "source_credibility": 20,
+      "relevance": 15,
+      "passage_match": 15,
+      "corroboration": 20,
+      "freshness": 10,
+      "attribution": 10,
+      "contradiction_clear": 10
+    },
+    "category_credibility": {
+      "GOVERNMENT_OFFICIAL": 1.0,
+      "OFFICIAL_TECHNICAL": 1.0,
+      "RESEARCH_INSTITUTION": 1.0,
+      "INDEPENDENT_REPORTING": 0.8,
+      "MANUFACTURER": 0.5
+    }
+  },
+  "subject_categories": [
+    {
+      "id": "INDIA_DEFENCE",
+      "keywords": [
+        "india",
+        "indian",
+        "drdo",
+        "iaf",
+        "hal",
+        "bharat",
+        "indian army",
+        "indian navy"
+      ]
+    },
+    {
+      "id": "INTERNATIONAL_DEFENCE",
+      "keywords": [
+        "russia",
+        "russian",
+        "china",
+        "chinese",
+        "nato",
+        "usa",
+        "us army",
+        "ukraine",
+        "israel",
+        "turkey"
+      ]
+    },
+    {
+      "id": "AIR_DEFENCE_MISSILES",
+      "keywords": [
+        "missile",
+        "missiles",
+        "air defence",
+        "air defense",
+        "sam",
+        "radar",
+        "interceptor",
+        "s-400",
+        "s400",
+        "patriot"
+      ]
+    },
+    {
+      "id": "MILITARY_EQUIPMENT",
+      "keywords": [
+        "aircraft",
+        "fighter",
+        "tank",
+        "submarine",
+        "frigate",
+        "destroyer",
+        "drone",
+        "uav",
+        "rifle",
+        "artillery",
+        "helicopter",
+        "carrier"
+      ]
+    },
+    {
+      "id": "CONFLICT_OPERATIONS",
+      "keywords": [
+        "war",
+        "conflict",
+        "strike",
+        "offensive",
+        "ceasefire",
+        "operation",
+        "battle",
+        "invasion",
+        "attack"
+      ]
+    },
+    {
+      "id": "DEFENCE_POLICY",
+      "keywords": [
+        "procurement",
+        "budget",
+        "policy",
+        "acquisition",
+        "contract",
+        "deal",
+        "announcement",
+        "ministry",
+        "doctrine"
+      ]
+    }
+  ],
+  "claim_classes": [
+    {
+      "id": "CASUALTY_LOSS",
+      "patterns": [
+        "\\bcasualt",
+        "\\bkilled\\b",
+        "\\bwounded\\b",
+        "\\bfatalit",
+        "\\blosses\\b",
+        "\\bshot down\\b"
+      ],
+      "min_independent_groups": 2,
+      "attribution_ok": true
+    },
+    {
+      "id": "OPERATIONAL",
+      "patterns": [
+        "\\bdeployed\\b",
+        "\\bdeployment\\b",
+        "\\bused in combat\\b",
+        "\\bintercept(?:ed|s|ion)?\\b",
+        "\\bstruck\\b",
+        "\\blaunched\\b",
+        "\\bengaged\\b",
+        "\\bin service\\b",
+        "\\boperational(?:ly)?\\b"
+      ],
+      "min_independent_groups": 2,
+      "attribution_ok": true
+    },
+    {
+      "id": "CURRENT_EVENT",
+      "patterns": [
+        "\\bcurrently\\b",
+        "\\brecently\\b",
+        "\\bat present\\b",
+        "\\bas of\\b",
+        "\\bthis (?:week|month|year)\\b"
+      ],
+      "min_independent_groups": 2,
+      "attribution_ok": true
+    },
+    {
+      "id": "PERFORMANCE_FIGURE",
+      "needs_quantity": true,
+      "patterns": [
+        "\\brange\\b",
+        "\\bkm\\b",
+        "\\bmach\\b",
+        "\\bspeed\\b",
+        "\\baltitude\\b",
+        "\\bpayload\\b",
+        "\\bkill probability\\b"
+      ],
+      "min_independent_groups": 2,
+      "attribution_ok": false
+    },
+    {
+      "id": "DESCRIPTIVE",
+      "min_independent_groups": 1
+    }
+  ]
+}

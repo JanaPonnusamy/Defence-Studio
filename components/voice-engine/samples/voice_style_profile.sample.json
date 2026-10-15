@@ -1,0 +1,395 @@
+{
+ "voice_style_id": "VSP-35d10672dd0b0342",
+ "profile_name": "Own-voice reference",
+ "source_id": "SRC-627ecbbf3c71",
+ "version": 1,
+ "analysis_hash": "d4283a3993ce94af487d832726a2eecf09fe4a13b7cbad3eb7d1c6994fc16eb6",
+ "created_at": 1792000695.8748782,
+ "versions": [
+  {
+   "version": 1,
+   "analysis_hash": "d4283a3993ce94af487d832726a2eecf09fe4a13b7cbad3eb7d1c6994fc16eb6",
+   "analysis_version": "1.0",
+   "note": "job 9316ae9f-fb65-4b1a-aba6-4af35b5eb068",
+   "created_at": 1792000695.8748782
+  }
+ ],
+ "read_only": true,
+ "provenance": {
+  "state": "OWNED",
+  "authorization_ref": "self-generated OS voice audio",
+  "original_name": "ref.wav",
+  "source_sha256": "02fa0fc31a111d9bb3a0ad70486166a7b955fcbfe34d2bc0ceb9d3933fb13aad",
+  "raw_audio_retained": false
+ },
+ "limitations": [
+  "Emotion labels are heuristic inferences, not validated classification.",
+  "Syllable rate is estimated from the energy envelope, not measured from phonemes.",
+  "Word-level emphasis text is unavailable without transcript alignment."
+ ],
+ "analysis_version": "1.0",
+ "audio": {
+  "duration_ms": 9871,
+  "normalization_gain_db": -4.82,
+  "sample_rate": 16000,
+  "segment_count": 3,
+  "speech_ms": 7080
+ },
+ "confidence": {
+  "overall": 0.846,
+  "snr_proxy_db": 162.8,
+  "warnings": []
+ },
+ "emotion_profile": {
+  "analysis_version": "1.0",
+  "kind": "INFERENCE",
+  "label_share": {
+   "SERIOUS": 1.0
+  }
+ },
+ "emphasis_profile": {
+  "candidates": [],
+  "word_alignment": "UNAVAILABLE_NO_TRANSCRIPT_ALIGNMENT"
+ },
+ "energy_profile": {
+  "dynamic_range_db": 24.33,
+  "mean_dbfs": -16.74,
+  "note": "loudness is not emotion",
+  "peak_dbfs": -2.46,
+  "rms_dbfs": -18.18,
+  "transitions": [],
+  "unit": "dBFS",
+  "variation_db_std": 9.91
+ },
+ "intonation_profile": {
+  "method": "per-segment end slope in semitones",
+  "sentence_ending_counts": {
+   "FALLING": 3
+  }
+ },
+ "language": "en-GB",
+ "pause_profile": {
+  "count": 2,
+  "max_ms": 1020,
+  "mean_ms": 935.0,
+  "pause_before_speech_ms": 140,
+  "pauses": [
+   {
+    "after_segment": "seg-0000",
+    "confidence": 0.9,
+    "context": "after_sentence_candidate",
+    "duration_ms": 1020,
+    "pause_type": "DRAMATIC",
+    "start_ms": 1700
+   },
+   {
+    "after_segment": "seg-0001",
+    "confidence": 0.9,
+    "context": "after_sentence_candidate",
+    "duration_ms": 850,
+    "pause_type": "DRAMATIC",
+    "start_ms": 5430
+   }
+  ],
+  "type_counts": {
+   "DRAMATIC": 2
+  }
+ },
+ "pitch": {
+  "contour_hz": [
+   [
+    240,
+    195.1
+   ],
+   [
+    340,
+    207.8
+   ],
+   [
+    440,
+    207.8
+   ],
+   [
+    540,
+    246.2
+   ],
+   [
+    640,
+    235.3
+   ],
+   [
+    740,
+    202.5
+   ],
+   [
+    840,
+    205.1
+   ],
+   [
+    940,
+    205.1
+   ],
+   [
+    1130,
+    381.0
+   ],
+   [
+    1230,
+    166.7
+   ],
+   [
+    1330,
+    164.9
+   ],
+   [
+    1430,
+    146.8
+   ],
+   [
+    2760,
+    190.5
+   ],
+   [
+    2860,
+    207.8
+   ],
+   [
+    2960,
+    238.8
+   ],
+   [
+    3060,
+    258.1
+   ],
+   [
+    3230,
+    238.8
+   ],
+   [
+    3330,
+    235.3
+   ],
+   [
+    3450,
+    213.3
+   ],
+   [
+    3550,
+    213.3
+   ],
+   [
+    3690,
+    202.5
+   ],
+   [
+    3790,
+    168.4
+   ],
+   [
+    3890,
+    164.9
+   ],
+   [
+    3990,
+    163.3
+   ],
+   [
+    4090,
+    163.3
+   ],
+   [
+    4190,
+    173.9
+   ],
+   [
+    4290,
+    192.8
+   ],
+   [
+    4390,
+    222.2
+   ],
+   [
+    4490,
+    246.2
+   ],
+   [
+    4660,
+    202.5
+   ],
+   [
+    4760,
+    188.2
+   ],
+   [
+    4860,
+    179.8
+   ],
+   [
+    4990,
+    188.2
+   ],
+   [
+    5090,
+    141.6
+   ],
+   [
+    6310,
+    190.5
+   ],
+   [
+    6470,
+    254.0
+   ],
+   [
+    6660,
+    271.2
+   ],
+   [
+    6760,
+    280.7
+   ],
+   [
+    6960,
+    200.0
+   ],
+   [
+    7060,
+    175.8
+   ],
+   [
+    7160,
+    205.1
+   ],
+   [
+    7260,
+    219.2
+   ],
+   [
+    7360,
+    181.8
+   ],
+   [
+    7470,
+    231.9
+   ],
+   [
+    7570,
+    222.2
+   ],
+   [
+    7710,
+    168.4
+   ],
+   [
+    7810,
+    156.9
+   ],
+   [
+    7910,
+    150.9
+   ],
+   [
+    8050,
+    186.0
+   ],
+   [
+    8150,
+    192.8
+   ],
+   [
+    8330,
+    188.2
+   ],
+   [
+    8430,
+    177.8
+   ],
+   [
+    8530,
+    155.3
+   ],
+   [
+    8750,
+    200.0
+   ],
+   [
+    8850,
+    166.7
+   ],
+   [
+    8950,
+    140.4
+   ],
+   [
+    9050,
+    146.8
+   ]
+  ],
+  "max_hz": 380.95,
+  "mean_hz": 195.11,
+  "median_hz": 192.77,
+  "method": "autocorrelation_40ms_frame_10ms_hop",
+  "min_hz": 128.0,
+  "range_hz": 252.95,
+  "stability": 0.499,
+  "unit": "Hz",
+  "variation_semitones_std": 3.005,
+  "voiced_ratio": 0.693
+ },
+ "rhythm_profile": {
+  "pause_to_speech_ratio": 0.394,
+  "phrase_duration_ms": [
+   1560,
+   2710,
+   2810
+  ],
+  "phrase_duration_ms_mean": 2360.0,
+  "speech_density": 0.717
+ },
+ "source_segments": [
+  "seg-0000",
+  "seg-0001",
+  "seg-0002"
+ ],
+ "speaking_rate": {
+  "fast_segments": [],
+  "normal_rate_syllables_per_sec": 4.626,
+  "slow_segments": [
+   "seg-0000"
+  ],
+  "syllables_kind": "ESTIMATED",
+  "syllables_per_sec": 4.379,
+  "words_per_minute": 144.1,
+  "words_per_minute_kind": "MEASURED_FROM_TRANSCRIPT"
+ },
+ "tempo": {
+  "acceleration": null,
+  "class_counts": {
+   "NORMAL": 2,
+   "SLOW": 1
+  },
+  "deceleration": null,
+  "normal_rate_syllables_per_sec": 4.626,
+  "segments": [
+   {
+    "confidence": 0.849,
+    "segment_id": "seg-0000",
+    "tempo": 0.554,
+    "tempo_class": "SLOW"
+   },
+   {
+    "confidence": 0.843,
+    "segment_id": "seg-0001",
+    "tempo": 1.117,
+    "tempo_class": "NORMAL"
+   },
+   {
+    "confidence": 0.847,
+    "segment_id": "seg-0002",
+    "tempo": 1.0,
+    "tempo_class": "NORMAL"
+   }
+  ]
+ }
+}

@@ -45,7 +45,12 @@ def user_prompt(*, topic: str, language: str, audience: str, tone: str, script_f
     corroboration = corroboration or {}
     claims_payload = [
         {"claim_id": c["claim_id"], "text": c.get("claim_text", ""), "source_id": c.get("source_id", ""),
-         "independent_sources": corroboration.get(c["claim_id"], 1)}
+         "independent_sources": corroboration.get(c["claim_id"], 1),
+         # Same function the validator uses, so prompt and validator can never disagree.
+         "verified_fact_allowed": corroboration.get(c["claim_id"], 1) >= 2,
+         "allowed_statement_kinds": (["VERIFIED_FACT", "ATTRIBUTED_CLAIM", "ANALYSIS"]
+                                     if corroboration.get(c["claim_id"], 1) >= 2
+                                     else ["ATTRIBUTED_CLAIM", "ANALYSIS"])}
         for c in eligible_claims
     ]
     schema_hint = {
@@ -67,6 +72,12 @@ def user_prompt(*, topic: str, language: str, audience: str, tone: str, script_f
         f"Topic: {topic}\nLanguage: {language}\nAudience: {audience}\nTone: {tone}\n"
         f"Format: {script_format}\nTarget narration length: approximately {target_words} words.\n"
         f"Preserve these terms exactly where used: {json.dumps(terminology, ensure_ascii=False)}\n\n"
+        "Statement-kind rules (a validator rejects the whole script otherwise):\n"
+        "- Use VERIFIED_FACT ONLY when EVERY claim the section cites has verified_fact_allowed=true. "
+        "Never combine several single-source claims to reach two sources.\n"
+        "- A claim with verified_fact_allowed=false may only be presented as ATTRIBUTED_CLAIM "
+        "(say who states it, e.g. 'according to the source') or ANALYSIS, never as established fact.\n"
+        "- Give each such claim its own ATTRIBUTED_CLAIM section; keep numbers exactly as in the claim.\n\n"
         "Approved evidence (the ONLY facts you may cite; do not use outside knowledge for "
         "any material claim):\n" + json.dumps(claims_payload, ensure_ascii=False, indent=2) + "\n\n"
         "Return a single JSON object with exactly this shape (no markdown fences, no extra keys):\n"

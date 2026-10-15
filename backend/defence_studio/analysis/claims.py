@@ -45,6 +45,7 @@ _DESIGNATION = re.compile(
     r"\b[A-Za-z]+-\d+[A-Za-z0-9-]*\b|\b[A-Z]{2,}-\d+[A-Z0-9-]*\b|\b[A-Z]{2,}\d+\b"
 )
 _QUANTITY = re.compile(
+    r"\bMach\s?\d+(?:\.\d+)?\b|"
     r"\b\d[\d,]*(?:\.\d+)?\s?"
     r"(?:%|percent|km|kilomet(?:re|er)s?|metres?|meters?|kg|tonnes?|tons?|crore|"
     r"lakh|billion|million|thousand|units?|aircraft|jets?|fighters?|missiles?|"
@@ -61,7 +62,48 @@ _DATE = re.compile(
 )
 _NAMED = re.compile(r"\b[A-Z][\w.]+(?:\s+[A-Z][\w.]+)+\b|\b[A-Z]{2,}\b")
 _SENTENCE = re.compile(r"[^.!?\n]*(?:[.!?]+|\n|$)")
+# A match ending in an initial/abbreviation ("U.S.", "Dr.", "Lt. Gen.") is not a
+# sentence end; merging avoids truncated, misleading "claims".
+_ABBREV_END = re.compile(
+    r"(?:\b[A-Z]|\bNo|\bSt|\bMr|\bMrs|\bMs|\bDr|\bLt|\bGen|\bCol|\bCapt|\bvs|\bapprox)\.\s*$"
+)
 _WORD = re.compile(r"\w+", re.UNICODE)
+# Site chrome / legal / calls-to-action: never a statement about the topic.
+_BOILERPLATE = re.compile(
+    r"skip to (?:the )?(?:main )?content|\u00a9|\(c\)\s*\d{4}|all rights reserved|privacy policy|"
+    r"terms (?:of use|and conditions)|cookie|newsletter|subscribe|sign[- ]?up|follow us|"
+    r"share (?:this|on)|read more|click here|enable javascript|"
+    r"\bfacebook\b|\btwitter\b|\blinkedin\b|\binstagram\b|\byoutube\b",
+    re.IGNORECASE,
+)
+# Bare URLs / citation locators and page-title separators are references, not claims.
+_URL_LIKE = re.compile(
+    r"https?://|\bwww\.|\b[\w-]+\.(?:com|org|net|edu|gov|ru)\b|^[\w.-]+/\S+|\s\|\s|</?[A-Za-z][^>]*>",
+    re.IGNORECASE,
+)
+_TERMINAL = re.compile(r"[.!?\u0964\"'\u201d\u2019]\s*$")
+_MIN_WORDS = 5
+_HEADING_MAX_WORDS = 8
+
+
+def _is_boilerplate(sentence: str, entities: CandidateEntities, has_cues: bool) -> bool:
+    """True for site chrome, URL/citation fragments and bare headings.
+
+    A heading is a short line with no terminal punctuation and no quantity
+    (specification rows such as "Warhead 143 kg" are kept). Subtitle cues are
+    exempt from the heading rule because cues are rarely punctuated."""
+    if _BOILERPLATE.search(sentence) or _URL_LIKE.search(sentence):
+        return True
+    words = _WORD.findall(sentence)
+    if len(words) < _MIN_WORDS:
+        return True
+    return (
+        not has_cues
+        and len(words) <= _HEADING_MAX_WORDS
+        and not _TERMINAL.search(sentence)
+        and not entities.quantities
+    )
+
 
 
 def topic_terms(topic: str) -> frozenset:
@@ -70,16 +112,29 @@ def topic_terms(topic: str) -> frozenset:
 
 def _sentence_spans(text: str):
     """Yield (start, end, sentence_text) with offsets into ``text``."""
+    pending_start = None
     for match in _SENTENCE.finditer(text):
         raw = match.group()
         if not raw:
             continue
-        lead = len(raw) - len(raw.lstrip())
-        trimmed = raw.strip()
-        if not trimmed:
-            continue
-        start = match.start() + lead
-        yield start, start + len(trimmed), trimmed
+        if pending_start is None:
+            lead = len(raw) - len(raw.lstrip())
+            if not raw.strip():
+                continue
+            pending_start = match.start() + lead
+        end = match.start() + len(raw.rstrip())
+        stripped_raw = raw.rstrip()
+        decimal_point = (len(stripped_raw) >= 2 and stripped_raw[-1] == "." and stripped_raw[-2].isdigit()
+                         and text[match.end():match.end() + 1].isdigit())      # "Mach 1.8", "2.5 m"
+        if decimal_point or (_ABBREV_END.search(stripped_raw + " ") and not raw.endswith("\n")
+                             and match.end() < len(text)):
+            continue                      # abbreviation / decimal point, keep accumulating
+        yield pending_start, end, text[pending_start:end]
+        pending_start = None
+    if pending_start is not None:
+        tail = text[pending_start:].rstrip()
+        if tail:
+            yield pending_start, pending_start + len(tail), tail
 
 
 def _cue_for_span(cues: tuple[SubtitleCue, ...], start: int, end: int):
@@ -130,6 +185,8 @@ def extract_claims(
         if not (limits.min_claim_chars <= len(sentence) <= limits.max_claim_chars):
             continue
         entities = _entities(sentence)
+        if _is_boilerplate(sentence, entities, bool(cues)):
+            continue
         tokens = {t.lower() for t in _WORD.findall(sentence)}
         relevant = bool(terms & tokens)
         has_signal = bool(

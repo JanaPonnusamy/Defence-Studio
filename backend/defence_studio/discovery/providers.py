@@ -417,6 +417,10 @@ def _feeds_from_env() -> dict[str, tuple[str, ...]]:
 
 
 def _parse_feed(content: bytes) -> list[dict]:
+    # Untrusted XML: refuse DTDs/entities outright (entity-expansion bombs, external entities).
+    head = content[:4096].lower()
+    if b"<!doctype" in head or b"<!entity" in content.lower():
+        raise ET.ParseError("DTD/entity declarations are not accepted in feeds")
     root = ET.fromstring(content)
     entries: list[dict] = []
     channel_title = None
@@ -431,7 +435,9 @@ def _parse_feed(content: bytes) -> list[dict]:
         for entry in root.findall(f"{_ATOM_NS}entry") or root.findall("entry"):
             entries.append(_atom_entry(entry))
         return entries
-    return entries
+    # A 200 response that is neither RSS nor Atom (HTML error page, JSON-as-XML) is a feed
+    # error, not an empty successful feed.
+    raise ET.ParseError(f"unrecognized feed root element <{root.tag}>")
 
 
 def _text(el, tag: str) -> str | None:

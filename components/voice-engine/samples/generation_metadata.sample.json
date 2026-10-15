@@ -1,0 +1,73 @@
+{
+ "generation_id": "GEN-3f4f5a5c0f3f4235",
+ "voice_id": "OS_SAPI_MICROSOFT_HAZEL_DESKTOP",
+ "style_profile_id": "VSP-35d10672dd0b0342",
+ "language": "en-GB",
+ "audio_format": "wav",
+ "sample_rate": 48000,
+ "duration_ms": 10170,
+ "generation_version": "1.0",
+ "generation_hash": "e2936383ab5a2e482d5b77cef3da709d59271b2fe41d0a742927602211f8a75f",
+ "status": "COMPLETED",
+ "error": null,
+ "effective_direction": {
+  "emotion": {
+   "intensity": 1.0,
+   "label": "SERIOUS"
+  },
+  "emphasis": [
+   {
+    "strength": 0.85,
+    "text": "new missile test"
+   }
+  ],
+  "energy": 0.582,
+  "language": "en-GB",
+  "pauses": [
+   {
+    "duration_ms": 935,
+    "position": "after_sentence"
+   },
+   {
+    "duration_ms": 510,
+    "position": "before_emphasis"
+   }
+  ],
+  "pitch_variation": 0.501,
+  "style_profile_id": "VSP-35d10672dd0b0342",
+  "tempo": 1.157,
+  "voice_id": "OS_SAPI_MICROSOFT_HAZEL_DESKTOP"
+ },
+ "audio_url": "/api/voice/generations/GEN-3f4f5a5c0f3f4235/audio",
+ "voice": {
+  "voice_id": "OS_SAPI_MICROSOFT_HAZEL_DESKTOP",
+  "display_name": "Microsoft Hazel Desktop (Windows OS voice)",
+  "kind": "OS_VOICE",
+  "adapter": "windows-sapi",
+  "ready": true,
+  "languages": [
+   "en-GB"
+  ],
+  "natural_speech": true,
+  "tamil_verified": false,
+  "supported_controls": [
+   "tempo",
+   "energy"
+  ],
+  "unsupported_controls": [
+   "pitch_variation",
+   "emphasis(partial: rate/volume only)"
+  ],
+  "license": {
+   "license_id": "OS-SAPI-OS_SAPI_MICROSOFT_HAZEL_DESKTOP",
+   "speaker_license_ref": "Windows OS-bundled voice; redistribution/commercial/YouTube terms NOT verified",
+   "training_allowed": false,
+   "commercial_use_allowed": false,
+   "youtube_use_allowed": false,
+   "valid_from": "2020-01-01",
+   "valid_until": null,
+   "terms_hash": null
+  },
+  "reason": ""
+ }
+}

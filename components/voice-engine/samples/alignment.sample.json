@@ -1,0 +1,162 @@
+{
+ "aligner": {
+  "forced_alignment_run": false,
+  "name": "render-measured+proportional",
+  "version": "1.0"
+ },
+ "alignment_version": "1.0",
+ "generation_id": "GEN-3f4f5a5c0f3f4235",
+ "method": "RENDER_MEASURED_SENTENCES+PROPORTIONAL_WORDS",
+ "note": "sentence times measured from rendered audio; word times are proportional ESTIMATES (no forced-aligner run)",
+ "segments": [
+  {
+   "accuracy": "MEASURED_RENDER_BOUNDARY",
+   "end_ms": 1216,
+   "measured": true,
+   "start_ms": 164,
+   "text": "Breaking news tonight."
+  },
+  {
+   "accuracy": "MEASURED_RENDER_BOUNDARY",
+   "end_ms": 5876,
+   "measured": true,
+   "start_ms": 3482,
+   "text": "The ministry confirmed a new missile test."
+  },
+  {
+   "accuracy": "MEASURED_RENDER_BOUNDARY",
+   "end_ms": 9589,
+   "measured": true,
+   "start_ms": 7599,
+   "text": "Officials said more details will follow soon."
+  }
+ ],
+ "words": [
+  {
+   "accuracy": "ESTIMATED_PROPORTIONAL",
+   "end_ms": 584,
+   "measured": false,
+   "start_ms": 164,
+   "text": "Breaking"
+  },
+  {
+   "accuracy": "ESTIMATED_PROPORTIONAL",
+   "end_ms": 795,
+   "measured": false,
+   "start_ms": 584,
+   "text": "news"
+  },
+  {
+   "accuracy": "ESTIMATED_PROPORTIONAL",
+   "end_ms": 1216,
+   "measured": false,
+   "start_ms": 795,
+   "text": "tonight."
+  },
+  {
+   "accuracy": "ESTIMATED_PROPORTIONAL",
+   "end_ms": 3681,
+   "measured": false,
+   "start_ms": 3482,
+   "text": "The"
+  },
+  {
+   "accuracy": "ESTIMATED_PROPORTIONAL",
+   "end_ms": 4213,
+   "measured": false,
+   "start_ms": 3681,
+   "text": "ministry"
+  },
+  {
+   "accuracy": "ESTIMATED_PROPORTIONAL",
+   "end_ms": 4812,
+   "measured": false,
+   "start_ms": 4213,
+   "text": "confirmed"
+  },
+  {
+   "accuracy": "ESTIMATED_PROPORTIONAL",
+   "end_ms": 4878,
+   "measured": false,
+   "start_ms": 4812,
+   "text": "a"
+  },
+  {
+   "accuracy": "ESTIMATED_PROPORTIONAL",
+   "end_ms": 5078,
+   "measured": false,
+   "start_ms": 4878,
+   "text": "new"
+  },
+  {
+   "accuracy": "ESTIMATED_PROPORTIONAL",
+   "end_ms": 5543,
+   "measured": false,
+   "start_ms": 5078,
+   "text": "missile"
+  },
+  {
+   "accuracy": "ESTIMATED_PROPORTIONAL",
+   "end_ms": 5876,
+   "measured": false,
+   "start_ms": 5543,
+   "text": "test."
+  },
+  {
+   "accuracy": "ESTIMATED_PROPORTIONAL",
+   "end_ms": 8058,
+   "measured": false,
+   "start_ms": 7599,
+   "text": "Officials"
+  },
+  {
+   "accuracy": "ESTIMATED_PROPORTIONAL",
+   "end_ms": 8262,
+   "measured": false,
+   "start_ms": 8058,
+   "text": "said"
+  },
+  {
+   "accuracy": "ESTIMATED_PROPORTIONAL",
+   "end_ms": 8466,
+   "measured": false,
+   "start_ms": 8262,
+   "text": "more"
+  },
+  {
+   "accuracy": "ESTIMATED_PROPORTIONAL",
+   "end_ms": 8823,
+   "measured": false,
+   "start_ms": 8466,
+   "text": "details"
+  },
+  {
+   "accuracy": "ESTIMATED_PROPORTIONAL",
+   "end_ms": 9027,
+   "measured": false,
+   "start_ms": 8823,
+   "text": "will"
+  },
+  {
+   "accuracy": "ESTIMATED_PROPORTIONAL",
+   "end_ms": 9333,
+   "measured": false,
+   "start_ms": 9027,
+   "text": "follow"
+  },
+  {
+   "accuracy": "ESTIMATED_PROPORTIONAL",
+   "end_ms": 9589,
+   "measured": false,
+   "start_ms": 9333,
+   "text": "soon."
+  }
+ ],
+ "forced_alignment": {
+  "name": "defence-align (CTC forced aligner)",
+  "available": false,
+  "languages_verified": [],
+  "license_note": "MMS-FA bundled model is CC-BY-NC 4.0 (non-commercial); not approved for production.",
+  "reason": "torch/torchaudio not installed; no forced-alignment model present"
+ }
+}

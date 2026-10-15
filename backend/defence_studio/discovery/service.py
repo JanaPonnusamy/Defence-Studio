@@ -62,7 +62,10 @@ def clamp_limits(limits: DiscoveryLimits) -> DiscoveryLimits:
 class DiscoveryService:
     def __init__(self, guard: UrlGuard | None = None, registry: DiscoveryProviderRegistry | None = None,
                  client_factory=None):
-        self.guard = guard or UrlGuard()
+        if guard is None:
+            from defence_studio.acquisition.source_policy import default_policy
+            guard = UrlGuard(policy=default_policy())   # controlled source registry (None only if owner opted out)
+        self.guard = guard
         self.registry = registry or default_registry(client_factory=client_factory)
 
     def run(self, request: DiscoveryRequestV1, cancel: threading.Event | None = None) -> DiscoveryResultV1:

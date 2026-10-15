@@ -31,6 +31,8 @@ def build_research_worker(database_file, storage_path, *, discovery_handler=None
         "topic_search_and_source_collection": acquisition_handler or build_acquisition_handler(store),
         "extraction_validation_normalization_deduplication": make_analysis_handler(database_file, storage_path),
     }
+    from defence_studio.services.voice import VoiceService
+    handlers.update(VoiceService(database_file, storage_path).handlers())
     return Worker(database_file, f"research-{uuid.uuid4()}", handlers, retry_safe_stages=set(handlers))
 
 

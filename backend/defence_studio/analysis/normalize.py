@@ -21,6 +21,7 @@ Design constraints:
 from __future__ import annotations
 
 import html
+from html.parser import HTMLParser
 import re
 import unicodedata
 from dataclasses import dataclass
@@ -98,14 +99,88 @@ def _collapse_whitespace(text: str) -> str:
     return "\n".join(out).strip()
 
 
+# Containers that hold site chrome, not article content. Text inside them is
+# dropped before claim extraction so menus, share bars, cookie banners and
+# accessibility labels are never offered to a reviewer as "claims".
+_CHROME_TAGS = frozenset({
+    "nav", "footer", "aside", "form", "button", "select", "noscript", "svg",
+    "template", "iframe", "dialog", "menu", "head", "title",
+})
+_CONTENT_ROOTS = frozenset({"article", "main"})
+_BLOCKS = frozenset({"p", "div", "br", "li", "tr", "h1", "h2", "h3", "h4", "h5", "h6",
+                     "section", "article", "table", "ul", "ol", "blockquote", "dd", "dt"})
+_VOID = frozenset({"br", "img", "input", "meta", "link", "hr", "area", "base", "col", "source", "wbr"})
+
+
+class _ContentExtractor(HTMLParser):
+    """Collects visible article text; skips chrome containers and hidden nodes."""
+
+    def __init__(self) -> None:
+        super().__init__(convert_charrefs=True)
+        self.parts: list[str] = []
+        self._skip: list[str] = []      # open skipped containers (stack of tag names)
+        self._content_depth = 0         # >0 while inside <article>/<main>
+
+    def _is_chrome(self, tag: str, attrs) -> bool:
+        if tag in _CHROME_TAGS:
+            return True
+        if tag == "header":              # page header is chrome; an article header holds the headline
+            return self._content_depth == 0
+        names = dict(attrs)
+        if "hidden" in names or (names.get("aria-hidden") or "").lower() == "true":
+            return True
+        return False
+
+    def handle_starttag(self, tag, attrs):
+        if tag in _VOID:
+            if tag == "br" and not self._skip:
+                self.parts.append("\n")
+            return
+        if self._skip:
+            self._skip.append(tag)
+            return
+        if tag in _CONTENT_ROOTS:
+            self._content_depth += 1
+        if self._is_chrome(tag, attrs):
+            self._skip.append(tag)
+            return
+        if tag in _BLOCKS:
+            self.parts.append("\n")
+
+    def handle_endtag(self, tag):
+        if tag in _VOID:
+            return
+        if self._skip:
+            # pop back to the matching opener (tolerates unclosed inner tags)
+            if tag in self._skip:
+                while self._skip and self._skip.pop() != tag:
+                    pass
+            return
+        if tag in _CONTENT_ROOTS and self._content_depth:
+            self._content_depth -= 1
+        if tag in _BLOCKS:
+            self.parts.append("\n")
+
+    def handle_data(self, data):
+        if not self._skip:
+            self.parts.append(data)
+
+
 def normalize_html(raw: str) -> NormalizedText:
     stripped = _SCRIPT_STYLE.sub(" ", raw)
-    # Turn block-level tags into newlines so paragraph structure survives, then
-    # drop all remaining tags and decode entities.
-    stripped = _BLOCK_TAG.sub("\n", stripped)
-    stripped = _TAG.sub(" ", stripped)
-    stripped = html.unescape(stripped)
-    text = _collapse_whitespace(stripped)
+    parser = _ContentExtractor()
+    try:
+        parser.feed(stripped)
+        parser.close()
+        extracted = "".join(parser.parts)
+    except Exception:  # malformed markup: fall back to the tag-stripping path
+        extracted = ""
+    if not extracted.strip():
+        # Never lose a whole page to a skipped/unclosed container: fall back to
+        # the original conservative behaviour (all tags dropped).
+        stripped = _BLOCK_TAG.sub("\n", stripped)
+        extracted = html.unescape(_TAG.sub(" ", stripped))
+    text = _collapse_whitespace(extracted)
     return NormalizedText(text=text, language=detect_language(text))
 
 

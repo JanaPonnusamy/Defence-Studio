@@ -18,6 +18,7 @@ from defence_studio.contracts.script import count_words, estimate_duration, vali
 from defence_studio.providers.openai_text import OpenAiTextProvider, ProviderError
 from defence_studio.services.evidence import EvidenceService
 from defence_studio.services.review import ReviewNotFound, ReviewValidationError, StaleRevision
+from defence_studio.services.factcheck import FactcheckService
 from defence_studio.services.script import (
     ScriptGenerationFailed, ScriptService, ScriptStaleRevision, ScriptValidationError,
 )
@@ -121,6 +122,48 @@ def test_generation_blocked_after_evidence_changes_post_approval(approved):
     with pytest.raises(StaleRevision):
         s["service"].generate(s["job"], OWNER, GOOD_CONFIG, "gen-2")
     assert s["provider"].calls == 0
+
+
+def test_factcheck_package_blocks_generation_until_current_approval(approved):
+    s = approved
+    check = FactcheckService(s["db"], s["root"])
+    check.enqueue(OWNER, "fc-claims", s["job"], "claims", {
+        "claims": [{
+            "claim_id": s["claim_id"], "text": "Northwind base counted 4 patrol craft during the March drill.",
+            "source_id": "origin", "category": "equipment", "entities": ["Northwind"], "extraction_confidence": 0.95,
+        }],
+        "sources": [
+            {"source_id": "origin", "excerpt": "Northwind base counted 4 patrol craft during the March drill.",
+             "publisher": "origin", "category": "news"},
+            {"source_id": "desk-a", "publisher": "Desk A",
+             "excerpt": "Northwind base counted 4 patrol craft during the March drill according to the harbour master.",
+             "category": "news", "primary": True, "named_attribution": True, "url": "https://example.test/a",
+             "published_at": "2024-03-02T00:00:00+00:00"},
+            {"source_id": "desk-b", "publisher": "Desk B",
+             "excerpt": "Northwind base counted 4 patrol craft during the March drill as recorded by the quay observers.",
+             "category": "news", "primary": True, "named_attribution": True, "url": "https://example.test/b",
+             "published_at": "2024-03-02T00:00:00+00:00"},
+        ],
+        "collection": {"attempted": True, "errors": []},
+    })
+    check.run_pending()
+    check.enqueue(OWNER, "fc-pkg", s["job"], "package", {"topic": "Northwind drill"})
+    check.run_pending()
+    with pytest.raises(ScriptStaleRevision, match="explicit human approval"):
+        s["service"].generate(s["job"], OWNER, GOOD_CONFIG, "fc-block")
+    assert s["provider"].calls == 0
+    package = check.latest_package(s["job"], OWNER)["package"]
+    check.approve(s["job"], OWNER, package["package_id"], "Human accepted the current fact-check package.")
+    revision = s["service"].generate(s["job"], OWNER, GOOD_CONFIG, "fc-ok")
+    assert s["provider"].calls == 1
+    assert s["claim_id"] in revision["eligible_claim_ids"]
+    check.enqueue(OWNER, "fc-pkg-2", s["job"], "package", {"topic": "Northwind drill revised"})
+    check.run_pending()
+    stale = s["service"].revision_staleness(s["job"], OWNER, "ta")
+    assert any(row["state"] == "STALE" for row in stale["revisions"])
+    with pytest.raises(ScriptStaleRevision, match="explicit human approval"):
+        s["service"].generate(s["job"], OWNER, GOOD_CONFIG, "fc-stale")
+    assert s["provider"].calls == 1
 
 
 # ---------------------------------------------------------------------------

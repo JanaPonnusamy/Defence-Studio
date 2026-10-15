@@ -196,6 +196,21 @@ export function createApiClient(getToken) {
         headers: authHeaders(getToken()),
       }));
     },
+    async getPipelineTrace(jobId) {
+      return handle(await fetch(`${base}/jobs/${encodeURIComponent(jobId)}/research/pipeline-trace`, {
+        headers: authHeaders(getToken()),
+      }));
+    },
+    async listScriptInspections(jobId, language) {
+      return handle(await fetch(
+        `${base}/jobs/${encodeURIComponent(jobId)}/script/inspections/${encodeURIComponent(language)}`,
+        { headers: authHeaders(getToken()) }));
+    },
+    async getScriptInspection(jobId, language, recordId) {
+      return handle(await fetch(
+        `${base}/jobs/${encodeURIComponent(jobId)}/script/inspections/${encodeURIComponent(language)}/${encodeURIComponent(recordId)}`,
+        { headers: authHeaders(getToken()) }));
+    },
     // -- Phase 3: source-grounded script generation, review, approval --------
     async listScriptRevisions(jobId, language) {
       const qs = language ? `?language=${encodeURIComponent(language)}` : "";
@@ -300,6 +315,42 @@ export function createApiClient(getToken) {
           body: JSON.stringify({ plan_sha256: planSha256, note }),
         },
       ));
+    },
+    async factcheckProviders() {
+      return handle(await fetch(`${base}/factcheck/providers`, { headers: authHeaders(getToken()) }));
+    },
+    async factcheckPackage(jobId) {
+      return handle(await fetch(`${base}/jobs/${encodeURIComponent(jobId)}/factcheck/package`, { headers: authHeaders(getToken()) }));
+    },
+    async factcheckClaims(jobId, body, idempotencyKey) {
+      return handle(await fetch(`${base}/jobs/${encodeURIComponent(jobId)}/factcheck/claims`, {
+        method: "POST", headers: authHeaders(getToken(), { "Idempotency-Key": idempotencyKey }), body: JSON.stringify(body),
+      }));
+    },
+    async factcheckBuildPackage(jobId, topic, idempotencyKey) {
+      return handle(await fetch(`${base}/jobs/${encodeURIComponent(jobId)}/factcheck/package`, {
+        method: "POST", headers: authHeaders(getToken(), { "Idempotency-Key": idempotencyKey }), body: JSON.stringify({ topic }),
+      }));
+    },
+    async factcheckMedia(jobId, form, idempotencyKey) {
+      const headers = {};
+      const token = getToken();
+      if (token) headers.Authorization = `Bearer ${token}`;
+      headers["Idempotency-Key"] = idempotencyKey;
+      return handle(await fetch(`${base}/jobs/${encodeURIComponent(jobId)}/factcheck/media`, { method: "POST", headers, body: form }));
+    },
+    async factcheckApprove(jobId, packageId, note) {
+      return handle(await fetch(`${base}/jobs/${encodeURIComponent(jobId)}/factcheck/approve`, {
+        method: "POST", headers: authHeaders(getToken()), body: JSON.stringify({ package_id: packageId, note }),
+      }));
+    },
+    async factcheckOverride(jobId, body) {
+      return handle(await fetch(`${base}/jobs/${encodeURIComponent(jobId)}/factcheck/override`, {
+        method: "POST", headers: authHeaders(getToken()), body: JSON.stringify(body),
+      }));
+    },
+    async factcheckHistory(jobId) {
+      return handle(await fetch(`${base}/jobs/${encodeURIComponent(jobId)}/factcheck/history`, { headers: authHeaders(getToken()) }));
     },
   };
 }

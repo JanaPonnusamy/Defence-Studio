@@ -3,7 +3,7 @@ from contextlib import closing
 from pathlib import Path
 
 
-SCHEMA_VERSION = 11
+SCHEMA_VERSION = 13
 
 
 def connect(path: Path) -> sqlite3.Connection:
@@ -31,7 +31,7 @@ def initialize_database(path: Path) -> None:
         version = connection.execute(
             "SELECT version FROM schema_info WHERE singleton = 1"
         ).fetchone()[0]
-        if version not in (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, SCHEMA_VERSION):
+        if version not in (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, SCHEMA_VERSION):
             raise RuntimeError(f"Unsupported Defence Studio schema version: {version}")
 
         connection.executescript(
@@ -132,6 +132,12 @@ def initialize_database(path: Path) -> None:
             version = 10
         if version == 10:
             _upgrade_v10_to_v11(connection)
+            version = 11
+        if version == 11:
+            _upgrade_v11_to_v12(connection)
+            version = 12
+        if version == 12:
+            _upgrade_v12_to_v13(connection)
 
 
 def _upgrade_v3_to_v4(connection: sqlite3.Connection) -> None:
@@ -760,6 +766,126 @@ def _upgrade_v2_to_v3(connection: sqlite3.Connection) -> None:
             """
         )
         connection.execute("UPDATE schema_info SET version = 3 WHERE singleton = 1")
+        connection.commit()
+    except Exception:
+        connection.rollback()
+        raise
+
+
+VOICE_JOB_DDL = """
+CREATE TABLE IF NOT EXISTS voice_job_requests (
+    job_id TEXT PRIMARY KEY REFERENCES workflow_jobs(job_id) ON DELETE CASCADE,
+    owner_id TEXT NOT NULL,
+    kind TEXT NOT NULL CHECK(kind IN ('ANALYSIS', 'GENERATION')),
+    payload_json TEXT NOT NULL,
+    payload_sha256 TEXT NOT NULL,
+    retry_of TEXT REFERENCES workflow_jobs(job_id),
+    progress_note TEXT NOT NULL DEFAULT '',
+    result_ref TEXT,
+    result_json TEXT,
+    temp_path TEXT,
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS ix_voice_job_owner ON voice_job_requests(owner_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS ix_voice_job_result ON voice_job_requests(result_ref);
+"""
+
+
+def _upgrade_v11_to_v12(connection: sqlite3.Connection) -> None:
+    """Voice Analyzer/Generation integration. Additive only: voice jobs reuse
+    workflow_jobs/workflow_stages; engine tables are the engines' own schemas
+    (CREATE IF NOT EXISTS). No existing table or row is touched."""
+    from defence_studio.services.voice_engine import engine_schemas
+
+    script = "\n".join([
+        "BEGIN EXCLUSIVE;", VOICE_JOB_DDL, *engine_schemas(),
+        "UPDATE schema_info SET version = 12 WHERE singleton = 1;", "COMMIT;",
+    ])
+    try:
+        connection.executescript(script)
+    except Exception:
+        if connection.in_transaction:
+            connection.rollback()
+        raise
+
+
+def _upgrade_v12_to_v13(connection: sqlite3.Connection) -> None:
+    """Fact-check and media-verification jobs, versioned packages, and review.
+
+    Additive only. Voice tables, claim reviews, and evidence ledgers are unchanged.
+    """
+    connection.execute("BEGIN EXCLUSIVE")
+    try:
+        connection.executescript(
+            """
+            CREATE TABLE IF NOT EXISTS verification_runs (
+                run_id TEXT PRIMARY KEY,
+                job_id TEXT NOT NULL REFERENCES workflow_jobs(job_id) ON DELETE CASCADE,
+                subject_job_id TEXT,
+                owner_id TEXT NOT NULL,
+                kind TEXT NOT NULL,
+                input_sha256 TEXT NOT NULL,
+                payload_json TEXT NOT NULL,
+                progress_note TEXT NOT NULL DEFAULT '',
+                result_json TEXT,
+                result_sha256 TEXT,
+                error_class TEXT,
+                error_detail TEXT,
+                created_at TEXT NOT NULL,
+                updated_at TEXT NOT NULL
+            );
+            CREATE INDEX IF NOT EXISTS ix_verification_runs_subject
+                ON verification_runs(subject_job_id, created_at);
+
+            CREATE TABLE IF NOT EXISTS verification_packages (
+                package_id TEXT PRIMARY KEY,
+                subject_job_id TEXT NOT NULL,
+                owner_id TEXT NOT NULL,
+                version INTEGER NOT NULL,
+                content_sha256 TEXT NOT NULL,
+                status TEXT NOT NULL CHECK(status IN ('PENDING_REVIEW','APPROVED','REJECTED','STALE')),
+                machine_json TEXT NOT NULL,
+                report_markdown TEXT NOT NULL,
+                approved_json TEXT,
+                reviewer_id TEXT,
+                approval_note TEXT,
+                created_at TEXT NOT NULL,
+                UNIQUE(subject_job_id, version)
+            );
+
+            CREATE TABLE IF NOT EXISTS verification_overrides (
+                package_id TEXT NOT NULL REFERENCES verification_packages(package_id) ON DELETE CASCADE,
+                claim_id TEXT NOT NULL,
+                verdict TEXT NOT NULL,
+                accepted_for_script INTEGER NOT NULL DEFAULT 0,
+                note TEXT NOT NULL,
+                reviewer_id TEXT NOT NULL,
+                created_at TEXT NOT NULL,
+                PRIMARY KEY(package_id, claim_id)
+            );
+
+            CREATE TABLE IF NOT EXISTS verification_review_history (
+                history_id TEXT PRIMARY KEY,
+                package_id TEXT NOT NULL,
+                action TEXT NOT NULL,
+                reviewer_id TEXT NOT NULL,
+                note TEXT NOT NULL,
+                detail_json TEXT NOT NULL,
+                occurred_at TEXT NOT NULL
+            );
+
+            CREATE TABLE IF NOT EXISTS verification_script_bindings (
+                job_id TEXT NOT NULL,
+                language TEXT NOT NULL,
+                version INTEGER NOT NULL,
+                package_id TEXT NOT NULL,
+                package_sha256 TEXT NOT NULL,
+                PRIMARY KEY(job_id, language, version)
+            );
+            """
+        )
+        connection.execute("UPDATE schema_info SET version = 13 WHERE singleton = 1")
         connection.commit()
     except Exception:
         connection.rollback()

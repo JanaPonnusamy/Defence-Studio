@@ -18,7 +18,8 @@ class JobRepository:
 
     def list_owned_jobs(self, owner_id: str):
         return self.connection.execute(
-            "SELECT * FROM workflow_jobs WHERE owner_id = ? ORDER BY created_at DESC",
+            "SELECT * FROM workflow_jobs WHERE owner_id = ? AND request_schema NOT LIKE 'defence-studio.voice-%' "
+            "ORDER BY created_at DESC",
             (owner_id,),
         ).fetchall()
 

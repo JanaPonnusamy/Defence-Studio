@@ -1,0 +1,28 @@
+{
+ "voice_id": "OS_SAPI_MICROSOFT_HAZEL_DESKTOP",
+ "language": "en-GB",
+ "style_profile_id": "VSP-35d10672dd0b0342",
+ "emotion": {
+  "label": "SERIOUS",
+  "intensity": 1.0
+ },
+ "tempo": 1.157,
+ "pitch_variation": 0.501,
+ "energy": 0.582,
+ "emphasis": [
+  {
+   "text": "new missile test",
+   "strength": 0.85
+  }
+ ],
+ "pauses": [
+  {
+   "position": "after_sentence",
+   "duration_ms": 935
+  },
+  {
+   "position": "before_emphasis",
+   "duration_ms": 510
+  }
+ ]
+}

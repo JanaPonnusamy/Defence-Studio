@@ -30,8 +30,10 @@ from defence_studio.database import connect
 from defence_studio.providers.openai_text import ProviderError
 from defence_studio.services.evidence import EvidenceService
 from defence_studio.services.review import ReviewError, ReviewNotFound, ReviewValidationError, StaleRevision
+from defence_studio.services import script_inspection
 from defence_studio.services.script_prompt import system_prompt, user_prompt
 from defence_studio.services.script_validation import validate_revision_body
+from defence_studio.services.factcheck import FactcheckError, factcheck_staleness, script_gate
 from defence_studio.services.script_integrity import (
     compare_revisions, corroboration_count, repetition_against,
 )
@@ -84,7 +86,14 @@ class ScriptService(EvidenceService):
                 key = credentials.resolve_credential(self.database_file, owner_id, "openai")
             except Exception:
                 key = None  # unreadable/unconfigured store: fall back to the server environment key
-        return OpenAiTextProvider(api_key=key) if key else OpenAiTextProvider()
+        # Paid call: automatic HTTP retries (429/5xx/timeout) are OFF by default so
+        # one generation is at most one outbound request. Opt in explicitly with
+        # DEFENCE_STUDIO_SCRIPT_MAX_RETRIES (0-3). Only this path is affected.
+        try:
+            retries = min(3, max(0, int(os.environ.get("DEFENCE_STUDIO_SCRIPT_MAX_RETRIES", "0"))))
+        except ValueError:
+            retries = 0
+        return OpenAiTextProvider(api_key=key, max_retries=retries) if key else OpenAiTextProvider(max_retries=retries)
 
     # -- reads ----------------------------------------------------------------
 
@@ -131,6 +140,18 @@ class ScriptService(EvidenceService):
             ).fetchall()
         return [dict(r) for r in rows]
 
+    def list_inspections(self, job_id: str, owner_id: str, language: str) -> dict:
+        self._check_ownership(job_id, owner_id)
+        return {"job_id": job_id, "language": language,
+                "records": script_inspection.list_records(self.store, job_id, language)}
+
+    def get_inspection(self, job_id: str, owner_id: str, language: str, record_id: str) -> dict:
+        self._check_ownership(job_id, owner_id)
+        rec = script_inspection.read(self.store, job_id, language, record_id)
+        if rec is None:
+            raise ScriptNotFound("Unknown inspection record")
+        return rec
+
     # -- generation -------------------------------------------------------------
 
     def generate(self, job_id: str, owner_id: str, config: dict, idempotency_key: str) -> dict:
@@ -138,6 +159,8 @@ class ScriptService(EvidenceService):
         unapproved, or invalid package; never implicitly approves anything."""
         parsed_config = GenerationConfigV1.model_validate(config)
         idempotency_key = self._validate_idempotency_key(idempotency_key)
+        cleared = None
+        factcheck_binding = None
         with closing(connect(self.database_file)) as connection:
             connection.execute("BEGIN IMMEDIATE")
             # Idempotent replay: a duplicate request never creates a second revision.
@@ -150,13 +173,18 @@ class ScriptService(EvidenceService):
             # Revalidate the package and approval immediately before generation.
             approved_package = self._snapshot_current_approved(connection, job_id, owner_id)
             package_sha = digest(approved_package)
+            try:
+                cleared, factcheck_binding = script_gate(connection, job_id, approved_package)
+            except FactcheckError as exc:
+                connection.rollback()
+                raise ScriptStaleRevision(str(exc)) from exc
             next_version = connection.execute(
                 "SELECT COALESCE(MAX(version), 0) + 1 FROM script_revisions WHERE job_id=? AND language=?",
                 (job_id, parsed_config.language),
             ).fetchone()[0]
             connection.commit()  # release the write lock before the (possibly slow) provider call
 
-        eligible_claims = [c for c in approved_package["claims"] if c["claim_id"] in set(approved_package["eligible_claim_ids"])]
+        eligible_claims = [c for c in cleared["claims"] if c["claim_id"] in set(cleared["eligible_claim_ids"])]
         request_body = {
             "schema_version": "defence-studio.script-request.v1",
             "package_sha256": package_sha,
@@ -177,26 +205,58 @@ class ScriptService(EvidenceService):
             script_format=parsed_config.script_format, target_words=parsed_config.target_words,
             terminology=parsed_config.terminology, eligible_claims=eligible_claims, corroboration=corroboration,
         )
-        self._budget_guard(provider, parsed_config, system_prompt(parsed_config.language), prompt_text)
+        system_text = system_prompt(parsed_config.language)
+        budget_policy = {"max_text_cost_inr": parsed_config.max_text_cost_inr,
+                         "guard_applies": bool(getattr(provider, "is_paid", False))}
+        state = {"calls": 0, "result": None}
+
+        def record(outcome, detail=None, *, validation=None, schema_errors=None, version=None):
+            """Persist a sanitised inspection record; diagnostics must never break generation."""
+            try:
+                exchange = getattr(provider, "last_exchange", None) if state["calls"] else None
+                rec = script_inspection.build_record(
+                    job_id=job_id, language=parsed_config.language, request_sha256=request_sha,
+                    package_sha256=package_sha, outcome=outcome, detail=detail, model=parsed_config.model,
+                    provider_name=getattr(provider, "name", "openai"),
+                    max_output_tokens=((exchange or {}).get("request_body") or {}).get("max_tokens"),
+                    system_text=system_text, user_text=prompt_text, claims=eligible_claims, budget=budget_policy,
+                    exchange=exchange, result=state["result"], validation=validation,
+                    schema_errors=schema_errors, revision_version=version, provider_calls=state["calls"],
+                    api_key=getattr(provider, "api_key", "") or "")
+                script_inspection.write(self.store, rec)
+            except Exception:  # noqa: BLE001 - best-effort diagnostics
+                pass
+
         try:
+            self._budget_guard(provider, parsed_config, system_text, prompt_text)
+        except ScriptGenerationFailed as exc:
+            record("BLOCKED_BUDGET", str(exc))
+            raise
+        try:
+            state["calls"] = 1  # exactly one bounded call; validation failures are never retried here
             result = provider.generate(
                 model=parsed_config.model,
-                system_prompt=system_prompt(parsed_config.language),
+                system_prompt=system_text,
                 user_prompt=prompt_text,
             )
+            state["result"] = result
         except ProviderError as exc:
             # Provider failures never corrupt job/review state: nothing was
             # written above except the released transaction's read, and the
             # idempotency key was never consumed, so a client retry is safe.
+            record("PROVIDER_ERROR", f"{exc.code}: {exc.message}")
             raise ScriptGenerationFailed(f"Provider call failed ({exc.code}): {exc.message}") from exc
 
         try:
             parsed_body = json.loads(result.text)
         except json.JSONDecodeError as exc:
+            record("MALFORMED_JSON", str(exc))
             raise ScriptGenerationFailed(f"Provider returned malformed JSON: {exc}") from exc
         if not isinstance(parsed_body, dict):
+            record("MALFORMED_JSON", "Provider output must be a JSON object")
             raise ScriptGenerationFailed("Provider output must be a JSON object")
         if result.measured_text_cost_inr is not None and result.measured_text_cost_inr > parsed_config.max_text_cost_inr:
+            record("COST_EXCEEDED", "Measured text generation cost exceeds the configured budget")
             raise ScriptGenerationFailed("Measured text generation cost exceeds the configured budget")
 
         now = _now()
@@ -223,7 +283,7 @@ class ScriptService(EvidenceService):
                 "currency": result.currency,
             },
             "word_count": estimate_duration(word_count),
-            "eligible_claim_ids": approved_package["eligible_claim_ids"],
+            "eligible_claim_ids": cleared["eligible_claim_ids"],
             "created_at": now,
             "approval": None,
             "status": "VALIDATION_FAILED",  # placeholder; set for real below
@@ -232,7 +292,7 @@ class ScriptService(EvidenceService):
                 "checked_at": now, "issues": [],
             },
         }
-        validation = validate_revision_body(revision_body, approved_package)
+        validation = validate_revision_body(revision_body, cleared)
         revision_body["validation"] = validation
         revision_body["status"] = "AWAITING_REVIEW" if validation["passed"] else "VALIDATION_FAILED"
         # Validate the whole persisted shape (also re-checks status/approval integrity).
@@ -240,9 +300,13 @@ class ScriptService(EvidenceService):
         try:
             canonical_body = validate_revision(revision_body)
         except _PydanticValidationError as exc:
+            record("SCHEMA_INVALID", f"{exc.error_count()} problem(s)", validation=validation,
+                   schema_errors=[f"{'.'.join(str(x) for x in e['loc'])}: {e['msg']}" for e in exc.errors()[:20]])
             raise ScriptGenerationFailed(
                 f"Provider output does not match the script schema ({exc.error_count()} problem(s)): "
                 f"{'; '.join(str(e['loc']) for e in exc.errors()[:5])}") from exc
+
+        record(canonical_body["status"], None, validation=validation, version=next_version)
 
         data = canonical(canonical_body)
         sha = hashlib.sha256(data).hexdigest()
@@ -270,6 +334,13 @@ class ScriptService(EvidenceService):
                 revision_sha = sha
                 uri = f"jobs/{job_id}/scripts/{parsed_config.language}/{revision_sha}.json"
             self.store.write_bytes(job_id, uri, data, "application/json")
+            if factcheck_binding:
+                connection.execute(
+                    "INSERT INTO verification_script_bindings(job_id, language, version, package_id, package_sha256) "
+                    "VALUES(?,?,?,?,?)",
+                    (job_id, parsed_config.language, version, factcheck_binding["package_id"],
+                     factcheck_binding["package_sha256"]),
+                )
             connection.execute(
                 "INSERT INTO script_revisions VALUES(?,?,?,?,?,?,?,?,?,?,?,?)",
                 (job_id, parsed_config.language, version, revision_sha, uri, sha, package_sha, request_sha,
@@ -353,6 +424,10 @@ class ScriptService(EvidenceService):
                 state, reason = "STALE", "Upstream evidence changed after this revision was generated"
             else:
                 state, reason = "CURRENT", ""
+            with closing(connect(self.database_file)) as connection:
+                fact_reason = factcheck_staleness(connection, job_id, row["language"], row["version"])
+            if fact_reason and state == "CURRENT":
+                state, reason = "STALE", fact_reason
             out.append({"language": row["language"], "version": row["version"], "status": row["status"],
                         "state": state, "reason": reason, "package_sha256": row["package_sha256"]})
         return {"job_id": job_id, "current_package_sha256": current_sha, "evidence_ready": ready, "revisions": out}

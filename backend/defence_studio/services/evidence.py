@@ -72,6 +72,31 @@ class EvidenceService(ReviewService):
             audit[kind] = [dict(r) for r in connection.execute(
                 f"SELECT * FROM {kind}_review_history WHERE job_id=? ORDER BY occurred_at, {key}, revision",
                 (job_id,))]
+        # Automated policy decisions live in their own append-only table and only count when they were
+        # computed for EXACTLY the current acquisition + analysis artifacts. A human decision always wins.
+        from defence_studio.repositories import policy_decisions as _pd
+        automated = {"source": {}, "claim": {}}
+        policy_rows = []
+        if by_type.get("acquisition_manifest") and by_type.get("analysis_result"):
+            policy_rows = _pd.latest_run(connection, job_id, by_type["acquisition_manifest"]["sha256"],
+                                         by_type["analysis_result"]["sha256"])
+        for row in policy_rows:
+            kind = row["subject_type"].lower()
+            ref_sha = by_type["acquisition_manifest" if kind == "source" else "analysis_result"]["sha256"]
+            ok = row["state"] == "AUTO_ACCEPTED"
+            automated[kind][row["subject_id"]] = {
+                "origin": "AUTOMATED_POLICY", "decision": "APPROVED_FOR_USE" if ok else (
+                    "REJECTED" if row["state"] in ("REJECTED", "SOURCE_BLOCKED") else "NEEDS_MORE_EVIDENCE"),
+                "policy_state": row["state"], "policy_version": row["policy_version"], "run_id": row["run_id"],
+                "score": row["score"], "claim_class": row["claim_class"],
+                "independent_groups": row["independent_groups"],
+                "reviewer_id": None, "note": "; ".join(row["reasons"])[:4000] or row["state"],
+                "reviewed_artifact_sha256": ref_sha, "revision": 0}
+        for kind in ("source", "claim"):
+            for rec in reviews[kind].values():
+                rec["origin"] = "HUMAN"
+            for sid_, rec in automated[kind].items():
+                reviews[kind].setdefault(sid_, rec)
         normalized = {n["source_id"]: n for n in analysis.get("normalized_sources", [])}
         if len(normalized) != len(analysis.get("normalized_sources", [])):
             raise ReviewValidationError("Duplicate normalized source identity")
@@ -85,7 +110,12 @@ class EvidenceService(ReviewService):
         def review_state(kind, subject, ref_kind):
             record = reviews[kind].get(subject)
             stale = bool(record) and record["reviewed_artifact_sha256"] != by_type.get(ref_kind, {}).get("sha256")
-            if not record or stale or record["decision"] not in {"APPROVED_FOR_USE", "REJECTED"} or not record["note"].strip():
+            # An AUTOMATED_POLICY disposition that leaves a claim unresolved is an explicit, explained
+            # exclusion (not usable, not blocking). The same decision made by a PERSON still blocks.
+            policy_exclusion = bool(record) and record.get("origin") == "AUTOMATED_POLICY" and \
+                record["decision"] == "NEEDS_MORE_EVIDENCE"
+            if not record or stale or not record["note"].strip() or (
+                    record["decision"] not in {"APPROVED_FOR_USE", "REJECTED"} and not policy_exclusion):
                 blockers.append(f"{kind} {subject}: current final review with explanation required")
             return record, stale
 
@@ -165,7 +195,9 @@ class EvidenceService(ReviewService):
             pair = (conflict.get("claim_id_a"), conflict.get("claim_id_b"))
             if not all(c in claim_ids for c in pair):
                 blockers.append("Conflict references missing claims")
-            elif not any((reviews["claim"].get(c) or {}).get("decision") == "REJECTED" for c in pair):
+            elif not any((reviews["claim"].get(c) or {}).get("decision") == "REJECTED" for c in pair) and not all(
+                    (reviews["claim"].get(c) or {}).get("origin") == "AUTOMATED_POLICY"
+                    and (reviews["claim"].get(c) or {}).get("decision") != "APPROVED_FOR_USE" for c in pair):
                 blockers.append(f"Conflict {conflict.get('group_id')}: explicitly exclude at least one side")
         for kind, records in audit.items():
             for record in records:
@@ -197,6 +229,16 @@ class EvidenceService(ReviewService):
                     processing={"status": analysis.get("status", "UNAVAILABLE"), "warnings": analysis.get("warnings", []), "failures": analysis.get("failures", [])},
                     audit=audit, timeline=events, limitations=limitations, blockers=sorted(set(blockers)),
                     eligible_claim_ids=sorted(eligible), ready=not blockers, status="DRAFT", approval=None)
+        if policy_rows:
+            body["automated_decisions"] = {
+                "policy_version": policy_rows[0]["policy_version"], "run_id": policy_rows[0]["run_id"],
+                "acquisition_sha256": policy_rows[0]["acquisition_sha256"],
+                "analysis_sha256": policy_rows[0]["analysis_sha256"],
+                "claims": {r["subject_id"]: {"state": r["state"], "score": r["score"], "claim_class": r["claim_class"],
+                                             "independent_groups": r["independent_groups"]}
+                           for r in policy_rows if r["subject_type"] == "CLAIM"},
+                "sources": {r["subject_id"]: {"state": r["state"]}
+                            for r in policy_rows if r["subject_type"] == "SOURCE"}}
         return validate_package(body)
 
     def draft(self, job_id, owner_id):
@@ -209,7 +251,7 @@ class EvidenceService(ReviewService):
             return {"package": body, "revision": revision, "approvals": history,
                     "current_approval": next((r for r in history if r["revision"] == revision), None)}
 
-    def approve(self, job_id, owner_id, revision, note, idempotency_key):
+    def approve(self, job_id, owner_id, revision, note, idempotency_key, automated=None):
         note = self._validate_note(note)
         if not note:
             raise ReviewValidationError("An approval explanation is required")
@@ -233,13 +275,21 @@ class EvidenceService(ReviewService):
             version = connection.execute("SELECT COALESCE(MAX(version),0)+1 FROM evidence_packages WHERE job_id=?", (job_id,)).fetchone()[0]
             now = datetime.now(timezone.utc).isoformat(timespec="microseconds")
             body["status"] = "APPROVED"
-            body["approval"] = {"revision": revision, "version": version, "reviewer_id": owner_id, "note": note, "approved_at": now}
+            if automated:
+                # Automated approval never carries a person's identity.
+                body["approval"] = {"revision": revision, "version": version, "approval_kind": "AUTOMATED_POLICY",
+                                    "reviewer_id": None, "approved_by": "AUTOMATED_POLICY",
+                                    "policy_version": automated["policy_version"], "run_id": automated["run_id"],
+                                    "note": note, "approved_at": now}
+            else:
+                body["approval"] = {"revision": revision, "version": version, "approval_kind": "HUMAN",
+                                    "reviewer_id": owner_id, "note": note, "approved_at": now}
             data = canonical(validate_package(body))
             sha = hashlib.sha256(data).hexdigest()
             uri = f"jobs/{job_id}/evidence/{sha}.json"
             self.store.write_bytes(job_id, uri, data, "application/json")
             connection.execute("INSERT INTO evidence_packages VALUES(?,?,?,?,?,?,?,?,?)",
-                               (job_id, version, revision, uri, sha, owner_id, note, now, idempotency_key))
+                               (job_id, version, revision, uri, sha, "AUTOMATED_POLICY" if automated else owner_id, note, now, idempotency_key))
             stage_key = "evidence_analysis_and_review"
             stage = connection.execute("SELECT status FROM workflow_stages WHERE job_id=? AND stage_key=?", (job_id, stage_key)).fetchone()
             if connection.execute("SELECT 1 FROM worker_claims WHERE job_id=? AND stage_key=? AND status='ACTIVE'", (job_id, stage_key)).fetchone():

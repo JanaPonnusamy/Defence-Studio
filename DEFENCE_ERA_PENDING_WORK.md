@@ -70,3 +70,21 @@ No failing test was found. The items below are defects of record or integrity ri
 ## Update 2026-10-14 (post RM-0..RM-10)
 
 Closed: A1, A2, A3, A4, B2, B3, B4*, B5, B6, B7, B8, B10, B11, B12 (Production tab), C1, C2, C3, E5(partial). *B4: English only. Open/blocked: B1 hosted vendor, B9 live YouTube, D1/D2 live generation + Tamil quality, D3/D4 live acquisition opt-ins (D4 exercised implicitly by the e2e run), D6 Tamil voice, D7 AI images (deliberately disabled), D10 licensing review, C4 QVault interface doc, C5 AI extraction seam, E2 frontend per-view coverage (production/discovery/script have node tests).
+
+## F. Fact check / media verification and voice (added 2026-10-15)
+
+| ID | Item | State | Prerequisite (no secrets) | Pri | Completion condition |
+|---|---|---|---|---|---|
+| F1 | Hosted web search | NOT_CONFIGURED | `DEFENCE_STUDIO_DISCOVERY_SEARCH_API_URL` and `DEFENCE_STUDIO_DISCOVERY_SEARCH_API_KEY` both set (vendor chosen by user) | P2 | One bounded authorized live query recorded; RSS remains the working path |
+| F2 | Reverse-image search | NOT_CONFIGURED (adapter mock-tested) | https `DEFENCE_STUDIO_REVERSE_IMAGE_URL` speaking the contract in `verification/adapters.py`; optional `..._KEY`; `..._SEND_IMAGE=1` only if image upload is approved | P2 | One real provider response recorded; NO_MATCH never read as original |
+| F3 | OCR | DEPENDENCY_MISSING | Tesseract binary on PATH (+ language data for Tamil if needed) | P2 | A real image OCR'd; text stored as untrusted evidence |
+| F4 | Object detection | UNSUPPORTED | Local model with verified weights/licence | P3 | Detections labelled as model output, never as confirmed findings |
+| F5 | Asset Rights Engine adapter | NOT_STARTED | Contract decision per `docs/asset_rights_integration/COMPATIBILITY.md` | P2 | Clearance only from an actual authorized ARE/AssetService result |
+| F6 | Fact Check browser acceptance | PARTIAL — 24/24 scripted headless-Chrome checks passed 2026-10-15 (render at 3 widths, readiness chips match API, claim verify, package build, blank-note rejection, approval, persistence across navigation, media check, no external requests); 2 defects fixed (duplicate actions, detail pane wiped on error). Not tested: human correction, video upload, OCR/hosted-search/real reverse-image paths, real device/touch, second browser, production-like volume | Browser; providers for blocked paths | P1 | Remaining checks recorded, then F6 closed |
+| F7 | Re-run opt-in live RSS test | SKIPPED 2026-10-15 | Network; `DEFENCE_STUDIO_LIVE_FACTCHECK=1` | P3 | Test passes and is logged with date |
+| F8 | Tamil TTS provider + verification (voice engine) | BLOCKED | Owned/licensed Tamil model; supersedes D6 for the voice engine | P1 | Real Tamil WAV evaluated by a Tamil reviewer |
+| F9 | Forced alignment for generated audio | DEPENDENCY_MISSING | torch/torchaudio + a commercially licensed aligner model (MMS-FA is CC-BY-NC) | P2 | Model-derived word timings verified on Tamil |
+| F10 | Reference voice source acquisition | NOT_STARTED | Authorized local file or explicit permission; no automatic download | P2 | Analysis run on the authorized file |
+| F11 | Voice tab browser acceptance | PARTIAL — 24/24 scripted headless-Chrome checks passed 2026-10-15 (render at 3 widths, models/readiness honesty, Tamil not offered, real local SAPI English generation with playable audio and estimated-alignment labels, analyzer upload + profile, history after refresh, open result, no external requests); 2 defects fixed (duplicate form submission, favicon). Not tested: cancel/retry/discard in the browser, Tamil TTS, forced alignment, real device/touch, second browser, production-like volume | Browser; Tamil provider; aligner | P2 | Remaining checks recorded, then F11 closed |
+
+Test prerequisite: backend tests need `DEFENCE_STUDIO_AUTH_SECRET` (>= 32 bytes) in the environment; E1's pytest atexit PermissionError still appears on this account and does not affect results.

@@ -1,0 +1,6 @@
+__pycache__/
+*.pyc
+voice_storage/
+.pytest_cache/
+samples/*.wav
+*.sqlite3

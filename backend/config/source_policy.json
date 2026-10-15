@@ -1,0 +1,143 @@
+{
+  "_comment": "Controlled source registry. ONLY enabled entries may be fetched; every redirect hop and the final URL are re-checked. Edit freely (validated at load). An allowlisted domain does NOT make a statement true: see evidence_policy.json for claim rules. Entries below were chosen from the sources already acquired for the S-400 job (2026-10-15); 'enabled: false' entries are proposals the owner must switch on. New topic categories need NO code: add subject ids to 'supported_subjects' here and keywords under 'subject_categories' in evidence_policy.json.",
+  "version": "defence-studio.source-policy.v1",
+  "sources": [
+    {
+      "id": "csis-missile-threat",
+      "domain": "missilethreat.csis.org",
+      "include_subdomains": false,
+      "url_patterns": [
+        "^/defsys/",
+        "^/missile/"
+      ],
+      "category": "RESEARCH_INSTITUTION",
+      "publisher": "CSIS Missile Defense Project (Missile Threat)",
+      "independence_group": "csis",
+      "trust": {
+        "descriptive_claims": true,
+        "quantitative_claims": "CORROBORATION_REQUIRED"
+      },
+      "enabled": true,
+      "supported_subjects": [
+        "AIR_DEFENCE_MISSILES",
+        "INTERNATIONAL_DEFENCE",
+        "MILITARY_EQUIPMENT"
+      ],
+      "allowed_content_types": [
+        "text/html"
+      ],
+      "exclusions": [
+        "^/search"
+      ],
+      "provenance_requirements": [
+        "published_at"
+      ]
+    },
+    {
+      "id": "rusi",
+      "domain": "www.rusi.org",
+      "include_subdomains": false,
+      "url_patterns": [
+        "^/explore-our-research/publications/"
+      ],
+      "category": "RESEARCH_INSTITUTION",
+      "publisher": "Royal United Services Institute (RUSI)",
+      "independence_group": "rusi",
+      "trust": {
+        "descriptive_claims": true,
+        "quantitative_claims": "CORROBORATION_REQUIRED"
+      },
+      "enabled": true,
+      "supported_subjects": [
+        "AIR_DEFENCE_MISSILES",
+        "INTERNATIONAL_DEFENCE",
+        "CONFLICT_OPERATIONS",
+        "MILITARY_EQUIPMENT",
+        "DEFENCE_POLICY"
+      ],
+      "allowed_content_types": [
+        "text/html"
+      ],
+      "provenance_requirements": [
+        "published_at"
+      ]
+    },
+    {
+      "id": "pib-india",
+      "domain": "www.pib.gov.in",
+      "include_subdomains": false,
+      "url_patterns": [
+        "^/PressReleasePage\\.aspx\\?PRID=\\d+",
+        "^/PressReleseDetail\\.aspx\\?PRID=\\d+"
+      ],
+      "category": "GOVERNMENT_OFFICIAL",
+      "publisher": "Press Information Bureau, Government of India",
+      "independence_group": "gov-india",
+      "trust": {
+        "descriptive_claims": true,
+        "quantitative_claims": "ATTRIBUTED_ONLY"
+      },
+      "enabled": true,
+      "supported_subjects": [
+        "INDIA_DEFENCE",
+        "DEFENCE_POLICY"
+      ],
+      "allowed_content_types": [
+        "text/html"
+      ],
+      "provenance_requirements": [
+        "published_at"
+      ]
+    },
+    {
+      "id": "mod-india",
+      "domain": "www.mod.gov.in",
+      "include_subdomains": false,
+      "url_patterns": [
+        "^/"
+      ],
+      "category": "GOVERNMENT_OFFICIAL",
+      "publisher": "Ministry of Defence, Government of India",
+      "independence_group": "gov-india",
+      "trust": {
+        "descriptive_claims": true,
+        "quantitative_claims": "ATTRIBUTED_ONLY"
+      },
+      "enabled": false,
+      "supported_subjects": [
+        "INDIA_DEFENCE",
+        "DEFENCE_POLICY"
+      ],
+      "allowed_content_types": [
+        "text/html",
+        "application/pdf"
+      ]
+    },
+    {
+      "id": "sipri",
+      "domain": "www.sipri.org",
+      "include_subdomains": false,
+      "url_patterns": [
+        "^/databases/",
+        "^/publications/"
+      ],
+      "category": "RESEARCH_INSTITUTION",
+      "publisher": "Stockholm International Peace Research Institute (SIPRI)",
+      "independence_group": "sipri",
+      "trust": {
+        "descriptive_claims": true,
+        "quantitative_claims": "CORROBORATION_REQUIRED"
+      },
+      "enabled": false,
+      "supported_subjects": [
+        "DEFENCE_POLICY",
+        "INTERNATIONAL_DEFENCE",
+        "MILITARY_EQUIPMENT"
+      ],
+      "allowed_content_types": [
+        "text/html",
+        "application/pdf"
+      ]
+    }
+  ]
+}

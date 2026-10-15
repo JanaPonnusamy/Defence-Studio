@@ -107,6 +107,9 @@ class OpenAiTextProvider:
         self.timeout = float(timeout)
         self.max_retries = int(max_retries)
         self._client_factory = client_factory or (lambda **kw: httpx.Client(**kw))
+        # Diagnostic capture of the most recent call: the exact JSON body sent
+        # and the raw response. Never contains the Authorization header.
+        self.last_exchange: dict | None = None
 
     def generate(self, *, model: str, system_prompt: str, user_prompt: str,
                 max_output_tokens: int = _DEFAULT_MAX_OUTPUT_TOKENS) -> ProviderResult:
@@ -124,13 +127,32 @@ class OpenAiTextProvider:
             "temperature": 0.2,
         }
         headers = {"Authorization": f"Bearer {self.api_key}", "Content-Type": "application/json"}
+        endpoint = f"{self.base_url}/chat/completions"
+        exchange = self.last_exchange = {
+            "endpoint": endpoint, "method": "POST", "timeout_s": self.timeout, "max_retries": self.max_retries,
+            "request_body": body, "attempts": [], "response": None,
+        }
+        started = time.monotonic()
+
+        def _note(response, attempt: int) -> None:
+            text = scrub_secrets(response.text or "", self.api_key)
+            exchange["attempts"].append({
+                "attempt": attempt + 1, "http_status": response.status_code,
+                "duration_ms": int((time.monotonic() - started) * 1000)})
+            exchange["response"] = {
+                "http_status": response.status_code, "body": text[:200000],
+                "truncated": len(text) > 200000,
+                "provider_request_id": response.headers.get("x-request-id"),
+                "duration_ms": int((time.monotonic() - started) * 1000)}
+
         retries = 0
         last_error: ProviderError | None = None
         with self._client_factory(timeout=self.timeout) as client:
             while retries <= self.max_retries:
                 try:
-                    response = client.post(f"{self.base_url}/chat/completions", headers=headers, json=body)
+                    response = client.post(endpoint, headers=headers, json=body)
                 except httpx.TimeoutException as exc:
+                    exchange["attempts"].append({"attempt": retries + 1, "error": "timeout"})
                     last_error = ProviderError("timeout", f"Provider request timed out after {self.timeout}s", retryable=True)
                     if retries >= self.max_retries:
                         raise last_error from exc
@@ -138,7 +160,9 @@ class OpenAiTextProvider:
                     time.sleep(0)
                     continue
                 except httpx.HTTPError as exc:
+                    exchange["attempts"].append({"attempt": retries + 1, "error": "network_error"})
                     raise ProviderError("network_error", f"Network error contacting provider: {scrub_secrets(str(exc), self.api_key)}", retryable=True) from exc
+                _note(response, retries)
                 if response.status_code == 429 or response.status_code >= 500:
                     last_error = ProviderError(
                         "rate_limited" if response.status_code == 429 else "provider_error",

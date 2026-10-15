@@ -82,10 +82,13 @@ class EvidencePackageV1(StrictModel):
     ready: bool
     status: Literal["DRAFT", "APPROVED"]
     approval: dict | None
+    automated_decisions: dict | None = None
 
 
 def validate_package(value: dict) -> dict:
     parsed = EvidencePackageV1.model_validate(value).model_dump()
+    if parsed.get("automated_decisions") is None:
+        parsed.pop("automated_decisions", None)      # keeps pre-existing package digests unchanged
     if parsed["ready"] != (not parsed["blockers"]):
         raise ValueError("Readiness and blockers disagree")
     if parsed["status"] == "APPROVED" and (not parsed["ready"] or not parsed["approval"]):

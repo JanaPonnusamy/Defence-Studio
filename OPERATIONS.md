@@ -39,6 +39,7 @@ Gotcha (verified): the Audio Module's SQLite URL defaults to its own `storage/`;
 | `DEFENCE_STUDIO_DISCOVERY_CONFIG` | feed catalogue JSON (default `backend/config/discovery_feeds.json`) |
 | `DEFENCE_STUDIO_DISCOVERY_SEARCH_API_URL` / `_KEY` | hosted search provider (unconfigured by default; never live-called) |
 | `DEFENCE_STUDIO_OPENAI_API_KEY` or per-owner key via `PUT /api/settings/credentials/openai` | script generation |
+| `DEFENCE_STUDIO_SCRIPT_MAX_RETRIES` | automatic HTTP retries (429/5xx/timeout) for the paid script call; **default 0** = at most one outbound request; clamped 0-3; script path only |
 | `DEFENCE_STUDIO_SCRIPT_PROVIDER=offline` | explicit opt-in extractive (no-LLM) script provider |
 | `DEFENCE_STUDIO_SECRET_KEY` | Fernet key encrypting stored credentials (`python -c "from cryptography.fernet import Fernet;print(Fernet.generate_key().decode())"`) |
 | `DEFENCE_STUDIO_TTS_PROVIDER_LANGUAGES` | declare provider→languages, e.g. `local-pyttsx3:en` (default; **no Tamil voice installed**) |

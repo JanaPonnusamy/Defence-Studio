@@ -106,9 +106,12 @@ def _default_resolver(host: str, port: int) -> list[str]:
 
 
 class UrlGuard:
-    def __init__(self, allowed_schemes=DEFAULT_ALLOWED_SCHEMES, resolver=None):
+    def __init__(self, allowed_schemes=DEFAULT_ALLOWED_SCHEMES, resolver=None, policy=None):
         self.allowed_schemes = tuple(s.lower() for s in allowed_schemes)
         self._resolve = resolver or _default_resolver
+        # Optional controlled source registry (acquisition.source_policy.SourcePolicy). When set,
+        # EVERY validated URL — the initial request and each redirect hop — must be allowlisted.
+        self.policy = policy
 
     def validate(self, url: str) -> ValidatedUrl:
         normalized = normalize_url(url)
@@ -118,6 +121,12 @@ class UrlGuard:
             raise UrlValidationError(f"Scheme '{scheme}' is not allowed for acquisition")
         host = (parts.hostname or "").lower()
         port = parts.port or (443 if scheme == "https" else 80)
+        if self.policy is not None:
+            from defence_studio.acquisition.source_policy import SourcePolicyError
+            try:
+                self.policy.require(normalized)
+            except SourcePolicyError as exc:
+                raise UrlValidationError(f"SOURCE_NOT_ALLOWLISTED: {exc}") from None
 
         # A literal IP in the URL must be validated directly (never resolved).
         literal = _as_ip(host)

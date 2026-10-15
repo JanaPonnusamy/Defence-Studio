@@ -3,8 +3,12 @@ import { escapeHtml } from "./components/status-badge.js";
 import { icon } from "./components/icons.js";
 import { mountEvidence } from "./views/evidence-view.js";
 import { mountScript } from "./views/script-view.js";
+import { mountInspector } from "./views/inspector-view.js";
 import { mountScene } from "./views/scene-view.js";
 import { mountProduction } from "./views/production-view.js";
+import { mountFactcheck } from "./views/factcheck-view.js";
+import { mountVoice } from "./views/voice-view.js";
+import { mountResearch } from "./views/research-view.js";
 import { loadSession, saveToken, saveJobId } from "./state.js";
 import { textFieldHtml } from "./components/text-field.js";
 import { showToast } from "./components/toast.js";
@@ -239,10 +243,18 @@ function parseHash() {
     state.tab = "discovery";
   } else if (parts[0] === "script") {
     state.tab = "script";
+  } else if (parts[0] === "inspector") {
+    state.tab = "inspector";
   } else if (parts[0] === "scene") {
     state.tab = "scene";
   } else if (parts[0] === "production") {
     state.tab = "production";
+  } else if (parts[0] === "voice") {
+    state.tab = "voice";
+  } else if (parts[0] === "factcheck") {
+    state.tab = "factcheck";
+  } else if (parts[0] === "research") {
+    state.tab = "research";
   } else {
     state.tab = "sources";
     state.selectedSourceId = parts[1] ? decodeURIComponent(parts[1]) : null;
@@ -295,13 +307,17 @@ function renderTabs() {
     </button>`;
   el.tabs.innerHTML = `
     ${tab("dashboard", "grid", "Dashboard")}
+    ${tab("research", "radar", "Search & Evidence")}
     ${tab("discovery", "radar", "Discovery")}
     ${tab("sources", "layers", "Sources")}
     ${tab("claims", "claims", "Claims")}
     ${tab("evidence", "shield", "Evidence")}
+    ${tab("factcheck", "shield", "Fact check")}
     ${tab("script", "script", "Script")}
     ${tab("scene", "scene", "Scene")}
-    ${tab("production", "layers", "Production")}`;
+    ${tab("production", "layers", "Production")}
+    ${tab("voice", "script", "Voice")}
+    ${tab("inspector", "shield", "Inspector")}`;
   el.tabs.querySelectorAll("[data-tab]").forEach((btn) => {
     btn.addEventListener("click", () => {
       setHash(btn.dataset.tab, null);
@@ -310,7 +326,7 @@ function renderTabs() {
 }
 
 function renderFilters() {
-  if (state.tab === "evidence" || state.tab === "script" || state.tab === "scene" || state.tab === "production" || state.tab === "dashboard") { el.filters.innerHTML = ""; return; }
+  if (state.tab === "evidence" || state.tab === "research" || state.tab === "factcheck" || state.tab === "script" || state.tab === "inspector" || state.tab === "scene" || state.tab === "production" || state.tab === "voice" || state.tab === "dashboard") { el.filters.innerHTML = ""; return; }
   const statusOptions = ["", "PENDING", "APPROVED_FOR_USE", "REJECTED", "NEEDS_MORE_EVIDENCE", "CONFLICT_UNRESOLVED"];
   const optionHtml = (value) => `<option value="${value}">${value || "All statuses"}</option>`;
   if (state.tab === "discovery") {
@@ -770,6 +786,12 @@ function dispatchTab() {
     mountScript({api, jobId, list:el.list, detail:el.detail, filters:el.filters,
       isCurrent:() => state.tab === "script" && state.jobId === jobId});
   }
+  else if (state.tab === "inspector") {
+    if (!requireJob()) return;
+    const jobId = state.jobId;
+    mountInspector({api, jobId, list:el.list, detail:el.detail, filters:el.filters,
+      isCurrent:() => state.tab === "inspector" && state.jobId === jobId});
+  }
   else if (state.tab === "scene") {
     if (!requireJob()) return;
     const jobId = state.jobId;
@@ -781,6 +803,23 @@ function dispatchTab() {
     const jobId = state.jobId;
     mountProduction({api, jobId, list:el.list, detail:el.detail, filters:el.filters,
       isCurrent:() => state.tab === "production" && state.jobId === jobId});
+  }
+  else if (state.tab === "factcheck") {
+    if (!requireJob()) return;
+    const jobId = state.jobId;
+    mountFactcheck({api, jobId, list:el.list, detail:el.detail, filters:el.filters,
+      isCurrent:() => state.tab === "factcheck" && state.jobId === jobId});
+  }
+  else if (state.tab === "research") {
+    const jobId = state.jobId;
+    mountResearch({api, jobId, list:el.list, detail:el.detail, filters:el.filters,
+      onStarted:(id) => { selectJob(id, "research"); route(); },
+      isCurrent:() => state.tab === "research" && state.jobId === jobId});
+  }
+  else if (state.tab === "voice") {
+    // Voice engines are job-independent: they do not need a selected research job.
+    mountVoice({api, list:el.list, detail:el.detail, filters:el.filters,
+      isCurrent:() => state.tab === "voice"});
   }
   else if (state.tab === "discovery") loadDiscovery();
   else if (state.tab === "sources") loadSources();

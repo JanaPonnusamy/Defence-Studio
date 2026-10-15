@@ -84,7 +84,10 @@ class AcquisitionService:
     def __init__(self, store: ArtifactStore, guard: UrlGuard | None = None,
                  registry: ProviderRegistry | None = None, client_factory=None):
         self.store = store
-        self.guard = guard or UrlGuard()
+        if guard is None:
+            from defence_studio.acquisition.source_policy import default_policy
+            guard = UrlGuard(policy=default_policy())   # controlled source registry (None only if owner opted out)
+        self.guard = guard
         self.registry = registry or default_registry()
         self.client_factory = client_factory
 

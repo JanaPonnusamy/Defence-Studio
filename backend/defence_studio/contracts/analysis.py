@@ -40,8 +40,8 @@ ANALYSIS_STAGE = "extraction_validation_normalization_deduplication"
 
 # Deterministic processor versions. These are recorded on every output so a
 # reviewer can tell exactly which logic produced a result and re-derive it.
-NORMALIZER_VERSION = "defence-studio.normalizer.v1"
-EXTRACTOR_VERSION = "defence-studio.claim-extractor.deterministic.v1"
+NORMALIZER_VERSION = "defence-studio.normalizer.v2"
+EXTRACTOR_VERSION = "defence-studio.claim-extractor.deterministic.v2"
 DEDUP_VERSION = "defence-studio.dedup.v1"
 
 # Artifact types F4 reads and writes (within the locked jobs/<job_id>/ layout).

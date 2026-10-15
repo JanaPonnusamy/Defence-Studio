@@ -131,7 +131,7 @@ def test_migration_preserves_human_reviews_and_adds_empty_assessments(tmp_path):
         con.commit()
     initialize_database(db)
     with closing(connect(db)) as con:
-        assert con.execute("SELECT version FROM schema_info").fetchone()[0] == SCHEMA_VERSION == 11
+        assert con.execute("SELECT version FROM schema_info").fetchone()[0] == SCHEMA_VERSION == 13
         review = con.execute("SELECT decision, note, reviewer_id, revision FROM claim_reviews").fetchone()
         assert tuple(review) == ("APPROVED_FOR_USE", "inspected the passage", "human-reviewer", 2)
         history = con.execute(

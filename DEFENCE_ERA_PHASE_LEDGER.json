@@ -1,5 +1,5 @@
 {
-  "updated": "2026-10-14",
+  "updated": "2026-10-15",
   "phases": {
     "RM-0": {
       "status": "ACCEPTED",
@@ -245,5 +245,98 @@
     "youtube": "IMPLEMENTED+TESTED (mocked Google); LIVE-VERIFIED: no - BLOCKED on OAuth client + env",
     "openai": "IMPLEMENTED+TESTED (mock transport); LIVE-VERIFIED: no - BLOCKED on API key + spend authorization",
     "tamil_tts": "NOT AVAILABLE: only en-GB/en-US SAPI voices installed; Tamil narration unverified"
+  },
+  "supplemental": {
+    "FC": {
+      "name": "Fact check and media-context verification",
+      "status": "IMPLEMENTED + TESTED (offline/mocked + real local processing); CODE-AUDITED gates; NOT LIVE-VERIFIED for hosted providers",
+      "schema": 13,
+      "tests_2026_10_15": {
+        "backend_full": "500 passed / 8 skipped",
+        "factcheck_engine": "14 passed / 1 skipped (live RSS opt-in)",
+        "gates_audit": 4,
+        "frame_timestamps": 15,
+        "rss_hardening": 6,
+        "verification_adapters": "15 (mocked)",
+        "frontend": "42 passed"
+      },
+      "provider_readiness": {
+        "hosted_search": "NOT_CONFIGURED",
+        "reverse_image_search": "NOT_CONFIGURED (mock-tested)",
+        "ocr": "DEPENDENCY_MISSING",
+        "object_detection": "UNSUPPORTED",
+        "asset_rights_engine": "NOT_STARTED",
+        "browser_acceptance": "PARTIAL (24/24 scripted checks 2026-10-15; see browser_acceptance_2026_10_15)",
+        "openai_generation": "NOT_CONFIGURED"
+      },
+      "browser_acceptance_2026_10_15": {
+        "date": "2026-10-15",
+        "tool": "headless Chrome over CDP",
+        "viewports": [
+          1440,
+          768,
+          390
+        ],
+        "environment": "temporary DB/storage, dev auth bypass, no production data, no external requests",
+        "scripts": "frontend/tests/browser/",
+        "frontend_unit_tests": "45 passed",
+        "status": "PARTIAL",
+        "scripted_checks": "24/24 passed",
+        "defects_fixed": [
+          "single-flight duplicate-action protection",
+          "detail pane preserved after errors",
+          "favicon 404"
+        ],
+        "not_tested": [
+          "human correction",
+          "video upload",
+          "OCR / hosted search / real reverse-image provider paths",
+          "real device / touch",
+          "second browser",
+          "production-like data volume"
+        ]
+      }
+    },
+    "V": {
+      "name": "Voice Analyzer + Voice Generation engines",
+      "status": "IMPLEMENTED + TESTED + INTEGRATED (schema v12); Tamil BLOCKED; alignment word timings ESTIMATED",
+      "tests_2026_10_15": {
+        "standalone": 59,
+        "integration": 20,
+        "frontend": 5
+      },
+      "not_done": [
+        "Tamil narration",
+        "forced alignment",
+        "reference source acquisition",
+        "browser pass (partial: scripted checks passed; see browser_acceptance_2026_10_15)"
+      ],
+      "browser_acceptance_2026_10_15": {
+        "date": "2026-10-15",
+        "tool": "headless Chrome over CDP",
+        "viewports": [
+          1440,
+          768,
+          390
+        ],
+        "environment": "temporary DB/storage, dev auth bypass, no production data, no external requests",
+        "scripts": "frontend/tests/browser/",
+        "frontend_unit_tests": "45 passed",
+        "status": "PARTIAL",
+        "scripted_checks": "24/24 passed",
+        "defects_fixed": [
+          "duplicate Voice form submission guard",
+          "favicon 404"
+        ],
+        "not_tested": [
+          "cancel / retry / discard in the browser",
+          "Tamil TTS",
+          "forced alignment",
+          "real device / touch",
+          "second browser",
+          "production-like data volume"
+        ]
+      }
+    }
   }
 }

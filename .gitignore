@@ -70,3 +70,7 @@ node_modules/
 /components/*
 !/components/asset-rights-engine/
 !/components/defence-align/
+!/components/voice-engine/
+
+# job-scoped temporary workspaces (auto-removed at terminal state)
+/tmp/
