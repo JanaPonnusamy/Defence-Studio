@@ -1,0 +1,32 @@
+[
+  {
+    "id": "factcheck-renders",
+    "ok": true,
+    "note": "Fact check No package yet. Run claim verification, then build a package. Claims No claims in the latest package. Run CLAIM TEXT SUPPORTING EXCERPT Verify claim Build evidence packa"
+  },
+  {
+    "id": "voice-renders",
+    "ok": true,
+    "note": "Analyze reference audio / video Delivery-style analysis only. Upload a file you are authorized to analyze; the raw audio is deleted after analysis unless retention is configured. U"
+  },
+  {
+    "id": "inspector-renders",
+    "ok": true,
+    "note": "Research pipeline trace claims total 4 analysis sha256 027b3f85e74e16b739e04803bb26e3a5fdfdc92212e3572fd693f7addc4a297a acquisition sha256 05165191cbf27e544a2f3a6829c9e890f89e3b73b"
+  },
+  {
+    "id": "research-renders",
+    "ok": true,
+    "note": "Synthetic Northwind harbour drill RUNNING 4/13 stages complete Started 2026-10-15T15:27:17.203807+00:00 Last update 2026-10-15T15:27:17.433785+00:00 Elapsed 3m 23s Estimated remain"
+  },
+  {
+    "id": "factcheck-mobile-overflow",
+    "ok": true,
+    "note": "390/390"
+  },
+  {
+    "id": "rest-no-js-exceptions",
+    "ok": true,
+    "note": "none"
+  }
+]

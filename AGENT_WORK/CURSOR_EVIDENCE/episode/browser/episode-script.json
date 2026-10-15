@@ -1,0 +1,15 @@
+{
+  "jobId": "522dc4ce-16d0-4680-a450-fcd841180c69",
+  "stages": [
+    {
+      "name": "package-approval",
+      "status": "VERIFIED",
+      "detail": "Evidence package\n\nApproved current revision\n\nRevision 9804ea8455e939d863b5a55f97d8ad55489d00f9989f478ce917fb7f3ec1e7cf\n\n2 sources · 43 claims · 43 eligible claims\n\nRequired review\n\nNo blocking issues in current revision.\n\nLimitations and missing evidence\nConflicts (0)\nPACKAGE APPROVAL EXPLANATION\nApprove this revision\nExport approved JSON\nDownload unapproved draft\nPackage approval history (1)"
+    },
+    {
+      "name": "runner",
+      "status": "FAILED",
+      "detail": "Error: timeout waiting for: generate\n    at Object.waitFor (file:///E:/Jana%20Soft/DefenceStudio/frontend/tests/browser/cdp.mjs:62:13)\n    at async file:///E:/Jana%20Soft/DefenceStudio/frontend/tests/browser/episode-script.mjs:53:5"
+    }
+  ]
+}

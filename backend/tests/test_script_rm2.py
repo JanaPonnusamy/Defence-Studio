@@ -21,9 +21,10 @@ def _package():
     """Two independent publishers state c1/c2 alike; c3 is a lone claim; c4/c5 conflict;
     s1 and s1-copy are duplicates (syndicated)."""
     def src(sid, published="2026-10-01"):
-        return {"source_id": sid, "declared_metadata": {"published_at": published, "publisher": sid}}
+        return {"source_id": sid, "review": {"decision": "APPROVED_FOR_USE"}, "is_stale": False, "declared_metadata": {"published_at": published, "publisher": sid}}
     def claim(cid, sid, text, published=None):
-        return {"claim_id": cid, "source_id": sid, "claim_text": text, "source_published_at": published}
+        return {"claim_id": cid, "source_id": sid, "claim_text": text, "source_published_at": published,
+                "review": {"decision": "APPROVED_FOR_USE"}, "is_stale": False}
     return {
         "generated_from_timestamp": "2026-10-14T00:00:00+00:00",
         "sources": [src("s1"), src("s2"), src("s1-copy"), src("old", "2025-01-01"), src("nodate", None)],

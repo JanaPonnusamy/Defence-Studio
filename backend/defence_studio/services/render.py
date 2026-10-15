@@ -127,6 +127,15 @@ class RenderService(IntegrationService):
                           (job_id, language, RENDER_KIND, version)).fetchone()
         return bool(r and r["status"] == "CANCELLED")
 
+    def _fail_if_running(self, job_id, language, version, detail: str) -> None:
+        try:
+            self._transition(job_id, language, RENDER_KIND, version, "FAILED", detail=detail,
+                             allowed_from=("RUNNING",))
+        except IntegrationStale:
+            # Cancellation or startup recovery won the race. Keep that
+            # durable terminal status instead of reviving the render as failed.
+            return
+
     def _concat_narration(self, job_id: str, audio: dict, out_path: Path) -> tuple[float, list[dict]]:
         """Concatenate scene WAVs (+ requested pauses) into one PCM WAV. Returns
         (duration, scene spans). Parameters must match across scenes."""
@@ -199,11 +208,12 @@ class RenderService(IntegrationService):
 
             step = "render"
             self._transition(job_id, language, RENDER_KIND, version, "RUNNING", detail="Rendering",
-                             progress=0.1)
+                             progress=0.1, allowed_from=("RUNNING",))
 
             def progress(p, done, total):
                 self._transition(job_id, language, RENDER_KIND, version, "RUNNING",
-                                 detail=f"Rendering frame {done}/{total}", progress=round(0.1 + 0.7 * p, 3))
+                                 detail=f"Rendering frame {done}/{total}", progress=round(0.1 + 0.7 * p, 3),
+                                 allowed_from=("RUNNING",))
 
             result = self._renderer().render(
                 str(pkg_dir), f"ds-{job_id}-{language}-{version}", on_progress=progress,
@@ -246,15 +256,16 @@ class RenderService(IntegrationService):
             uri, sha = self._store_json(job_id, f"renders/{language}", body)
             self._transition(job_id, language, RENDER_KIND, version, "SUCCEEDED",
                              detail=f"{round(duration, 1)}s video, {len(spans)} scene(s)", progress=1.0,
-                             uri=uri, sha256=sha)
+                             uri=uri, sha256=sha, allowed_from=("RUNNING",))
         except RendererError as exc:
-            self._transition(job_id, language, RENDER_KIND, version, "FAILED", detail=f"{step}: {exc.code}: {exc.message}")
+            self._fail_if_running(job_id, language, version,
+                                  f"{step}: {exc.code}: {exc.message}")
         except (RenderError, subs.SubtitleError, VisualModuleError) as exc:
-            self._transition(job_id, language, RENDER_KIND, version, "FAILED",
-                             detail=f"{step}: {exc.code}: {exc.message}")
+            self._fail_if_running(job_id, language, version,
+                                  f"{step}: {exc.code}: {exc.message}")
         except Exception as exc:
-            self._transition(job_id, language, RENDER_KIND, version, "FAILED",
-                             detail=f"{step}: internal: {type(exc).__name__}: {exc}")
+            self._fail_if_running(job_id, language, version,
+                                  f"{step}: internal: {type(exc).__name__}: {exc}")
 
     def _subtitle_step(self, job_id, language, spans, duration, plain_uri, profile) -> tuple[dict, dict]:
         cues = subs.build_cues([{"scene_id": s["scene_id"], "text": s["text"], "start": s["start"],

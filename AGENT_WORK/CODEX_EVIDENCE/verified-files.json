@@ -1,0 +1,8 @@
+{
+  "backend/defence_studio/services/script_integrity.py": "560150c93714cc8f64121fd646fe2dcd5ee709f29af0a2e11988a13c277268d0",
+  "backend/pyproject.toml": "f09e8fddbc1addf0dcdfa7ce403fbd181f4e994941003c3dd539f4b03754d57d",
+  "backend/tests/conftest.py": "c2b5078703571bd2ffd16d4f2e48a58b298ee553c34ddbad0eee7fcd2b617a41",
+  "backend/tests/test_script_rm2.py": "8dfe55e5079d203684750504cc4f751f9ae22a28f62aefe6c36ecfc950f0b452",
+  "backend/tests/test_script_integrity_corroboration.py": "fc08727345218585e02c73b87c4fc8717e97e0968d5a83d4abfa100023bf7bdd",
+  "backend/tests/test_p0_startup.py": "22e733a2a4a667a52dc498f37f3133679cf5a2256bf79de49a9b7bd27f13107b"
+}

@@ -1,0 +1,137 @@
+{
+  "base": "http://127.0.0.1:8032",
+  "job": "1e2f8f2c-50e7-4f0a-8cb1-0e7d74b986c1",
+  "empty": "f3812535-a52e-4f27-aadc-2e34cf529895",
+  "results": [
+    {
+      "id": "dashboard-lists-jobs",
+      "ok": true,
+      "note": "cards=2"
+    },
+    {
+      "id": "sources-populated",
+      "ok": true,
+      "note": "source cards=2"
+    },
+    {
+      "id": "source-review-requires-note",
+      "ok": true,
+      "note": "Enter a review explanation before submitting."
+    },
+    {
+      "id": "source-review-cancel",
+      "ok": true,
+      "note": "cancel leaves panel open"
+    },
+    {
+      "id": "source-review-saved",
+      "ok": true,
+      "note": "approval confirmed"
+    },
+    {
+      "id": "refresh-persists-job",
+      "ok": true,
+      "note": "before=1e2f8f2c-50e7-4f0a-8cb1-0e7d74b986c1 after=1e2f8f2c-50e7-4f0a-8cb1-0e7d74b986c1"
+    },
+    {
+      "id": "refresh-shows-saved-decision",
+      "ok": true,
+      "note": "approved visible=true"
+    },
+    {
+      "id": "claims-populated",
+      "ok": true,
+      "note": "claim cards=4; passage=\"The Northwind base counted 4 patrol craft during the March drill.\""
+    },
+    {
+      "id": "claim-review-requires-note",
+      "ok": true,
+      "note": "Enter a review explanation before submitting."
+    },
+    {
+      "id": "claim-review-saved",
+      "ok": true,
+      "note": "non-conflict claim approval confirmed"
+    },
+    {
+      "id": "evidence-package-view",
+      "ok": true,
+      "note": "Evidence package Draft — not approved Revision 5e7c60576fcf8defda7478c95ca7466b014b63fd323e841d05df9906ea94bf29 2 sources · 4 claims · 1 eligible claims Required review claim claim-ab3d9f0d6761a985: current final review with explanation"
+    },
+    {
+      "id": "script-blocked-until-approval",
+      "ok": true,
+      "note": "Evidence not ready for script generation. The evidence package must be human-approved on the Evidence tab before a script can be generated. claim claim-ab3d9f0d6761a985: current fi"
+    },
+    {
+      "id": "scene-blocked-without-script",
+      "ok": true,
+      "note": "Scene planning Generate a scene plan LANGUAGE Tamil (primary narration) English No approved Tamil script revision. A script revision must be human-approved on the Script tab before"
+    },
+    {
+      "id": "production-sections",
+      "ok": true,
+      "note": "sections=overview,scenes,visual,audio,render,qc,package,yt-connection,yt-queue,usage,credentials"
+    },
+    {
+      "id": "production-section-errors",
+      "ok": true,
+      "note": "none"
+    },
+    {
+      "id": "subtitle-and-package-views",
+      "ok": true,
+      "note": "subtitleCopy=true package=true"
+    },
+    {
+      "id": "credentials-not-echoed",
+      "ok": true,
+      "note": "password inputs empty=true"
+    },
+    {
+      "id": "discovery-empty-topic",
+      "ok": true,
+      "note": "posts=0 toast=Enter a topic first."
+    },
+    {
+      "id": "empty-job-sources",
+      "ok": true,
+      "note": "empty source list"
+    },
+    {
+      "id": "bad-job-error",
+      "ok": true,
+      "note": "Job not found or not yours "
+    },
+    {
+      "id": "layout-desktop",
+      "ok": true,
+      "note": "dash 1440/1440 prod 1430/1430"
+    },
+    {
+      "id": "layout-tablet",
+      "ok": true,
+      "note": "dash 768/768 prod 758/758"
+    },
+    {
+      "id": "layout-mobile",
+      "ok": true,
+      "note": "dash 390/390 prod 390/390"
+    },
+    {
+      "id": "sign-out",
+      "ok": true,
+      "note": "login form shown"
+    },
+    {
+      "id": "login-empty-token",
+      "ok": true,
+      "note": "Enter a bearer token to sign in."
+    },
+    {
+      "id": "no-js-exceptions",
+      "ok": true,
+      "note": "none"
+    }
+  ]
+}

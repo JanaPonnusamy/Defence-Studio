@@ -4,6 +4,7 @@ import { createApiClient } from "../js/api.js";
 import {
   renderDiscoveryCandidatesListHtml, renderCoverageHtml, renderEmptyResultsHtml,
   renderPaginationHtml, renderSearchHistoryHtml, renderDiscoveryFilterFormHtml,
+  renderDiscoveryRequestFormHtml, parseSeedUrlInput,
 } from "../js/views/discovery-view.js";
 
 const candidate = {
@@ -87,6 +88,46 @@ test("listDiscoveryCandidates sends the new filters and the new endpoints are au
     assert.ok(calls[3].url.endsWith("/api/discovery/searches"));
     assert.equal(calls[4].options.method, "POST");
     assert.ok(calls.every((c) => c.options.headers.Authorization === "Bearer cred"));
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test("source URL field rejects empty, malformed, and credentialed URLs before a request exists", () => {
+  assert.match(parseSeedUrlInput("  \n", { required: true }).error, /at least one/);
+  assert.equal(parseSeedUrlInput("", { required: false }).error, null);
+  assert.match(parseSeedUrlInput("not a url", { required: true }).error, /absolute http or https/);
+  assert.match(parseSeedUrlInput("ftp://example.com/a", { required: true }).error, /http or https/);
+  assert.match(parseSeedUrlInput("https://user:pw@example.com/a", { required: true }).error, /username or password/);
+  const ok = parseSeedUrlInput("https://example.com/a\nhttps://example.com/a\nhttps://example.com/b", { required: true });
+  assert.deepEqual(ok.urls, ["https://example.com/a", "https://example.com/b"]);
+  assert.equal(ok.error, null);
+});
+
+test("discovery form keeps saved source URLs and does not imply approval", () => {
+  const html = renderDiscoveryRequestFormHtml("Northwind", ["https://example.com/a"]);
+  assert.ok(html.includes("https://example.com/a"));
+  assert.ok(html.includes("discovery-save-urls"));
+  assert.ok(html.includes("does not approve"));
+  assert.ok(!html.includes("<script"));
+});
+
+test("createDiscoveryRequest sends seed_urls and does not put them in the URL", async () => {
+  const originalFetch = globalThis.fetch;
+  let sent;
+  globalThis.fetch = async (url, options) => {
+    sent = { url, options };
+    return new Response(JSON.stringify({ request: { seed_urls: ["https://example.com/a"] } }), { status: 201 });
+  };
+  try {
+    const client = createApiClient(() => "cred");
+    await client.createDiscoveryRequest("job-1", {
+      topic: "Northwind", language: "en", search_terms: [], seed_urls: ["https://example.com/a"],
+    });
+    assert.equal(sent.options.method, "POST");
+    assert.ok(sent.url.endsWith("/api/jobs/job-1/discovery/requests"));
+    assert.equal(JSON.parse(sent.options.body).seed_urls[0], "https://example.com/a");
+    assert.ok(!sent.url.includes("example.com"));
   } finally {
     globalThis.fetch = originalFetch;
   }

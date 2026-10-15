@@ -47,6 +47,7 @@ test("passage details escape source content and show exact offsets and stale rev
   assert(html.includes("&lt;img"));
   assert(html.includes("12–40"));
   assert(html.includes("jobs/test/raw.txt"));
+  assert(html.includes("decision-panel-mount"));
   const stale = renderDecisionPanelHtml({decision:"APPROVED_FOR_USE",reviewer_id:"owner",revision:1,note:"old"},true);
   assert(stale.includes("superseded"));
   assert(stale.includes("Required:"));

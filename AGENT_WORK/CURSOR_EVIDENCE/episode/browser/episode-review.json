@@ -1,0 +1,50 @@
+{
+  "jobId": "522dc4ce-16d0-4680-a450-fcd841180c69",
+  "stages": [
+    {
+      "name": "sources-listed",
+      "status": "VERIFIED",
+      "detail": "cards=2"
+    },
+    {
+      "name": "source-provenance",
+      "status": "VERIFIED",
+      "detail": "https://missilethreat.csis.org/defsys/s-400-triumf/ S-400 Triumf | Missile Threat\nACQUIRED\nAPPROVED FOR USE\n\nhttps://missilethreat.csis.org/defsys/s-400-triumf/\n\nPublisher: Missile Threat\n\nPublished: (UNAVAILABLE"
+    },
+    {
+      "name": "layout-390",
+      "status": "VERIFIED",
+      "detail": "390/390"
+    },
+    {
+      "name": "source-review",
+      "status": "VERIFIED",
+      "detail": "recordedThisRun=0 pendingLeft=0 cards=2"
+    },
+    {
+      "name": "claim-review",
+      "status": "VERIFIED",
+      "detail": "recorded=8 pendingLeft=0 cards=43"
+    },
+    {
+      "name": "evidence-package",
+      "status": "VERIFIED",
+      "detail": "approveDisabled=false Evidence package\n\nReady for human package approval\n\nRevision 9804ea8455e939d863b5a55f97d8ad55489d00f9989f478ce917fb7f3ec1e7cf\n\n2 sources · 43 claims · 43 eligible claims\n\nRequired review\n\nNo blocking issues in current revision.\n\nLimitations and missing evidence\nConflicts (0)\nPACKAGE APPROVAL EXPLANATION\nApprove this revision\nExport approved JSON\nDownload unapproved draft\nPackage approval history ("
+    },
+    {
+      "name": "script-generation",
+      "status": "BLOCKED",
+      "detail": "disabled=true posts=0"
+    },
+    {
+      "name": "scene-audio-render-qc-package",
+      "status": "NOT_RUN",
+      "detail": "Pipeline status NONE evidence package NONE script NONE scene plan NONE assets NONE audio set NONE visual timeline NONE render NONE qc report NONE final approval NONE publish package NONE publishing Derived from saved state; the same on every device and after a"
+    },
+    {
+      "name": "refresh",
+      "status": "VERIFIED",
+      "detail": "522dc4ce-16d0-4680-a450-fcd841180c69"
+    }
+  ]
+}

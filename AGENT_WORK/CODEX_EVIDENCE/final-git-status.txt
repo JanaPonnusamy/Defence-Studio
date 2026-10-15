@@ -1,0 +1,10 @@
+ M backend/defence_studio/services/script_integrity.py
+ M backend/pyproject.toml
+ M backend/tests/conftest.py
+ M backend/tests/test_script_rm2.py
+?? AGENT_WORK/
+?? Defence_Studio_Consolidated_Readiness_and_Agent_Plan_20261015.md
+?? analysis/PROJECT_READINESS_AUDIT_20261015.md
+?? analysis/readiness-dependencies-20261015.txt
+?? backend/tests/test_p0_startup.py
+?? backend/tests/test_script_integrity_corroboration.py

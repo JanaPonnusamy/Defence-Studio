@@ -1,0 +1,55 @@
+{
+  "jobId": "522dc4ce-16d0-4680-a450-fcd841180c69",
+  "urls": [
+    "https://missilethreat.csis.org/defsys/s-400-triumf/",
+    "https://www.rusi.org/explore-our-research/publications/rusi-defence-systems/russias-air-defence-challenge-syria"
+  ],
+  "base": "http://127.0.0.1:8033",
+  "stages": [
+    {
+      "name": "discover-save",
+      "status": "VERIFIED",
+      "detail": "Saved 2 source URL(s). Queue the job to fetch them. Nothing is approved automatically. job=522dc4ce-16d0-4680-a450-fcd841180c69"
+    },
+    {
+      "name": "discover-fetch",
+      "status": "VERIFIED",
+      "detail": "candidates=2 manual_url: OK · 2 result(s) · 4327 ms\n\nResults come only from the providers listed above; absence of a result does not mean the web has none.\n\nNo candidates confirmed yet.\nS-400 TRIUMF | MISSILE THREAT\nMissile Threat · manual_url · score 0.70 · source\ncategory: russia ukraine re"
+    },
+    {
+      "name": "sources-listed",
+      "status": "BLOCKED",
+      "detail": "cards=0"
+    },
+    {
+      "name": "source-review",
+      "status": "BLOCKED",
+      "detail": "ui approvals recorded=0; note marks disposable acceptance, not publication approval"
+    },
+    {
+      "name": "claim-review",
+      "status": "BLOCKED",
+      "detail": "ui approvals recorded=0; cards still listed=0"
+    },
+    {
+      "name": "evidence-package",
+      "status": "BLOCKED",
+      "detail": "approveDisabled=true Evidence package Draft — not approved Revision 72e9745f576b25cbc107ac592c449e7032c83ea4fbe7f104319ea51bfdc5e909 2 sources · 43 claims · 0 eligible claims Required review No approved claims with approved source support claim claim-02ff81dc1c06af5e: current final review with explanation required claim claim-038c99fc90bac"
+    },
+    {
+      "name": "script-generation",
+      "status": "BLOCKED",
+      "detail": "button disabled; generate posts=0; offline provider was configured and was not called"
+    },
+    {
+      "name": "scene-audio-render-qc-package",
+      "status": "NOT_RUN",
+      "detail": "Pipeline status NONE evidence package NONE script NONE scene plan NONE assets NONE audio set NONE visual timeline NONE render NONE qc report NONE final approval NONE publish package NONE publishing Derived from saved state; the same on every device and after a restart. Scene plan"
+    },
+    {
+      "name": "refresh",
+      "status": "VERIFIED",
+      "detail": "{\"job\":\"522dc4ce-16d0-4680-a450-fcd841180c69\",\"hash\":\"#/production\",\"conn\":\"Connecting…\"}"
+    }
+  ]
+}

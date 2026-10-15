@@ -1,0 +1,116 @@
+{
+  "acquired_at": "2026-10-15T14:23:24.521846+00:00",
+  "failed": 0,
+  "job_id": "522dc4ce-16d0-4680-a450-fcd841180c69",
+  "requested": 2,
+  "schema_version": "defence-studio.acquisition-result.v1",
+  "skipped_duplicate": 0,
+  "sources": [
+    {
+      "acquisition_timestamp": "2026-10-15T14:23:24.521846+00:00",
+      "artifacts": [
+        {
+          "artifact_type": "source_content",
+          "bytes": 253438,
+          "media_type": "text/html",
+          "schema_version": "defence-studio.source-artifact.v1",
+          "sha256": "7d3a35fcc62129c4ef4b358e690123e943b17c1c8c43126674742a2772f8a30e",
+          "uri": "jobs/522dc4ce-16d0-4680-a450-fcd841180c69/research/sources/148827db7320d204c6c3f4e53296339538cf636f/content.html"
+        }
+      ],
+      "canonical_url": "https://missilethreat.csis.org/defsys/s-400-triumf/",
+      "declared_metadata": {
+        "language": "en-US",
+        "language_status": "COLLECTED",
+        "published_at": null,
+        "published_at_status": "UNAVAILABLE",
+        "publisher": "Missile Threat",
+        "publisher_status": "COLLECTED",
+        "title": "S-400 Triumf | Missile Threat",
+        "title_status": "COLLECTED"
+      },
+      "error": null,
+      "final_url": "https://missilethreat.csis.org/defsys/s-400-triumf/",
+      "method": "auto",
+      "original_metadata": {
+        "declared_media_type": "text/html",
+        "http_status": 200,
+        "response_headers": {
+          "content-type": "text/html; charset=UTF-8",
+          "date": "Thu, 15 Oct 2026 14:23:12 GMT"
+        }
+      },
+      "provenance": {
+        "acquired_at": "2026-10-15T14:23:24.521846+00:00",
+        "canonical_url": "https://missilethreat.csis.org/defsys/s-400-triumf/",
+        "final_url": "https://missilethreat.csis.org/defsys/s-400-triumf/",
+        "provider": "http_page",
+        "provider_version": "0.1.0",
+        "request_target_id": "148827db7320d204c6c3f4e53296339538cf636f",
+        "requested_url": "https://missilethreat.csis.org/defsys/s-400-triumf/",
+        "source_component": "defence_studio.acquisition.providers.http_page@0.1.0"
+      },
+      "requested_url": "https://missilethreat.csis.org/defsys/s-400-triumf/",
+      "source_id": "148827db7320d204c6c3f4e53296339538cf636f",
+      "source_type": "web_page",
+      "status": "ACQUIRED",
+      "target_id": "148827db7320d204c6c3f4e53296339538cf636f",
+      "warnings": []
+    },
+    {
+      "acquisition_timestamp": "2026-10-15T14:23:26.378300+00:00",
+      "artifacts": [
+        {
+          "artifact_type": "source_content",
+          "bytes": 623872,
+          "media_type": "text/html",
+          "schema_version": "defence-studio.source-artifact.v1",
+          "sha256": "fd25a578d28c9a54375e4a85e5321ce27fb78bfb1b4f2a5f070411afaf17a7e8",
+          "uri": "jobs/522dc4ce-16d0-4680-a450-fcd841180c69/research/sources/9310b0a55b625410bad0c205edc3a8cf18273981/content.html"
+        }
+      ],
+      "canonical_url": "https://www.rusi.org/explore-our-research/publications/rusi-defence-systems/russias-air-defence-challenge-syria",
+      "declared_metadata": {
+        "language": "en",
+        "language_status": "COLLECTED",
+        "published_at": null,
+        "published_at_status": "UNAVAILABLE",
+        "publisher": null,
+        "publisher_status": "UNAVAILABLE",
+        "title": "Russia\u2019s Air Defence Challenge in Syria | Royal United Services Institute",
+        "title_status": "COLLECTED"
+      },
+      "error": null,
+      "final_url": "https://www.rusi.org/explore-our-research/publications/rusi-defence-systems/russias-air-defence-challenge-syria",
+      "method": "auto",
+      "original_metadata": {
+        "declared_media_type": "text/html",
+        "http_status": 200,
+        "response_headers": {
+          "content-type": "text/html",
+          "date": "Thu, 15 Oct 2026 14:23:10 GMT",
+          "etag": "W/\"e16952b92618340e6740b4cacc86b3ee\"",
+          "last-modified": "Thu, 15 Oct 2026 08:13:15 GMT"
+        }
+      },
+      "provenance": {
+        "acquired_at": "2026-10-15T14:23:26.378300+00:00",
+        "canonical_url": "https://www.rusi.org/explore-our-research/publications/rusi-defence-systems/russias-air-defence-challenge-syria",
+        "final_url": "https://www.rusi.org/explore-our-research/publications/rusi-defence-systems/russias-air-defence-challenge-syria",
+        "provider": "http_page",
+        "provider_version": "0.1.0",
+        "request_target_id": "9310b0a55b625410bad0c205edc3a8cf18273981",
+        "requested_url": "https://www.rusi.org/explore-our-research/publications/rusi-defence-systems/russias-air-defence-challenge-syria",
+        "source_component": "defence_studio.acquisition.providers.http_page@0.1.0"
+      },
+      "requested_url": "https://www.rusi.org/explore-our-research/publications/rusi-defence-systems/russias-air-defence-challenge-syria",
+      "source_id": "9310b0a55b625410bad0c205edc3a8cf18273981",
+      "source_type": "web_page",
+      "status": "ACQUIRED",
+      "target_id": "9310b0a55b625410bad0c205edc3a8cf18273981",
+      "warnings": []
+    }
+  ],
+  "succeeded": 2,
+  "warnings": []
+}

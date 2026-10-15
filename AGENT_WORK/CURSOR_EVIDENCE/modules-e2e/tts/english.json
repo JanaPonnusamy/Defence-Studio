@@ -1,0 +1,13 @@
+{
+  "provider": "local-pyttsx3",
+  "is_mock": false,
+  "estimated_cost": 0.0,
+  "bytes": 243382,
+  "sample_rate": 22050,
+  "samples": 121668,
+  "duration_s": 5.518,
+  "channels": 1,
+  "sha256": "0af6d2deae0bd7df73bcfe71524f17a6a47ea43701eba4a10fc9999d16616ded",
+  "rate": 170,
+  "volume": 0.85
+}

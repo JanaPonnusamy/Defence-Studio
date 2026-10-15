@@ -1,14 +1,41 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
 [project]
 name = "defence-studio"
 version = "0.1.0"
 requires-python = ">=3.11"
-dependencies = ["fastapi>=0.115,<1", "uvicorn>=0.30,<1", "httpx>=0.27,<1"]
+dependencies = [
+    "fastapi>=0.115,<1", "uvicorn>=0.30,<1", "httpx>=0.27,<1",
+    "cryptography>=42,<46",
+    # Windows does not ship the IANA database used by zoneinfo scheduling.
+    "tzdata>=2024.1; platform_system == 'Windows'",
+    # Required by api/voice_routes.py's multipart file-upload endpoint
+    # (FastAPI's Form/UploadFile parameter parsing); FastAPI only raises this
+    # at request-handling-route-registration time, not at FastAPI-import
+    # time, so it was not caught until create_app() actually built that route
+    # in a dependency-clean environment.
+    "python-multipart>=0.0.9,<1",
+    # Used by integrations/branding.py and services/integration.py (both lazy,
+    # function-local imports -- defence_studio itself still imports fine
+    # without it, same testable-without-dependency pattern as yt-dlp, but the
+    # functions that actually render a thumbnail/branded frame need it).
+    "pillow>=10,<12",
+]
 
 [project.optional-dependencies]
 # yt-dlp is only required to acquire YouTube captions live; the provider and its
 # tests load without it (the real backend imports it lazily and fails closed).
 youtube = ["yt-dlp>=2024.1"]
-test = ["pytest>=8,<10"]
+# numpy: test-only (tests/test_voice_integration.py builds synthetic WAV
+# sample arrays for the voice-engine integration tests); no defence_studio/
+# production module imports it.
+test = ["pytest>=8,<10", "numpy>=1.26,<3"]
+
+[tool.setuptools.packages.find]
+# Exclude backend/config, scripts and tests from flat-layout package discovery.
+include = ["defence_studio*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

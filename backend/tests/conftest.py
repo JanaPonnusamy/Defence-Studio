@@ -4,14 +4,28 @@ import hmac
 import json
 import os
 import time
+import tempfile
+from pathlib import Path
+
+SECRET = "phase-one-test-signing-secret-32-bytes-minimum"
+# Must run before `defence_studio.api.app` is imported below: that module
+# constructs a module-level FastAPI app (`app = create_app()`, the
+# conventional `uvicorn defence_studio.api.app:app` entrypoint documented in
+# README.md/OPERATIONS.md) as an import-time side effect, and create_app()
+# raises RuntimeError if DEFENCE_STUDIO_AUTH_SECRET is unset/too short. A
+# fresh test process has no secret exported yet, so this test-only default
+# must be set before that import executes, not after.
+os.environ.setdefault("DEFENCE_STUDIO_AUTH_SECRET", SECRET)
+# App construction includes policy-service setup, so even importing the entry
+# point must use disposable defaults rather than the checked-in development DB.
+_session_storage = tempfile.TemporaryDirectory(prefix="defence-backend-tests-")
+os.environ["DEFENCE_STUDIO_DB_PATH"] = str(Path(_session_storage.name) / "default.sqlite3")
+os.environ["DEFENCE_STUDIO_STORAGE_PATH"] = str(Path(_session_storage.name) / "storage")
 
 import pytest
 from fastapi.testclient import TestClient
 
 from defence_studio.api.app import create_app
-
-SECRET = "phase-one-test-signing-secret-32-bytes-minimum"
-os.environ.setdefault("DEFENCE_STUDIO_AUTH_SECRET", SECRET)
 
 
 def access_token(subject: str, secret: str = SECRET) -> str:

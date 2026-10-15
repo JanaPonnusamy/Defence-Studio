@@ -53,25 +53,55 @@ def independent_source_clusters(package: dict) -> dict[str, str]:
     return cluster
 
 
+def _is_eligible_claim(claim: dict, eligible_ids: set[str],
+                      sources_by_id: dict[str, dict]) -> bool:
+    """Require the package eligibility snapshot AND current approved reviews.
+
+    EvidenceService embeds effective human/policy reviews and freshness flags.
+    Missing or unknown state is not evidence of approval.
+    """
+    source = sources_by_id.get(claim.get("source_id"))
+    return (claim.get("claim_id") in eligible_ids
+            and isinstance(claim.get("review"), dict)
+            and claim["review"].get("decision") == "APPROVED_FOR_USE"
+            and claim.get("is_stale") is False
+            and isinstance(source, dict)
+            and isinstance(source.get("review"), dict)
+            and source["review"].get("decision") == "APPROVED_FOR_USE"
+            and source.get("is_stale") is False)
+
+
+
 def corroboration_count(package: dict, claim_id: str) -> int:
-    """Independent source clusters that state the same assertion as claim_id.
-    Uses claim_groups (textual relationship) only as a *candidate* for
-    corroboration; independence comes from the duplicate clustering."""
+    """Independent, currently-eligible source clusters that state the same
+    assertion as claim_id. Rejected, pending/needs-more-evidence, stale, or
+    otherwise ineligible claims and sources never contribute -- only claims in
+    the package's authoritative ``eligible_claim_ids`` snapshot, backed by a
+    source that is itself approved and current, are counted. Uses
+    claim_groups (textual relationship) only as a *candidate* for
+    corroboration; independence comes from the duplicate clustering, and
+    counting is over distinct source clusters, not claims, so repeated claims
+    from the same source can never inflate the count."""
     claims = {c["claim_id"]: c for c in package.get("claims", [])}
     if claim_id not in claims:
+        return 0
+    eligible_ids = set(package.get("eligible_claim_ids") or [])
+    sources_by_id = {s["source_id"]: s for s in package.get("sources", [])}
+    if not _is_eligible_claim(claims[claim_id], eligible_ids, sources_by_id):
         return 0
     cluster = independent_source_clusters(package)
     members = {claim_id}
     for group in package.get("claim_groups", []):
         if claim_id in group.get("member_claim_ids", []):
             members.update(group.get("member_claim_ids", []))
-    textual = len({cluster.get(claims[m]["source_id"], claims[m]["source_id"]) for m in members if m in claims})
-    # The automatic evidence policy counts independent, non-manufacturer source GROUPS that state the same
-    # assertion or figure. Honour it so the prompt, the policy and this validator agree.
-    policy = ((package.get("automated_decisions") or {}).get("claims") or {}).get(claim_id) or {}
-    if policy.get("state") == "AUTO_ACCEPTED" and isinstance(policy.get("independent_groups"), int):
-        return max(textual, policy["independent_groups"])
-    return textual
+    qualifying = [claims[m] for m in members if m in claims
+                 and _is_eligible_claim(claims[m], eligible_ids, sources_by_id)]
+    # Policy aggregate counts predate effective human overrides and carry no
+    # qualifying claim identities. They cannot override this current snapshot.
+    # Automated approvals still qualify through EvidenceService's effective
+    # APPROVED_FOR_USE review, exactly like human approvals.
+    return len({cluster[c["source_id"]] for c in qualifying})
+
 
 
 def conflicted_claim_ids(package: dict) -> set[str]:

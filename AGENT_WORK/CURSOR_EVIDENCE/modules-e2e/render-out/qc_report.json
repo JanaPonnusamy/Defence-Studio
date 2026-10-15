@@ -1,0 +1,145 @@
+{
+  "schema": "video-render-qc",
+  "version": "1",
+  "renderer_version": "0.1.0",
+  "job_id": "e2e-speech",
+  "generated_at": "2026-10-15T15:28:54.373645+00:00",
+  "passed": true,
+  "checks": [
+    {
+      "name": "file_exists_nonempty",
+      "ok": true,
+      "detail": "99352 bytes"
+    },
+    {
+      "name": "container_mp4",
+      "ok": true,
+      "detail": "format_name=mov,mp4,m4a,3gp,3g2,mj2"
+    },
+    {
+      "name": "video_stream_h264",
+      "ok": true,
+      "detail": "codec=h264"
+    },
+    {
+      "name": "pixel_format_yuv420p",
+      "ok": true,
+      "detail": "pix_fmt=yuv420p"
+    },
+    {
+      "name": "audio_stream_aac",
+      "ok": true,
+      "detail": "codec=aac"
+    },
+    {
+      "name": "audio_sample_rate_48k",
+      "ok": true,
+      "detail": "sample_rate=48000"
+    },
+    {
+      "name": "resolution",
+      "ok": true,
+      "detail": "320x180 (requested 320x180)"
+    },
+    {
+      "name": "frame_rate",
+      "ok": true,
+      "detail": "avg_frame_rate=12.0 (requested 12)"
+    },
+    {
+      "name": "duration_within_tolerance",
+      "ok": true,
+      "detail": "output 5.518s vs narration 5.518s (tolerance 0.1s)"
+    },
+    {
+      "name": "full_decode_no_errors",
+      "ok": true,
+      "detail": "no decoder errors"
+    },
+    {
+      "name": "frame_count",
+      "ok": true,
+      "detail": "decoded 66 frames, expected 66 (+/-1)"
+    }
+  ],
+  "warnings": [],
+  "output": {
+    "path": "E:\\Jana Soft\\DefenceStudio\\AGENT_WORK\\CURSOR_EVIDENCE\\modules-e2e\\render-out\\output.mp4",
+    "sha256": "90945580954a5490ebfef7f8fdfb2e518fad82060def6046fbea73f78f3788a1",
+    "size_bytes": 99352
+  },
+  "requested": {
+    "width": 320,
+    "height": 180,
+    "fps": 12.0,
+    "source": "package",
+    "frames": 66,
+    "audio_duration": 5.5178,
+    "timeline_end": 5.518,
+    "timeline_start": 0.0
+  },
+  "probe": {
+    "format": {
+      "format_name": "mov,mp4,m4a,3gp,3g2,mj2",
+      "duration": "5.518000",
+      "size": "99352",
+      "bit_rate": "144040"
+    },
+    "video": {
+      "codec_name": "h264",
+      "profile": "High",
+      "width": 320,
+      "height": 180,
+      "pix_fmt": "yuv420p",
+      "avg_frame_rate": "12/1",
+      "nb_frames": "66",
+      "duration": "5.500000"
+    },
+    "audio": {
+      "codec_name": "aac",
+      "sample_rate": "48000",
+      "channels": 1,
+      "duration": "5.518000"
+    }
+  },
+  "decode": {
+    "frames": 66,
+    "error_count": 0
+  },
+  "package": {
+    "path": "E:\\Jana Soft\\DefenceStudio\\AGENT_WORK\\CURSOR_EVIDENCE\\modules-e2e\\render-package",
+    "manifest_sha256": "a4cd459a7059627fcd9190baf7ab4958c2798cb37b665d440911b56477848f15",
+    "shots": 1,
+    "assets": 1,
+    "gap_shots": 0,
+    "visual_plan_id": "synthetic-plan-3"
+  },
+  "ffmpeg": {
+    "ffmpeg": "D:\\ffmpeg\\bin\\ffmpeg.EXE",
+    "ffprobe": "D:\\ffmpeg\\bin\\ffprobe.EXE",
+    "version": "8.1.1-essentials_build-www.gyan.dev",
+    "license_flags": {
+      "gpl": true,
+      "version3": true,
+      "nonfree": false,
+      "libx264": true,
+      "libfdk_aac": false,
+      "summary": "GPLv3"
+    },
+    "configuration": "--enable-gpl --enable-version3 --enable-static --disable-w32threads --disable-autodetect --enable-cairo --enable-fontconfig --enable-iconv --enable-gnutls --enable-libxml2 --enable-gmp --enable-bzlib --enable-lzma --enable-zlib --enable-libsrt --enable-libssh --enable-libzmq --enable-avisynth --enable-sdl2 --enable-libwebp --enable-libx264 --enable-libx265 --enable-libxvid --enable-libaom --enable-libopenjpeg --enable-libvpx --enable-mediafoundation --enable-libass --enable-libfreetype --enable-libfribidi --enable-libharfbuzz --enable-libvidstab --enable-libvmaf --enable-libzimg --enable-amf --enable-cuda-llvm --enable-cuvid --enable-dxva2 --enable-d3d11va --enable-d3d12va --enable-ffnvcodec --enable-libvpl --enable-nvdec --enable-nvenc --enable-vaapi --enable-openal --enable-libgme --enable-libopenmpt --enable-libopencore-amrwb --enable-libmp3lame --enable-libtheora --enable-libvo-amrwbenc --enable-libgsm --enable-libopencore-amrnb --enable-libopus --enable-libspeex --enable-libvorbis --enable-librubberband"
+  },
+  "encoder": {
+    "preset": "veryfast",
+    "crf": 20,
+    "audio_bitrate": "192k"
+  },
+  "timings_s": {
+    "frame_composition_and_encode": 0.72,
+    "output_validation": 2.55,
+    "total": 5.21
+  },
+  "memory_peak_mb": {
+    "renderer_process": 41.7,
+    "ffmpeg_process": 39.1
+  }
+}

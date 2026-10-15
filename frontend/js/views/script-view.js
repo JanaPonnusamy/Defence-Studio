@@ -242,7 +242,7 @@ function renderRevisionList(revisions, selected, stale = new Map()) {
     </li>`).join("")}</ul>`;
 }
 
-function renderRevisionDetail(revision, history) {
+export function renderRevisionDetail(revision, history) {
   const canReview = revision.status === "AWAITING_REVIEW";
   const canApprove = revision.status === "AWAITING_REVIEW" && revision.validation.passed;
   return `<h2>${esc(revision.title)}</h2>
@@ -254,6 +254,7 @@ function renderRevisionDetail(revision, history) {
       `<li>${esc(i.severity)}: ${esc(i.detail)}${i.section_id ? ` (section ${esc(i.section_id)})` : ""}</li>`).join("")}</ul>` : "<p>No issues.</p>"}
     <h3>Usage and cost</h3>
     <p>Provider: ${esc(revision.usage.provider)} · Model: ${esc(revision.usage.model)} · Retries: ${revision.usage.retries}</p>
+    ${revision.usage.provider === "offline-extractive" ? `<p class="meta">Offline extractive draft. Each narration section repeats approved claim text. Recorded token usage: none.</p>` : ""}
     <p>${revision.usage.cost_is_measured
       ? `Measured cost: ₹${revision.usage.measured_text_cost_inr} (${esc(revision.usage.pricing_source)})`
       : "Measured cost unavailable for this call."}</p>
@@ -267,7 +268,8 @@ function renderRevisionDetail(revision, history) {
         <p>${esc(s.narration)}</p>
         ${s.presentation_note ? `<p class="meta">Presentation note: ${esc(s.presentation_note)}</p>` : ""}
         <details><summary>Evidence mapping</summary>
-          <p>Claims: ${s.evidence.claim_ids.length ? s.evidence.claim_ids.map(esc).join(", ") : "None"}</p>
+          <p>Claims: ${(s.evidence.claim_ids || []).length ? s.evidence.claim_ids.map((id) => `<a href="#/claims/${encodeURIComponent(id)}">${esc(id)}</a>`).join(", ") : "None"}</p>
+          <p>Sources: ${(s.evidence.source_ids || []).length ? s.evidence.source_ids.map((id) => `<a href="#/sources/${encodeURIComponent(id)}">${esc(id)}</a>`).join(", ") : "None recorded"}</p>
           <p>Qualification: ${esc(s.evidence.qualification || "None recorded")}</p>
         </details>
       </article>`).join("")}

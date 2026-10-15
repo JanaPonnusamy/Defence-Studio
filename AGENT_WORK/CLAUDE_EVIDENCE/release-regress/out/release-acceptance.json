@@ -1,0 +1,12 @@
+{
+  "base": "http://127.0.0.1:8041",
+  "job": "ed7ac6c8-0576-4b30-ad36-5dc5b41c2143",
+  "empty": "8ed10d36-620e-4a02-9800-077cd0308cd7",
+  "results": [
+    {
+      "id": "runner",
+      "ok": false,
+      "note": "Error: timeout waiting for: dev enter\n    at Object.waitFor (file:///E:/Jana%20Soft/DefenceStudio/frontend/tests/browser/cdp.mjs:62:13)\n    at async file:///E:/Jana%20Soft/DefenceStudio/frontend/tests/browser/release.mjs:27:3"
+    }
+  ]
+}

@@ -38,6 +38,14 @@ def _claim_process(database_file: str, worker_id: str, barrier, results):
     results.put(claim.claim_id if claim else None)
 
 
+def _read_manual_job_process(database_file: str, job_id: str, bearer_token: str, results):
+    with _app_client(Path(database_file)) as api:
+        headers = {"Authorization": f"Bearer {bearer_token}"}
+        state = api.get(f"/api/jobs/{job_id}", headers=headers)
+        queued = api.post(f"/api/jobs/{job_id}/queue", headers=headers)
+        results.put((state.status_code, state.json(), queued.status_code, queued.json()))
+
+
 def _fail_retry_attempt(database_file: str, started_at: str, results):
     started = datetime.fromisoformat(started_at)
     store = WorkerService(Path(database_file))
@@ -84,6 +92,38 @@ def test_queued_job_survives_backend_restart(client, auth_headers, token):
     assert state.status_code == 200
     assert state.json()["status"] == "QUEUED"
     assert state.json()["queued_at"]
+
+
+def test_unclaimed_manual_running_stage_is_preserved_but_not_dispatchable_after_restart(tmp_path, token):
+    path = tmp_path / "manual-running.sqlite3"
+    initialize_database(path)
+    jobs = JobService(path)
+    job = jobs.create(OWNER, "manual-running", "Rafale update", "ta")
+    running = jobs.transition(job["job_id"], OWNER, JOB_STAGES[0], "RUNNING")
+    assert running["status"] == "RUNNING"
+    assert running["claims"] == []
+
+    context = mp.get_context("spawn")
+    results = context.Queue()
+    process = context.Process(
+        target=_read_manual_job_process,
+        args=(str(path), job["job_id"], token(OWNER), results),
+    )
+    process.start()
+    process.join(timeout=20)
+    if process.is_alive():
+        process.terminate()
+        process.join()
+        pytest.fail("fresh API process did not recover and report manual job state")
+    assert process.exitcode == 0
+    state_code, state, queued_code, queued = results.get(timeout=3)
+
+    assert state_code == 200
+    assert state["status"] == "RUNNING"
+    assert state["stages"][0]["status"] == "RUNNING"
+    assert state["claims"] == []
+    assert queued_code == 409
+    assert queued["detail"] == "A manually running F1 job cannot be dispatched"
 
 
 def test_live_claim_is_not_stolen_and_dispatch_is_idempotent(tmp_path):

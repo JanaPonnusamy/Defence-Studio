@@ -1,0 +1,145 @@
+{
+  "schema": "defence-studio.factcheck.claims.v1",
+  "verdicts": [
+    {
+      "claim_id": "c1",
+      "text": "Northwind base counted 4 patrol craft during the March drill.",
+      "normalized_text": "Northwind base counted 4 patrol craft during the March drill.",
+      "entities": [
+        "northwind"
+      ],
+      "category": "equipment",
+      "event_date": null,
+      "published_at": "2024-03-01T00:00:00+00:00",
+      "origin_source_id": "origin",
+      "extraction_method": "supplied",
+      "extraction_confidence": 0.95,
+      "verdict": "PARTIALLY_SUPPORTED",
+      "provisional_verdict": "PARTIALLY_SUPPORTED",
+      "falsity_assessment": "NONE",
+      "review_required": false,
+      "review_status": "PENDING",
+      "supporting": [
+        {
+          "evidence_id": "8707917b9149d6c0",
+          "source_id": "ok",
+          "publisher": "Desk A",
+          "url": "https://example.test/ok",
+          "published_at": "2024-03-02T00:00:00+00:00",
+          "retrieved_at": "2024-03-02T12:00:00+00:00",
+          "retrieved_at_status": "COLLECTED",
+          "excerpt": "Northwind base counted 4 patrol craft during the March drill according to the harbour master.",
+          "relationship": "SUPPORTS",
+          "category": "news",
+          "independence_group": "ok",
+          "reliability": {
+            "score": 1.0,
+            "factors": {
+              "named_attribution": 1.0,
+              "primary_reporting": 1.0,
+              "traceable_url": 1.0,
+              "not_retracted": 1.0,
+              "dated": 1.0
+            },
+            "category_prior": "news",
+            "note": "Category is not the reliability score."
+          },
+          "content_hash": "171909ff1e50c5ebbfa1b8eb9dc58f11bdae80878a3475eae836faa3f001edbe",
+          "primary": true,
+          "retrieval_error": null
+        },
+        {
+          "evidence_id": "36e842498f86f3dc",
+          "source_id": "copy",
+          "publisher": "Wire",
+          "url": "https://example.test/copy",
+          "published_at": "2024-03-02T00:00:00+00:00",
+          "retrieved_at": null,
+          "retrieved_at_status": "NOT_COLLECTED",
+          "excerpt": "Northwind base counted 4 patrol craft during the March drill according to the harbour master.",
+          "relationship": "SUPPORTS",
+          "category": "news",
+          "independence_group": "ok",
+          "reliability": {
+            "score": 1.0,
+            "factors": {
+              "named_attribution": 1.0,
+              "primary_reporting": 1.0,
+              "traceable_url": 1.0,
+              "not_retracted": 1.0,
+              "dated": 1.0
+            },
+            "category_prior": "news",
+            "note": "Category is not the reliability score."
+          },
+          "content_hash": "171909ff1e50c5ebbfa1b8eb9dc58f11bdae80878a3475eae836faa3f001edbe",
+          "primary": true,
+          "retrieval_error": null
+        }
+      ],
+      "contradicting": [],
+      "missing": [],
+      "independent_support_groups": [
+        "ok"
+      ],
+      "independent_contradiction_groups": [],
+      "excluded_sources": [
+        {
+          "source_id": "rejected",
+          "reason": "rejected"
+        },
+        {
+          "source_id": "retracted",
+          "reason": "retracted"
+        }
+      ],
+      "confidence": {
+        "score": 0.845,
+        "calibrated": false,
+        "label": "uncalibrated_weighted_factors",
+        "factors": {
+          "relevance": 1.0,
+          "quality": 1.0,
+          "independence": 0.5,
+          "corroboration": 0.5,
+          "contradiction_clear": 1.0,
+          "temporal": 1.0,
+          "extraction": 0.95
+        },
+        "weights": {
+          "relevance": 0.2,
+          "quality": 0.15,
+          "independence": 0.15,
+          "corroboration": 0.15,
+          "contradiction_clear": 0.15,
+          "temporal": 0.1,
+          "extraction": 0.1
+        }
+      },
+      "risk": "medium",
+      "script_treatment": "qualify",
+      "cluster_id": "c1"
+    }
+  ],
+  "independence_groups": {
+    "origin": "origin",
+    "ok": "ok",
+    "rejected": "ok",
+    "retracted": "ok",
+    "copy": "ok"
+  },
+  "collection": {
+    "attempted": true,
+    "errors": []
+  },
+  "rules": {
+    "VERIFIED": "At least two independent groups support the claim, quantities agree, and nothing material contradicts it.",
+    "PARTIALLY_SUPPORTED": "One independent group supports it, or support leaves a material detail unverified.",
+    "CONFLICTING": "Independent evidence materially disagrees inside the claim's time window.",
+    "NEEDS_REVIEW": "Evidence is missing, ambiguous, low-confidence, or the claim is high-impact.",
+    "UNSUPPORTED": "Collection ran and no independent evidence substantiates the claim. This is not a finding that the claim is false.",
+    "OUTDATED": "A later source supersedes the claim outside its time-sensitivity window.",
+    "DEBUNKED": "Separate from the verdict. Set only when an official primary source negates the claim and no independent source supports it."
+  },
+  "checked_at": "2026-10-15T15:20:00+00:00"
+}

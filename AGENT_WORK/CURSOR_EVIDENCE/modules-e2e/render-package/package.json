@@ -1,0 +1,26 @@
+{
+  "schema": "video-render-package",
+  "version": "1",
+  "timeline": "timeline.json",
+  "timeline_sha256": "e4dcbfb3e4c5994e17ecb3dcd8243bd4a5a8da99609ca8e1dcada577ffdc8c3f",
+  "narration": {
+    "path": "narration.wav",
+    "sha256": "0af6d2deae0bd7df73bcfe71524f17a6a47ea43701eba4a10fc9999d16616ded"
+  },
+  "assets": {
+    "asset-000": {
+      "path": "assets/asset-000.png",
+      "sha256": "dc5734bc823d367a926857440ddb1438c1a603d98e03ce977b688b09fd9e25c6",
+      "mime_type": "image/png"
+    }
+  },
+  "output_profile": {
+    "width": 320,
+    "height": 180,
+    "fps": 12
+  },
+  "source": {
+    "generator": "modules-e2e",
+    "narration": "local-pyttsx3 english.wav"
+  }
+}

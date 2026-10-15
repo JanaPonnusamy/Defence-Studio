@@ -6,17 +6,53 @@
 import { textFieldHtml } from "../components/text-field.js";
 import { escapeHtml } from "../components/status-badge.js";
 
-export function renderDiscoveryRequestFormHtml(defaultTopic) {
+const MAX_SEED_URLS = 20;
+
+/** Client-side check matching the discovery request contract. Does not fetch. */
+export function parseSeedUrlInput(raw, { required = false } = {}) {
+  const parts = String(raw || "").split(/[\n,]+/).map((item) => item.trim()).filter(Boolean);
+  if (!parts.length) {
+    return required
+      ? { urls: [], error: "Enter at least one http or https source URL." }
+      : { urls: [], error: null };
+  }
+  if (parts.length > MAX_SEED_URLS) {
+    return { urls: [], error: `Enter at most ${MAX_SEED_URLS} source URLs.` };
+  }
+  const urls = [];
+  for (const item of parts) {
+    if (item.length > 2000) return { urls: [], error: "Each source URL must be at most 2000 characters." };
+    let parsed;
+    try { parsed = new URL(item); }
+    catch { return { urls: [], error: `Enter an absolute http or https URL. "${item.slice(0, 80)}" is not one.` }; }
+    if (parsed.username || parsed.password) {
+      return { urls: [], error: "Source URLs cannot include a username or password." };
+    }
+    if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
+      return { urls: [], error: "Source URLs must use http or https." };
+    }
+    if (!parsed.hostname) return { urls: [], error: "Source URLs must include a host." };
+    if (!urls.includes(item)) urls.push(item);
+  }
+  return { urls, error: null };
+}
+
+export function renderDiscoveryRequestFormHtml(defaultTopic, defaultSeedUrls = "") {
+  const seeds = Array.isArray(defaultSeedUrls) ? defaultSeedUrls.join("\n") : (defaultSeedUrls || "");
   return `
     <div class="empty-state">
-      <p>No discovery has run for this job yet. Submit a topic to start Phase 1A feed discovery.</p>
+      <p>No discovery has run for this job yet. Submit a topic, or add http(s) source URLs for the guarded manual fetch.</p>
       <form id="discovery-request-form">
         ${textFieldHtml({ id: "discovery-topic", label: "Topic", value: defaultTopic || "", placeholder: "e.g. Rafale deal" })}
         ${textFieldHtml({ id: "discovery-language", label: "Language", value: "en", placeholder: "en or ta" })}
         ${textFieldHtml({ id: "discovery-terms", label: "Search terms (comma-separated)", value: "", placeholder: "optional" })}
+        ${textFieldHtml({ id: "discovery-seed-urls", label: "Source URLs", value: seeds, multiline: true, placeholder: "https://example.com/article" })}
+        <p class="meta">One http or https URL per line. Saving a URL does not fetch it and does not approve the source.</p>
+        <div id="discovery-url-status" role="status"></div>
         <button type="submit" class="primary">Submit discovery request</button>
+        <button type="button" id="discovery-save-urls">Save source URLs</button>
       </form>
-      <p class="meta">After submitting, queue the job. The worker discovers article URLs, fetches them, and extracts claims. Evidence stays pending until you approve it.</p>
+      <p class="meta">After submitting, queue the job. The worker fetches saved source URLs through the guarded manual path and extracts claims. Evidence stays pending until you approve it.</p>
       <button type="button" id="discovery-queue-btn">Queue job</button>
     </div>`;
 }

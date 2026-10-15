@@ -117,6 +117,18 @@ def independence_groups(sources: list[dict]) -> dict[str, str]:
     return {row["source_id"]: find(row["source_id"]) for row in sources}
 
 
+def _ineligible(source: dict) -> str | None:
+    """Sources that must not move a verdict. None means the source may be compared."""
+    if source.get("retracted"):
+        return "retracted"
+    if source.get("retrieval_error"):
+        return "retrieval_error"
+    decision = str(source.get("review_decision") or "").strip().upper()
+    if decision in {"REJECTED", "INVALID"}:
+        return decision.lower()
+    return None
+
+
 def _reliability(source: dict) -> dict:
     """Evidence-specific factors. Category is stored beside them, not as the score."""
     factors = {
@@ -233,8 +245,13 @@ def _assess(claim: dict, by_source: dict, groups: dict, collection: dict) -> dic
     origin = claim.get("source_id")
     confidence = float(claim.get("extraction_confidence") if claim.get("extraction_confidence") is not None else 1)
     evidence = []
+    excluded = []
     for source_id, source in by_source.items():
         if source_id == origin:
+            continue
+        reason = _ineligible(source)
+        if reason:
+            excluded.append({"source_id": source_id, "reason": reason})
             continue
         excerpt = source.get("excerpt") or ""
         relation = _relationship(normalized, entities, excerpt)
@@ -326,6 +343,7 @@ def _assess(claim: dict, by_source: dict, groups: dict, collection: dict) -> dic
         "missing": missing,
         "independent_support_groups": sorted(support_groups),
         "independent_contradiction_groups": sorted(contradict_groups),
+        "excluded_sources": excluded,
         "confidence": factors,
         "risk": "high" if review_required else ("medium" if provisional == "PARTIALLY_SUPPORTED" else "low"),
         "script_treatment": _treatment(verdict if not _high_impact(claim) else provisional, review_required),

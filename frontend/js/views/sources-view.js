@@ -17,9 +17,10 @@ function renderUrl(url) {
   return `<a href="${escapeHtml(href)}" target="_blank" rel="noopener noreferrer">${escapeHtml(href)}</a>`;
 }
 
-export function renderSourcesList(sources, selectedId) {
+export function renderSourcesList(sources, selectedId, emptyMessage) {
   if (!sources || sources.length === 0) {
-    return `<div class="empty-state">No sources match the current filter.</div>`;
+    const message = emptyMessage || "No sources match the current filter.";
+    return `<div class="empty-state">${escapeHtml(message)}</div>`;
   }
   return sources.map((source) => {
     const title = source.declared_metadata?.title || source.canonical_url || source.source_id;

@@ -289,6 +289,21 @@ def test_cancel_running_job_cannot_commit(env):
         assert con.execute("SELECT count(*) FROM voice_generations WHERE status='COMPLETED'").fetchone()[0] == 0
 
 
+def test_generic_stage_transition_cannot_revive_cancelled_voice_job(env):
+    job = env["c"].post("/api/voice/generations", headers=H(key="cancelled-stage"),
+                        json={"script": "Already cancelled.", "direction": direction()}).json()
+    cancelled = env["c"].post(f"/api/voice/jobs/{job['job_id']}/cancel", headers=H())
+    assert cancelled.status_code == 200 and cancelled.json()["status"] == "CANCELLED"
+
+    revived = env["c"].post(
+        f"/api/jobs/{job['job_id']}/stages/voice_generation/transitions",
+        headers=H(), json={"status": "RUNNING"},
+    )
+
+    assert revived.status_code == 409
+    assert env["c"].get(f"/api/voice/jobs/{job['job_id']}", headers=H()).json()["status"] == "CANCELLED"
+
+
 def test_restart_recovery_requeues_expired_claim(env):
     j = env["c"].post("/api/voice/generations", headers=H(key="r1"),
                       json={"script": "Recover me.", "direction": direction()}).json()

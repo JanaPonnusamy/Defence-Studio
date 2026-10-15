@@ -62,5 +62,8 @@ export function renderClaimDetail(claim, conflictPairs) {
     ${chip("Designations", entities.designations)}
     ${(claim.warnings || []).length ? `<div class="chip-row">${claim.warnings.map((w) => `<span class="chip">${escapeHtml(w)}</span>`).join("")}</div>` : ""}
     ${conflictBlock}
-    ${claim.has_conflict ? `<h4>Review decision</h4><div id="decision-panel-mount"></div><h4>History</h4><div id="history-mount"></div>` : ""}`;
+    <h4>Review decision</h4>
+    <div id="decision-panel-mount"></div>
+    <h4>History</h4>
+    <div id="history-mount"></div>`;
 }

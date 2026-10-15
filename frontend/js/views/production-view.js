@@ -64,15 +64,24 @@ export async function runAction(ctx, node, label, fn) {
     ctx.refresh();
   } catch (error) {
     if (out) out.textContent = error.message || String(error);
+    // A 409 means the server's own freshness/prerequisite check just fired --
+    // the UI's cached readiness (computed before this click) is now known
+    // wrong. Re-render from the server rather than leaving stale-looking
+    // buttons enabled until the next unrelated refresh.
+    if (error && error.status === 409) ctx.refresh();
   }
 }
 
 // -- Scenes + visual plan section ----------------------------------------------
 
-export function renderScenesHtml(plans, selected) {
+export function renderScenesHtml(plans, selected, { canGenerate = false, staleReason = "" } = {}) {
+  const blockedNote = staleReason
+    ? `<p class="meta" role="alert">The approved script is no longer current (${esc(staleReason)}). Re-approve the script, then regenerate the scene plan.</p>`
+    : '<p class="meta">Approve the script on the Script tab before generating a plan.</p>';
   if (!plans.length) {
     return `<p class="meta">No scene plan yet. An approved script is required.</p>
-      <button type="button" data-act="generate-plan">Generate scene plan from approved script</button>`;
+      <button type="button" data-act="generate-plan" ${canGenerate ? "" : "disabled"}>Generate scene plan from approved script</button>
+      ${canGenerate ? "" : blockedNote}`;
   }
   const latest = selected || plans[plans.length - 1];
   const rows = latest.scenes.map((s, i) => `
@@ -89,12 +98,18 @@ export function renderScenesHtml(plans, selected) {
         <button type="button" data-act="transition" data-scene="${esc(s.scene_id)}">Next transition</button>
       </div>
     </li>`).join("");
-  const canApprove = latest.status === "DRAFT" || latest.status === "AWAITING_REVIEW";
-  return `<p class="meta">Version ${latest.version} · ${statusChip(latest.status)} · ${latest.scenes.length} scene(s)</p>
+  // Approval also requires the bound script revision still be current -- a
+  // plan built on a now-superseded script cannot be approved server-side
+  // (SceneStaleRevision/409) even while its own status is still DRAFT/
+  // AWAITING_REVIEW, so staleReason gates this the same as generation.
+  const canApprove = (latest.status === "DRAFT" || latest.status === "AWAITING_REVIEW") && !staleReason;
+  return `<p class="meta">Version ${latest.version} · ${statusChip(latest.status, !!staleReason)} · ${latest.scenes.length} scene(s)</p>
+    ${staleReason ? `<p class="meta" role="alert">This plan's script revision is no longer current (${esc(staleReason)}); it cannot be approved. Regenerate after re-approving the script.</p>` : ""}
     <ol class="scene-list">${rows}</ol>
     <label>Approval note <input type="text" id="plan-note" maxlength="500"></label>
     <button type="button" data-act="approve-plan" data-version="${latest.version}" ${canApprove ? "" : "disabled"}>Approve this plan</button>
-    <button type="button" data-act="regenerate-plan">Regenerate from approved script</button>`;
+    <button type="button" data-act="regenerate-plan" ${canGenerate ? "" : "disabled"}>Regenerate from approved script</button>
+    ${canGenerate ? "" : blockedNote}`;
 }
 
 export function renderVisualHtml(status, plan) {
@@ -124,7 +139,24 @@ registerSection({
         `/jobs/${encodeURIComponent(ctx.jobId)}/scene/plans/${ctx.language}/${row.version}`)), plan_sha256: row.plan_sha256 });
     }
     ctx.plan = plans[0] || null;
-    return renderScenesHtml(plans) + '<div data-action-status role="status"></div>';
+    // Readiness is the authoritative server freshness result, not a bare
+    // "an APPROVED row exists" check: an approved revision that the evidence
+    // package has since outgrown is reported APPROVED but STALE, and the
+    // server refuses to generate/approve a plan against it (409).
+    let canGenerate = false, staleReason = "";
+    try {
+      const [scripts, staleness] = await Promise.all([
+        ctx.api.request("GET", `/jobs/${encodeURIComponent(ctx.jobId)}/script/revisions?language=${encodeURIComponent(ctx.language)}`),
+        ctx.api.getScriptStaleness(ctx.jobId, ctx.language).catch(() => null),
+      ]);
+      const staleByKey = new Map(((staleness && staleness.revisions) || [])
+        .map((r) => [`${r.language}:${r.version}`, r]));
+      const approved = (scripts.revisions || []).find((row) => row.status === "APPROVED");
+      const current = approved && staleByKey.get(`${approved.language}:${approved.version}`);
+      canGenerate = !!(approved && current && current.state === "CURRENT");
+      if (approved && current && current.state === "STALE") staleReason = current.reason;
+    } catch (_) { canGenerate = false; }
+    return renderScenesHtml(plans, null, { canGenerate, staleReason }) + '<div data-action-status role="status"></div>';
   },
   wire(ctx, node) {
     const job = encodeURIComponent(ctx.jobId);
@@ -186,7 +218,7 @@ registerSection({
 
 // -- Audio section (RM-4) --------------------------------------------------------
 
-export function renderAudioHtml(status, setBody) {
+export function renderAudioHtml(status, setBody, { canGenerate = false, staleReason = "" } = {}) {
   const items = (status && status.items) || [];
   const providers = Object.entries((status && status.provider_languages) || {});
   const runs = items.length ? `<ul class="run-list">${items.map((it) => `
@@ -213,7 +245,10 @@ export function renderAudioHtml(status, setBody) {
     declared to support is refused rather than spoken with the wrong voice. Word timing is approximate; scene durations
     are measured from the audio.</p>
     <label>Provider <input type="text" id="audio-provider" value="local-pyttsx3"></label>
-    <button type="button" data-act="generate-audio">Generate narration audio</button>`;
+    <button type="button" data-act="generate-audio" ${canGenerate ? "" : "disabled"}>Generate narration audio</button>
+    ${canGenerate ? "" : `<p class="meta">${staleReason
+        ? `The approved scene plan is no longer current (${esc(staleReason)}). Re-sync/regenerate it before generating audio.`
+        : "An approved scene plan is required before narration audio can be generated."}</p>`}`;
 }
 
 registerSection({
@@ -225,7 +260,23 @@ registerSection({
     const done = [...status.items].reverse().find((i) => i.status === "SUCCEEDED" && !i.stale);
     ctx.audioSet = done ? await ctx.api.request("GET", `/jobs/${job}/audio/${ctx.language}/${done.version}`) : null;
     ctx.audioVersion = done ? done.version : null;
-    return renderAudioHtml(status, ctx.audioSet) + '<div data-action-status role="status"></div>';
+    // An APPROVED scene plan is not sufficient on its own: the server
+    // (`_approved_plan`) additionally requires the script revision the plan
+    // was built from (`script_version`) to still be CURRENT per
+    // /script/staleness, and fails closed (409 IntegrationStale) otherwise.
+    // Re-derive that same freshness check here so the button does not show
+    // enabled for a plan the server would reject.
+    let canGenerate = false, staleReason = "";
+    if (ctx.plan && ctx.plan.status === "APPROVED") {
+      try {
+        const staleness = await ctx.api.getScriptStaleness(ctx.jobId, ctx.language);
+        const bound = (staleness.revisions || []).find((r) =>
+          r.language === ctx.language && r.version === ctx.plan.script_version);
+        canGenerate = !!(bound && bound.state === "CURRENT");
+        if (!canGenerate) staleReason = (bound && bound.reason) || "the approved script revision this plan was built from is no longer current";
+      } catch (_) { canGenerate = false; }
+    }
+    return renderAudioHtml(status, ctx.audioSet, { canGenerate, staleReason }) + '<div data-action-status role="status"></div>';
   },
   wire(ctx, node) {
     const job = encodeURIComponent(ctx.jobId);

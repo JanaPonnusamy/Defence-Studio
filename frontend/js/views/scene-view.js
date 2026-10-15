@@ -23,13 +23,30 @@ export async function mountScene({ api, jobId, list, detail, filters, isCurrent 
   const showError = (error) => { if (isCurrent()) list.innerHTML = `<p role="alert" class="error-state">${esc(error.message)}</p>`; };
 
   // Script readiness is checked proactively (not only discovered after a
-  // failed generate attempt), driven entirely by the real persisted script
-  // revisions -- the same source of truth the server re-checks before every
-  // scene-plan generate/approve call.
-  const readinessHtml = (scriptRevisions, language) => {
+  // failed generate attempt), driven by the authoritative /script/staleness
+  // result -- the same freshness check the server re-runs (and fails closed
+  // with 409 on) before every scene-plan generate/approve call. A revision
+  // that is APPROVED but STALE (the evidence package changed after it was
+  // approved) must not be treated as ready: an APPROVED status row alone
+  // does not mean the server will currently accept it.
+  const isReady = (staleByKey, scriptRevisions, language) => {
     const approved = (scriptRevisions || []).find(r => r.language === language && r.status === "APPROVED");
-    if (approved) {
+    if (!approved) return { ready: false, reason: "" };
+    const current = staleByKey.get(`${language}:${approved.version}`);
+    if (current && current.state === "STALE") return { ready: false, reason: current.reason };
+    return { ready: true, reason: "" };
+  };
+
+  const readinessHtml = (staleByKey, scriptRevisions, language) => {
+    const { ready, reason } = isReady(staleByKey, scriptRevisions, language);
+    if (ready) {
       return `<p class="inline-ok" role="status">An approved ${language === "ta" ? "Tamil" : "English"} script revision is current -- scene generation is available.</p>`;
+    }
+    if (reason) {
+      return `<div class="inline-blocked" role="alert">
+        <strong>The approved ${language === "ta" ? "Tamil" : "English"} script revision is no longer current.</strong>
+        <p>${esc(reason)} Re-approve the script on the Script tab before generating a scene plan.</p>
+      </div>`;
     }
     return `<div class="inline-blocked" role="alert">
       <strong>No approved ${language === "ta" ? "Tamil" : "English"} script revision.</strong>
@@ -39,13 +56,16 @@ export async function mountScene({ api, jobId, list, detail, filters, isCurrent 
 
   const render = async () => {
     try {
-      const [result, scriptResult] = await Promise.all([
+      const [result, scriptResult, staleness] = await Promise.all([
         api.listScenePlans(jobId),
         api.listScriptRevisions(jobId).catch(() => ({ revisions: [] })),
+        api.getScriptStaleness(jobId).catch(() => null),
       ]);
       if (!isCurrent()) return;
       const plans = result.plans || [];
       const scriptRevisions = scriptResult.revisions || [];
+      const staleByKey = new Map(((staleness && staleness.revisions) || [])
+        .map(r => [`${r.language}:${r.version}`, r]));
       const byLanguage = { ta: plans.filter(p => p.language === "ta"), en: plans.filter(p => p.language === "en") };
       list.innerHTML = `<h2>Scene planning</h2>
         <form id="scene-generate-form">
@@ -56,11 +76,11 @@ export async function mountScene({ api, jobId, list, detail, filters, isCurrent 
                 <option value="en" ${state.language === "en" ? "selected" : ""}>English</option>
               </select>
             </label>
-            <div id="scene-gen-readiness">${readinessHtml(scriptRevisions, state.language)}</div>
+            <div id="scene-gen-readiness">${readinessHtml(staleByKey, scriptRevisions, state.language)}</div>
             ${textFieldHtml({ id: "scene-gen-wpm", label: "Words per minute", value: String(DEFAULT_CONFIG.words_per_minute) })}
             ${textFieldHtml({ id: "scene-gen-transition", label: "Default transition", value: DEFAULT_CONFIG.default_transition })}
             ${textFieldHtml({ id: "scene-gen-duration", label: "Target total duration (seconds)", value: String(DEFAULT_CONFIG.target_total_seconds) })}
-            <button type="submit" id="scene-gen-submit">Generate plan</button>
+            <button type="submit" id="scene-gen-submit" ${isReady(staleByKey, scriptRevisions, state.language).ready ? "" : "disabled"}>Generate plan</button>
           </fieldset>
         </form>
         <div id="scene-gen-status" role="status"></div>
@@ -78,7 +98,8 @@ export async function mountScene({ api, jobId, list, detail, filters, isCurrent 
       const languageSelect = list.querySelector("#scene-gen-language");
       languageSelect.addEventListener("change", () => {
         state.language = languageSelect.value;
-        list.querySelector("#scene-gen-readiness").innerHTML = readinessHtml(scriptRevisions, state.language);
+        list.querySelector("#scene-gen-readiness").innerHTML = readinessHtml(staleByKey, scriptRevisions, state.language);
+        list.querySelector("#scene-gen-submit").disabled = !isReady(staleByKey, scriptRevisions, state.language).ready;
       });
       const form = list.querySelector("#scene-generate-form");
       const statusEl = list.querySelector("#scene-gen-status");
@@ -99,9 +120,15 @@ export async function mountScene({ api, jobId, list, detail, filters, isCurrent 
           statusEl.textContent = `Scene plan generated: version ${plan.version}, status ${plan.status}.`;
           await render();
         } catch (error) {
-          if (isCurrent()) statusEl.textContent = error.message;
-        } finally {
-          if (isCurrent()) submitBtn.disabled = false;
+          if (!isCurrent()) return;
+          statusEl.textContent = error.message;
+          // A 409 means the server's own freshness check just rejected this
+          // attempt (e.g. the script was re-approved or went stale between
+          // page load and submit) -- the cached scriptRevisions/staleByKey
+          // snapshot used to enable this button is now known wrong. Re-sync
+          // from the server rather than re-enabling from stale local state.
+          if (error && error.status === 409) await render();
+          else submitBtn.disabled = !isReady(staleByKey, scriptRevisions, languageSelect.value).ready;
         }
       });
       if (state.selected) await openPlan(state.selected);

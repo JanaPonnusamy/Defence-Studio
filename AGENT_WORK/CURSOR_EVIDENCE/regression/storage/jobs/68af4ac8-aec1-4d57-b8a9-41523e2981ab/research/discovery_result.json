@@ -1,0 +1,31 @@
+{
+  "candidates": [],
+  "dedup_notes": [],
+  "discovered_at": "2026-10-15T14:34:50.406180+00:00",
+  "job_id": "68af4ac8-aec1-4d57-b8a9-41523e2981ab",
+  "language": "en",
+  "providers": [
+    {
+      "candidates_returned": 0,
+      "duration_ms": 0,
+      "filters_applied": [
+        "seed_urls"
+      ],
+      "filters_not_supported": [],
+      "http_attempts": 0,
+      "message": "All seed URLs failed: https://example.com/: SOURCE_NOT_ALLOWLISTED: URL host/path is not permitted by the source registry (host example.com); add an enabled entry to config/source_policy.json to allow it",
+      "optional_dependency": false,
+      "provider": "manual_url",
+      "rate_limited": false,
+      "requires_credentials": false,
+      "status": "ERROR",
+      "truncated": false
+    }
+  ],
+  "requested_limit": 10,
+  "returned": 0,
+  "schema_version": "defence-studio.discovery-result.v2",
+  "status": "COMPLETED_WITH_FAILURES",
+  "topic": "Manual URL acceptance",
+  "warnings": []
+}

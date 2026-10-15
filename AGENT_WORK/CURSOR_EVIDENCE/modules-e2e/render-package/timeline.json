@@ -1,0 +1,108 @@
+{
+  "schema": "video-visual-timeline",
+  "version": "1.1",
+  "visual_plan_id": "synthetic-plan-3",
+  "project_id": "synthetic-project",
+  "generated_at": "2026-10-13T00:00:00+00:00",
+  "start": 0.0,
+  "duration": 5.518,
+  "output": {
+    "width": null,
+    "height": null,
+    "frame_rate": null,
+    "defined": false,
+    "note": null
+  },
+  "timing": {
+    "sources": [
+      "ESTIMATED"
+    ],
+    "timing_source": "ESTIMATED",
+    "estimated": true,
+    "gaps_closed": 0,
+    "gap_seconds_closed": 0.0,
+    "units": "seconds on the narration timeline"
+  },
+  "shots": [
+    {
+      "shot_id": "shot-0000",
+      "scene_id": "scene-000",
+      "order": 0,
+      "start": 0.0,
+      "end": 5.518,
+      "duration": 5.518,
+      "asset_id": "asset-000",
+      "visual_type": "SOURCE_PHOTO",
+      "source_type": "EXTERNAL_SOURCE",
+      "editorial_label": "FACTUAL_EVIDENCE",
+      "intent": "CONTEXT",
+      "status": "READY",
+      "gap_code": null,
+      "narration_anchor": {
+        "segment_ids": [
+          "seg-0000"
+        ],
+        "text": "Narration for synthetic shot 0.",
+        "start": 0.0,
+        "end": 5.518,
+        "timing_source": "ESTIMATED"
+      },
+      "motion": {
+        "type": "STATIC",
+        "easing": "linear",
+        "duration": 5.518
+      },
+      "crop": {
+        "composition": "wide",
+        "x": 0,
+        "y": 0,
+        "w": 1,
+        "h": 1,
+        "aspect_preserved": true
+      },
+      "transition": "FADE_IN",
+      "overlays": [],
+      "attribution": null,
+      "editorial_reason": "synthetic",
+      "frame_start": null,
+      "frame_end": null
+    }
+  ],
+  "assets": {
+    "asset-000": {
+      "asset_id": "asset-000",
+      "asset_type": "IMAGE",
+      "source_type": "EXTERNAL_SOURCE",
+      "editorial_label": "FACTUAL_EVIDENCE",
+      "is_mock": false,
+      "uri": "storage://assets/synthetic/asset-000.png",
+      "url": "/assets/asset-000/file",
+      "mime_type": "image/png",
+      "width": 1600,
+      "height": 900,
+      "duration": null,
+      "title": "Synthetic asset-000",
+      "attribution": "synthetic test fixture",
+      "licence": "CC0",
+      "rights_status": "LICENSED",
+      "rights_label": "Synthetic fixture (generated locally)",
+      "source_url": null,
+      "checksum_sha256": "dc5734bc823d367a926857440ddb1438c1a603d98e03ce977b688b09fd9e25c6",
+      "generation_kind": "NOT_GENERATED",
+      "provenance_class": "SOURCE_ORIGINAL",
+      "evidence_eligible": true,
+      "is_fallback": false,
+      "fallback_from": null,
+      "provider": null,
+      "model": null,
+      "provider_request_id": null,
+      "creator": null,
+      "source_identity": null,
+      "licence_url": null,
+      "attribution_required": false,
+      "acquired_at": null
+    }
+  },
+  "attributions": [],
+  "summary": {}
+}

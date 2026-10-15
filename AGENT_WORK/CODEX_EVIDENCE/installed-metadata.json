@@ -1,0 +1,26 @@
+{
+  "name": "defence-studio",
+  "requires": [
+    "fastapi<1,>=0.115",
+    "uvicorn<1,>=0.30",
+    "httpx<1,>=0.27",
+    "cryptography<46,>=42",
+    "python-multipart<1,>=0.0.9",
+    "pillow<12,>=10",
+    "yt-dlp>=2024.1; extra == \"youtube\"",
+    "pytest<10,>=8; extra == \"test\"",
+    "numpy<3,>=1.26; extra == \"test\""
+  ],
+  "top_level": "defence_studio\n",
+  "direct_url": {
+    "dir_info": {
+      "editable": true
+    },
+    "url": "file:///E:/Jana%20Soft/DefenceStudio/backend"
+  },
+  "outside_source_import": {
+    "returncode": 0,
+    "stdout": "Defence Studio API\n",
+    "stderr": ""
+  }
+}

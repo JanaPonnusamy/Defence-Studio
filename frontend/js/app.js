@@ -20,8 +20,9 @@ import { renderLoginHtml } from "./views/login-view.js";
 import {
   renderDiscoveryRequestFormHtml, renderDiscoveryCandidatesListHtml, renderSelectionSummaryHtml,
   renderDiscoveryFilterFormHtml, renderCoverageHtml, renderEmptyResultsHtml, renderPaginationHtml,
-  renderSearchHistoryHtml,
+  renderSearchHistoryHtml, parseSeedUrlInput,
 } from "./views/discovery-view.js";
+import { singleFlight } from "./components/single-flight.js";
 
 const session = loadSession();
 const state = {
@@ -444,7 +445,11 @@ async function loadDiscovery() {
     state.discoveryHistory = await api.listDiscoverySearches().then((r) => r.searches).catch(() => []);
     if (result.empty_reason && !result.candidates.length) {
       const requestInfo = await api.getDiscoveryRequest(state.jobId).catch(() => null);
-      el.list.innerHTML = renderDiscoveryRequestFormHtml(requestInfo && requestInfo.request ? requestInfo.request.topic : "");
+      const savedRequest = requestInfo && requestInfo.request;
+      el.list.innerHTML = renderDiscoveryRequestFormHtml(
+        savedRequest ? savedRequest.topic : "",
+        savedRequest && savedRequest.seed_urls ? savedRequest.seed_urls : "",
+      );
       wireDiscoveryRequestForm();
       return;
     }
@@ -542,41 +547,80 @@ function updateConfirmButtonState() {
   btn.textContent = n ? `Confirm selection (${n})` : "Confirm selection";
 }
 
+function readableApiError(err, fallback) {
+  const raw = err instanceof ApiError ? String(err.detail || "") : "";
+  if (!raw || /traceback|site-packages|sqlite|\.py\b|[A-Za-z]:\\/i.test(raw)) return fallback;
+  return raw;
+}
+
 function wireDiscoveryRequestForm() {
   const form = el.list.querySelector("#discovery-request-form");
+  const flight = singleFlight();
+  const statusBox = () => el.list.querySelector("#discovery-url-status");
+  const setStatus = (message, isError) => {
+    const box = statusBox();
+    if (box) box.textContent = message;
+    showToast(message, { isError });
+  };
+  const saveRequest = async ({ requireUrls }) => {
+    const topic = el.list.querySelector("#discovery-topic").value.trim();
+    const language = el.list.querySelector("#discovery-language").value.trim() || "en";
+    const terms = el.list.querySelector("#discovery-terms").value.trim();
+    const rawUrls = el.list.querySelector("#discovery-seed-urls").value;
+    if (!topic) throw new ApiError(422, "Enter a topic first.");
+    const parsed = parseSeedUrlInput(rawUrls, { required: requireUrls });
+    if (parsed.error) throw new ApiError(422, parsed.error);
+    if (!state.jobId) {
+      const created = await api.createJob(topic, language, newIdempotencyKey());
+      state.jobId = created.job_id;
+      saveJobId(state.jobId);
+      renderTopbar();
+    }
+    const saved = await api.createDiscoveryRequest(state.jobId, {
+      topic, language,
+      search_terms: terms ? terms.split(",").map((t) => t.trim()).filter(Boolean) : [],
+      seed_urls: parsed.urls,
+    });
+    const savedUrls = (saved && saved.request && saved.request.seed_urls) || [];
+    setStatus(savedUrls.length
+      ? `Saved ${savedUrls.length} source URL(s). Queue the job to fetch them. Nothing is approved automatically.`
+      : "Topic saved. Queue the job so discovery, fetch, and extraction can run. Evidence stays pending until you approve it.",
+    false);
+  };
   if (form) {
-    form.addEventListener("submit", async (e) => {
+    form.addEventListener("submit", (e) => {
       e.preventDefault();
-      const topic = el.list.querySelector("#discovery-topic").value.trim();
-      const language = el.list.querySelector("#discovery-language").value.trim() || "en";
-      const terms = el.list.querySelector("#discovery-terms").value.trim();
-      try {
-        if (!topic) throw new ApiError(422, "Enter a topic first.");
-        if (!state.jobId) {
-          const created = await api.createJob(topic, language, newIdempotencyKey());
-          state.jobId = created.job_id;
-          saveJobId(state.jobId);
-          renderTopbar();
-        }
-        await api.createDiscoveryRequest(state.jobId, {
-          topic, language,
-          search_terms: terms ? terms.split(",").map((t) => t.trim()).filter(Boolean) : [],
-        });
-        showToast("Topic saved. Queue the job so discovery, fetch, and extraction can run.");
-      } catch (err) {
-        showToast(err instanceof ApiError ? err.detail : "Could not save the discovery request.", { isError: true });
-      }
+      const button = form.querySelector("[type=submit]");
+      flight(button, async () => {
+        const box = statusBox();
+        if (box) box.textContent = "Saving discovery request…";
+        try { await saveRequest({ requireUrls: false }); }
+        catch (err) { setStatus(readableApiError(err, "Could not save the discovery request."), true); }
+      });
+    });
+  }
+  const saveUrls = el.list.querySelector("#discovery-save-urls");
+  if (saveUrls) {
+    saveUrls.addEventListener("click", () => {
+      flight(saveUrls, async () => {
+        const box = statusBox();
+        if (box) box.textContent = "Saving source URLs…";
+        try { await saveRequest({ requireUrls: true }); }
+        catch (err) { setStatus(readableApiError(err, "Could not save the source URLs."), true); }
+      });
     });
   }
   const queueBtn = el.list.querySelector("#discovery-queue-btn");
   if (queueBtn) {
-    queueBtn.addEventListener("click", async () => {
-      try {
-        await api.queueJob(state.jobId);
-        showToast("Job queued. The worker will discover URLs, fetch pages, and extract claims. Evidence stays unapproved.");
-      } catch (err) {
-        showToast(err instanceof ApiError ? err.detail : "Could not queue the job.", { isError: true });
-      }
+    queueBtn.addEventListener("click", () => {
+      flight(queueBtn, async () => {
+        try {
+          await api.queueJob(state.jobId);
+          showToast("Job queued. The worker will fetch saved source URLs and extract claims. Evidence stays unapproved.");
+        } catch (err) {
+          showToast(readableApiError(err, "Could not queue the job."), { isError: true });
+        }
+      });
     });
   }
 }
@@ -600,7 +644,11 @@ async function loadSources() {
   el.list.innerHTML = `<div class="loading-state">Loading sources…</div>`;
   try {
     state.sourcesResult = await api.listSources(state.jobId, state.sourceStatus || undefined);
-    el.list.innerHTML = renderSourcesList(state.sourcesResult.sources, state.selectedSourceId);
+    const emptyMessage = state.sourceStatus
+      ? "No sources match the current filter."
+      : (state.sourcesResult.empty_reason
+        || "No sources were acquired for this job. Check Discovery for a fetch failure. Nothing was approved.");
+    el.list.innerHTML = renderSourcesList(state.sourcesResult.sources, state.selectedSourceId, emptyMessage);
     wireSourceCards();
     if (state.selectedSourceId) await loadSourceDetail(state.selectedSourceId);
     else clearDetail();
@@ -700,13 +748,12 @@ async function loadClaimDetail(claimId) {
   wireBackButton();
   try {
     const claim = await api.getClaim(state.jobId, claimId);
-    const history = claim.has_conflict ? await api.claimHistory(state.jobId, claimId) : [];
+    const history = await api.claimHistory(state.jobId, claimId);
     const conflictPairs = await resolveConflictPairs(claim);
     el.detail.innerHTML = `<button type="button" class="back-button" id="back-btn">&larr; Back</button>${renderClaimDetail(claim, conflictPairs)}`;
     wireBackButton();
     const viewSourceBtn = el.detail.querySelector('[data-action="view-source"]');
     if (viewSourceBtn) viewSourceBtn.addEventListener("click", () => setHash("sources", viewSourceBtn.dataset.sourceId));
-    if (!claim.has_conflict) return;
     mountDecisionPanel({
       kind: "claim", subjectId: claimId,
       review: claim.review, isStale: claim.is_stale,

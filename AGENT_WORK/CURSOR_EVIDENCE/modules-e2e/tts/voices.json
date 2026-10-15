@@ -1,0 +1,16 @@
+[
+  {
+    "id": "HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Speech\\Voices\\Tokens\\TTS_MS_EN-GB_HAZEL_11.0",
+    "name": "Microsoft Hazel Desktop - English (Great Britain)",
+    "languages": [
+      "en-GB"
+    ]
+  },
+  {
+    "id": "HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Speech\\Voices\\Tokens\\TTS_MS_EN-US_ZIRA_11.0",
+    "name": "Microsoft Zira Desktop - English (United States)",
+    "languages": [
+      "en-US"
+    ]
+  }
+]

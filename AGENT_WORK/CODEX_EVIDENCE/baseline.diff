@@ -1,0 +1,157 @@
+diff --git a/backend/defence_studio/services/script_integrity.py b/backend/defence_studio/services/script_integrity.py
+index d184423..cced222 100644
+--- a/backend/defence_studio/services/script_integrity.py
++++ b/backend/defence_studio/services/script_integrity.py
+@@ -53,21 +53,64 @@ def independent_source_clusters(package: dict) -> dict[str, str]:
+     return cluster
+ 
+ 
++def _is_eligible_claim(claim: dict, eligible_ids: set[str],
++                      sources_by_id: dict[str, dict]) -> bool:
++    """A claim qualifies as corroborating evidence only if it is in the
++    package's own authoritative ``eligible_claim_ids`` snapshot (the same set
++    ``EvidenceService._assemble`` computes from the current claim+source
++    review decisions) *and*, wherever this package also embeds the claim's
++    and its source's own review/staleness state, that state is consistent
++    with eligibility. A claim or source review/staleness state that is
++    missing, unrecognised, or contradicts the snapshot fails closed (treated
++    as ineligible) rather than silently assumed approved."""
++    claim_id = claim.get("claim_id")
++    if claim_id not in eligible_ids:
++        return False
++    claim_review = claim.get("review")
++    if claim_review is not None:
++        if claim_review.get("decision") != "APPROVED_FOR_USE":
++            return False
++        if claim.get("is_stale"):
++            return False
++    source = sources_by_id.get(claim.get("source_id"))
++    if source is not None:
++        source_review = source.get("review")
++        if source_review is not None:
++            if source_review.get("decision") != "APPROVED_FOR_USE":
++                return False
++            if source.get("is_stale"):
++                return False
++    return True
++
++
+ def corroboration_count(package: dict, claim_id: str) -> int:
+-    """Independent source clusters that state the same assertion as claim_id.
+-    Uses claim_groups (textual relationship) only as a *candidate* for
+-    corroboration; independence comes from the duplicate clustering."""
++    """Independent, currently-eligible source clusters that state the same
++    assertion as claim_id. Rejected, pending/needs-more-evidence, stale, or
++    otherwise ineligible claims and sources never contribute -- only claims in
++    the package's authoritative ``eligible_claim_ids`` snapshot, backed by a
++    source that is itself approved and current, are counted. Uses
++    claim_groups (textual relationship) only as a *candidate* for
++    corroboration; independence comes from the duplicate clustering, and
++    counting is over distinct source clusters, not claims, so repeated claims
++    from the same source can never inflate the count."""
+     claims = {c["claim_id"]: c for c in package.get("claims", [])}
+     if claim_id not in claims:
+         return 0
++    eligible_ids = set(package.get("eligible_claim_ids") or [])
++    if claim_id not in eligible_ids:
++        return 0
++    sources_by_id = {s["source_id"]: s for s in package.get("sources", [])}
+     cluster = independent_source_clusters(package)
+     members = {claim_id}
+     for group in package.get("claim_groups", []):
+         if claim_id in group.get("member_claim_ids", []):
+             members.update(group.get("member_claim_ids", []))
+-    textual = len({cluster.get(claims[m]["source_id"], claims[m]["source_id"]) for m in members if m in claims})
++    qualifying = [claims[m] for m in members if m in claims
++                 and _is_eligible_claim(claims[m], eligible_ids, sources_by_id)]
++    textual = len({cluster.get(c["source_id"], c["source_id"]) for c in qualifying})
+     # The automatic evidence policy counts independent, non-manufacturer source GROUPS that state the same
+-    # assertion or figure. Honour it so the prompt, the policy and this validator agree.
++    # assertion or figure. Honour it so the prompt, the policy and this validator agree -- but only when the
++    # claim itself is still currently eligible; a stale/superseded policy decision never overrides eligibility.
+     policy = ((package.get("automated_decisions") or {}).get("claims") or {}).get(claim_id) or {}
+     if policy.get("state") == "AUTO_ACCEPTED" and isinstance(policy.get("independent_groups"), int):
+         return max(textual, policy["independent_groups"])
+diff --git a/backend/pyproject.toml b/backend/pyproject.toml
+index 3fc5e39..41e09db 100644
+--- a/backend/pyproject.toml
++++ b/backend/pyproject.toml
+@@ -1,14 +1,47 @@
++[build-system]
++requires = ["setuptools>=68"]
++build-backend = "setuptools.build_meta"
++
+ [project]
+ name = "defence-studio"
+ version = "0.1.0"
+ requires-python = ">=3.11"
+-dependencies = ["fastapi>=0.115,<1", "uvicorn>=0.30,<1", "httpx>=0.27,<1"]
++dependencies = [
++    "fastapi>=0.115,<1", "uvicorn>=0.30,<1", "httpx>=0.27,<1",
++    "cryptography>=42,<46",
++    # Required by api/voice_routes.py's multipart file-upload endpoint
++    # (FastAPI's Form/UploadFile parameter parsing); FastAPI only raises this
++    # at request-handling-route-registration time, not at FastAPI-import
++    # time, so it was not caught until create_app() actually built that route
++    # in a dependency-clean environment.
++    "python-multipart>=0.0.9,<1",
++    # Used by integrations/branding.py and services/integration.py (both lazy,
++    # function-local imports -- defence_studio itself still imports fine
++    # without it, same testable-without-dependency pattern as yt-dlp, but the
++    # functions that actually render a thumbnail/branded frame need it).
++    "pillow>=10,<12",
++]
+ 
+ [project.optional-dependencies]
+ # yt-dlp is only required to acquire YouTube captions live; the provider and its
+ # tests load without it (the real backend imports it lazily and fails closed).
+ youtube = ["yt-dlp>=2024.1"]
+-test = ["pytest>=8,<10"]
++# numpy: test-only (tests/test_voice_integration.py builds synthetic WAV
++# sample arrays for the voice-engine integration tests); no defence_studio/
++# production module imports it.
++test = ["pytest>=8,<10", "numpy>=1.26,<3"]
++
++[tool.setuptools.packages.find]
++# The repository root (one level above this file) also holds `config/`
++# (JSON policy/branding data, read by file path -- see
++# defence_studio/acquisition/source_policy.py, discovery/taxonomy.py,
++# integrations/branding.py, services/evidence_policy.py -- never imported as
++# a Python package) plus `scripts/` and `tests/`. A flat-layout setuptools
++# default scan treats every top-level directory as a candidate package,
++# which previously made `config` (and, depending on scan order, `scripts`/
++# `tests`) collide with `defence_studio` during `pip install -e .`. Only the
++# real importable package is intended for distribution.
++include = ["defence_studio*"]
+ 
+ [tool.pytest.ini_options]
+ testpaths = ["tests"]
+diff --git a/backend/tests/conftest.py b/backend/tests/conftest.py
+index ecf7989..ad27b96 100644
+--- a/backend/tests/conftest.py
++++ b/backend/tests/conftest.py
+@@ -5,14 +5,21 @@ import json
+ import os
+ import time
+ 
++SECRET = "phase-one-test-signing-secret-32-bytes-minimum"
++# Must run before `defence_studio.api.app` is imported below: that module
++# constructs a module-level FastAPI app (`app = create_app()`, the
++# conventional `uvicorn defence_studio.api.app:app` entrypoint documented in
++# README.md/OPERATIONS.md) as an import-time side effect, and create_app()
++# raises RuntimeError if DEFENCE_STUDIO_AUTH_SECRET is unset/too short. A
++# fresh test process has no secret exported yet, so this test-only default
++# must be set before that import executes, not after.
++os.environ.setdefault("DEFENCE_STUDIO_AUTH_SECRET", SECRET)
++
+ import pytest
+ from fastapi.testclient import TestClient
+ 
+ from defence_studio.api.app import create_app
+ 
+-SECRET = "phase-one-test-signing-secret-32-bytes-minimum"
+-os.environ.setdefault("DEFENCE_STUDIO_AUTH_SECRET", SECRET)
+-
+ 
+ def access_token(subject: str, secret: str = SECRET) -> str:
+     encode = lambda value: base64.urlsafe_b64encode(value).rstrip(b"=").decode()

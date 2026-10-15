@@ -1,0 +1,30 @@
+{
+  "HEAD": {
+    "count": 2,
+    "issues": [
+      {
+        "code": "SOURCE_DATE_UNKNOWN",
+        "severity": "WARNING",
+        "section_id": "s",
+        "detail": "Claim c1: source publication date is unavailable"
+      }
+    ]
+  },
+  "final": {
+    "count": 1,
+    "issues": [
+      {
+        "code": "FACT_NOT_CORROBORATED",
+        "severity": "ERROR",
+        "section_id": "s",
+        "detail": "Presented as VERIFIED_FACT but not corroborated by >=2 independent sources: ['c1']"
+      },
+      {
+        "code": "SOURCE_DATE_UNKNOWN",
+        "severity": "WARNING",
+        "section_id": "s",
+        "detail": "Claim c1: source publication date is unavailable"
+      }
+    ]
+  }
+}

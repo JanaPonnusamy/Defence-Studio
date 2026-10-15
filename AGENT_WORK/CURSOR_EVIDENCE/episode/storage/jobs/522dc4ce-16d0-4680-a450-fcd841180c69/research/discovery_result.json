@@ -1,0 +1,148 @@
+{
+  "candidates": [
+    {
+      "candidate_id": "148827db7320d204c6c3f4e53296339538cf636f",
+      "canonical_url": "https://missilethreat.csis.org/defsys/s-400-triumf/",
+      "category": "RUSSIA_UKRAINE",
+      "category_basis": "KEYWORD_RULE",
+      "declared_metadata": {
+        "language": "en",
+        "language_status": "COLLECTED",
+        "published_at": null,
+        "published_at_status": "UNAVAILABLE",
+        "publisher": "Missile Threat",
+        "publisher_status": "COLLECTED",
+        "title": "S-400 Triumf | Missile Threat",
+        "title_status": "COLLECTED"
+      },
+      "discovered_at": "2026-10-15T14:23:20.070189+00:00",
+      "filter_flags": [],
+      "merged_from_providers": [],
+      "original_metadata": {
+        "declared_canonical_url": "https://missilethreat.csis.org/defsys/s-400-triumf/",
+        "fetch_status": "REACHABLE",
+        "final_url": "https://missilethreat.csis.org/defsys/s-400-triumf/",
+        "http_status": 200,
+        "media_type": "text/html",
+        "publisher_declared": true,
+        "reachability_only": true,
+        "seed_url": "https://missilethreat.csis.org/defsys/s-400-triumf/",
+        "text_chars": 6480,
+        "text_sha256": "4a7b8f35d1c6c8dad04c135f4f63e4856dc6f2fe814aa364483fb9cce3946d5b"
+      },
+      "provider": "manual_url",
+      "provider_rank": null,
+      "provider_version": "0.1.0",
+      "ranking": {
+        "explanation": [
+          "Title shares 3/5 topic token(s).",
+          "No publication date was available; neutral recency score.",
+          "Candidate language matches the requested language 'en'.",
+          "No source-type preference was set."
+        ],
+        "language_match_score": 1.0,
+        "recency_score": 0.5,
+        "relevance_score": 0.6,
+        "source_type_score": 1.0,
+        "total_score": 0.7
+      },
+      "region_basis": "KEYWORD_RULE",
+      "regions": [
+        "RUSSIA",
+        "EUROPE"
+      ],
+      "requested_url": "https://missilethreat.csis.org/defsys/s-400-triumf/",
+      "retrieved_at": "2026-10-15T14:23:20.070189+00:00",
+      "snippet": "S-400 Triumf | Missile Threat Skip to the content Analysis Defense Systems Missiles of the World Resources About Search for: Search Defense Systems System Component: S-400 Triumf S-400 Triumf Last Updated July 6, 2021 Associated Systems: Russian Air and Missile Defense The S-400 Triumf (NATO: SA-21 Growler) is a mobile, surface-to-air missile system (SAM) designed by Russia. It is capable of engaging aircraft, UAVs, cruise missiles, and has a terminal ballistic missile defense capability. It rep",
+      "source_class": "UNKNOWN",
+      "source_type": "web_page",
+      "warnings": []
+    },
+    {
+      "candidate_id": "9310b0a55b625410bad0c205edc3a8cf18273981",
+      "canonical_url": "https://www.rusi.org/explore-our-research/publications/rusi-defence-systems/russias-air-defence-challenge-syria",
+      "category": "RUSSIA_UKRAINE",
+      "category_basis": "KEYWORD_RULE",
+      "declared_metadata": {
+        "language": "en",
+        "language_status": "COLLECTED",
+        "published_at": null,
+        "published_at_status": "UNAVAILABLE",
+        "publisher": "www.rusi.org",
+        "publisher_status": "COLLECTED",
+        "title": "Russia\u2019s Air Defence Challenge in Syria",
+        "title_status": "COLLECTED"
+      },
+      "discovered_at": "2026-10-15T14:23:20.070189+00:00",
+      "filter_flags": [],
+      "merged_from_providers": [],
+      "original_metadata": {
+        "declared_canonical_url": null,
+        "fetch_status": "REACHABLE",
+        "final_url": "https://www.rusi.org/explore-our-research/publications/rusi-defence-systems/russias-air-defence-challenge-syria",
+        "http_status": 200,
+        "media_type": "text/html",
+        "publisher_declared": false,
+        "reachability_only": true,
+        "seed_url": "https://www.rusi.org/explore-our-research/publications/rusi-defence-systems/russias-air-defence-challenge-syria",
+        "text_chars": 9705,
+        "text_sha256": "70afe6a14008f94dee01335835bd8e27c09111c7db7f697460eb72c0d7d8c81b"
+      },
+      "provider": "manual_url",
+      "provider_rank": null,
+      "provider_version": "0.1.0",
+      "ranking": {
+        "explanation": [
+          "Title shares 1/5 topic token(s).",
+          "No publication date was available; neutral recency score.",
+          "Candidate language matches the requested language 'en'.",
+          "No source-type preference was set."
+        ],
+        "language_match_score": 1.0,
+        "recency_score": 0.5,
+        "relevance_score": 0.2,
+        "source_type_score": 1.0,
+        "total_score": 0.5
+      },
+      "region_basis": "KEYWORD_RULE",
+      "regions": [
+        "RUSSIA",
+        "MIDDLE_EAST"
+      ],
+      "requested_url": "https://www.rusi.org/explore-our-research/publications/rusi-defence-systems/russias-air-defence-challenge-syria",
+      "retrieved_at": "2026-10-15T14:23:20.070189+00:00",
+      "snippet": "Russia\u2019s Air Defence Challenge in Syria | Royal United Services Institute Explore our Research Events News & Comment Membership Support us About Our Offices Log in / Register Explore our Research Events News & Comment Membership Support us About Our Offices Log in / Register Explore Our Research Publications RUSI Defence Systems RUSI Defence Systems VOLUME 19 Russia\u2019s Air Defence Challenge in Syria Justin Bronk 29 June 2017 Long Read Russia\u2019s S-400 surface to air missile system and its Su-35 fig",
+      "source_class": "UNKNOWN",
+      "source_type": "web_page",
+      "warnings": []
+    }
+  ],
+  "dedup_notes": [],
+  "discovered_at": "2026-10-15T14:23:20.070189+00:00",
+  "job_id": "522dc4ce-16d0-4680-a450-fcd841180c69",
+  "language": "en",
+  "providers": [
+    {
+      "candidates_returned": 2,
+      "duration_ms": 4327,
+      "filters_applied": [
+        "seed_urls"
+      ],
+      "filters_not_supported": [],
+      "http_attempts": 2,
+      "message": "Fetched 2 seed URL(s); HTTP 200 shows reachability only.",
+      "optional_dependency": false,
+      "provider": "manual_url",
+      "rate_limited": false,
+      "requires_credentials": false,
+      "status": "OK",
+      "truncated": false
+    }
+  ],
+  "requested_limit": 10,
+  "returned": 2,
+  "schema_version": "defence-studio.discovery-result.v2",
+  "status": "COMPLETED",
+  "topic": "S-400 Triumf English acceptance",
+  "warnings": []
+}

@@ -1,0 +1,25 @@
+{
+  "job_id": "522dc4ce-16d0-4680-a450-fcd841180c69",
+  "schema_version": "defence-studio.acquisition-request.v1",
+  "selection": "automatic_from_discovery",
+  "targets": [
+    {
+      "language_preferences": [
+        "en"
+      ],
+      "method": "auto",
+      "target_id": "148827db7320d204c6c3f4e53296339538cf636f",
+      "title_hint": "S-400 Triumf | Missile Threat",
+      "url": "https://missilethreat.csis.org/defsys/s-400-triumf/"
+    },
+    {
+      "language_preferences": [
+        "en"
+      ],
+      "method": "auto",
+      "target_id": "9310b0a55b625410bad0c205edc3a8cf18273981",
+      "title_hint": "Russia\u2019s Air Defence Challenge in Syria",
+      "url": "https://www.rusi.org/explore-our-research/publications/rusi-defence-systems/russias-air-defence-challenge-syria"
+    }
+  ]
+}

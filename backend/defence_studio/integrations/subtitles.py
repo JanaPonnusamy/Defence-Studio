@@ -23,17 +23,42 @@ from pathlib import Path
 CUE_TIMING_METHOD = "scene_measured_chunk_proportional"
 MIN_CUE_SECONDS = 0.6
 
+_WINDOWS_FONTS = Path(os.environ.get("WINDIR") or os.environ.get("SYSTEMROOT") or "C:/Windows") / "Fonts"
 _FONT_CANDIDATES = {
-    "ta": [("C:/Windows/Fonts/Nirmala.ttf", "Nirmala UI"), ("/usr/share/fonts/truetype/noto/NotoSansTamil-Regular.ttf", "Noto Sans Tamil")],
+    "ta": [(str(_WINDOWS_FONTS / "Nirmala.ttc"), "Nirmala UI"),
+           (str(_WINDOWS_FONTS / "Nirmala.ttf"), "Nirmala UI"),
+           ("/usr/share/fonts/truetype/noto/NotoSansTamil-Regular.ttf", "Noto Sans Tamil")],
     "en": [("C:/Windows/Fonts/segoeui.ttf", "Segoe UI"), ("C:/Windows/Fonts/arial.ttf", "Arial"),
            ("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", "DejaVu Sans")],
 }
+_TAMIL_COVERAGE_PROBE = "தமிழ் செய்தி இந்தியா"
 
 
 class SubtitleError(Exception):
     def __init__(self, code: str, message: str):
         super().__init__(message)
         self.code, self.message = code, message
+
+
+def _has_tamil_glyph_coverage(path: Path) -> bool:
+    """Check a font face can load and contains the Tamil glyphs used by our probe.
+
+    This checks cmap coverage, not complex-script shaping. The FFmpeg/libass
+    burn-in test exercises the configured shaping stack separately.
+    """
+    try:
+        from PIL import ImageFont
+
+        font = ImageFont.truetype(str(path), 32)
+        missing_glyph = font.getmask("\U0010ffff")
+        missing_signature = (missing_glyph.size, missing_glyph.mode, bytes(missing_glyph))
+        for character in set(_TAMIL_COVERAGE_PROBE.replace(" ", "")):
+            glyph = font.getmask(character)
+            if (glyph.size, glyph.mode, bytes(glyph)) == missing_signature:
+                return False
+        return True
+    except (OSError, ValueError):
+        return False
 
 
 def resolve_font(language: str) -> tuple[Path, str]:
@@ -45,10 +70,13 @@ def resolve_font(language: str) -> tuple[Path, str]:
         if not family or not Path(override).is_file():
             raise SubtitleError("font_config", "DEFENCE_STUDIO_SUBTITLE_FONT_FILE needs an existing file and "
                                                "DEFENCE_STUDIO_SUBTITLE_FONT_FAMILY")
+        if language == "ta" and not _has_tamil_glyph_coverage(Path(override)):
+            raise SubtitleError("font_config", "The configured subtitle font does not provide the required Tamil glyphs")
         return Path(override), family
     for path, family in _FONT_CANDIDATES.get(language, _FONT_CANDIDATES["en"]):
-        if Path(path).is_file():
-            return Path(path), family
+        candidate = Path(path)
+        if candidate.is_file() and (language != "ta" or _has_tamil_glyph_coverage(candidate)):
+            return candidate, family
     raise SubtitleError("font_missing", f"No font with {language!r} coverage found; set "
                                         "DEFENCE_STUDIO_SUBTITLE_FONT_FILE and ..._FAMILY")
 

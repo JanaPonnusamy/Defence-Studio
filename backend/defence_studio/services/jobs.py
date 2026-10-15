@@ -150,6 +150,8 @@ class JobService:
             job = repo.get_owned_job(job_id, owner_id)
             if job is None:
                 raise JobNotFound("Workflow job not found")
+            if job["status"] == "CANCELLED":
+                raise InvalidTransition("A cancelled job cannot accept stage transitions")
             if job["status"] == "QUEUED":
                 raise InvalidTransition("Queued jobs are controlled by the worker")
             stage = connection.execute(

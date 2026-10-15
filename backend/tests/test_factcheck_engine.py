@@ -93,6 +93,43 @@ def test_duplicate_text_clusters_and_syndication_is_one_group():
     assert result["verdicts"][0]["verdict"] == "PARTIALLY_SUPPORTED"
 
 
+def test_rejected_retracted_and_failed_sources_do_not_corroborate():
+    result = verify_claims(
+        [_claim(STATEMENT)],
+        [
+            _source("origin", STATEMENT),
+            _source("retracted-a", SUPPORT_A, publisher="Desk A", retracted=True),
+            _source("failed-b", SUPPORT_B, publisher="Desk B", retrieval_error="HTTP 404"),
+            _source("rejected-c", SUPPORT_A, publisher="Desk C", review_decision="REJECTED"),
+            _source("copy-a", SUPPORT_A, publisher="Wire A"),
+            _source("copy-b", SUPPORT_A, publisher="Wire B"),
+        ],
+    )
+    verdict = result["verdicts"][0]
+    assert verdict["verdict"] == "PARTIALLY_SUPPORTED"
+    assert len(verdict["independent_support_groups"]) == 1
+    excluded = {row["source_id"]: row["reason"] for row in verdict["excluded_sources"]}
+    assert excluded == {
+        "retracted-a": "retracted",
+        "failed-b": "retrieval_error",
+        "rejected-c": "rejected",
+    }
+    again = verify_claims(
+        [_claim(STATEMENT)],
+        [
+            _source("origin", STATEMENT),
+            _source("retracted-a", SUPPORT_A, publisher="Desk A", retracted=True),
+            _source("failed-b", SUPPORT_B, publisher="Desk B", retrieval_error="HTTP 404"),
+            _source("rejected-c", SUPPORT_A, publisher="Desk C", review_decision="REJECTED"),
+            _source("copy-a", SUPPORT_A, publisher="Wire A"),
+            _source("copy-b", SUPPORT_A, publisher="Wire B"),
+        ],
+    )
+    assert {key: value for key, value in again.items() if key != "checked_at"} == {
+        key: value for key, value in result.items() if key != "checked_at"
+    }
+
+
 def test_verified_needs_two_independent_supports():
     result = verify_claims(
         [_claim(STATEMENT)],

@@ -1,0 +1,69 @@
+{
+  "passed": true,
+  "checks": [
+    {
+      "name": "file_exists_nonempty",
+      "ok": true
+    },
+    {
+      "name": "container_mp4",
+      "ok": true
+    },
+    {
+      "name": "video_stream_h264",
+      "ok": true
+    },
+    {
+      "name": "pixel_format_yuv420p",
+      "ok": true
+    },
+    {
+      "name": "audio_stream_aac",
+      "ok": true
+    },
+    {
+      "name": "audio_sample_rate_48k",
+      "ok": true
+    },
+    {
+      "name": "resolution",
+      "ok": true
+    },
+    {
+      "name": "frame_rate",
+      "ok": true
+    },
+    {
+      "name": "duration_within_tolerance",
+      "ok": true
+    },
+    {
+      "name": "full_decode_no_errors",
+      "ok": true
+    },
+    {
+      "name": "frame_count",
+      "ok": true
+    }
+  ],
+  "sha256": "90945580954a5490ebfef7f8fdfb2e518fad82060def6046fbea73f78f3788a1",
+  "bytes": 99352,
+  "video": {
+    "codec_name": "h264",
+    "profile": "High",
+    "width": 320,
+    "height": 180,
+    "pix_fmt": "yuv420p",
+    "avg_frame_rate": "12/1",
+    "nb_frames": "66",
+    "duration": "5.500000"
+  },
+  "audio": {
+    "codec_name": "aac",
+    "sample_rate": "48000",
+    "channels": 1,
+    "duration": "5.518000"
+  },
+  "duration": "5.518000",
+  "decode_errors": 0
+}

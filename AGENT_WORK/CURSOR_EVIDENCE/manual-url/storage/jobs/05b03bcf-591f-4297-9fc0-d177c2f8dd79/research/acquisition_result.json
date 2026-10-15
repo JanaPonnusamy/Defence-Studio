@@ -1,0 +1,13 @@
+{
+  "acquired_at": "2026-10-15T14:14:01.976021+00:00",
+  "failed": 0,
+  "job_id": "05b03bcf-591f-4297-9fc0-d177c2f8dd79",
+  "requested": 0,
+  "schema_version": "defence-studio.acquisition-result.v1",
+  "skipped_duplicate": 0,
+  "sources": [],
+  "succeeded": 0,
+  "warnings": [
+    "Discovery returned no fetchable article URLs; nothing was fetched."
+  ]
+}

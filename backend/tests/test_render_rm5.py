@@ -22,7 +22,7 @@ from fastapi.testclient import TestClient
 from defence_studio.api.app import create_app
 from defence_studio.integrations import subtitles as subs
 from defence_studio.integrations.audio_module import AudioModuleClient
-from defence_studio.integrations.renderer_module import RendererClient
+from defence_studio.integrations.renderer_module import RendererClient, RendererError
 from defence_studio.integrations.visual_module import VisualModuleClient
 from defence_studio.services.audio import AudioService
 from defence_studio.services.integration import IntegrationStale, IntegrationValidationError
@@ -74,6 +74,81 @@ def test_font_resolution_fails_closed_without_family(monkeypatch, tmp_path):
     monkeypatch.delenv("DEFENCE_STUDIO_SUBTITLE_FONT_FAMILY", raising=False)
     with pytest.raises(subs.SubtitleError):
         subs.resolve_font("ta")
+
+
+@pytest.mark.skipif(not (subs._WINDOWS_FONTS / "Nirmala.ttc").is_file(),
+                    reason="Windows Nirmala font collection is not installed")
+def test_tamil_default_windows_resolves_nirmala_collection(monkeypatch):
+    monkeypatch.delenv("DEFENCE_STUDIO_SUBTITLE_FONT_FILE", raising=False)
+    monkeypatch.delenv("DEFENCE_STUDIO_SUBTITLE_FONT_FAMILY", raising=False)
+
+    font, family = subs.resolve_font("ta")
+
+    assert font == subs._WINDOWS_FONTS / "Nirmala.ttc"
+    assert family == "Nirmala UI"
+
+
+@pytest.mark.skipif(not (subs._WINDOWS_FONTS / "Nirmala.ttc").is_file(),
+                    reason="Windows Nirmala font collection is not installed")
+def test_tamil_collection_candidate_loads_supported_face(monkeypatch):
+    from PIL import ImageFont
+
+    collection = subs._WINDOWS_FONTS / "Nirmala.ttc"
+    monkeypatch.setattr(subs, "_FONT_CANDIDATES", {"ta": [(str(collection), "Nirmala UI")], "en": []})
+    monkeypatch.delenv("DEFENCE_STUDIO_SUBTITLE_FONT_FILE", raising=False)
+    monkeypatch.delenv("DEFENCE_STUDIO_SUBTITLE_FONT_FAMILY", raising=False)
+
+    font, family = subs.resolve_font("ta")
+    loaded_face = ImageFont.truetype(str(font), 32)
+
+    assert font == collection
+    assert family == loaded_face.getname()[0] == "Nirmala UI"
+    assert subs._has_tamil_glyph_coverage(font)
+
+
+@pytest.mark.skipif(not (subs._WINDOWS_FONTS / "Nirmala.ttc").is_file(),
+                    reason="Windows Nirmala font collection is not installed")
+def test_tamil_explicit_font_override_is_preserved(monkeypatch):
+    collection = subs._WINDOWS_FONTS / "Nirmala.ttc"
+    monkeypatch.setattr(subs, "_FONT_CANDIDATES", {"ta": [], "en": []})
+    monkeypatch.setenv("DEFENCE_STUDIO_SUBTITLE_FONT_FILE", str(collection))
+    monkeypatch.setenv("DEFENCE_STUDIO_SUBTITLE_FONT_FAMILY", "Nirmala UI")
+
+    assert subs.resolve_font("ta") == (collection, "Nirmala UI")
+
+
+def test_tamil_missing_font_fails_closed(monkeypatch, tmp_path):
+    missing = tmp_path / "Nirmala.ttc"
+    monkeypatch.setattr(subs, "_FONT_CANDIDATES", {"ta": [(str(missing), "Nirmala UI")], "en": []})
+    monkeypatch.delenv("DEFENCE_STUDIO_SUBTITLE_FONT_FILE", raising=False)
+    monkeypatch.delenv("DEFENCE_STUDIO_SUBTITLE_FONT_FAMILY", raising=False)
+
+    with pytest.raises(subs.SubtitleError) as exc:
+        subs.resolve_font("ta")
+
+    assert exc.value.code == "font_missing"
+
+
+def test_tamil_explicit_override_rejects_font_without_tamil_coverage(monkeypatch, tmp_path):
+    not_a_font = tmp_path / "latin-only.ttf"
+    not_a_font.write_bytes(b"not a font")
+    monkeypatch.setenv("DEFENCE_STUDIO_SUBTITLE_FONT_FILE", str(not_a_font))
+    monkeypatch.setenv("DEFENCE_STUDIO_SUBTITLE_FONT_FAMILY", "Latin Only")
+
+    with pytest.raises(subs.SubtitleError) as exc:
+        subs.resolve_font("ta")
+
+    assert exc.value.code == "font_config"
+
+
+def test_non_tamil_font_resolution_keeps_existing_candidate_behavior(monkeypatch, tmp_path):
+    candidate = tmp_path / "legacy-font.ttf"
+    candidate.write_bytes(b"existing non-Tamil candidate")
+    monkeypatch.setattr(subs, "_FONT_CANDIDATES", {"ta": [], "en": [(str(candidate), "Legacy Font")]})
+    monkeypatch.delenv("DEFENCE_STUDIO_SUBTITLE_FONT_FILE", raising=False)
+    monkeypatch.delenv("DEFENCE_STUDIO_SUBTITLE_FONT_FAMILY", raising=False)
+
+    assert subs.resolve_font("en") == (candidate, "Legacy Font")
 
 
 # -- real FFmpeg / libass Tamil -------------------------------------------------
@@ -224,6 +299,71 @@ def test_renderer_failure_and_failed_qc_are_never_success(chain):
             svc.render_file(s["job"], OWNER, "en", item["version"], "plain")
         retried = svc.retry_render(s["job"], OWNER, "en", item["version"], f"retry-{expect}", background=False)
         assert retried["version"] == item["version"] + 1
+
+
+def test_cancelled_render_keeps_cancelled_terminal_state(chain):
+    s = chain["s"]
+
+    class CancellingRenderer:
+        cancel = None
+
+        def render(self, *_args, on_progress=None, **_kwargs):
+            self.cancel()
+            on_progress(0.5, 5, 10)
+            raise RendererError("CANCELLED", "Renderer cancelled")
+
+    renderer = CancellingRenderer()
+    svc = RenderService(s["db"], s["root"], provider=s["provider"], renderer_client=renderer,
+                        visual_client=visual_client(chain["fv"]))
+    renderer.cancel = lambda: svc.cancel_render(s["job"], OWNER, "en", 1)
+
+    item = svc.start_render(s["job"], OWNER, "en", "cancel-race", audio_version=chain["a"]["version"],
+                            visual_version=chain["v"]["version"], background=False)
+
+    assert item["status"] == "CANCELLED"
+
+
+def test_independent_client_reads_persisted_render_progress(chain):
+    s = chain["s"]
+    svc = RenderService(s["db"], s["root"], provider=s["provider"], renderer_client=renderer_client(FakeRenderer()),
+                        visual_client=visual_client(chain["fv"]))
+    app = create_app(s["db"], SECRET, s["root"])
+    headers = {"Authorization": f"Bearer {access_token(OWNER)}"}
+
+    with TestClient(app) as client:
+        row, created = svc._create_row(s["job"], OWNER, "en", "render", {"test": "progress"}, "read-progress")
+        assert created
+        svc._transition(s["job"], "en", "render", row["version"], "RUNNING",
+                        detail="Rendering frame 5/10", progress=0.45)
+
+        response = client.get(f"/api/jobs/{s['job']}/render/en", headers=headers)
+
+    assert response.status_code == 200
+    render = response.json()["items"][0]
+    assert render["status"] == "RUNNING"
+    assert render["progress"] == 0.45
+    assert render["detail"] == "Rendering frame 5/10"
+
+
+def test_api_startup_marks_interrupted_render_without_completing_it(chain):
+    s = chain["s"]
+    svc = RenderService(s["db"], s["root"], provider=s["provider"], renderer_client=renderer_client(FakeRenderer()),
+                        visual_client=visual_client(chain["fv"]))
+    row, created = svc._create_row(s["job"], OWNER, "en", "render", {"test": "restart"}, "restart-render")
+    assert created
+    svc._transition(s["job"], "en", "render", row["version"], "RUNNING",
+                    detail="Rendering frame 4/10", progress=0.4)
+
+    app = create_app(s["db"], SECRET, s["root"])
+    headers = {"Authorization": f"Bearer {access_token(OWNER)}"}
+    with TestClient(app) as client:
+        response = client.get(f"/api/jobs/{s['job']}/render/en", headers=headers)
+
+    assert response.status_code == 200
+    render = response.json()["items"][0]
+    assert render["status"] == "INTERRUPTED"
+    assert render["progress"] == 0.4
+    assert render["detail"] == "Process stopped before completion; retry to run again."
 
 
 def test_tampered_audio_blocks_render(chain):

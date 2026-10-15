@@ -1,0 +1,25 @@
+{
+  "jobId": "522dc4ce-16d0-4680-a450-fcd841180c69",
+  "stages": [
+    {
+      "name": "script-generation",
+      "status": "VERIFIED",
+      "detail": "{\"awaiting\":true,\"provider\":true,\"attributed\":true,\"cost\":true,\"approval\":true} Script generation\n\nEvidence package is approved and current -- generation is available.\n\nGENERATE A DRAFT\nLANGUAGE \nTamil (primary narration)\nEnglish\nAUDIENCE\nTONE\nFORMAT\nTARGET WORDS\nTARGET DURATION (SECONDS)\nMODEL\nMAX TEXT-GENERATION COST"
+    },
+    {
+      "name": "script-layout-390",
+      "status": "VERIFIED",
+      "detail": "390/390"
+    },
+    {
+      "name": "scene-audio-render-qc-package",
+      "status": "NOT_RUN",
+      "detail": "Pipeline status\nAPPROVED evidence package\nAWAITING_REVIEW script v1\nNONE scene plan\nNONE assets\nNONE audio set\nNONE visual timeline\nNONE render\nNONE qc report\nNONE final approval\nNONE publish package\nNONE publishing\n\nDerived from saved state; the same on every device and after a restart.\n\nScene plan\n\nNo scene plan yet. An approved script is required.\n\nGenerate scene plan from approved script\nVisual timeline\n\nNo visual plan has been built yet.\n\nTiming sent to the Visual Module is the scene plan's estimate; it is rebuilt from measured audio alignment later. Shots with no rights-cleared asset stay as gaps and are never filled automatically.\n\nBuild visual timeline\n\nApprove the scene plan first.\n\nNarration audio\n\nNo narration audio has been generated yet.\n\nVoices available by provider: local-pyttsx3: en · mock-tts: no production languages. A language a provider is not declared to support is r"
+    },
+    {
+      "name": "refresh",
+      "status": "VERIFIED",
+      "detail": "522dc4ce-16d0-4680-a450-fcd841180c69"
+    }
+  ]
+}

@@ -1,0 +1,70 @@
+{
+  "target": "https://example.com/",
+  "results": [
+    {
+      "id": "empty-url",
+      "ok": true,
+      "note": "Enter at least one http or https source URL."
+    },
+    {
+      "id": "invalid-url",
+      "ok": true,
+      "note": "Enter an absolute http or https URL. \"not a url\" is not one."
+    },
+    {
+      "id": "credential-url-blocked",
+      "ok": true,
+      "note": "Source URLs cannot include a username or password."
+    },
+    {
+      "id": "valid-url-once",
+      "ok": true,
+      "note": "posts=1 Saved 1 source URL(s). Queue the job to fetch them. Nothing is approved automatically."
+    },
+    {
+      "id": "duplicate-submit",
+      "ok": true,
+      "note": "discovery request posts=1"
+    },
+    {
+      "id": "layout-390",
+      "ok": true,
+      "note": "390/390"
+    },
+    {
+      "id": "api-failure-keeps-input",
+      "ok": true,
+      "note": "Discovery has already started (or the job has been queued); the request can no longer be changed for this job."
+    },
+    {
+      "id": "fetch-failure-visible",
+      "ok": true,
+      "note": "No provider could run for this search. manual_url (ERROR): All seed URLs failed: https://example.com/: SOURCE_NOT_ALLOWLISTED: URL host/path is not permitted by the source registry (host example.com); add an enabled entry to config/source_policy.json to allow it manual_url: ERROR"
+    },
+    {
+      "id": "failed-fetch-creates-no-source",
+      "ok": true,
+      "note": "No sources were acquired for this job. Check Discovery for a fetch failure. Nothing was approved."
+    },
+    {
+      "id": "refresh-keeps-failed-fetch",
+      "ok": true,
+      "note": "source cards after refresh=0"
+    },
+    {
+      "id": "source-list-shows-acquired",
+      "ok": true,
+      "note": "cards=2"
+    },
+    {
+      "id": "pending-reviews-block-generation",
+      "ok": true,
+      "note": "disabled=true generatePosts=0"
+    },
+    {
+      "id": "generate-stays-disabled-until-package-approved",
+      "ok": true,
+      "note": "Evidence package Draft — not approved Revision 0cc1cd9cd99cf4e779e01ce91380597f066554bf356b3a63a26c774403d1d189 2 sources · 4 claims · 0 eligible claims Required review No approved claims with approved source support claim claim-ab3d9f0d676"
+    }
+  ]
+}
