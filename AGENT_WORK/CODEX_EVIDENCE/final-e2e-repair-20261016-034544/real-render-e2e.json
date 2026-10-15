@@ -1,0 +1,24 @@
+{
+  "created": true,
+  "job": {
+    "job_id": "r_91a68e5007c44e",
+    "status": "SUCCEEDED",
+    "progress": 1.0,
+    "stage": "done",
+    "frames_done": 240,
+    "frames_total": 240,
+    "package_path": "E:\\Jana Soft\\DefenceStudio\\AGENT_WORK\\CODEX_EVIDENCE\\final-e2e-repair-20261016-034544\\synthetic-render-work\\package",
+    "retry_of": null,
+    "idempotency_key": "final-e2e-synthetic-render",
+    "cancel_requested": false,
+    "error_code": null,
+    "error_message": null,
+    "output_sha256": "7f2ee1dddd193ffc843e570312e22eb42ceb0cb167f13dd05bf39f07a9b3183d",
+    "created_at": "2026-10-15T22:29:14.268929",
+    "started_at": "2026-10-15T22:29:14.268929",
+    "completed_at": "2026-10-15T22:29:18.094924",
+    "output_url": "/renders/r_91a68e5007c44e/output",
+    "qc_url": "/renders/r_91a68e5007c44e/qc"
+  },
+  "storage_root": "E:\\Jana Soft\\DefenceStudio\\AGENT_WORK\\CODEX_EVIDENCE\\final-e2e-repair-20261016-034544\\synthetic-render-work\\storage"
+}

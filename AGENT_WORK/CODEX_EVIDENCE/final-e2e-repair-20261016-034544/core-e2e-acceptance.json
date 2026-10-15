@@ -1,0 +1,22 @@
+{
+  "started_at": "2026-10-15T22:29:35.288845+00:00",
+  "steps": [
+    {
+      "step": "discovery: real RSS feeds",
+      "ok": false,
+      "seconds": 0.3,
+      "error": "AssertionError: no candidates from live feeds"
+    }
+  ],
+  "simulated": [
+    "human review decisions (harness acts as owner/reviewer)",
+    "script text: offline extractive provider restating approved claims, no LLM",
+    "rights-cleared still: synthetic image created by the harness"
+  ],
+  "not_done": [],
+  "job_id": "22e7b1c7-7ded-48a9-b6f4-be002f877419",
+  "topic": "E2E repair baseline",
+  "database": "E:\\Jana Soft\\DefenceStudio\\AGENT_WORK\\CODEX_EVIDENCE\\final-e2e-repair-20261016-034544\\core-e2e\\e2e-1792103375.sqlite3",
+  "finished_at": "2026-10-15T22:29:36.201828+00:00",
+  "ok": false
+}

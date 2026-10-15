@@ -86,3 +86,9 @@ No files were deleted. Retained evidence includes all Codex/Claude/Cursor report
 The single next product action is a human native-Tamil listening review of the retained Jaya/Kavitha samples, followed by a CPU/licensing decision. This resolves the highest-value uncertainty before an adapter or another expensive generation attempt. Until that review and provider decision, Tamil narration and `DEFENCE_ERA_FEMALE_001` remain BLOCKED/UNPROVISIONED.
 
 The repository can be handed off after the report/log commit is pushed and the exact remote hash is verified. Windows shutdown is **not** automatic: confirm that Claude/Cursor work is complete and that any remaining Uvicorn/IDE processes may be left running or closed by their owners, then provide an explicit final shutdown confirmation through the normal Windows controls.
+
+## Addendum — final E2E repair (2026-10-16)
+
+The timestamped report `AGENT_WORK/CODEX_EVIDENCE/final-e2e-repair-20261016-034544/final-e2e-repair-verification-20261016-034544.md` records one confirmed and fixed P1 defect in the standalone renderer: late progress/PID callbacks could update a terminal cancelled job. `renderer/jobs.py` now fences both callback updates to `RUNNING`; `tests/test_jobs.py` proves the terminal status, progress, and PID remain unchanged. Post-fix renderer verification is 118 passed/1 skipped, and an isolated 20-second H.264/AAC MP4 was hash-linked, ffprobe-checked, and fully decoded. The core acceptance harness remains blocked at live RSS discovery with no candidates and did not claim downstream success.
+
+Claude's independent read-only review is recorded at `AGENT_WORK/CLAUDE_EVIDENCE/final-e2e-repair-review-20261016.md`; it confirms the source diff and saved evidence without rerunning commands. Tamil narration, full three-module E2E, the 10-minute acceptance artifact, human review, rights/legal acceptance, and external provider paths remain open.

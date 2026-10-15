@@ -173,14 +173,15 @@ class JobService:
 
         def progress(done: int, total: int) -> None:
             with self.sf() as db:
-                db.execute(update(RenderJob).where(RenderJob.job_id == job_id)
+                db.execute(update(RenderJob).where(RenderJob.job_id == job_id, RenderJob.status == "RUNNING")
                            .values(frames_done=done, frames_total=total, progress=round(done / total, 4),
                                    stage="rendering"))
                 db.commit()
 
         def on_pid(pid: int | None) -> None:
             with self.sf() as db:
-                db.execute(update(RenderJob).where(RenderJob.job_id == job_id).values(ffmpeg_pid=pid))
+                db.execute(update(RenderJob).where(RenderJob.job_id == job_id, RenderJob.status == "RUNNING")
+                           .values(ffmpeg_pid=pid))
                 db.commit()
 
         try:

@@ -2,13 +2,15 @@
 non-existent binary where a job would otherwise start rendering)."""
 from __future__ import annotations
 
+import threading
 import time
+from types import SimpleNamespace
 
 import pytest
 
 from renderer.config import Settings
 from renderer.db import ALLOWED, TERMINAL, make_session_factory
-from renderer.errors import RendererError
+from renderer.errors import Cancelled, RendererError
 from renderer.jobs import JobService, normalise_options
 from tests.conftest import insert_job, wait_for
 
@@ -59,6 +61,38 @@ def test_cancel_running_is_cooperative(svc):
     j = svc.cancel(jid)
     assert j.status == "RUNNING" and j.cancel_requested  # the worker loop turns this into CANCELLED
     assert svc._should_cancel(jid) is True
+
+
+def test_late_worker_callbacks_cannot_report_progress_after_cancel(monkeypatch, svc, pkg_dir):
+    """A stale render callback must not make a terminal cancellation look complete."""
+    started = threading.Event()
+    release = threading.Event()
+    callbacks = {}
+
+    monkeypatch.setattr("renderer.jobs.require_tools", lambda _settings: object())
+    monkeypatch.setattr("renderer.jobs.load_package", lambda _path: SimpleNamespace(manifest_sha256="test-manifest"))
+
+    def fake_render(_pkg, _tools, _settings, _out_dir, hooks, *, meta):
+        callbacks["hooks"] = hooks
+        started.set()
+        assert release.wait(10)
+        raise Cancelled()
+
+    monkeypatch.setattr("renderer.jobs.render_package", fake_render)
+    job, created = svc.create(str(pkg_dir))
+    assert created and started.wait(10)
+    wait_for(svc, job.job_id, ("RUNNING",), 10)
+    svc.cancel(job.job_id)
+    release.set()
+    assert wait_for(svc, job.job_id, ("CANCELLED",), 10).status == "CANCELLED"
+
+    # Simulate a callback already queued by the worker after the terminal write.
+    callbacks["hooks"].on_progress(100, 100)
+    callbacks["hooks"].on_pid(12345)
+    final = svc.get(job.job_id)
+    assert final.status == "CANCELLED"
+    assert final.progress == 0.0
+    assert final.ffmpeg_pid is None
 
 
 def test_cancel_unknown_job(svc):
