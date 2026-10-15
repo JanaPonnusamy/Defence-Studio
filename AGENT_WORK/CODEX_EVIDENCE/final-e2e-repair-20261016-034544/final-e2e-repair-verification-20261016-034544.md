@@ -87,3 +87,5 @@ Claude completed a read-only review in `AGENT_WORK/CLAUDE_EVIDENCE/final-e2e-rep
 ## Git handoff
 
 Before staging this repair, only the two renderer files above were Codex-owned source/test changes. Concurrent files and retained evidence remain excluded. The final staged diff will be inspected and only explicitly reviewed files will be staged, never with `git add .`.
+
+Repair commit `b40c31fcdc655d06a3d942296b1e1c7a4d389f27` was pushed to `origin/main` with exit 0. Fresh fetch and `git ls-remote origin refs/heads/main` confirm `HEAD_MATCH=True` at that hash. The staged diff check exited 0; the whole-tree check still reports only the pre-existing Cursor-owned EOF blank-line warning.
