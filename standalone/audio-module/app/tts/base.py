@@ -17,6 +17,7 @@ class TTSRequest:
     language: str
     performance_plan: list[dict] = field(default_factory=list)
     output_format: str = "wav"
+    controls: dict = field(default_factory=dict)
 
 
 @dataclass

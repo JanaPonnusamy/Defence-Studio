@@ -171,10 +171,34 @@ async function loadProviders() {
     const opt = document.createElement("option");
     opt.value = p.provider;
     opt.textContent = `${p.provider}${p.is_mock ? " (MOCK)" : ""}`;
+    opt.disabled = p.available === false;
     select.appendChild(opt);
   });
+  const profile = await api('/tts/delivery-profile');
+  const preset = document.getElementById('deliveryPreset');
+  for (const name of Object.keys(profile.presets)) {
+    preset.add(new Option(name, name));
+  }
+  preset.addEventListener('change', () => {
+    for (const [key, value] of Object.entries(profile.presets[preset.value])) {
+      document.querySelector(`#ttsForm [name="${key}"]`).value = value;
+    }
+  });
+  const updateCapabilities = () => {
+    const provider = data.providers.find(p => p.provider === select.value);
+    document.getElementById('deliveryControls').disabled = select.value !== 'local-pyttsx3';
+    document.getElementById('providerCapabilities').textContent = JSON.stringify(provider, null, 2);
+    const language = document.querySelector('#ttsForm [name=language]').value;
+    const compatible = provider && (provider.is_mock || (provider.available && provider.voices.some(
+      v => v.languages.some(l => l === language || l.split('-')[0] === language))));
+    document.querySelector('#ttsForm button[type=submit]').disabled = !compatible;
+    document.getElementById('ttsJobStatus').textContent = compatible ? '' : 'No installed voice for this language. Generation unavailable.';
+  };
+  select.addEventListener('change', updateCapabilities);
+  document.querySelector('#ttsForm [name=language]').addEventListener('change', updateCapabilities);
+  updateCapabilities();
 }
-loadProviders();
+loadProviders().catch(e => { document.getElementById('ttsJobStatus').textContent = e.message; });
 
 document.getElementById("ttsForm").addEventListener("submit", async (e) => {
   e.preventDefault();
@@ -182,10 +206,19 @@ document.getElementById("ttsForm").addEventListener("submit", async (e) => {
   const body = {
     text: form.get("text"), voice_id: form.get("voice_id") || null,
     provider: form.get("provider"), performance_plan_id: form.get("performance_plan_id") || null,
+    language: form.get('language'),
   };
+  if (body.provider === 'local-pyttsx3') {
+    body.controls = {preset: form.get('preset'), rate_wpm: Number(form.get('rate_wpm')),
+      volume: Number(form.get('volume')), pitch_semitones: Number(form.get('pitch_semitones'))};
+  }
+  try {
   const job = await api("/tts/synthesize", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
   document.getElementById("ttsJobStatus").textContent = "Job submitted: " + job.job_id;
   pollTtsJob(job.job_id);
+  } catch (error) {
+    document.getElementById('ttsJobStatus').textContent = error.message;
+  }
 });
 
 async function pollTtsJob(jobId) {
@@ -194,10 +227,18 @@ async function pollTtsJob(jobId) {
     document.getElementById("ttsJobStatus").textContent = `Job ${jobId.slice(0,8)}: ${job.status} (${job.stage || ""})`;
     if (job.status === "SUCCEEDED") {
       const gen = await api(`/generated/${job.result_id}`);
-      document.getElementById("ttsResult").innerHTML = `
-        <p>Provider: <b>${gen.provider}</b> ${gen.provider_metadata?.is_mock ? "(MOCK)" : ""}</p>
-        <p>Duration: ${gen.duration?.toFixed(2)}s | Validation: ${gen.validation_status}</p>
-        <audio controls src="${API_BASE}${gen.stream_url}"></audio>`;
+      const card = document.createElement('article');
+      const details = document.createElement('pre');
+      details.textContent = JSON.stringify(gen, null, 2);
+      const player = document.createElement('audio');
+      player.controls = true;
+      player.src = API_BASE + gen.stream_url;
+      const save = document.createElement('a');
+      save.textContent = 'Save configuration and measurements';
+      save.download = `${gen.generated_id}.json`;
+      save.href = 'data:application/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(gen, null, 2));
+      card.append(player, save, details);
+      document.getElementById('ttsResult').prepend(card);
     } else if (job.status === "FAILED") {
       document.getElementById("ttsResult").textContent = "Failed: " + job.error_message;
     } else {

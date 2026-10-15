@@ -1,0 +1,63 @@
+{
+  "id": "original-defence-briefing",
+  "version": "1.0",
+  "description": "Independent OS narrator for clear defence briefings; not a speaker imitation.",
+  "reference_analysis": "unavailable; editorial targets, not extracted speaker measurements",
+  "provider": "local-pyttsx3",
+  "language": "en",
+  "presets": {
+    "neutral": {
+      "rate_wpm": 170,
+      "volume": 0.85,
+      "pitch_semitones": 0
+    },
+    "serious": {
+      "rate_wpm": 150,
+      "volume": 0.85,
+      "pitch_semitones": 0
+    },
+    "urgent": {
+      "rate_wpm": 195,
+      "volume": 0.95,
+      "pitch_semitones": 0
+    },
+    "calm": {
+      "rate_wpm": 140,
+      "volume": 0.75,
+      "pitch_semitones": 0
+    },
+    "documentary": {
+      "rate_wpm": 160,
+      "volume": 0.95,
+      "pitch_semitones": 0
+    }
+  },
+  "controls": {
+    "rate_wpm": {
+      "range": [
+        80,
+        260
+      ],
+      "kind": "native requested WPM; measure output"
+    },
+    "volume": {
+      "range": [
+        0,
+        1
+      ],
+      "kind": "native amplitude"
+    },
+    "pitch_semitones": {
+      "range": [
+        -3,
+        3
+      ],
+      "kind": "librosa post-processing; not native"
+    }
+  },
+  "emotion": "rate/volume approximation only; no native emotional TTS",
+  "pauses": "provider punctuation; explicit pause-duration control unsupported",
+  "pronunciation": "verbatim Unicode NFC; spell acronyms in input for operator-controlled pronunciation",
+  "emphasis": "provider punctuation only; no guaranteed word emphasis",
+  "sha256": "1390c6f70af5b00ae4bb6f5a2369b7f7fe7461d871ad0e295cc00bb7ef72c6b4"
+}

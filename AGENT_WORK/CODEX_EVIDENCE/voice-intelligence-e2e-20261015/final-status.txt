@@ -1,0 +1,21 @@
+ M AGENT_WORK/CLAUDE.md
+ M AGENT_WORK/CODEX.md
+ M standalone/audio-module/README.md
+ M standalone/audio-module/app/api/tts.py
+ M standalone/audio-module/app/jobs/handlers.py
+ M standalone/audio-module/app/jobs/queue.py
+ M standalone/audio-module/app/pipeline/analyze.py
+ M standalone/audio-module/app/pipeline/validate.py
+ M standalone/audio-module/app/schemas/io.py
+ M standalone/audio-module/app/tts/base.py
+ M standalone/audio-module/app/tts/local_pyttsx3.py
+ M standalone/audio-module/tests/test_job_queue_unit.py
+ M standalone/audio-module/ui/app.js
+ M standalone/audio-module/ui/index.html
+ M standalone/audio-module/ui/styles.css
+?? AGENT_WORK/CODEX_EVIDENCE/voice-intelligence-e2e-20261015/
+?? standalone/audio-module/app/pipeline/measure.py
+?? standalone/audio-module/app/tts/controls.py
+?? standalone/audio-module/app/tts/pyttsx3_worker.py
+?? standalone/audio-module/tests/test_tts_safety.py
+?? standalone/audio-module/tests/test_voice_measurements.py

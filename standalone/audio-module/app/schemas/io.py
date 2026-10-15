@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from datetime import datetime
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field, field_validator
 
 
 class ReferenceOut(BaseModel):
@@ -63,12 +63,27 @@ class BuildProfileRequest(BaseModel):
 
 
 class TTSSynthesizeRequest(BaseModel):
-    text: str
+    text: str = Field(min_length=1, max_length=20000)
     voice_id: str | None = None
     language: str = "en"
     performance_plan_id: str | None = None
     provider: str | None = None
     output_format: str = "wav"
+    controls: dict = Field(default_factory=dict)
+
+    @field_validator('text')
+    @classmethod
+    def nonblank(cls, value):
+        if not value.strip():
+            raise ValueError('Text cannot be blank')
+        return value
+
+    @field_validator('controls')
+    @classmethod
+    def supported_controls(cls, value):
+        from app.tts.controls import resolve_controls
+        resolve_controls(value)
+        return value
 
 
 class GeneratedAudioOut(BaseModel):

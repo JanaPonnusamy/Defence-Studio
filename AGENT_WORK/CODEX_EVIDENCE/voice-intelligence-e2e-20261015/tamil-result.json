@@ -1,0 +1,13 @@
+{
+  "job_id": "9f5d3301-29fb-432f-aa7f-052c411fb491",
+  "job_type": "tts_synthesize",
+  "status": "FAILED",
+  "progress": 0.2,
+  "stage": "SYNTHESIZING",
+  "created_at": "2026-10-15T16:08:50.086039",
+  "started_at": "2026-10-15T16:08:50.182999",
+  "completed_at": "2026-10-15T16:08:50.514168",
+  "error_code": "ValueError",
+  "error_message": "ValueError: No installed voice matches the requested voice and language",
+  "result_id": null
+}

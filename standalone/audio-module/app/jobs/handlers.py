@@ -184,16 +184,24 @@ def tts_synthesize_job(job_id: str, ctx: JobContext) -> str:
         adapter = get_adapter(provider)
         dest_path = settings.generated_dir / f"{job_id}.wav"
         request = TTSRequest(text=text, voice_id=voice_id, language=language,
-                              performance_plan=performance_plan, output_format=output_format)
+                              performance_plan=performance_plan, output_format=output_format,
+                              controls=payload.get('controls', {}))
         result = adapter.synthesize(request, dest_path)
 
         ctx.update(progress=0.7, stage="VALIDATING")
         validation = validate_generated_audio(result.result_path, expected_language=language,
                                                provider_metadata=result.provider_metadata)
+        if validation['status'] == 'FAILED':
+            raise ValueError('Generated audio failed validation: ' + validation['reason'])
 
         y, sr = sf.read(str(result.result_path))
         duration = len(y) / sr if hasattr(y, "__len__") else 0.0
         channels = 1 if (not hasattr(y, "ndim") or y.ndim == 1) else y.shape[1]
+
+        measurements = None
+        if not adapter.is_mock:
+            from app.pipeline.measure import measure
+            measurements = measure(result.result_path, text)
 
         generated = GeneratedAudio(
             job_id=job_id, text=text, voice_id=voice_id, language=language,
@@ -201,7 +209,8 @@ def tts_synthesize_job(job_id: str, ctx: JobContext) -> str:
             model=result.model, output_format=result.output_format, file_path=str(result.result_path),
             duration=duration, sample_rate=sr, channels=channels,
             validation_status=validation["status"], validation_details=validation["details"],
-            provider_metadata={**result.provider_metadata, "is_mock": adapter.is_mock, "voice": result.voice},
+            provider_metadata={**result.provider_metadata, "is_mock": adapter.is_mock, "voice": result.voice,
+                               'measurements': measurements},
         )
         db.add(generated)
         db.commit()

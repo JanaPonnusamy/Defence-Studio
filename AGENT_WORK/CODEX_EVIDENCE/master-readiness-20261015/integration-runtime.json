@@ -1,0 +1,16 @@
+{
+  "disposable_root": "C:\\Users\\Pharma\\AppData\\Local\\Temp\\ds-master-integration-t8de5qfy",
+  "command": [
+    "C:\\Users\\Pharma\\AppData\\Local\\Temp\\defence-master-backend-20261015\\Scripts\\python.exe",
+    "-m",
+    "pytest",
+    "-q",
+    "-ra",
+    "-p",
+    "no:cacheprovider",
+    "tests/test_audio_rm4.py::test_real_audio_module_integration_english",
+    "tests/test_visual_rm3.py::test_real_visual_module_integration",
+    "tests/test_render_rm5.py::test_real_end_to_end_audio_visual_render_subtitles"
+  ],
+  "fixture_limit": "Script provider/reviews are isolated synthetic fixtures, not a live OpenAI/editorial approval. Media services are real."
+}

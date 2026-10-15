@@ -1,0 +1,45 @@
+{
+  "status": "PASS",
+  "jobs": [
+    {
+      "job_id": "bb654a6b-1132-4997-8911-a7e1dd66c8cf",
+      "job_type": "tts_synthesize",
+      "status": "SUCCEEDED",
+      "progress": 1.0,
+      "stage": "DONE",
+      "created_at": "2026-10-15T16:08:26.743013",
+      "started_at": "2026-10-15T16:08:26.801461",
+      "completed_at": "2026-10-15T16:08:30.115144",
+      "error_code": null,
+      "error_message": null,
+      "result_id": "9d7ff3a6-2b4d-4c3d-b2e8-7ca25043bc53"
+    },
+    {
+      "job_id": "31f8eb2a-07dd-4d6a-ab69-32ea973edf15",
+      "job_type": "tts_synthesize",
+      "status": "SUCCEEDED",
+      "progress": 1.0,
+      "stage": "DONE",
+      "created_at": "2026-10-15T16:08:37.304597",
+      "started_at": "2026-10-15T16:08:37.322654",
+      "completed_at": "2026-10-15T16:08:38.202617",
+      "error_code": null,
+      "error_message": null,
+      "result_id": "5bc45dcd-c7b8-4dc5-86fd-0ac228364391"
+    },
+    {
+      "job_id": "8179120b-a52f-4a4e-ba35-52b2e12cb2b1",
+      "job_type": "tts_synthesize",
+      "status": "SUCCEEDED",
+      "progress": 1.0,
+      "stage": "DONE",
+      "created_at": "2026-10-15T16:08:42.723588",
+      "started_at": "2026-10-15T16:08:42.732918",
+      "completed_at": "2026-10-15T16:08:44.573093",
+      "error_code": null,
+      "error_message": null,
+      "result_id": "8d7a8a05-d17a-4dfa-85be-c99fd82fbe01"
+    }
+  ],
+  "separate_server_process": true
+}

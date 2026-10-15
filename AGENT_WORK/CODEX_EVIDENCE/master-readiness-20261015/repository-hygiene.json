@@ -1,0 +1,9 @@
+{
+  "tracked_site_packages": 6160,
+  "tracked_databases": [
+    "analysis/phase0-baseline/baseline.db",
+    "data/defence_studio.sqlite3"
+  ],
+  "tracked_env_files": [],
+  "staged": []
+}

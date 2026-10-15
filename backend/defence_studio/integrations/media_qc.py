@@ -56,12 +56,21 @@ def analyze_media(path: Path, *, silence_db: int = -45, silence_seconds: float =
 
 
 def font_codepoints(font_path: Path) -> set[int]:
-    """Code points a TrueType font can map to a glyph (cmap formats 4 and 12)."""
+    """Code points mapped to nonzero glyphs in TTF or TTC face zero.
+
+    Face zero matches the default face used by the subtitle font probe.
+    Collection table offsets remain absolute from the beginning of the file.
+    """
     data = Path(font_path).read_bytes()
-    num_tables = struct.unpack(">H", data[4:6])[0]
+    face = 0
+    if data[:4] == b'ttcf':
+        if len(data) < 16 or struct.unpack('>I', data[8:12])[0] < 1:
+            raise ValueError('empty or truncated font collection')
+        face = struct.unpack('>I', data[12:16])[0]
+    num_tables = struct.unpack(">H", data[face + 4:face + 6])[0]
     cmap_off = None
     for i in range(num_tables):
-        tag, _chk, off, _len = struct.unpack(">4sIII", data[12 + 16 * i: 28 + 16 * i])
+        tag, _chk, off, _len = struct.unpack(">4sIII", data[face + 12 + 16 * i: face + 28 + 16 * i])
         if tag == b"cmap":
             cmap_off = off
             break
@@ -78,15 +87,27 @@ def font_codepoints(font_path: Path) -> set[int]:
             seg = segx2 // 2
             ends = struct.unpack(f">{seg}H", data[base + 14: base + 14 + segx2])
             starts = struct.unpack(f">{seg}H", data[base + 16 + segx2: base + 16 + 2 * segx2])
-            for s, e in zip(starts, ends):
+            deltas = struct.unpack(f'>{seg}h', data[base + 16 + 2 * segx2:base + 16 + 3 * segx2])
+            range_base = base + 16 + 3 * segx2
+            offsets = struct.unpack(f'>{seg}H', data[range_base:range_base + segx2])
+            for index, (s, e) in enumerate(zip(starts, ends)):
                 if s == 0xFFFF:
                     continue
-                points.update(range(s, e + 1))
+                for codepoint in range(s, e + 1):
+                    if offsets[index]:
+                        address = range_base + 2 * index + offsets[index] + 2 * (codepoint - s)
+                        glyph = struct.unpack('>H', data[address:address + 2])[0]
+                        if glyph:
+                            glyph = (glyph + deltas[index]) & 0xFFFF
+                    else:
+                        glyph = (codepoint + deltas[index]) & 0xFFFF
+                    if glyph:
+                        points.add(codepoint)
         elif fmt == 12:
             n_groups = struct.unpack(">I", data[base + 12: base + 16])[0]
             for g in range(n_groups):
-                s, e, _g = struct.unpack(">III", data[base + 16 + 12 * g: base + 28 + 12 * g])
-                points.update(range(s, e + 1))
+                s, e, first_glyph = struct.unpack(">III", data[base + 16 + 12 * g: base + 28 + 12 * g])
+                points.update(range(s + (first_glyph == 0), e + 1))
     return points
 
 

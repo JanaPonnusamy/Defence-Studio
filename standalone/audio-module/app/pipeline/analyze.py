@@ -77,6 +77,8 @@ def _segment_pitch_contour(y: np.ndarray, sr: int, start: float, end: float) -> 
 
 
 def analyze_audio(y: np.ndarray, sr: int, aligned_segments: list[AlignedSegment]) -> AnalysisResult:
+    if sr <= 0 or y.ndim != 1 or not y.size or not np.isfinite(y).all():
+        raise ValueError('Analysis requires finite, nonempty mono audio and a positive sample rate')
     total_duration = float(len(y)) / sr if sr else 0.0
 
     regions = detect_speech_regions(y, sr)
@@ -94,7 +96,7 @@ def analyze_audio(y: np.ndarray, sr: int, aligned_segments: list[AlignedSegment]
     normal_pauses = [p for p in pauses if p >= 0.3]
 
     total_words = sum(len(seg.words) for seg in aligned_segments)
-    speaking_rate_wpm = (total_words / (speech_duration / 60.0)) if speech_duration > 0 else 0.0
+    speaking_rate_wpm = (total_words / (total_duration / 60.0)) if total_duration > 0 else 0.0
     articulation_rate_wps = (total_words / speech_duration) if speech_duration > 0 else 0.0
 
     # Pitch: full-track pyin

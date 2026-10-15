@@ -13,6 +13,7 @@ import traceback
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timezone
 from typing import Callable
+from sqlalchemy import update
 
 from app.config import get_settings
 from app.db.base import SessionLocal
@@ -33,13 +34,13 @@ class JobContext:
     def update(self, *, progress: float | None = None, stage: str | None = None) -> None:
         db = SessionLocal()
         try:
-            job = db.get(Job, self.job_id)
-            if not job:
-                return
+            values = {}
             if progress is not None:
-                job.progress = progress
+                values['progress'] = progress
             if stage is not None:
-                job.stage = stage
+                values['stage'] = stage
+            if values:
+                db.execute(update(Job).where(Job.job_id == self.job_id, Job.status == 'RUNNING').values(**values))
             db.commit()
         finally:
             db.close()
@@ -68,9 +69,11 @@ class JobQueue:
                 logger.error("Job %s vanished before start", job_id)
                 return
             job_type = job.job_type
-            job.status = "RUNNING"
-            job.started_at = datetime.now(timezone.utc)
+            claimed = db.execute(update(Job).where(Job.job_id == job_id, Job.status == 'QUEUED').values(
+                status='RUNNING', started_at=datetime.now(timezone.utc)))
             db.commit()
+            if claimed.rowcount != 1:
+                return
         finally:
             db.close()
 
@@ -79,11 +82,8 @@ class JobQueue:
             result_id = fn(job_id, ctx)
             db = SessionLocal()
             try:
-                job = db.get(Job, job_id)
-                job.status = "SUCCEEDED"
-                job.progress = 1.0
-                job.completed_at = datetime.now(timezone.utc)
-                job.result_id = result_id
+                db.execute(update(Job).where(Job.job_id == job_id, Job.status == 'RUNNING').values(
+                    status='SUCCEEDED', progress=1.0, completed_at=datetime.now(timezone.utc), result_id=result_id))
                 db.commit()
             finally:
                 db.close()
@@ -93,11 +93,9 @@ class JobQueue:
             logger.error("Job %s (%s) failed: %s\n%s", job_id, job_type, exc, tb)
             db = SessionLocal()
             try:
-                job = db.get(Job, job_id)
-                job.status = "FAILED"
-                job.completed_at = datetime.now(timezone.utc)
-                job.error_code = type(exc).__name__
-                job.error_message = str(exc)
+                db.execute(update(Job).where(Job.job_id == job_id, Job.status == 'RUNNING').values(
+                    status='FAILED', completed_at=datetime.now(timezone.utc),
+                    error_code=type(exc).__name__, error_message=str(exc)))
                 db.commit()
             finally:
                 db.close()

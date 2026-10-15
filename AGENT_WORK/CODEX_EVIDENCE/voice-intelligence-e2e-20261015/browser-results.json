@@ -1,0 +1,62 @@
+[
+  {
+    "name": "five original presets",
+    "ok": true,
+    "details": ""
+  },
+  {
+    "name": "unsupported mock controls disabled",
+    "ok": true,
+    "details": ""
+  },
+  {
+    "name": "real controls enabled",
+    "ok": true,
+    "details": ""
+  },
+  {
+    "name": "inventory visible",
+    "ok": true,
+    "details": ""
+  },
+  {
+    "name": "Tamil unavailable is disabled",
+    "ok": true,
+    "details": ""
+  },
+  {
+    "name": "calm sets requested rate",
+    "ok": true,
+    "details": ""
+  },
+  {
+    "name": "real measured result",
+    "ok": true,
+    "details": ""
+  },
+  {
+    "name": "browser decoded playable speech artifact",
+    "ok": true,
+    "details": ""
+  },
+  {
+    "name": "comparison preserves both samples",
+    "ok": true,
+    "details": ""
+  },
+  {
+    "name": "downloadable metadata",
+    "ok": true,
+    "details": ""
+  },
+  {
+    "name": "mobile has no horizontal overflow",
+    "ok": true,
+    "details": ""
+  },
+  {
+    "name": "no browser exceptions",
+    "ok": true,
+    "details": "[]"
+  }
+]

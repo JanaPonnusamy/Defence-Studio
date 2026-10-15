@@ -1,0 +1,47 @@
+[
+  {
+    "path": "E:\\Jana Soft\\DefenceStudio\\AGENT_WORK\\CODEX_EVIDENCE\\voice-intelligence-e2e-20261015\\fast.wav",
+    "bytes": 479072,
+    "sha256": "8b8cdd07e92da866ca806c6c79e7ece578587abdefbc938c9b82a553b17cf08e",
+    "duration": 10.862268,
+    "codec": "pcm_s16le",
+    "sample_rate": "22050",
+    "decode_exit": 0
+  },
+  {
+    "path": "E:\\Jana Soft\\DefenceStudio\\AGENT_WORK\\CODEX_EVIDENCE\\voice-intelligence-e2e-20261015\\neutral.wav",
+    "bytes": 614002,
+    "sha256": "457095f930c7b70e4266f08827c34dd020ab2916b535d5cd2e7d5c65b2a00218",
+    "duration": 13.921905,
+    "codec": "pcm_s16le",
+    "sample_rate": "22050",
+    "decode_exit": 0
+  },
+  {
+    "path": "E:\\Jana Soft\\DefenceStudio\\AGENT_WORK\\CODEX_EVIDENCE\\voice-intelligence-e2e-20261015\\pitch-plus2.wav",
+    "bytes": 614000,
+    "sha256": "bdae3890ee3f8347bb8182e9b2688c8278b2cfbacd44b10202763825a0be6023",
+    "duration": 13.921905,
+    "codec": "pcm_s16le",
+    "sample_rate": "22050",
+    "decode_exit": 0
+  },
+  {
+    "path": "E:\\Jana Soft\\DefenceStudio\\AGENT_WORK\\CODEX_EVIDENCE\\voice-intelligence-e2e-20261015\\preview-0.wav",
+    "bytes": 281100,
+    "sha256": "13147f4284d506e158171b815a7ad1eca1264743e6d9fc485f28332ae32b8916",
+    "duration": 6.373107,
+    "codec": "pcm_s16le",
+    "sample_rate": "22050",
+    "decode_exit": 0
+  },
+  {
+    "path": "E:\\Jana Soft\\DefenceStudio\\AGENT_WORK\\CODEX_EVIDENCE\\voice-intelligence-e2e-20261015\\preview-1.wav",
+    "bytes": 389718,
+    "sha256": "0105c0ab47fe7739d58801edb9d0d2ebdaa8ff6b34cd627876cb0f37aaac4986",
+    "duration": 8.8361,
+    "codec": "pcm_s16le",
+    "sample_rate": "22050",
+    "decode_exit": 0
+  }
+]

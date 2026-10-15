@@ -9,6 +9,9 @@ requires-python = ">=3.11"
 dependencies = [
     "fastapi>=0.115,<1", "uvicorn>=0.30,<1", "httpx>=0.27,<1",
     "cryptography>=42,<46",
+    # The shipped voice catalog/analyzer/generator dynamically import the
+    # standalone voice engine, whose runtime uses numpy (not only tests).
+    "numpy>=1.26,<3",
     # Windows does not ship the IANA database used by zoneinfo scheduling.
     "tzdata>=2024.1; platform_system == 'Windows'",
     # Required by api/voice_routes.py's multipart file-upload endpoint
@@ -28,10 +31,7 @@ dependencies = [
 # yt-dlp is only required to acquire YouTube captions live; the provider and its
 # tests load without it (the real backend imports it lazily and fails closed).
 youtube = ["yt-dlp>=2024.1"]
-# numpy: test-only (tests/test_voice_integration.py builds synthetic WAV
-# sample arrays for the voice-engine integration tests); no defence_studio/
-# production module imports it.
-test = ["pytest>=8,<10", "numpy>=1.26,<3"]
+test = ["pytest>=8,<10"]
 
 [tool.setuptools.packages.find]
 # Exclude backend/config, scripts and tests from flat-layout package discovery.

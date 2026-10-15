@@ -1,0 +1,88 @@
+{
+  "generated_id": "e688ee80-d5b0-4c5e-8190-729a1b97e8f9",
+  "text": "This original briefing separates evidence from speculation. Please review the details carefully.",
+  "provider": "local-pyttsx3",
+  "model": "sapi5-or-espeak",
+  "duration": 8.83609977324263,
+  "sample_rate": 22050,
+  "channels": 1,
+  "validation_status": "PASSED",
+  "validation_details": {
+    "duration": 8.83609977324263,
+    "sample_rate": 22050,
+    "channels": 1,
+    "peak": 0.368927001953125,
+    "rms": 0.059950876419088556,
+    "clipping_detected": false,
+    "silence_ratio": 0.19777659159498245,
+    "provider_metadata": {
+      "voice": {
+        "id": "HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Speech\\Voices\\Tokens\\TTS_MS_EN-GB_HAZEL_11.0",
+        "name": "Microsoft Hazel Desktop - English (Great Britain)",
+        "languages": [
+          "en-gb"
+        ]
+      },
+      "rate": 140,
+      "volume": 0.75,
+      "is_mock": false,
+      "controls": {
+        "rate_wpm": 140,
+        "volume": 0.75,
+        "pitch_semitones": 0
+      },
+      "profile_sha256": "1390c6f70af5b00ae4bb6f5a2369b7f7fe7461d871ad0e295cc00bb7ef72c6b4",
+      "cost_kind": "unmetered_local_estimate",
+      "emotion_kind": "rate_volume_approximation"
+    }
+  },
+  "provider_metadata": {
+    "voice": "HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Speech\\Voices\\Tokens\\TTS_MS_EN-GB_HAZEL_11.0",
+    "rate": 140,
+    "volume": 0.75,
+    "is_mock": false,
+    "controls": {
+      "rate_wpm": 140,
+      "volume": 0.75,
+      "pitch_semitones": 0
+    },
+    "profile_sha256": "1390c6f70af5b00ae4bb6f5a2369b7f7fe7461d871ad0e295cc00bb7ef72c6b4",
+    "cost_kind": "unmetered_local_estimate",
+    "emotion_kind": "rate_volume_approximation",
+    "measurements": {
+      "analysis_version": "output-measurement-1.0",
+      "sha256": "0105c0ab47fe7739d58801edb9d0d2ebdaa8ff6b34cd627876cb0f37aaac4986",
+      "bytes": 389718,
+      "sample_rate": 22050,
+      "channels": 1,
+      "duration_seconds": 8.83609977324263,
+      "word_count": 12,
+      "speaking_rate_wpm": 81.48391467695909,
+      "activity_ratio": 0.7323688969258589,
+      "voiced_ratio": 0.2965641952983725,
+      "pitch_probability_mean": 0.28959288748513,
+      "pitch_hz": {
+        "median": 202.98424287154765,
+        "p05": 142.82885592155083,
+        "p95": 248.46358172193055,
+        "std": 35.518274741443356
+      },
+      "rms_dbfs": -24.444089730074108,
+      "peak_dbfs": -8.661191147560046,
+      "dynamic_range_p95_p10_db": 181.27850341796875,
+      "pause_seconds": [
+        0.272,
+        1.1360000000000001,
+        0.8520997732426299
+      ],
+      "mean_phrase_seconds": 1.0799999999999998,
+      "warnings": [
+        "Energy activity is not a speech classifier; music/noise can contaminate it.",
+        "Pitch uses pYIN with probability >= 0.5; octave errors remain possible.",
+        "WPM uses supplied whitespace-delimited words / complete duration, not recognized speech.",
+        "No word alignment or native emotion measurement; listening review required."
+      ]
+    }
+  },
+  "stream_url": "/generated/e688ee80-d5b0-4c5e-8190-729a1b97e8f9/file"
+}

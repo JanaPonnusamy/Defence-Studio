@@ -24,7 +24,7 @@ body {
   border-bottom: 1px solid var(--border);
 }
 .topbar h1 { font-size: 18px; margin: 0; color: var(--accent); }
-.topbar nav { display: flex; gap: 8px; flex: 1; }
+.topbar nav { display: flex; flex-wrap: wrap; gap: 8px; flex: 1; }
 .tab {
   background: transparent;
   border: 1px solid var(--border);
@@ -71,4 +71,9 @@ table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 13p
 th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--border); }
 .scroll-box { max-height: 300px; overflow: auto; background: #0f1420; padding: 10px; border-radius: 6px; font-size: 12px; }
 audio { width: 100%; }
+fieldset { min-width: 0; }
+#providerCapabilities, #ttsResult pre { white-space: pre-wrap; overflow-wrap: anywhere; max-height: 320px; overflow: auto; }
+@media (max-width: 600px) {
+  .topbar { flex-direction: column; align-items: flex-start; gap: 12px; }
+}
 canvas { width: 100%; background: #0a0f18; border-radius: 6px; }

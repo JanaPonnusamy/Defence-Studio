@@ -19,6 +19,8 @@ def validate_generated_audio(path: Path, expected_language: str | None = None, p
 
     if data.size == 0:
         return {"status": "FAILED", "reason": "empty_audio", "details": details}
+    if not np.isfinite(data).all():
+        return {"status": "FAILED", "reason": "nonfinite_audio", "details": details}
 
     mono = data if data.ndim == 1 else np.mean(data, axis=1)
     duration = float(len(mono)) / sr

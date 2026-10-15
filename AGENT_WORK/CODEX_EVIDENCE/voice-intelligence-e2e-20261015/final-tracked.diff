@@ -1,0 +1,654 @@
+diff --git a/standalone/audio-module/README.md b/standalone/audio-module/README.md
+index 3ebc157..fa377f3 100644
+--- a/standalone/audio-module/README.md
++++ b/standalone/audio-module/README.md
+@@ -156,6 +156,60 @@ Every error response is machine-readable:
+ 
+ ## Rights / Licensing (spec section 22)
+ 
++## Original narration preview (2026-10-15)
++
++The Audio Creator now loads `/tts/delivery-profile`: a versioned, hashed,
++original editorial profile (neutral, serious, urgent, calm, documentary).
++These presets are not measurements of any reference speaker. Select
++`local-pyttsx3`, a language, and an installed voice ID/name from the displayed
++inventory. Missing voices and incompatible languages fail closed. The UI
++disables generation when the inventory contains no matching language.
++
++Native controls are requested rate (80–260 WPM) and volume (0–1).
++Pitch shift (-3 to +3 semitones) uses librosa after synthesis, not native
++SAPI pitch. Delivery labels approximate rate/volume; native emotion, exact
++pause durations and guaranteed word emphasis are unsupported. Punctuation
++is passed to the OS engine. Unicode is NFC-normalized, not transliterated.
++For acronyms, supply the desired spoken spelling in the narration text.
++
++Real output metadata includes sample-derived duration, pitch with a pYIN
++probability threshold, energy activity, pauses, RMS dBFS (not LUFS), dynamic
++range, supplied-text WPM, warnings and SHA-256. These measurements do not
++prove pronunciation or emotional naturalness. Compare retained preview
++cards, play their audio, and download each configuration/measurement JSON.
++Word-level forced alignment is still unavailable; existing proportional
++alignment must not be treated as measured timing.
++
++Each pyttsx3 request runs in a separate child process with a 60-second
++synthesis timeout. Scratch output is validated before exclusive publication;
++unknown voices never fall back to a different-language default. Same-job
++queue claims are atomic and terminal job states fence late status updates.
++Completed job/artifact persistence across a real server restart was verified.
++**Interrupted RUNNING jobs still have no lease/recovery policy.** Do not run
++unattended crash retries or manually reset a live job. The standalone API
++has no cancellation endpoint or HTTP idempotency-key contract; distinct
++POSTs intentionally create distinct jobs. The main Defence Studio voice
++workflow has its separate existing worker/cancellation contract.
++
++Install the declared `requirements.txt` into a dedicated virtual environment;
++librosa was already declared, so no dependency bypass or production install
++is needed. FFmpeg/ffprobe are needed for independent acceptance decoding.
++Bind this unauthenticated standalone development service to loopback. Do not
++expose it as an authenticated production service.
++
++Tamil remains unavailable on the audited host (Hazel en-GB and Zira en-US
++only). No eSpeak NG executable, Tamil OS voice or cloud credential was
++provisioned. Select and authorize a Tamil provider, verify its actual voice
++inventory and applicable licence, then run real Tamil synthesis and native
++speaker listening review before claiming support. No provider/model/system
++installation or paid synthesis was performed by this change.
++
++Reproducible acceptance and exact dependency snapshot:
++`AGENT_WORK/CODEX_EVIDENCE/voice-intelligence-e2e-20261015/REPORT.md`
++(relative to repository root).
++
++## Rights / Licensing details
++
+ Every reference stores a `rights_metadata` JSON blob supplied by the
+ caller. The module does **not** auto-fetch or assume rights for any URL;
+ see limitation 4 above. Commercial voice-model licensing is explicitly out
+diff --git a/standalone/audio-module/app/api/tts.py b/standalone/audio-module/app/api/tts.py
+index 441b5f8..29f7beb 100644
+--- a/standalone/audio-module/app/api/tts.py
++++ b/standalone/audio-module/app/api/tts.py
+@@ -9,10 +9,17 @@ from app.jobs.handlers import tts_synthesize_job
+ from app.jobs.queue import get_job_queue
+ from app.schemas.io import JobOut, TTSSynthesizeRequest
+ from app.tts.registry import list_adapters
++from app.tts.controls import PROFILE
++from app.errors import NotFoundError, ValidationFailedError
+ 
+ router = APIRouter(tags=["tts"])
+ 
+ 
++@router.get('/tts/delivery-profile')
++def delivery_profile():
++    return PROFILE
++
++
+ @router.get("/tts/providers")
+ def get_tts_providers():
+     return {"providers": list_adapters()}
+@@ -21,15 +28,22 @@ def get_tts_providers():
+ @router.post("/tts/synthesize", response_model=JobOut)
+ def synthesize(req: TTSSynthesizeRequest, db: Session = Depends(get_session)):
+     performance_plan = []
++    if req.output_format != 'wav':
++        raise ValidationFailedError('Only WAV output is supported')
++    if req.controls and req.provider != 'local-pyttsx3':
++        raise ValidationFailedError('Delivery controls require local-pyttsx3')
+     if req.performance_plan_id:
+         plan = db.get(PerformancePlan, req.performance_plan_id)
+         if plan:
+             performance_plan = plan.instructions
++        else:
++            raise NotFoundError('Performance plan not found')
+ 
+     job = Job(job_type="tts_synthesize", status="QUEUED", payload={
+         "text": req.text, "voice_id": req.voice_id, "language": req.language,
+         "performance_plan_id": req.performance_plan_id, "performance_plan": performance_plan,
+         "provider": req.provider, "output_format": req.output_format,
++        "controls": req.controls,
+     })
+     db.add(job)
+     db.commit()
+diff --git a/standalone/audio-module/app/jobs/handlers.py b/standalone/audio-module/app/jobs/handlers.py
+index affe3c2..c436c60 100644
+--- a/standalone/audio-module/app/jobs/handlers.py
++++ b/standalone/audio-module/app/jobs/handlers.py
+@@ -184,24 +184,33 @@ def tts_synthesize_job(job_id: str, ctx: JobContext) -> str:
+         adapter = get_adapter(provider)
+         dest_path = settings.generated_dir / f"{job_id}.wav"
+         request = TTSRequest(text=text, voice_id=voice_id, language=language,
+-                              performance_plan=performance_plan, output_format=output_format)
++                              performance_plan=performance_plan, output_format=output_format,
++                              controls=payload.get('controls', {}))
+         result = adapter.synthesize(request, dest_path)
+ 
+         ctx.update(progress=0.7, stage="VALIDATING")
+         validation = validate_generated_audio(result.result_path, expected_language=language,
+                                                provider_metadata=result.provider_metadata)
++        if validation['status'] == 'FAILED':
++            raise ValueError('Generated audio failed validation: ' + validation['reason'])
+ 
+         y, sr = sf.read(str(result.result_path))
+         duration = len(y) / sr if hasattr(y, "__len__") else 0.0
+         channels = 1 if (not hasattr(y, "ndim") or y.ndim == 1) else y.shape[1]
+ 
++        measurements = None
++        if not adapter.is_mock:
++            from app.pipeline.measure import measure
++            measurements = measure(result.result_path, text)
++
+         generated = GeneratedAudio(
+             job_id=job_id, text=text, voice_id=voice_id, language=language,
+             performance_plan_id=payload.get("performance_plan_id"), provider=result.provider,
+             model=result.model, output_format=result.output_format, file_path=str(result.result_path),
+             duration=duration, sample_rate=sr, channels=channels,
+             validation_status=validation["status"], validation_details=validation["details"],
+-            provider_metadata={**result.provider_metadata, "is_mock": adapter.is_mock, "voice": result.voice},
++            provider_metadata={**result.provider_metadata, "is_mock": adapter.is_mock, "voice": result.voice,
++                               'measurements': measurements},
+         )
+         db.add(generated)
+         db.commit()
+diff --git a/standalone/audio-module/app/jobs/queue.py b/standalone/audio-module/app/jobs/queue.py
+index ae6f5fc..06ae523 100644
+--- a/standalone/audio-module/app/jobs/queue.py
++++ b/standalone/audio-module/app/jobs/queue.py
+@@ -13,6 +13,7 @@ import traceback
+ from concurrent.futures import ThreadPoolExecutor
+ from datetime import datetime, timezone
+ from typing import Callable
++from sqlalchemy import update
+ 
+ from app.config import get_settings
+ from app.db.base import SessionLocal
+@@ -33,13 +34,13 @@ class JobContext:
+     def update(self, *, progress: float | None = None, stage: str | None = None) -> None:
+         db = SessionLocal()
+         try:
+-            job = db.get(Job, self.job_id)
+-            if not job:
+-                return
++            values = {}
+             if progress is not None:
+-                job.progress = progress
++                values['progress'] = progress
+             if stage is not None:
+-                job.stage = stage
++                values['stage'] = stage
++            if values:
++                db.execute(update(Job).where(Job.job_id == self.job_id, Job.status == 'RUNNING').values(**values))
+             db.commit()
+         finally:
+             db.close()
+@@ -68,9 +69,11 @@ class JobQueue:
+                 logger.error("Job %s vanished before start", job_id)
+                 return
+             job_type = job.job_type
+-            job.status = "RUNNING"
+-            job.started_at = datetime.now(timezone.utc)
++            claimed = db.execute(update(Job).where(Job.job_id == job_id, Job.status == 'QUEUED').values(
++                status='RUNNING', started_at=datetime.now(timezone.utc)))
+             db.commit()
++            if claimed.rowcount != 1:
++                return
+         finally:
+             db.close()
+ 
+@@ -79,11 +82,8 @@ class JobQueue:
+             result_id = fn(job_id, ctx)
+             db = SessionLocal()
+             try:
+-                job = db.get(Job, job_id)
+-                job.status = "SUCCEEDED"
+-                job.progress = 1.0
+-                job.completed_at = datetime.now(timezone.utc)
+-                job.result_id = result_id
++                db.execute(update(Job).where(Job.job_id == job_id, Job.status == 'RUNNING').values(
++                    status='SUCCEEDED', progress=1.0, completed_at=datetime.now(timezone.utc), result_id=result_id))
+                 db.commit()
+             finally:
+                 db.close()
+@@ -93,11 +93,9 @@ class JobQueue:
+             logger.error("Job %s (%s) failed: %s\n%s", job_id, job_type, exc, tb)
+             db = SessionLocal()
+             try:
+-                job = db.get(Job, job_id)
+-                job.status = "FAILED"
+-                job.completed_at = datetime.now(timezone.utc)
+-                job.error_code = type(exc).__name__
+-                job.error_message = str(exc)
++                db.execute(update(Job).where(Job.job_id == job_id, Job.status == 'RUNNING').values(
++                    status='FAILED', completed_at=datetime.now(timezone.utc),
++                    error_code=type(exc).__name__, error_message=str(exc)))
+                 db.commit()
+             finally:
+                 db.close()
+diff --git a/standalone/audio-module/app/pipeline/analyze.py b/standalone/audio-module/app/pipeline/analyze.py
+index 7e5a40c..6bafe7e 100644
+--- a/standalone/audio-module/app/pipeline/analyze.py
++++ b/standalone/audio-module/app/pipeline/analyze.py
+@@ -77,6 +77,8 @@ def _segment_pitch_contour(y: np.ndarray, sr: int, start: float, end: float) ->
+ 
+ 
+ def analyze_audio(y: np.ndarray, sr: int, aligned_segments: list[AlignedSegment]) -> AnalysisResult:
++    if sr <= 0 or y.ndim != 1 or not y.size or not np.isfinite(y).all():
++        raise ValueError('Analysis requires finite, nonempty mono audio and a positive sample rate')
+     total_duration = float(len(y)) / sr if sr else 0.0
+ 
+     regions = detect_speech_regions(y, sr)
+@@ -94,7 +96,7 @@ def analyze_audio(y: np.ndarray, sr: int, aligned_segments: list[AlignedSegment]
+     normal_pauses = [p for p in pauses if p >= 0.3]
+ 
+     total_words = sum(len(seg.words) for seg in aligned_segments)
+-    speaking_rate_wpm = (total_words / (speech_duration / 60.0)) if speech_duration > 0 else 0.0
++    speaking_rate_wpm = (total_words / (total_duration / 60.0)) if total_duration > 0 else 0.0
+     articulation_rate_wps = (total_words / speech_duration) if speech_duration > 0 else 0.0
+ 
+     # Pitch: full-track pyin
+diff --git a/standalone/audio-module/app/pipeline/validate.py b/standalone/audio-module/app/pipeline/validate.py
+index 29be22c..60bb939 100644
+--- a/standalone/audio-module/app/pipeline/validate.py
++++ b/standalone/audio-module/app/pipeline/validate.py
+@@ -19,6 +19,8 @@ def validate_generated_audio(path: Path, expected_language: str | None = None, p
+ 
+     if data.size == 0:
+         return {"status": "FAILED", "reason": "empty_audio", "details": details}
++    if not np.isfinite(data).all():
++        return {"status": "FAILED", "reason": "nonfinite_audio", "details": details}
+ 
+     mono = data if data.ndim == 1 else np.mean(data, axis=1)
+     duration = float(len(mono)) / sr
+diff --git a/standalone/audio-module/app/schemas/io.py b/standalone/audio-module/app/schemas/io.py
+index eba82ed..a8fd37b 100644
+--- a/standalone/audio-module/app/schemas/io.py
++++ b/standalone/audio-module/app/schemas/io.py
+@@ -2,7 +2,7 @@ from __future__ import annotations
+ 
+ from datetime import datetime
+ 
+-from pydantic import BaseModel
++from pydantic import BaseModel, Field, field_validator
+ 
+ 
+ class ReferenceOut(BaseModel):
+@@ -63,12 +63,27 @@ class BuildProfileRequest(BaseModel):
+ 
+ 
+ class TTSSynthesizeRequest(BaseModel):
+-    text: str
++    text: str = Field(min_length=1, max_length=20000)
+     voice_id: str | None = None
+     language: str = "en"
+     performance_plan_id: str | None = None
+     provider: str | None = None
+     output_format: str = "wav"
++    controls: dict = Field(default_factory=dict)
++
++    @field_validator('text')
++    @classmethod
++    def nonblank(cls, value):
++        if not value.strip():
++            raise ValueError('Text cannot be blank')
++        return value
++
++    @field_validator('controls')
++    @classmethod
++    def supported_controls(cls, value):
++        from app.tts.controls import resolve_controls
++        resolve_controls(value)
++        return value
+ 
+ 
+ class GeneratedAudioOut(BaseModel):
+diff --git a/standalone/audio-module/app/tts/base.py b/standalone/audio-module/app/tts/base.py
+index b172cae..c33bbdc 100644
+--- a/standalone/audio-module/app/tts/base.py
++++ b/standalone/audio-module/app/tts/base.py
+@@ -17,6 +17,7 @@ class TTSRequest:
+     language: str
+     performance_plan: list[dict] = field(default_factory=list)
+     output_format: str = "wav"
++    controls: dict = field(default_factory=dict)
+ 
+ 
+ @dataclass
+diff --git a/standalone/audio-module/app/tts/local_pyttsx3.py b/standalone/audio-module/app/tts/local_pyttsx3.py
+index e93a2fe..62579e9 100644
+--- a/standalone/audio-module/app/tts/local_pyttsx3.py
++++ b/standalone/audio-module/app/tts/local_pyttsx3.py
+@@ -1,80 +1,91 @@
+-"""REAL local/offline TTS adapter using pyttsx3 (SAPI5 on Windows, espeak on
+-Linux). This performs actual local text-to-speech synthesis -- no network
+-call, no mocked output. Performance-plan hints (pace/energy) are mapped to
+-pyttsx3's rate/volume engine properties on a best-effort basis since
+-pyttsx3 does not support SSML-level prosody control.
+-"""
++"""Real offline speech, isolated per request; fail closed on voice/language mismatch."""
+ from __future__ import annotations
+ 
+-import uuid
++import json
++import os
+ from pathlib import Path
++import subprocess
++import sys
++import tempfile
++import unicodedata
++import uuid
+ 
+ from app.tts.base import TTSAdapter, TTSRequest, TTSResult
+-
+-_PACE_TO_RATE = {"slow": 130, "moderate": 170, "fast": 210}
+-_ENERGY_TO_VOLUME = {"low": 0.6, "controlled-high": 0.85, "high": 1.0}
++from app.tts.controls import PROFILE, resolve_controls
+ 
+ 
+ class LocalPyttsx3Adapter(TTSAdapter):
+-    provider_name = "local-pyttsx3"
++    provider_name = 'local-pyttsx3'
+     is_mock = False
+ 
+-    def describe(self) -> dict:
+-        return {
+-            "provider": self.provider_name,
+-            "model": "sapi5-or-espeak (OS default voice)",
+-            "capabilities": ["basic_rate_control", "basic_volume_control"],
+-            "output_format": "wav",
+-            "is_mock": False,
+-            "notes": "Real local/offline TTS engine. No SSML-level prosody support.",
+-        }
+-
+-    def synthesize(self, request: TTSRequest, dest_path: Path) -> TTSResult:
+-        import pyttsx3  # imported lazily so the mock adapter works even if
+-        # pyttsx3/its OS speech engine is unavailable in a given environment.
+-
+-        engine = pyttsx3.init()
++    def __init__(self, timeout=60):
++        self.timeout = timeout
+ 
+-        # Best-effort performance-plan mapping: use the first instruction's
+-        # pace/energy if present, else defaults.
+-        pace = "moderate"
+-        energy = "controlled-high"
+-        if request.performance_plan:
+-            first = request.performance_plan[0]
+-            pace = first.get("pace", pace)
+-            energy = first.get("energy", energy)
++    def _call(self, payload, folder):
++        metadata = Path(folder) / 'worker.json'
++        payload = {**payload, 'metadata': str(metadata)}
++        worker = Path(__file__).with_name('pyttsx3_worker.py')
++        subprocess.run([sys.executable, str(worker)], input=json.dumps(payload), text=True,
++                       capture_output=True, check=True, timeout=self.timeout)
++        result = json.loads(metadata.read_text(encoding='utf-8'))
++        if result.get('error'):
++            raise ValueError(result['error'])
++        return result
+ 
+-        rate = _PACE_TO_RATE.get(pace, 170)
+-        volume = _ENERGY_TO_VOLUME.get(energy, 0.85)
+-        engine.setProperty("rate", rate)
+-        engine.setProperty("volume", volume)
+-
+-        voice_set = False
+-        if request.voice_id:
+-            for v in engine.getProperty("voices"):
+-                if request.voice_id.lower() in (v.id.lower(), (v.name or "").lower()):
+-                    engine.setProperty("voice", v.id)
+-                    voice_set = True
+-                    break
+-
+-        dest_path.parent.mkdir(parents=True, exist_ok=True)
+-        engine.save_to_file(request.text, str(dest_path))
+-        engine.runAndWait()
++    def describe(self):
++        result = {'provider': self.provider_name, 'model': 'sapi5-or-espeak', 'is_mock': False,
++                  'capabilities': ['basic_rate_control', 'basic_volume_control', 'postprocess_pitch'],
++                  'output_format': 'wav', 'controls': PROFILE['controls'],
++                  'notes': PROFILE['emotion'], 'available': False, 'voices': []}
+         try:
+-            engine.stop()
+-        except Exception:  # noqa: BLE001
+-            pass
++            with tempfile.TemporaryDirectory() as folder:
++                result.update(self._call({'inventory': True}, folder))
++            result['available'] = bool(result['voices'])
++        except Exception as exc:
++            result['error'] = type(exc).__name__ + ': ' + str(exc)
++        return result
+ 
+-        chosen_voice = request.voice_id if voice_set else "os-default"
+-        return TTSResult(
+-            provider=self.provider_name,
+-            model="sapi5-or-espeak",
+-            voice=chosen_voice,
+-            language=request.language,
+-            capabilities=["basic_rate_control", "basic_volume_control"],
+-            output_format="wav",
+-            request_id=str(uuid.uuid4()),
+-            result_path=dest_path,
+-            estimated_cost=0.0,
+-            provider_metadata={"rate": rate, "volume": volume, "is_mock": False},
+-        )
++    def synthesize(self, request: TTSRequest, dest_path: Path):
++        if not isinstance(request.text, str) or not request.text.strip() or len(request.text) > 20000:
++            raise ValueError('Text must contain 1 to 20000 characters')
++        if request.output_format != 'wav':
++            raise ValueError('Only WAV output is supported')
++        controls = resolve_controls(request.controls, request.performance_plan)
++        dest_path = Path(dest_path)
++        if dest_path.exists():
++            raise ValueError('Output already exists; refusing to overwrite an artifact')
++        dest_path.parent.mkdir(parents=True, exist_ok=True)
++        with tempfile.TemporaryDirectory(dir=dest_path.parent, prefix='.tts-') as folder:
++            raw = Path(folder) / 'speech.wav'
++            metadata = self._call({'text': unicodedata.normalize('NFC', request.text),
++                                   'voice_id': request.voice_id, 'language': request.language,
++                                   'rate': round(controls['rate_wpm']), 'volume': controls['volume'],
++                                   'output': str(raw)}, folder)
++            if not isinstance(metadata.get('voice'), dict) or not metadata['voice'].get('id'):
++                raise ValueError('Provider did not return selected voice metadata')
++            if controls['pitch_semitones']:
++                import librosa
++                import numpy as np
++                import soundfile as sf
++                data, sr = sf.read(raw, dtype='float32')
++                if data.ndim != 1:
++                    raise ValueError('Pitch processing requires mono audio')
++                data = librosa.effects.pitch_shift(data, sr=sr, n_steps=controls['pitch_semitones'])
++                peak = float(np.max(np.abs(data)))
++                attenuation = min(1., .98 / peak) if peak else 1.
++                data *= attenuation
++                metadata['pitch_gain'] = attenuation
++                sf.write(raw, data, sr, subtype='PCM_16')
++            from app.pipeline.validate import validate_generated_audio
++            validation = validate_generated_audio(raw)
++            if validation['status'] == 'FAILED':
++                raise ValueError('Invalid synthesized audio: ' + validation['reason'])
++            # Atomic, exclusive publication on this filesystem: no partial or overwritten artifact.
++            os.link(raw, dest_path)
++        return TTSResult(provider=self.provider_name, model='sapi5-or-espeak',
++                         voice=metadata['voice']['id'], language=request.language,
++                         capabilities=['basic_rate_control', 'basic_volume_control', 'postprocess_pitch'],
++                         output_format='wav', request_id=str(uuid.uuid4()), result_path=dest_path,
++                         estimated_cost=0.0, provider_metadata={**metadata, 'is_mock': False,
++                         'controls': controls, 'profile_sha256': PROFILE['sha256'],
++                         'cost_kind': 'unmetered_local_estimate', 'emotion_kind': 'rate_volume_approximation'})
+diff --git a/standalone/audio-module/tests/test_job_queue_unit.py b/standalone/audio-module/tests/test_job_queue_unit.py
+index 4e74217..d5039b5 100644
+--- a/standalone/audio-module/tests/test_job_queue_unit.py
++++ b/standalone/audio-module/tests/test_job_queue_unit.py
+@@ -8,6 +8,44 @@ from app.db.models import Job
+ from app.jobs.queue import JobContext, get_job_queue
+ 
+ 
++def test_duplicate_submission_does_not_repeat_output():
++    init_db()
++    with SessionLocal() as db:
++        job = Job(job_type='duplicate_probe', status='QUEUED', payload={})
++        db.add(job)
++        db.commit()
++        job_id = job.job_id
++    calls = []
++    def fn(_job_id, ctx):
++        calls.append(_job_id)
++        return 'one-output'
++    queue = get_job_queue()
++    queue._run(job_id, fn, {})
++    queue._run(job_id, fn, {})
++    assert calls == [job_id]
++
++
++def test_terminal_state_survives_late_progress_and_completion():
++    init_db()
++    with SessionLocal() as db:
++        job = Job(job_type='terminal_probe', status='QUEUED', payload={})
++        db.add(job)
++        db.commit()
++        job_id = job.job_id
++    def fn(_job_id, ctx):
++        with SessionLocal() as db:
++            db.get(Job, job_id).status = 'CANCELLED'
++            db.commit()
++        ctx.update(progress=.9, stage='late')
++        return 'must-not-publish'
++    get_job_queue()._run(job_id, fn, {})
++    with SessionLocal() as db:
++        job = db.get(Job, job_id)
++        assert job.status == 'CANCELLED'
++        assert job.result_id is None
++        assert job.progress == 0
++
++
+ def test_job_lifecycle_success():
+     init_db()
+     db = SessionLocal()
+diff --git a/standalone/audio-module/ui/app.js b/standalone/audio-module/ui/app.js
+index 03c2462..c90e877 100644
+--- a/standalone/audio-module/ui/app.js
++++ b/standalone/audio-module/ui/app.js
+@@ -171,10 +171,34 @@ async function loadProviders() {
+     const opt = document.createElement("option");
+     opt.value = p.provider;
+     opt.textContent = `${p.provider}${p.is_mock ? " (MOCK)" : ""}`;
++    opt.disabled = p.available === false;
+     select.appendChild(opt);
+   });
++  const profile = await api('/tts/delivery-profile');
++  const preset = document.getElementById('deliveryPreset');
++  for (const name of Object.keys(profile.presets)) {
++    preset.add(new Option(name, name));
++  }
++  preset.addEventListener('change', () => {
++    for (const [key, value] of Object.entries(profile.presets[preset.value])) {
++      document.querySelector(`#ttsForm [name="${key}"]`).value = value;
++    }
++  });
++  const updateCapabilities = () => {
++    const provider = data.providers.find(p => p.provider === select.value);
++    document.getElementById('deliveryControls').disabled = select.value !== 'local-pyttsx3';
++    document.getElementById('providerCapabilities').textContent = JSON.stringify(provider, null, 2);
++    const language = document.querySelector('#ttsForm [name=language]').value;
++    const compatible = provider && (provider.is_mock || (provider.available && provider.voices.some(
++      v => v.languages.some(l => l === language || l.split('-')[0] === language))));
++    document.querySelector('#ttsForm button[type=submit]').disabled = !compatible;
++    document.getElementById('ttsJobStatus').textContent = compatible ? '' : 'No installed voice for this language. Generation unavailable.';
++  };
++  select.addEventListener('change', updateCapabilities);
++  document.querySelector('#ttsForm [name=language]').addEventListener('change', updateCapabilities);
++  updateCapabilities();
+ }
+-loadProviders();
++loadProviders().catch(e => { document.getElementById('ttsJobStatus').textContent = e.message; });
+ 
+ document.getElementById("ttsForm").addEventListener("submit", async (e) => {
+   e.preventDefault();
+@@ -182,10 +206,19 @@ document.getElementById("ttsForm").addEventListener("submit", async (e) => {
+   const body = {
+     text: form.get("text"), voice_id: form.get("voice_id") || null,
+     provider: form.get("provider"), performance_plan_id: form.get("performance_plan_id") || null,
++    language: form.get('language'),
+   };
++  if (body.provider === 'local-pyttsx3') {
++    body.controls = {preset: form.get('preset'), rate_wpm: Number(form.get('rate_wpm')),
++      volume: Number(form.get('volume')), pitch_semitones: Number(form.get('pitch_semitones'))};
++  }
++  try {
+   const job = await api("/tts/synthesize", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+   document.getElementById("ttsJobStatus").textContent = "Job submitted: " + job.job_id;
+   pollTtsJob(job.job_id);
++  } catch (error) {
++    document.getElementById('ttsJobStatus').textContent = error.message;
++  }
+ });
+ 
+ async function pollTtsJob(jobId) {
+@@ -194,10 +227,18 @@ async function pollTtsJob(jobId) {
+     document.getElementById("ttsJobStatus").textContent = `Job ${jobId.slice(0,8)}: ${job.status} (${job.stage || ""})`;
+     if (job.status === "SUCCEEDED") {
+       const gen = await api(`/generated/${job.result_id}`);
+-      document.getElementById("ttsResult").innerHTML = `
+-        <p>Provider: <b>${gen.provider}</b> ${gen.provider_metadata?.is_mock ? "(MOCK)" : ""}</p>
+-        <p>Duration: ${gen.duration?.toFixed(2)}s | Validation: ${gen.validation_status}</p>
+-        <audio controls src="${API_BASE}${gen.stream_url}"></audio>`;
++      const card = document.createElement('article');
++      const details = document.createElement('pre');
++      details.textContent = JSON.stringify(gen, null, 2);
++      const player = document.createElement('audio');
++      player.controls = true;
++      player.src = API_BASE + gen.stream_url;
++      const save = document.createElement('a');
++      save.textContent = 'Save configuration and measurements';
++      save.download = `${gen.generated_id}.json`;
++      save.href = 'data:application/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(gen, null, 2));
++      card.append(player, save, details);
++      document.getElementById('ttsResult').prepend(card);
+     } else if (job.status === "FAILED") {
+       document.getElementById("ttsResult").textContent = "Failed: " + job.error_message;
+     } else {
+diff --git a/standalone/audio-module/ui/index.html b/standalone/audio-module/ui/index.html
+index fb4bde5..d8adb93 100644
+--- a/standalone/audio-module/ui/index.html
++++ b/standalone/audio-module/ui/index.html
+@@ -125,9 +125,19 @@
+       <form id="ttsForm">
+         <label>Text<textarea name="text" rows="4" required></textarea></label>
+         <label>Voice ID (optional)<input type="text" name="voice_id"></label>
++        <label>Language<select name="language"><option value="en">English</option><option value="ta">Tamil (requires installed voice)</option></select></label>
+         <label>Provider
+           <select name="provider" id="providerSelect"></select>
+         </label>
++        <fieldset id="deliveryControls">
++          <legend>Original defence briefing profile</legend>
++          <label>Delivery<select name="preset" id="deliveryPreset"></select></label>
++          <label>Requested rate (words/minute)<input name="rate_wpm" type="number" min="80" max="260" value="170"></label>
++          <label>Volume (0–1)<input name="volume" type="number" min="0" max="1" step="0.05" value="0.85"></label>
++          <label>Pitch shift (post-processing semitones)<input name="pitch_semitones" type="number" min="-3" max="3" step="0.5" value="0"></label>
++          <p>Delivery uses rate and volume, not native emotion. Pauses follow punctuation. Word timings are not measured.</p>
++        </fieldset>
++        <pre id="providerCapabilities"></pre>
+         <label>Performance Plan ID (optional)<input type="text" name="performance_plan_id"></label>
+         <button type="submit">Generate</button>
+       </form>
+diff --git a/standalone/audio-module/ui/styles.css b/standalone/audio-module/ui/styles.css
+index dd7d9d2..bad628f 100644
+--- a/standalone/audio-module/ui/styles.css
++++ b/standalone/audio-module/ui/styles.css
+@@ -24,7 +24,7 @@ body {
+   border-bottom: 1px solid var(--border);
+ }
+ .topbar h1 { font-size: 18px; margin: 0; color: var(--accent); }
+-.topbar nav { display: flex; gap: 8px; flex: 1; }
++.topbar nav { display: flex; flex-wrap: wrap; gap: 8px; flex: 1; }
+ .tab {
+   background: transparent;
+   border: 1px solid var(--border);
+@@ -71,4 +71,9 @@ table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 13p
+ th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--border); }
+ .scroll-box { max-height: 300px; overflow: auto; background: #0f1420; padding: 10px; border-radius: 6px; font-size: 12px; }
+ audio { width: 100%; }
++fieldset { min-width: 0; }
++#providerCapabilities, #ttsResult pre { white-space: pre-wrap; overflow-wrap: anywhere; max-height: 320px; overflow: auto; }
++@media (max-width: 600px) {
++  .topbar { flex-direction: column; align-items: flex-start; gap: 12px; }
++}
+ canvas { width: 100%; background: #0a0f18; border-radius: 6px; }

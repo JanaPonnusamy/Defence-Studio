@@ -125,9 +125,19 @@
       <form id="ttsForm">
         <label>Text<textarea name="text" rows="4" required></textarea></label>
         <label>Voice ID (optional)<input type="text" name="voice_id"></label>
+        <label>Language<select name="language"><option value="en">English</option><option value="ta">Tamil (requires installed voice)</option></select></label>
         <label>Provider
           <select name="provider" id="providerSelect"></select>
         </label>
+        <fieldset id="deliveryControls">
+          <legend>Original defence briefing profile</legend>
+          <label>Delivery<select name="preset" id="deliveryPreset"></select></label>
+          <label>Requested rate (words/minute)<input name="rate_wpm" type="number" min="80" max="260" value="170"></label>
+          <label>Volume (0–1)<input name="volume" type="number" min="0" max="1" step="0.05" value="0.85"></label>
+          <label>Pitch shift (post-processing semitones)<input name="pitch_semitones" type="number" min="-3" max="3" step="0.5" value="0"></label>
+          <p>Delivery uses rate and volume, not native emotion. Pauses follow punctuation. Word timings are not measured.</p>
+        </fieldset>
+        <pre id="providerCapabilities"></pre>
         <label>Performance Plan ID (optional)<input type="text" name="performance_plan_id"></label>
         <button type="submit">Generate</button>
       </form>

@@ -1,0 +1,9 @@
+{
+  "max_volume_db": -7.4,
+  "mean_volume_db": -22.6,
+  "integrated_lufs": -21.7,
+  "true_peak_dbfs": -7.4,
+  "silences": [],
+  "black_intervals": [],
+  "frozen_intervals": []
+}

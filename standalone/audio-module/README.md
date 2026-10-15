@@ -156,6 +156,60 @@ Every error response is machine-readable:
 
 ## Rights / Licensing (spec section 22)
 
+## Original narration preview (2026-10-15)
+
+The Audio Creator now loads `/tts/delivery-profile`: a versioned, hashed,
+original editorial profile (neutral, serious, urgent, calm, documentary).
+These presets are not measurements of any reference speaker. Select
+`local-pyttsx3`, a language, and an installed voice ID/name from the displayed
+inventory. Missing voices and incompatible languages fail closed. The UI
+disables generation when the inventory contains no matching language.
+
+Native controls are requested rate (80–260 WPM) and volume (0–1).
+Pitch shift (-3 to +3 semitones) uses librosa after synthesis, not native
+SAPI pitch. Delivery labels approximate rate/volume; native emotion, exact
+pause durations and guaranteed word emphasis are unsupported. Punctuation
+is passed to the OS engine. Unicode is NFC-normalized, not transliterated.
+For acronyms, supply the desired spoken spelling in the narration text.
+
+Real output metadata includes sample-derived duration, pitch with a pYIN
+probability threshold, energy activity, pauses, RMS dBFS (not LUFS), dynamic
+range, supplied-text WPM, warnings and SHA-256. These measurements do not
+prove pronunciation or emotional naturalness. Compare retained preview
+cards, play their audio, and download each configuration/measurement JSON.
+Word-level forced alignment is still unavailable; existing proportional
+alignment must not be treated as measured timing.
+
+Each pyttsx3 request runs in a separate child process with a 60-second
+synthesis timeout. Scratch output is validated before exclusive publication;
+unknown voices never fall back to a different-language default. Same-job
+queue claims are atomic and terminal job states fence late status updates.
+Completed job/artifact persistence across a real server restart was verified.
+**Interrupted RUNNING jobs still have no lease/recovery policy.** Do not run
+unattended crash retries or manually reset a live job. The standalone API
+has no cancellation endpoint or HTTP idempotency-key contract; distinct
+POSTs intentionally create distinct jobs. The main Defence Studio voice
+workflow has its separate existing worker/cancellation contract.
+
+Install the declared `requirements.txt` into a dedicated virtual environment;
+librosa was already declared, so no dependency bypass or production install
+is needed. FFmpeg/ffprobe are needed for independent acceptance decoding.
+Bind this unauthenticated standalone development service to loopback. Do not
+expose it as an authenticated production service.
+
+Tamil remains unavailable on the audited host (Hazel en-GB and Zira en-US
+only). No eSpeak NG executable, Tamil OS voice or cloud credential was
+provisioned. Select and authorize a Tamil provider, verify its actual voice
+inventory and applicable licence, then run real Tamil synthesis and native
+speaker listening review before claiming support. No provider/model/system
+installation or paid synthesis was performed by this change.
+
+Reproducible acceptance and exact dependency snapshot:
+`AGENT_WORK/CODEX_EVIDENCE/voice-intelligence-e2e-20261015/REPORT.md`
+(relative to repository root).
+
+## Rights / Licensing details
+
 Every reference stores a `rights_metadata` JSON blob supplied by the
 caller. The module does **not** auto-fetch or assume rights for any URL;
 see limitation 4 above. Commercial voice-model licensing is explicitly out

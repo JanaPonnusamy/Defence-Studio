@@ -8,6 +8,44 @@ from app.db.models import Job
 from app.jobs.queue import JobContext, get_job_queue
 
 
+def test_duplicate_submission_does_not_repeat_output():
+    init_db()
+    with SessionLocal() as db:
+        job = Job(job_type='duplicate_probe', status='QUEUED', payload={})
+        db.add(job)
+        db.commit()
+        job_id = job.job_id
+    calls = []
+    def fn(_job_id, ctx):
+        calls.append(_job_id)
+        return 'one-output'
+    queue = get_job_queue()
+    queue._run(job_id, fn, {})
+    queue._run(job_id, fn, {})
+    assert calls == [job_id]
+
+
+def test_terminal_state_survives_late_progress_and_completion():
+    init_db()
+    with SessionLocal() as db:
+        job = Job(job_type='terminal_probe', status='QUEUED', payload={})
+        db.add(job)
+        db.commit()
+        job_id = job.job_id
+    def fn(_job_id, ctx):
+        with SessionLocal() as db:
+            db.get(Job, job_id).status = 'CANCELLED'
+            db.commit()
+        ctx.update(progress=.9, stage='late')
+        return 'must-not-publish'
+    get_job_queue()._run(job_id, fn, {})
+    with SessionLocal() as db:
+        job = db.get(Job, job_id)
+        assert job.status == 'CANCELLED'
+        assert job.result_id is None
+        assert job.progress == 0
+
+
 def test_job_lifecycle_success():
     init_db()
     db = SessionLocal()

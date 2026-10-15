@@ -1,0 +1,117 @@
+{
+  "name": "neutral",
+  "request": {
+    "text": "This is an independent defence briefing. Radar teams completed a scheduled exercise. The report separates confirmed observations from open questions. Further details require careful review.",
+    "language": "en-US",
+    "voice_id": "HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Speech\\Voices\\Tokens\\TTS_MS_EN-US_ZIRA_11.0",
+    "provider": "local-pyttsx3",
+    "controls": {
+      "rate_wpm": 170
+    }
+  },
+  "job": {
+    "job_id": "bb654a6b-1132-4997-8911-a7e1dd66c8cf",
+    "job_type": "tts_synthesize",
+    "status": "SUCCEEDED",
+    "progress": 1.0,
+    "stage": "DONE",
+    "created_at": "2026-10-15T16:08:26.743013",
+    "started_at": "2026-10-15T16:08:26.801461",
+    "completed_at": "2026-10-15T16:08:30.115144",
+    "error_code": null,
+    "error_message": null,
+    "result_id": "9d7ff3a6-2b4d-4c3d-b2e8-7ca25043bc53"
+  },
+  "generated": {
+    "generated_id": "9d7ff3a6-2b4d-4c3d-b2e8-7ca25043bc53",
+    "text": "This is an independent defence briefing. Radar teams completed a scheduled exercise. The report separates confirmed observations from open questions. Further details require careful review.",
+    "provider": "local-pyttsx3",
+    "model": "sapi5-or-espeak",
+    "duration": 13.921904761904761,
+    "sample_rate": 22050,
+    "channels": 1,
+    "validation_status": "PASSED",
+    "validation_details": {
+      "duration": 13.921904761904761,
+      "sample_rate": 22050,
+      "channels": 1,
+      "peak": 0.451019287109375,
+      "rms": 0.06064930696978796,
+      "clipping_detected": false,
+      "silence_ratio": 0.24686133859755421,
+      "provider_metadata": {
+        "voice": {
+          "id": "HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Speech\\Voices\\Tokens\\TTS_MS_EN-US_ZIRA_11.0",
+          "name": "Microsoft Zira Desktop - English (United States)",
+          "languages": [
+            "en-us"
+          ]
+        },
+        "rate": 170,
+        "volume": 0.85,
+        "is_mock": false,
+        "controls": {
+          "rate_wpm": 170,
+          "volume": 0.85,
+          "pitch_semitones": 0
+        },
+        "profile_sha256": "1390c6f70af5b00ae4bb6f5a2369b7f7fe7461d871ad0e295cc00bb7ef72c6b4",
+        "cost_kind": "unmetered_local_estimate",
+        "emotion_kind": "rate_volume_approximation"
+      }
+    },
+    "provider_metadata": {
+      "voice": "HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Speech\\Voices\\Tokens\\TTS_MS_EN-US_ZIRA_11.0",
+      "rate": 170,
+      "volume": 0.85,
+      "is_mock": false,
+      "controls": {
+        "rate_wpm": 170,
+        "volume": 0.85,
+        "pitch_semitones": 0
+      },
+      "profile_sha256": "1390c6f70af5b00ae4bb6f5a2369b7f7fe7461d871ad0e295cc00bb7ef72c6b4",
+      "cost_kind": "unmetered_local_estimate",
+      "emotion_kind": "rate_volume_approximation",
+      "measurements": {
+        "analysis_version": "output-measurement-1.0",
+        "sha256": "457095f930c7b70e4266f08827c34dd020ab2916b535d5cd2e7d5c65b2a00218",
+        "bytes": 614002,
+        "sample_rate": 22050,
+        "channels": 1,
+        "duration_seconds": 13.921904761904761,
+        "word_count": 25,
+        "speaking_rate_wpm": 107.7438774114106,
+        "activity_ratio": 0.7531572904707233,
+        "voiced_ratio": 0.19173363949483352,
+        "pitch_probability_mean": 0.2210678617697891,
+        "pitch_hz": {
+          "median": 187.21565424320963,
+          "p05": 134.69544579712476,
+          "p95": 237.24336488469507,
+          "std": 28.398275640930667
+        },
+        "rms_dbfs": -24.343483346438468,
+        "peak_dbfs": -6.9160977164952575,
+        "dynamic_range_p95_p10_db": 180.9741973876953,
+        "pause_seconds": [
+          0.8159999999999998,
+          0.8479999999999999,
+          0.8800000000000008,
+          0.72190476190476
+        ],
+        "mean_phrase_seconds": 1.7493333333333334,
+        "warnings": [
+          "Energy activity is not a speech classifier; music/noise can contaminate it.",
+          "Pitch uses pYIN with probability >= 0.5; octave errors remain possible.",
+          "WPM uses supplied whitespace-delimited words / complete duration, not recognized speech.",
+          "No word alignment or native emotion measurement; listening review required."
+        ]
+      }
+    },
+    "stream_url": "/generated/9d7ff3a6-2b4d-4c3d-b2e8-7ca25043bc53/file"
+  },
+  "ffmpeg_decode_exit": 0,
+  "bytes": 614002,
+  "sha256": "457095f930c7b70e4266f08827c34dd020ab2916b535d5cd2e7d5c65b2a00218"
+}

@@ -1,0 +1,12 @@
+{
+  "source_url": "https://www.youtube.com/watch?v=kwG9uCDeSk4&t=167s",
+  "video_id": "kwG9uCDeSk4",
+  "requested_start_seconds": 167,
+  "actual_segment": null,
+  "channel": "https://www.youtube.com/@toshitalks",
+  "status": "BLOCKED",
+  "reason": "Both public page fetches were throttled. No authorized audio obtained; no extraction attempted.",
+  "measurements": null,
+  "profile_derivation": "Original editorial presets, not measured from reference",
+  "next_step": "Supply an authorized local audio segment with permission/provenance and intended start/end times."
+}

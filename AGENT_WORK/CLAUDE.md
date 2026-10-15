@@ -739,3 +739,367 @@ Boundaries: no backend source edited; no DB/credential/episode-job/coordinator f
         no paid calls. Ownership conflicts on the two frontend files (Cursor-active) and claims.py (concurrent edit)
         were both raised with the user before proceeding.
 ```
+
+---
+
+# TAMIL TTS & VOICE-PROFILE PRODUCTION-READINESS AUDIT — Consolidated Deliverable (2026-10-15)
+
+**Role for this section:** independent research/audit/acceptance-specification only. No application code, tests, config, dependencies, databases, generated artifacts, or other agents' files were modified to produce it; only this file (`AGENT_WORK/CLAUDE.md`) was edited. No install, no reference-audio download, no paid API call, no production-config change. Job `522dc4ce-16d0-4680-a450-fcd841180c69` and its review records were not touched. This section consolidates and supersedes, for *presentation* purposes, the Tamil findings scattered across the chronological entries above; the chronological entries remain the primary evidence log and are not rewritten.
+
+**Legend for evidence basis:**
+- **[V-local]** = verified by my own command on this machine (this or a prior session, cited inline).
+- **[V-doc]** = verified against primary vendor/project documentation, URL + access date cited.
+- **[V-code]** = verified by direct read of this repo's source (path + lines cited).
+- **[REC]** = recommendation / judgement, not a verified fact.
+- **[UNVERIFIED]** = claimed somewhere but not confirmed by me; flagged as such.
+
+---
+
+## Part 1 — Tamil provider feasibility: comparison and evidence sources
+
+Evaluated against this project's *actual* constraints: Windows 11 host; offline-capable preferred; no paid API call or large download without operator authorization; licensing must support the project's apparent commercial/YouTube intent; must integrate behind the existing `VoiceModel` interface ([V-code] `components/voice-engine/voice_generation/models.py:12-29`) — i.e. an adapter implementing `synthesize(text, language, controls) -> (mono float32, sr)`, `capabilities()`, `validate(language)`, `health_check()`, with `controls = {tempo 0.5-2, energy 0-1, pitch_variation 0-1, emphasis 0-1}`.
+
+| Criterion | Windows Tamil OneCore/SAPI voice | eSpeak NG (ta) | Azure AI Speech `ta-IN` neural | AI4Bharat IndicF5 / Indic-TTS (local neural) |
+|---|---|---|---|---|
+| Installed here now | **[V-local] No** — 0 Tamil SAPI/OneCore voices; no Tamil language pack (`Get-WinUserLanguageList` empty; `GetInstalledVoices()` = 2 English only — prior entries 00:20Z, 19:00Z, 23:45Z) | **[V-local] No** — `where espeak-ng espeak` finds nothing on PATH | **[V-local] No** — no Azure credential anywhere in repo | **[V-local] No** — no model checkpoint present; no component imports a neural Tamil model |
+| Natural Tamil voice | **[REC/unknown]** modern OneCore voices are neural, but no Tamil voice is installed to confirm quality on this build | **[V-doc]** formant synthesis — intelligible but robotic; not narration-grade (see source note) | **[V-doc]** neural, natural-sounding; two voices `ta-IN-PallaviNeural` (F), `ta-IN-ValluvarNeural` (M) | **[V-doc]** "near-human" per project; quality varies by checkpoint, must be ear-checked per model |
+| Offline | **[V-doc]** yes once installed | **[V-doc]** yes, fully offline, on-device | **[V-doc] No** — cloud; text is transmitted to Microsoft servers | **[V-doc]** yes once the checkpoint is downloaded |
+| Pitch / rate / volume / emotion | rate+volume via SAPI (`tempo`,`energy` mapped — [V-code] `models.py:100-111`); no pitch/emphasis ([V-code] `capabilities()` `unsupported_controls`) | rate/pitch/volume via SSML-like params; **no emotion** | **[V-doc] pitch+rate+volume via SSML prosody; NO styles/emotions/roles for Tamil specifically** (Tamil rows are empty in the style/roles column) | depends on model; IndicF5 is reference-prompt/voice-style driven, not an explicit pitch/rate/emotion API |
+| Pronunciation (Tamil names, military terms, numbers, embedded English) | unknown (no voice) | **[REC]** weakest — formant engines mishandle loanwords/proper nouns and code-mixing | **[REC]** strongest mainstream option for Tamil + embedded-English handling, but must be ear-checked on *our* defence terminology | **[REC]** trained on Indian-language corpora incl. code-mixing; promising but unverified on defence terms |
+| Licensing for commercial/YouTube | **[V-code]** project's own metadata conservatively marks OS voices `commercial_use_allowed: False, youtube_use_allowed: False` (`voice_engine.py:42-46`, `_LIC_OS`) — a **project default, not a confirmed Microsoft EULA reading**; needs legal review | **[V-doc]** GPL v3+. Program-level use (backend shelling out to the binary) is generally fine; **a license read is still required before commercial release** | **[V-doc]** paid-subscription commercial terms; typically the clearest commercial path, but read the service terms before committing | **[V-doc] MIT license** (HuggingFace model card, access 2026-10-15) — commercial use permitted; one ethical clause: "only clone voices for which you have explicit permission." **Corrects the prior-log assumption that AI4Bharat was research/NC-licensed by analogy to MMS-FA.** |
+| Network / privacy | none | none | **requires network; script text leaves the machine** — a genuine privacy consideration for defence-topic content | none after download |
+| Cost | free (OS feature) | free (OSS) | **[V-doc]** ~**$16 / 1M characters** standard neural, 500K chars/month free tier (access 2026-10-15); Neural-HD $22/1M from Mar 2026 | free to run (compute only) |
+| Install prerequisites | OS language pack + voice via Settings/elevated `DISM`; **[V-local]** availability check needs admin elevation (not performed) | **[V-doc]** official 32/64-bit MSI for Windows 8+, or portable ZIP; optional SAPI5 wrapper | Azure subscription + key + network | checkpoint download (hundreds of MB–GB) + PyTorch runtime; CPU inference time on this host **unverified** |
+| Integration effort vs. this codebase | **[V-code] lowest** — `SapiModel`/catalog already enumerate installed voices (`voice_engine.py:49-90`); a real Tamil OS voice is picked up with zero code change | **[V-local] low-med** — a real eSpeak adapter already exists in an external, unintegrated artifact (`C:\Users\Pharma\.codex\artifacts\defence-studio-tts-20261011\`); needs integration + a `DEFENCE_STUDIO_TTS_PROVIDER_LANGUAGES` declaration | **[REC] medium** — new `VoiceModel` adapter + credential plumbing + a pre-call budget guard analogous to the existing OpenAI one | **[REC] med-high** — new adapter + model-serving runtime + inference-perf/timeout validation |
+
+**Evidence sources (all accessed 2026-10-15):**
+- Azure Tamil voices + style support: Microsoft Learn, *Language and voice support for the Speech service* — https://learn.microsoft.com/en-us/azure/ai-services/speech-service/language-support (confirmed `ta-IN-PallaviNeural`/`ta-IN-ValluvarNeural`, GA, **no styles/roles for Tamil**).
+- Azure pricing: https://texttolab.com/blog/azure-text-to-speech-pricing and Azure pricing details (~$16/1M std neural, 500K/mo free). Treat third-party pricing pages as indicative; **re-check the official Azure pricing page before any budget commitment.**
+- eSpeak NG license + Tamil + Windows install: project GitHub https://github.com/espeak-ng/espeak-ng (GPL v3+, 100+ languages incl. Tamil, Windows MSI/ZIP + SAPI5).
+- IndicF5 license + Tamil + restriction clause: HuggingFace model card https://huggingface.co/ai4bharat/IndicF5 (**License: mit**; Tamil listed; "only clone voices for which you have explicit permission").
+
+**Critical caveat honoring the assignment:** none of the above establishes a provider is *usable here* — only that its documentation claims Tamil. "Documentation says Tamil" ≠ "verified Tamil output on our defence-news script." No Tamil audio artifact has been produced on this machine by any path. Every row marked natural/quality/pronunciation is **[REC]/[V-doc]**, never **[V-local]**.
+
+---
+
+## Part 2 — Recommended original Tamil narration profile
+
+**Reference-material access limitation (recorded per the assignment):** The supplied Toshitalks links could not be inspected through permitted means. `WebFetch` of `https://www.youtube.com/@toshitalks` returned only YouTube's JS-rendered SPA footer/navigation shell — no video content, descriptions, or audio — and I did not download, transcribe, or retain any reference audio. **I therefore cannot and do not characterize that channel's specific delivery, and nothing below is derived from the identifiable speaker.** The profile is an *original* specification built from (a) the documented product genre (measured defence-news narration) and (b) the analyzer's own measurable dimensions, exactly so it does not clone or impersonate anyone.
+
+**Recommended original narrator: `DEFENCE_ERA_FEMALE_001`** (the id already reserved and modeled `NOT_PROVISIONED` in [V-code] `voice_engine.py:41,72-77`). Keep the honest `NOT_PROVISIONED` state until a real, licensed Tamil voice backs it — do not point this id at a borrowed/cloned voice.
+
+Target delivery, expressed in the analyzer's own units ([V-code] `analyzer.py`) so it is directly measurable against a produced sample:
+
+| Dimension | Target for a neutral defence-news narrator | Analyzer field it maps to |
+|---|---|---|
+| Register | mid female, steady; authoritative not dramatic | `profile.pitch.median_hz`, `variation_semitones_std` |
+| Pitch variation | moderate (~2–4 semitones std) — expressive but controlled, not monotone, not theatrical | `pitch.variation_semitones_std`, per-segment `_pstats` |
+| Speaking rate | measured; neutral baseline, slowing for key facts | `speaking_rate.syllables_per_sec`, `tempo.tempo_class` |
+| Pauses | clear sentence boundaries; occasional `LONG`/`DRAMATIC` pause before a consequential claim | `pause_profile` (`SHORT/NORMAL/LONG/DRAMATIC` bands) |
+| Loudness | consistent, headroom preserved, no clipping | `energy_profile.peak_dbfs`, `dynamic_range_db` |
+| Delivery modes | NEUTRAL default; SERIOUS for casualty/conflict; EXPLANATORY for capability facts; URGENT used sparingly | `emotion_profile.label_share` (CALM/SERIOUS/URGENT/DRAMATIC/NEUTRAL) |
+| Code-mixing | Tamil matrix with correctly pronounced embedded English proper nouns (S-400, NATO, names) | not auto-measured — **human review required** |
+
+**Identity/licensing requirement:** the backing voice must be either (a) a genuinely licensed Tamil TTS voice whose terms permit commercial/YouTube use, or (b) an original recorded/commissioned narrator with a signed release — captured in the existing `license` metadata shape ([V-code] `voice_engine.py:42-46`: `speaker_license_ref`, `commercial_use_allowed`, `youtube_use_allowed`, `terms_hash`). An original profile, not an imitation of any existing channel, is the recommendation.
+
+---
+
+## Part 3 — Measurable audio-analysis acceptance criteria
+
+These are concrete thresholds against the analyzer's **actual emitted schema** ([V-code] `analyzer.py` / `audio.py`), so each can be checked against a real produced `profile` JSON. "Auto" = machine-checkable from the analyzer output; "Human" = requires a listener.
+
+| # | Property | Measurable acceptance criterion | Source field | Auto/Human |
+|---|---|---|---|---|
+| 1 | Audio integrity | Decodes via ffmpeg to mono 16 kHz; not empty; ≥ SR/20 usable samples; supported ext | `audio.load_audio` raises `INVALID_AUDIO` otherwise | Auto |
+| 2 | Duration | `audio.duration_ms` > 0 and within ±10% of the script's estimated runtime; `speech_ms`/`duration_ms` (speech density) ≥ ~0.5 | `audio.duration_ms`, `rhythm_profile.speech_density` | Auto |
+| 3 | Pitch estimate + confidence | `pitch.median_hz` present (not `LOW_VOICING_CONFIDENCE`); `pitch.voiced_ratio` ≥ ~0.5; per-segment `confidence` reported | `pitch.*`, `voiced_ratio`, segment `confidence` | Auto |
+| 4 | Speaking rate / tempo | `speaking_rate.syllables_per_sec` in a sane narration band (~3–6 syl/s); `tempo.class_counts` not 100% FAST | `speaking_rate.*`, `tempo.*` | Auto (rate); Human (is it *comfortable*) |
+| 5 | Pause/silence detection | ≥1 detected pause at sentence boundaries; `pause_profile.count` > 0; no single pause so long it reads as a dropout unless intended | `pause_profile.*` (bands `SHORT/NORMAL/LONG/DRAMATIC`) | Auto |
+| 6 | Loudness + clipping | `energy_profile.peak_dbfs` ≤ ~-1.0 dBFS (**no clipping**); `dynamic_range_db` not near 0 (not over-compressed/flat) | `energy_profile.peak_dbfs`, `dynamic_range_db`, `variation_db_std` | Auto |
+| 7 | Noise / SNR proxy | `confidence.snr_proxy_db` ≥ 15 (else `LOW_DYNAMIC_RANGE_NOISY` warning fires); no `SHORT_AUDIO` unless intended | `confidence.snr_proxy_db`, `confidence.warnings` | Auto |
+| 8 | Delivery modes | `emotion_profile.label_share` dominated by NEUTRAL/SERIOUS/EXPLANATORY-consistent labels for defence news; URGENT not over-represented. **Note: `emotion.kind = "INFERENCE"`** — a heuristic, not ground truth | `emotion_profile.label_share`, segment `emotion` | Auto (inference) + Human (confirm it matches intent) |
+| 9 | Pronunciation / intelligibility | Correct Tamil phonetics; correct Tamil names, military terminology, abbreviations, numbers; correct embedded-English proper nouns; no wrong-language fallback | **not auto-measurable** | **Human (Tamil speaker) — mandatory** |
+| 10 | Mixed-language (English-in-Tamil) | Embedded English (S-400, NATO, place/person names) rendered intelligibly, not spelled out or dropped | not auto-measurable | **Human — mandatory** |
+
+**Native controls vs. post-processing (explicit distinction):**
+- *Native provider controls* = what the chosen `VoiceModel.synthesize` honors at synthesis time via `controls`. SAPI: `tempo`→rate, `energy`→volume only, **no real pitch/emphasis** ([V-code] `models.py:100-111`, `capabilities().unsupported_controls`). Azure `ta-IN`: SSML pitch/rate/volume, **no emotion/style** ([V-doc]). These shape the *generated* audio.
+- *Post-processing* = anything applied after synthesis (gain/loudness normalization, EQ). The analyzer itself RMS-normalizes to −23 dBFS for *detection* but preserves the original level for loudness stats ([V-code] `audio.normalize`, comment: "Original is kept for loudness stats") — so loudness/clipping criteria (#6) are measured on the **original**, not the normalized, signal. Acceptance must not confuse an analyzer normalization gain with a delivered loudness change.
+
+**What must be human, not automated:** pronunciation (#9), mixed-language fidelity (#10), and final confirmation that the measured delivery (#4, #8) actually *sounds* like appropriate defence-news narration. The analyzer's `emotion` is explicitly `kind: "INFERENCE"` and capped at ≤0.6 confidence ([V-code] `analyzer.py:131`) — it is a proxy, never an acceptance authority for tone.
+
+---
+
+## Part 4 — Integration-contract gaps and missing prerequisites
+
+Read read-only: `VoiceModel` interface ([V-code] `models.py`), analyzer schema ([V-code] `analyzer.py`/`audio.py`), backend catalog/gating ([V-code] `voice_engine.py`), and the RM-4 Audio Module gate (prior entries; `integrations/audio_module.py::provider_languages`, `services/audio.py::check_provider_policy`).
+
+1. **Truthful capability reporting is already enforced — keep it.** The catalog only marks a voice `ready` when its adapter is healthy *and* declares the language ([V-code] `voice_engine.py:83-84`); `DEFENCE_ERA_FEMALE_001` is honestly `NOT_PROVISIONED`; `SyntheticModel` declares `ta-IN` **but** `natural_speech: False` and is clearly a tone generator ([V-code] `models.py:32-42`). **Gap/risk:** the standalone `local-pyttsx3` adapter silently falls back to the OS default voice while keeping the caller's requested `language` label (prior entry 00:35Z) — unsafe *alone*, but the backend's `check_provider_policy` gate catches it one layer up. Do **not** let any new Tamil adapter rely on self-honesty; the env-declared `DEFENCE_STUDIO_TTS_PROVIDER_LANGUAGES` gate must remain the authority.
+2. **Audio format/metadata contract:** adapters return `(mono float32, sr)`; the analyzer re-decodes to mono 16 kHz ([V-code] `audio.SR=16000`). A real Tamil adapter must produce genuinely decodable PCM and the pipeline must persist bytes SHA-256 + measured duration (as the English RM-4 path already does — prior entries). **Prerequisite:** confirm the chosen provider's native sample rate and that resampling to 16 kHz for analysis does not distort pronunciation assessment.
+3. **Error/timeout behavior:** `ModelError` on wrong language ([V-code] `models.py:24-26`, `validate`); SAPI has a `timeout` (`models.py:72`). **Gap for a cloud provider (Azure):** needs explicit network-timeout, retry-budget, and a **pre-call cost guard** analogous to the existing OpenAI budget guard — none exists for TTS today.
+4. **Job persistence / provenance:** voice jobs are `workflow_jobs` rows with their own engine tables ([V-code] `docs/voice_engine/INTEGRATION.md`); reference audio is deleted on success unless `DEFENCE_STUDIO_VOICE_RETAIN_REFERENCE=1`. **Prerequisite:** a produced Tamil narration artifact must be retained with provenance (provider, voice id, license ref, `is_mock=False`, measured duration) for the acceptance evidence.
+5. **Missing dependencies on the analysis/alignment path:**
+   - `pyttsx3` is **[V-local] not installed in any interpreter** → the `local-pyttsx3` adapter's *real* synthesis is unverifiable here (prior entry 23:45Z). The working real-English path is `SapiModel` (shells PowerShell, no `pyttsx3`).
+   - Forced alignment: `components/defence-align` real adapter exists but `tested_languages=()`, and its MMS-FA bundled model is **CC-BY-NC (non-commercial)** — a licensing blocker independent of TTS (prior entries). Note: this is a *different* model from AI4Bharat IndicF5; the IndicF5 MIT finding does **not** resolve the alignment-model license question.
+6. **Documented-vs-actual mismatches found (pre-existing, flagged for owners, not fixed by me beyond what's already logged):**
+   - Tamil subtitle/thumbnail font: was broken (`Nirmala.ttf` hardcoded vs installed `Nirmala.ttc`); **since fixed by Codex and independently re-verified** (prior entries 00:50Z, 19:00Z) — now includes real glyph-coverage validation. This is rendering, **not** narration.
+   - `project_status.md` RM-5 "Tamil subtitle shaping VERIFIED visually" — reconciled (prior entry 19:00Z): true at its time, broke via env drift, now re-verified; a documentation-currency note for the coordinator, not a contradiction to rewrite.
+
+---
+
+## Part 5 — Prioritized recommendations for Codex (no Codex-owned files edited)
+
+In dependency order; none require editing Codex files to *state*, and the first is operator-only:
+
+1. **(Operator, zero-cost, do first)** Check Windows Settings → Time & Language → Speech for a Tamil (India) voice, or run elevated `Get-WindowsCapability -Online | ? Name -like "*TextToSpeech*ta-IN*"`. If a real Tamil OneCore voice installs, the catalog picks it up with **zero code change** ([V-code] `voice_engine.py:49-90`). Lowest-risk path; settles whether any other provider work is even needed.
+2. **(Operator decision)** If no OS Tamil voice: choose a provider using Part 1. **[REC]** given the MIT finding, **AI4Bharat IndicF5 (offline, MIT, Tamil, near-human)** is now a stronger candidate than the prior log assumed and avoids both the per-call cost/privacy of Azure and the GPL read of eSpeak — *conditional* on an acceptable CPU inference time on this host (unverified) and an ear-check of defence-term pronunciation. Azure `ta-IN` remains the highest mainstream quality but is paid, cloud (script text leaves the machine), and **has no emotion/style for Tamil**. eSpeak NG unblocks pipeline mechanics immediately but will likely fail human fidelity review.
+3. **(Codex, after a provider is chosen)** Implement a new `VoiceModel` adapter behind the existing interface (`synthesize/capabilities/validate/health_check`). For a cloud provider, add a TTS pre-call cost guard + network timeout/retry budget (none exists today — Part 4.3). Keep capability reporting truthful; never let the adapter self-declare Tamil without the env gate.
+4. **(Codex/operator, env only)** Declare the real provider's Tamil support in `DEFENCE_STUDIO_TTS_PROVIDER_LANGUAGES` **only after** genuine Tamil output is confirmed — not because the API accepts `language="ta"`.
+5. **(Codex)** Re-run the Tamil-specific suites once a real provider is declared: `test_audio_rm4.py` Tamil cases, and confirm `check_provider_policy` flips to allow the new provider while still failing-closed for undeclared pairs (prior entry 01:40Z item B8).
+6. **(Separate workstream)** Do not couple alignment to this: the MMS-FA CC-BY-NC license is unresolved and independent. If word-level Tamil timing is required, source a commercially-licensed aligner or accept the existing measured-chunk-proportional fallback.
+
+---
+
+## Part 6 — Release acceptance checklist (explicit PASS / FAIL / BLOCKED / NOT VERIFIED)
+
+A result is only **PASS** with a **real Tamil audio artifact** validated independently. Unit tests, mock providers, offline tones, English-only output, and provider-advertised capability are explicitly **insufficient**. Evidence to retain is named per row.
+
+| # | Gate | PASS criterion (+ evidence to retain) | Current status |
+|---|---|---|---|
+| T1 | Real Tamil voice available | A provider declares `ta`/`ta-IN`, is `ready:true` in the catalog, `natural_speech:true`, `tamil_verified:true`. Retain: catalog JSON. | **BLOCKED** — no Tamil voice installed ([V-local]) |
+| T2 | Genuine Tamil synthesis | Non-empty WAV from real Tamil script text, `is_mock=False`, measured duration > 0, via the real Audio Module/engine path (not a mock/tone). Retain: WAV + provenance record. | **BLOCKED** (depends on T1) |
+| T3 | Language gate correct | `check_provider_policy` allows the declared Tamil provider; still fails-closed (`LANGUAGE_UNSUPPORTED`) for undeclared pairs. Retain: test output. | **NOT VERIFIED** for the positive case (no provider to declare); negative case **PASS** ([V-local] `test_tamil_on_english_only_voice_fails_closed...`) |
+| T4 | Audio integrity + duration | Analyzer accepts the WAV (no `INVALID_AUDIO`); `duration_ms` within ±10% of estimate; `peak_dbfs` ≤ -1 (no clipping); `snr_proxy_db` ≥ 15. Retain: `profile` JSON + ffprobe. | **BLOCKED** (depends on T2) |
+| T5 | Measured delivery in range | `syllables_per_sec`, `tempo`, `pause_profile`, `emotion.label_share` within Part 3 bands. Retain: `profile` JSON. | **BLOCKED** (depends on T2) |
+| T6 | Pronunciation (Tamil) | **Human Tamil speaker** confirms correct phonetics + names/military terms/abbreviations/numbers. Retain: signed reviewer note. | **NOT VERIFIED — cannot be automated; cannot be done by any agent** |
+| T7 | Mixed-language fidelity | **Human** confirms embedded English (S-400/NATO/names) is intelligible, not dropped/spelled out. Retain: reviewer note. | **NOT VERIFIED** (depends on T2 + human) |
+| T8 | Tamil subtitle/thumbnail rendering | `resolve_font("ta")` resolves + glyph-coverage validated; burn-in/thumbnail tests pass with correctly shaped glyphs. Retain: frame PNG/JPEG + FFmpeg log. | **PASS** (independently re-verified, prior entry 19:00Z) — *rendering only, not narration* |
+| T9 | Alignment (if word-level required) | Real aligner run on real Tamil speech, accuracy reported, license cleared for intended use. | **BLOCKED** — no real Tamil speech yet; MMS-FA CC-BY-NC unresolved |
+| T10 | Full Tamil end-to-end | One real job: Tamil script → real Tamil TTS → align/fallback → render → libass burn-in → thumbnail → QC → package, every stage non-mock, **human-reviewed**. Retain: job artifacts + sign-off. | **BLOCKED** (depends on all above) |
+| T11 | Licensing/commercial clearance | Chosen provider's terms confirmed to permit commercial/YouTube use (IndicF5 MIT [V-doc]; Azure sub terms; OS-voice EULA; eSpeak GPL) with a recorded `license` ref + `terms_hash`. | **NOT VERIFIED** — legal read pending for whichever provider is chosen |
+
+**No row is PASS for narration.** Only T8 (rendering) is PASS, and it is explicitly not narration. T6/T7/T11 can never be satisfied by automation.
+
+---
+
+## Part 7 — Outstanding questions and verified blockers
+
+**Verified blockers (each [V-local] or [V-doc]/[V-code]):**
+1. No Tamil-capable TTS voice/provider exists on this machine — hard blocker for any real Tamil narration. [V-local]
+2. `pyttsx3` absent from every interpreter → the `local-pyttsx3` adapter's real synthesis is unverifiable here; the working real path is `SapiModel` (English only). [V-local]
+3. Forced alignment for Tamil blocked on **both** no-real-Tamil-speech and the **MMS-FA CC-BY-NC** non-commercial license — independent of the TTS blocker and **not** resolved by the IndicF5 MIT finding. [V-code]/[V-doc]
+4. Azure `ta-IN` has **no emotion/style/role support** for Tamil — a capability ceiling for any emotion-driven delivery via Azure. [V-doc]
+5. Reference material (Toshitalks) **could not be inspected** — YouTube SPA returned only navigation chrome; no download/retention attempted. The narrator profile is therefore original-by-construction, not reference-derived. [V-local]
+
+**Open operator/legal questions (cannot be resolved by an agent):**
+- Which provider path? (OS voice check first → then IndicF5 vs Azure vs eSpeak, per Part 5.)
+- Is CPU inference time for a local neural model (IndicF5) acceptable on this host? (unverified — needs a timed run once authorized.)
+- Legal sign-off on: IndicF5 MIT + its voice-cloning ethical clause for an *original* narrator; or Azure cloud-privacy for defence-topic text leaving the machine; or the OS-voice EULA; or eSpeak GPL for commercial release.
+- Is word-level alignment actually required, or is the measured-chunk-proportional fallback acceptable for Tamil subtitle timing?
+
+---
+
+### Summary — verified vs. recommendation vs. unverified
+
+**Verified ([V]):** The project's TTS gating is honestly fail-closed and correctly refuses Tamil on an English-only provider. No Tamil voice/provider is installed. Tamil *rendering* (subtitles/thumbnails) is independently re-verified working. The analyzer emits a concrete, measurable delivery schema suitable for acceptance thresholds. IndicF5 is MIT-licensed with Tamil support (corrects a prior assumption). Azure `ta-IN` exists (two GA voices) but has no Tamil emotion/style support and is paid/cloud. eSpeak NG is GPLv3+, offline, Tamil-capable, Windows-installable.
+
+**Recommendation ([REC]):** Operator checks for an OS Tamil voice first (zero cost/code); failing that, IndicF5 (offline, MIT, near-human) is the strongest newly-supported candidate subject to an inference-time and pronunciation ear-check, with Azure as the highest-quality paid/cloud fallback. Keep `DEFENCE_ERA_FEMALE_001` honestly `NOT_PROVISIONED`; specify an original narrator, never a clone. Implement any new provider behind the existing `VoiceModel` interface with a cost/timeout guard for cloud.
+
+**Unverified / blocked ([UNVERIFIED]/BLOCKED):** All Tamil *narration* gates (T1–T7, T9–T11) remain blocked or not-verified; pronunciation, mixed-language fidelity, and licensing clearance are human/legal and cannot be automated. Third-party pricing figures are indicative — confirm against the official Azure page before any spend. The reference channel could not be inspected.
+
+**No claim of Tamil TTS operability is made. There is no validated real Tamil audio artifact; until one exists and a Tamil speaker reviews it, Tamil narration is BLOCKED.**
+
+---
+
+## 2026-10-15T (follow-up) — Tamil TTS implementation attempt: STOPPED at the authorization + single-writer boundary
+
+**Role for this entry:** implementer, per the "Defence Studio Tamil TTS Production-Readiness Fix" assignment. Boundary: edit only the files required for an authorized Tamil TTS integration + its tests + this audit section. Did not install software, download any model, make a paid/network call, or touch databases, credentials, review history, job `522dc4ce-…`, or other agents' logs. **Net result: no source code was changed, because two independent hard stops were hit before any safe edit was possible. Both are documented below with fresh evidence; this is a report of a blocked attempt, not a readiness claim.**
+
+### Step 1 — Inspect before editing (done; baseline recorded)
+
+- Re-read my own audit (Parts 1–7 above) and `project_status.md`. Re-read the actual interfaces read-only: `VoiceModel` ([V-code] `components/voice-engine/voice_generation/models.py:12-29`), the backend catalog/gating ([V-code] `services/voice_engine.py`), the analyzer schema ([V-code] `voice_analyzer/analyzer.py`).
+- **Baseline test results — NOT re-run this pass, and here is why:** the authoritative baselines are already recorded from fresh runs hours earlier (Codex `p0-recheck-full-backend.log`: **642 passed / 8 skipped, exit 0**; voice-engine standalone **59 passed**; my own prior-pass Tamil-font **9/9**). Per TOKEN SAVER MODE, re-running a 16-minute suite when (a) the tree I would touch I did not touch, and (b) no code changed, surfaces no new information. Recorded as the baseline, not re-executed.
+
+### Step 2 — Provider selection + the two hard stops (STOP — did not proceed to implementation)
+
+**Hard stop A — no prerequisite exists on this machine for ANY provider (re-verified live this pass, [V-local]):**
+
+| Provider | Live check this pass | Result |
+|---|---|---|
+| Windows SAPI / OneCore Tamil voice | `GetInstalledVoices()` | **only `Microsoft Hazel Desktop (en-GB)` + `Microsoft Zira Desktop (en-US)`** — no Tamil voice, no Tamil language pack |
+| `pyttsx3` (standalone adapter's dependency) | `python -c "import pyttsx3"` | **ImportError — not installed in any interpreter** |
+| eSpeak NG | `where espeak-ng espeak` | **not found on PATH** |
+| AI4Bharat IndicF5 (local neural) | no checkpoint present; would require a multi-hundred-MB–GB download | **absent; download is explicitly un-authorized** |
+| Azure `ta-IN` neural | no credential anywhere in repo | **absent; paid + network, explicitly un-authorized** |
+
+Every candidate requires exactly one of the actions the assignment forbids without explicit authorization: install system software (eSpeak NG / Windows Tamil pack — needs admin elevation), download a large model (IndicF5), or make a paid/network call (Azure). The assignment is explicit: *"Proceed with implementation only where the required authorization and prerequisites already exist."* **None exist.** Substituting a path that *does* install/download/pay would violate the authorization constraint; substituting a mock/tone and labelling it Tamil would violate the core honesty requirement (§3.5–3.6). So the only correct move is to stop and report — which is what the assignment's §2 ("First produce a provider-selection recommendation … Proceed with implementation only where … prerequisites already exist") directs.
+
+**Hard stop B — single-writer collision: Codex is actively editing the exact TTS files right now ([V-local] via `git status`):**
+
+The canonical TTS provider files this assignment would modify are **uncommitted and mid-edit by a concurrent Codex agent.** `git status --short` this pass shows, under Codex ownership:
+- Modified: `standalone/audio-module/app/tts/local_pyttsx3.py` (136 lines in flux), `app/tts/base.py`, `app/api/tts.py`, `app/jobs/handlers.py`, `app/schemas/io.py`, `app/pipeline/{analyze,validate}.py`
+- New/untracked: `app/tts/controls.py`, `app/tts/pyttsx3_worker.py`, `tests/test_tts_safety.py`
+
+Codex's own log (`AGENT_WORK/CODEX.md`, latest entry **`IN_PROGRESS`**, timestamp 21:24:52+05:30, *not* VERIFIED) explicitly declares: *"Ownership: standalone/audio-module TTS, analysis, tests, standalone UI and docs; components voice engine only if defect requires it."* and *"Reproduce silent voice/language fallback; provision disposable dependency environment only."*
+
+This is precisely my assigned area, owned and in-flight by another agent, in an incomplete uncommitted state. The project's single-writer rule (`CLAUDE.md`: "only one agent/session edits the working tree at a time… never overwrite or revert changes you did not make") and this assignment's own §1.4/§10 ("Do not overwrite, revert, reformat or remove other agents' work") both forbid me from editing these files now. I confirmed the in-flight files currently parse (`ast.parse` OK on all four TTS files) — i.e. Codex's partial work is coherent and must be preserved, not clobbered.
+
+**Observation worth surfacing (read-only, not acted on):** Codex's in-flight `test_tts_safety.py` already encodes the exact safety contract this assignment asks for — fail-closed on a Tamil request to an English-only engine (`('ta', None, 'தமிழ் செய்தி')` must `raise ValueError`), no silent synthesis, no output on provider failure (`assert list(tmp_path.iterdir()) == []`), invalid-control rejection, LCID/unicode language-code normalization, and never overwriting an existing output. This strongly suggests Codex is building the same safeguards §3/§4 require. Two agents implementing the same provider surface in parallel is the collision the single-writer rule exists to prevent — this needs coordinator/operator deconfliction, not a second parallel implementation from me.
+
+### Steps 3–8 — not performed (blocked by A and B); recommendation restated
+
+Because of A and B, I did **not**: implement a new `VoiceModel` adapter, add safeguards to the TTS boundary, build a Tamil test set that would exercise a non-existent provider, run alignment/renderer against non-existent Tamil audio, or run a real-audio verification gate (there is no real Tamil provider to run). Doing any of these would have required either an unauthorized install/download/paid-call or an edit to Codex's in-flight files.
+
+**Provider recommendation (unchanged from Part 1/Part 5; restated with explicit resource/cost/authorization implications so an operator can unblock):**
+
+1. **First, zero-cost (operator, 5 min):** check Windows Settings → Time & Language → Speech, or elevated `Get-WindowsCapability -Online | ? Name -like "*TextToSpeech*ta-IN*"`, for an installable Tamil (India) voice. If present, the existing catalog picks it up with **zero code change** ([V-code] `voice_engine.py:49-90`) and both hard stops for *this provider path* dissolve (no code edit → no Codex collision; OS feature → no download/payment). **Recommended primary to try first.**
+2. **If no OS voice — primary [REC]: AI4Bharat IndicF5.** Offline, **MIT-licensed** (commercial use OK — [V-doc] HuggingFace card, 2026-10-15), Tamil supported, near-human. **Resource/authorization implications the operator must clear first:** a multi-hundred-MB–GB checkpoint download (currently un-authorized), a PyTorch runtime, and an **unverified CPU inference time on this host**. Caveat the assignment rightly flags: an MIT model-card does **not** by itself clear every dependency/dataset/checkpoint component — the vocoder, any bundled reference-voice assets, and transitive model deps each need their own license read before production use.
+3. **Fallback [REC]: Azure `ta-IN` neural** (`PallaviNeural` F / `ValluvarNeural` M). Highest mainstream quality, but **paid** (~$16/1M chars, 500K/mo free — [V-doc], confirm on the official page), **cloud** (defence-topic script text leaves the machine — a real privacy consideration), and **no emotion/style/role support for Tamil** ([V-doc]). Needs a credential, a pre-call cost guard (none exists today), and network-timeout/retry handling.
+4. **Mechanics-only, not narration: eSpeak NG.** Free, offline, GPLv3+, Windows MSI — but formant quality will almost certainly fail a human Tamil fidelity review; useful only to exercise pipeline mechanics, never as the production voice.
+
+**Safeguards this assignment asks for (§4) that are ALSO still missing and should be built by whoever owns the TTS boundary** — flagged, not implemented by me: a TTS pre-call cost guard + network timeout/retry budget for a cloud provider (none exists today; the OpenAI budget guard is the pattern to mirror). Secret redaction, cancellation/late-result fencing, and bounded transient-only retries largely already exist at the `workflow_jobs`/worker layer ([V-code] `docs/voice_engine/INTEGRATION.md` cancellation semantics; Codex's job-recovery entries) and should be reused, not duplicated.
+
+### Step 9 — Release checklist: status unchanged, re-affirmed with this pass's evidence
+
+No T-row advances. T1/T2 remain **BLOCKED** (no provider; re-verified live). T3 positive case **NOT VERIFIED** (no provider to declare), negative case still **PASS**. T4/T5 **BLOCKED** (no artifact). T6/T7 **NOT VERIFIED** (human-only, no sample). T8 **PASS** (rendering, unchanged). T9 **BLOCKED** (no Tamil speech + MMS-FA CC-BY-NC). T10 **BLOCKED**. T11 **NOT VERIFIED** (legal read pending per chosen provider). **No row is PASS for Tamil narration.**
+
+### Files changed this pass
+
+Only `AGENT_WORK/CLAUDE.md` (this entry). No source, tests, config, dependencies, database, artifacts, or other agents' files touched. `git status --short` before = after for everything except this file: Codex's in-flight audio-module TTS edits and evidence dir are preserved untouched; `AGENT_WORK/CODEX.md` shows as modified from Codex's own concurrent writes, not mine.
+
+### Exact remaining blockers and the next action that unblocks them
+
+1. **Authorization:** operator must pick a provider path and grant the specific authorization it needs — (a) elevated OS Tamil-voice check/install, (b) IndicF5 model download + dependency-license read + an inference-time budget, or (c) an Azure credential + spend authorization. Until then, implementation cannot start without violating the assignment's own constraint.
+2. **Single-writer deconfliction:** Codex is mid-implementation on the TTS provider surface (`standalone/audio-module/app/tts/*`, uncommitted, `IN_PROGRESS`). Before I (or anyone) implements a Tamil provider there, the coordinator/operator must deconflict ownership so two agents are not editing the same uncommitted contract. The lowest-risk sequence is: let Codex's current TTS-safety work reach a committed/VERIFIED state, **then** layer a single authorized Tamil provider on top of the settled interface — not in parallel on top of an in-flight diff.
+
+**No Tamil-production-readiness claim is made. No code was changed. The attempt stopped, correctly, at the authorization and single-writer boundaries the assignment and project conventions define.**
+
+---
+
+## 2026-10-15T (later follow-up) — Second implementation attempt: both blockers re-confirmed live; completed all safe non-conflicting work; verified-baseline + precise handoff recorded
+
+**Role:** implementer, per the "Fix Tamil TTS in Defence Studio" assignment (which explicitly says: do not stop at an audit — implement when safe prerequisites + authorization exist; otherwise complete all safe, non-conflicting work and report the exact unblock action). Boundary honored: edited only `AGENT_WORK/CLAUDE.md`; no source/tests/config/deps/DB/artifacts/credentials/other-agent files touched; job `522dc4ce-…` untouched; nothing installed/downloaded; no paid/network call.
+
+### Mandatory preflight (done, live this pass)
+
+- `git status --short` + `git log`: HEAD still `7d05ae0` (nothing committed since). **Codex's TTS/audio-module footprint has GROWN again** vs. my prior pass — now also `standalone/audio-module/README.md`, `ui/styles.css`, `app/pipeline/measure.py` (new), `tests/test_voice_measurements.py` (new), on top of the previously-listed `app/tts/{base,local_pyttsx3,controls,pyttsx3_worker}.py`, `app/api/tts.py`, `app/jobs/{handlers,queue}.py`, `app/schemas/io.py`, `app/pipeline/{analyze,validate}.py`, `tests/{test_tts_safety,test_job_queue_unit}.py`, `ui/{app.js,index.html}`.
+- Codex log (`AGENT_WORK/CODEX.md`) latest entry (line 76, 2026-10-15T21:24:52+05:30) is still **`IN_PROGRESS`** — "Voice intelligence E2E", declared ownership "standalone/audio-module TTS, analysis, tests, standalone UI and docs." **No later VERIFIED/DONE entry closes it.** Single-writer collision is firmly still active and the diff is still enlarging.
+
+### Hard Stop A — provider prerequisites (re-verified live, [V-local], all unchanged)
+
+`GetInstalledVoices()` → still only `Microsoft Hazel Desktop (en-GB)` + `Microsoft Zira Desktop (en-US)`; `import pyttsx3` → ImportError; `where espeak-ng espeak` → not found; no IndicF5/Indic-TTS checkpoint found anywhere under the repo (`find -iname "*indicf5*"/"*indic*tts*"` empty); no Azure `SPEECH_KEY`/`AZURE_SPEECH_KEY` in env. **No provider can produce real Tamil without an authorized install/download/paid-credential — none has been granted.** Per the assignment's authorization rules, I did not install, download, or call anything.
+
+### Hard Stop B — single-writer collision (re-verified live, [V-local], still active)
+
+The entire implementation surface §3 requires — the `VoiceModel`/TTS adapter, TTS API, job queue, and audio pipeline in `standalone/audio-module/app/tts/*` and siblings — is Codex's uncommitted, `IN_PROGRESS` territory. The assignment is explicit: *"If Codex is still actively editing the required files, do not modify them. Work only on clearly separate, useful tasks that do not depend on unstable interfaces."* So I did exactly that and searched for safe, separate, non-redundant work.
+
+### Safe non-conflicting work actually performed (no source changed)
+
+1. **Confirmed the one clean, unowned layer** — the *backend-side* gate (`backend/defence_studio/services/voice_engine.py`, `integrations/audio_module.py`) and `components/voice-engine/` are **clean** (`git status` empty for both; Codex touches voice-engine "only if a defect requires it", and hasn't). This is a different layer from Codex's standalone adapter.
+2. **Checked whether a useful test could be added there without duplicating** — it cannot. `backend/tests/test_voice_integration.py` **already** pins every safe Tamil-gate contract I could add: `test_tamil_not_claimed_for_os_voice` (L246: OS voices report `tamil_verified: False`, `ta-IN` absent from their `languages`, `NARRATOR_ID` = `NOT_PROVISIONED`), `test_generation_rejects_unsupported_and_invalid` (L233: unsupported language → 422), `test_test_tone_hidden_by_default`, plus cancellation/restart-recovery/idempotency/invalid-audio/retry. Adding near-duplicates would violate TOKEN SAVER §5/§6 ("no redundant tests") and provide no real value. **Correctly added nothing.**
+3. **Ran the existing Tamil fail-closed gate as a verified baseline (this pass, from `backend/`):**
+   - `pytest test_voice_integration.py::{test_tamil_not_claimed_for_os_voice, test_generation_rejects_unsupported_and_invalid, test_test_tone_hidden_by_default}` → **3 passed**, 5.58s.
+   - `pytest test_audio_rm4.py -k tamil` → **1 passed** (`test_tamil_on_english_only_voice_fails_closed_before_any_call`), 8 deselected, 3.10s.
+   - **Interpretation:** the backend's honest Tamil-refusal contract — the exact property any future Tamil provider must preserve — is **green on the current clean tree right now.** This is the safe baseline the eventual implementation must not regress. No production code was run beyond these read-only tests; no DB writes (temp DBs via fixtures only).
+
+**There is no further safe, non-conflicting, non-redundant implementation or test work available.** Every implementation path is blocked by A (no provider) and B (Codex-owned files). Manufacturing work would require an unauthorized install, a collision with Codex, or a duplicate test — all prohibited.
+
+### T1–T11 release checklist — re-affirmed with this pass's fresh evidence (no row advances)
+
+| # | Gate | Status | Evidence this pass |
+|---|---|---|---|
+| T1 | Real Tamil voice available | **BLOCKED** | [V-local] SAPI 2×English only; no pyttsx3/eSpeak/IndicF5/Azure |
+| T2 | Genuine Tamil synthesis | **BLOCKED** | depends on T1; no provider to run |
+| T3 | Language gate correct | positive **NOT VERIFIED** (no provider to declare); **negative PASS** | `test_tamil_on_english_only_voice_fails_closed...` 1 passed this pass |
+| T4 | Audio integrity + duration | **BLOCKED** | no artifact |
+| T5 | Measured delivery in range | **BLOCKED** | no artifact |
+| T6 | Pronunciation (human) | **NOT VERIFIED** | human-only; no sample exists |
+| T7 | Mixed-language fidelity (human) | **NOT VERIFIED** | human-only; no sample |
+| T8 | Tamil subtitle/thumbnail rendering | **PASS** (rendering only, not narration) | unchanged; independently re-verified prior pass (9/9, glyphs inspected) |
+| T9 | Alignment on real Tamil speech | **BLOCKED** | no Tamil speech; MMS-FA CC-BY-NC ([V-code] `voice_engine.py:125-137` `aligner_status()`) |
+| T10 | Full Tamil end-to-end | **BLOCKED** | depends on all above |
+| T11 | Licensing/commercial clearance | **NOT VERIFIED** | legal read pending per chosen provider |
+
+Backend Tamil-gate baseline (catalog honesty + unsupported-language rejection + RM-4 fail-closed): **4 tests passed this pass** — the safety floor is intact. No row is PASS for Tamil *narration*.
+
+### Final report (assignment §10)
+
+1. **Root cause of the Tamil TTS failure:** not a code defect — a **provisioning gap**. No Tamil-capable voice/model/provider is installed or authorized on this host; the backend correctly *refuses* (fail-closed) rather than emitting wrong-language audio. The project's gate is honest; the missing piece is a real Tamil voice + the authorization to obtain it.
+2. **Selected provider + evidence:** cannot finalize an *implemented* choice — none is usable without authorization. Recommendation (from the audit, [V-doc] 2026-10-15): **try an OS Tamil voice first** (zero code/cost); else **IndicF5** (offline, MIT, Tamil — primary [REC], pending a model download + full-dependency license read + inference-time budget); **Azure `ta-IN`** fallback (paid/cloud, no Tamil emotion/style); eSpeak NG mechanics-only.
+3. **Files changed + why:** only `AGENT_WORK/CLAUDE.md` — to record the live re-verification, the verified baseline, and the handoff. No source changed, because both blockers forbid it.
+4. **Integration/safety improvements:** none implementable this pass without colliding with Codex's in-flight TTS work; the still-missing items (TTS pre-call cost guard + network timeout/retry budget for a cloud provider) are flagged for the TTS-surface owner, not duplicated by me.
+5. **Exact test commands + results:** `pytest test_voice_integration.py::{test_tamil_not_claimed_for_os_voice,test_generation_rejects_unsupported_and_invalid,test_test_tone_hidden_by_default}` → 3 passed; `pytest test_audio_rm4.py -k tamil` → 1 passed. (Run from `backend/`.)
+6. **Genuine Tamil audio generated + checked?** **No** — no provider exists to generate it. Not fabricated.
+7. **Artifact path + SHA-256:** none (no artifact produced; fabricating one is prohibited).
+8. **Human listening review:** not performed — nothing to review.
+9. **T1–T11:** table above.
+10. **Remaining blockers + exact unblock:** **(A)** operator grants a specific provider authorization — (a) elevated Windows Tamil-voice check/install, OR (b) IndicF5 checkpoint download + dependency-license read + inference-time budget, OR (c) an Azure credential + spend cap; **(B)** coordinator deconflicts single-writer ownership — let Codex's `IN_PROGRESS` audio-module TTS work reach a **committed/VERIFIED** state, then a single agent layers one authorized Tamil provider on the settled `VoiceModel`/TTS interface. Doing (A) via an OS voice would also dissolve (B) for that path (OS voice = zero code edit → no Codex collision).
+11. **Concurrent work + protected data untouched:** confirmed — only `AGENT_WORK/CLAUDE.md` is mine in `git status`; all Codex audio-module edits (modified + untracked) and `CODEX_EVIDENCE/` preserved byte-for-byte; `data/defence_studio.sqlite3`, human-review history, and job `522dc4ce-…` not accessed or altered; no commit/push/reset/clean.
+
+**Definition of done is NOT met — and cannot be met this pass — because genuine Tamil narration requires a provider that does not exist here without authorization, and the implementation files are owned and in-flight by Codex. All safe, non-conflicting work is complete; the handoff above is the precise, actionable next step. No production-readiness claim is made.**
+
+---
+
+## 2026-10-15T (continuation) — Resuming Codex's interrupted master-readiness audit: reconciliation of retained evidence + independent re-verification
+
+**Role:** continuation of the interrupted Codex master-readiness assignment (Codex hit its usage limit). Boundary honored: edited only `AGENT_WORK/CLAUDE.md`; no source/tests/config/deps/DB/artifacts/credentials/other-agent files changed; job `522dc4ce-…` untouched; nothing installed/downloaded; no paid/network/OpenAI call; no commit/push/reset/clean. This is reconciliation + independent verification of Codex's retained evidence, **not** a re-run of completed work.
+
+### Preflight — state since my prior pass has advanced (Codex DID complete the master-readiness run)
+
+- `git status`: HEAD still `7d05ae0` (nothing committed). New since my last pass, under Codex ownership: **`backend/pyproject.toml`** (M), **`backend/defence_studio/integrations/media_qc.py`** (M), **`backend/tests/test_p0_startup.py`** (M), **`backend/README.md`** (M), new **`backend/tests/test_media_qc_fonts.py`**, plus the two evidence dirs `CODEX_EVIDENCE/{master-readiness-20261015, voice-intelligence-e2e-20261015}/`. Codex's earlier audio-module TTS work is all still present and preserved. Tracked diff now ~632 insertions/106 deletions across 19 files (grew past the handoff's abbreviated "334/18").
+- **Running processes (read-only check):** 8 python PIDs. Identified via `Win32_Process` command lines: two IDE helpers (16:53), one Cursor TTS-venv process, and **two orphaned uvicorn servers on ports 8041/8042** (Codex's integration-test servers, started 20:57/20:59, now idle). **None is an active file writer.** I left all of them running — they are not mine and killing them is unnecessary for read/verify work.
+
+### §3 — Reconciliation of the "still requiring reconciliation" items (all closed from retained logs; spot-verified)
+
+1. **Full backend regression — RECONCILED → PASS.** `master-readiness-20261015/full-backend-fresh.log` **completed**: `648 passed, 8 skipped, 1 warning in 1038.24s (0:17:18)`. The companion `full-backend.exit` is empty **only because Codex was interrupted before writing the exit byte** — the pytest run itself finished cleanly (the log ends with the full summary + the 8 enumerated skips). The 8 skips are all the known external-module / opt-in-live gates (real Visual/Audio/Renderer not running; opt-in live RSS/HTTP/YouTube) — none a defect. **Not re-run** (17-minute suite, tree unchanged since, per TOKEN SAVER).
+2. **Focused font/QC regressions — RECONCILED → PASS.** `final-fix-regressions.log`: `41 passed, 1 skipped`, `final-fix-regressions.exit = 0`. The 1 skip is the real-three-module integration test. Complete, not interrupted.
+3. **Retained fact-check evidence — RECONCILED.** `retained-factcheck.json` is a real deterministic engine verdict (synthetic "Northwind base" equipment claim → `PARTIALLY_SUPPORTED`, with per-evidence reliability scoring and a recorded `sha256`). It is **offline-engine output, not a live OpenAI call** — consistent with the project's fact-check being deterministic/offline. It does not and does not claim to establish live-OpenAI operability.
+4. **Final diff — REVIEWED (all 19 files).** The 7 files beyond the abbreviated report are: `backend/{pyproject.toml, integrations/media_qc.py, tests/test_p0_startup.py, README.md}`, new `backend/tests/test_media_qc_fonts.py`, and the audio-module docs/ui churn already attributed to Codex. No accidental generated files in the *tracked* diff; no unrelated-module edits; no stray artifacts. (Repo-hygiene note on pre-existing committed venvs: §6 below.)
+5. **Data-preservation — VERIFIED.** `data/defence_studio.sqlite3` absent from `git status` (unchanged); job `522dc4ce-…` has no working-tree change; Codex's own `audit-probes.log` records "PASS: current protected revision unchanged". No human-review/approval record touched.
+6. **Final application readiness — reconciled into the decision below; component/integration passes are explicitly NOT equated with production readiness.**
+
+### §4 — The two reproduced defects: independently verified (not trusted from prose)
+
+**A. NumPy runtime dependency — VERIFIED FIXED, fix is correct.**
+- Read `git diff backend/pyproject.toml`: `numpy>=1.26,<3` **moved from the `test` extra into runtime `dependencies`** (with an accurate comment: the shipped voice catalog/analyzer/generator dynamically import the standalone engine, which uses numpy at runtime). `test` extra now `pytest` only. Correct root-cause fix.
+- Codex's clean-install evidence (`backend-install.log`, `.exit = 0`) shows `numpy-2.5.4` installed and `audit-probes.log` → catalog import "PASS". (Note: that particular install also pulled `pytest`/`pillow`, i.e. it wasn't strictly `--no-extras`; but because numpy is now a *runtime* dependency in the metadata I read directly, a bare `pip install -e ./backend` resolves numpy regardless — the declaration, not that one log line, is the authority.)
+- **Independent run this pass:** `pytest tests/test_p0_startup.py::test_voice_numpy_is_a_runtime_dependency` → **passed** (asserts numpy is in `project.dependencies`). Existing constraints remain compatible (full suite 648 passed). **I did not change the declaration again — the existing fix is correct.**
+
+**B. Tamil font collection (TTC) support in QC — VERIFIED FIXED, and it STRENGTHENS validation (does not weaken it).**
+- Pre-fix defect reproduced in `ttc-qc-before.log`: `ValueError: no cmap table` at `font_codepoints` — the parser read a `.ttc` collection as a bare sfnt and found no cmap. Genuine defect.
+- Read `git diff backend/defence_studio/integrations/media_qc.py`: now detects the `b'ttcf'` collection magic, reads the **face-0 offset** from the TTC header, and applies it to all table offsets (TTC table offsets are absolute from file start — correct), matching the face the subtitle probe uses. It also raises `ValueError('empty or truncated font collection')` for a malformed/empty TTC.
+- Crucially, the fix now **resolves actual glyph IDs** in cmap format 4 (reads `idDelta`/`idRangeOffset`, confirms a nonzero resulting glyph) and format 12 (`first_glyph == 0` guard), so a codepoint counts as *covered* only if it maps to a **real nonzero glyph**. This is a **stronger** coverage check than the prior "range membership" logic — exactly what §4.B demanded ("do not weaken Tamil glyph validation").
+- New test `backend/tests/test_media_qc_fonts.py` covers: a synthetic cmap-fmt-12 fixture where 'A'→glyph 0 (.notdef/missing) and 'B'→glyph 1 (present), asserted for **both TTF and TTC** (`font_codepoints == {66}`, `missing_glyphs('AB') == ['A']`); plus the **real resolved Tamil font** glyph-coverage check (skips cleanly if absent).
+- **Independent run this pass:** `pytest tests/test_media_qc_fonts.py tests/test_p0_startup.py::test_voice_numpy_is_a_runtime_dependency` → **4 passed** in 0.26s. Renderer/QC agreement on face 0 is the explicit design note in the fix.
+
+### §5 — Real-media / voice-intelligence evidence (verified from retained artifacts; not regenerated)
+
+- `media-validation.log`: "PASS: three actual media files independently decoded; real MP4 QC measurements saved; retained fact-check hash recorded." `real-output-qc-measurements.json`: `integrated_lufs: -21.7`, `max_volume_db/true_peak_dbfs: -7.4`, **empty** `silences`/`black_intervals`/`frozen_intervals` — matches the handoff claim; a real artifact measurement, not a mock.
+- `voice-intelligence-e2e-20261015/REPORT.md` + `artifact-manifest.json`: English synthesis + preview/acceptance/browser checks recorded as passing. **Explicitly kept distinct:** English SAPI success ≠ Tamil success; a valid MP4 ≠ editorial acceptance; offline fact-check pass ≠ live-OpenAI verification; subtitle burn-in ≠ Tamil pronunciation/alignment pass. No live paid OpenAI call was made or is claimed.
+
+### §6 — Repository hygiene (quantified; NON-destructive, nothing removed or history-rewritten)
+
+- **`git ls-files | grep -iE 'site-packages|/venv-|venv-tts' ` → 6,204 tracked files.** Introduced by commits `7d05ae0` ("chore: add virtual environment site-packages for e2e tests") and `098b6bb`. Example path: `AGENT_WORK/CURSOR_EVIDENCE/modules-e2e/venv-tts/Lib/site-packages/...`.
+- Root cause: `.gitignore` *does* list `.venv/` (lines 50-51) but these env trees live under names it doesn't anchor (`venv-tts`, `…/venv/`), and once a path is tracked, `.gitignore` no longer applies (`git check-ignore` confirms the tracked path is "not ignored" in effect). So future stray `.venv/` dirs are covered, but these already-committed ones are not, and new `venv-<x>` names would slip through.
+- **Impact:** release/maintenance only — bloats repo size, clone/checkout time, and release reproducibility; it does **not** affect correctness of the app or the test results above. **Disposition (documented, not acted on):** recommend (with explicit authorization) a `git rm --cached` of these env trees + a `.gitignore` broadening to `**/venv*/`, `**/site-packages/`, in a dedicated maintenance change — **not** part of this audit, and **not** a history rewrite. No file removed or staged for deletion this pass.
+
+### §8 — Security / data-preservation reconciliation
+
+- Codex inspected `script_integrity.py`, `verification/README.md`, `dev_auth.py` (per its log). I did **not** re-audit these as "secure" — reading is not proof. The P0 evidence-integrity fix (rejected/retracted sources excluded from corroboration) and the dev-auth bypass gating were verified in my earlier passes and by Codex's 136-passed P0 suite; no new change this round touches them. **Flagged as NOT independently re-verified this pass** (no change warranting a re-audit; out of the two-defect scope).
+- Preservation: protected DB, review history, approvals, job `522dc4ce-…`, credentials — all confirmed untouched (§3.5 above). All tests I ran used the existing isolated `.audit-venv`/temp-DB fixtures.
+
+### §10 — Final readiness report
+
+1. **Final readiness decision: NOT READY (for production), but the core application is in a strong, VERIFIED component/integration state.** Specifically: backend **READY at the suite level** (648 passed/8 skipped, exit effectively 0 — the empty exit byte is an interruption artifact, not a failure). Blocking production: (a) **Tamil narration remains BLOCKED/UNVERIFIED** (no provider — see below); (b) real end-to-end *episode* acceptance (script→…→package) on a fully-approved real job with human sign-off is NOT_STARTED; (c) live OpenAI and YouTube paths remain IMPLEMENTED_NOT_VERIFIED (no credentials); (d) repo-hygiene (6,204 tracked env files) is an open release issue.
+2. **Previously-passing tests retained (not re-run):** full backend 648/8 (`full-backend-fresh.log`), real Audio→Visual→Renderer 3 tests incl. subtitle burn-in, browser release 26 + tabs 6, media decode + QC −21.7 LUFS (`real-output-qc-measurements.json`). Reused because the retained logs are complete, internally consistent, and the tree is unchanged since.
+3. **Outstanding tests completed this pass (independent):** `pytest tests/test_media_qc_fonts.py tests/test_p0_startup.py::test_voice_numpy_is_a_runtime_dependency` → **4 passed, 0.26s**; earlier Tamil-gate baseline `test_voice_integration.py` 3 + `test_audio_rm4.py -k tamil` 1 → **4 passed**.
+4. **Defects verified/fixed:** NumPy runtime packaging — **VERIFIED FIXED** (correct, moved to runtime deps + guard test). Tamil TTC font support in QC — **VERIFIED FIXED** (handles collection face-0, strengthens glyph validation, TTF/TTC + real-font tests pass).
+5. **Full backend result:** **648 passed, 8 skipped, 1 warning**, 17:18; effective exit 0 (empty `.exit` = interruption artifact, run completed).
+6. **Real-media evidence:** `CODEX_EVIDENCE/master-readiness-20261015/` — three files decoded; `real-output-qc-measurements.json` (−21.7 LUFS, no silence/black/frozen); retained fact-check `sha256 248dc23b…`.
+7. **Repo hygiene:** 6,204 tracked env files from commits `7d05ae0`/`098b6bb`; `.gitignore` covers `.venv/` but not the `venv-tts`/`…/venv/` paths; release/size issue only; non-destructively documented, authorization required before any `git rm --cached`.
+8. **Security/preservation:** protected DB/review-history/approvals/job `522dc4ce-…`/credentials untouched (verified); `script_integrity.py`/`dev_auth.py`/`verification` NOT re-audited this pass (no change; flagged NOT independently re-verified).
+9. **Tamil TTS status:** **English synthesis VERIFIED (SAPI, real WAV) ≠ Tamil narration.** Tamil narration remains **BLOCKED** — no Tamil provider installed/authorized (re-confirmed in prior passes; no TTS provider file changed since). The TTC font fix is *rendering* readiness, not narration. T1–T11: T8 PASS (rendering), T3 negative PASS; all Tamil-narration rows BLOCKED/NOT VERIFIED (unchanged — see the two prior entries' tables).
+10. **Changed files this pass:** only `AGENT_WORK/CLAUDE.md` (this entry).
+11. **Remaining blockers + ownership:** (a) **Tamil TTS provider** — operator authorization + single-writer deconfliction with Codex's `IN_PROGRESS` audio-module work (prior entries' handoff still stands); (b) **full real episode E2E + human sign-off** — operator/human; (c) **live OpenAI + YouTube** — operator credentials; (d) **repo-hygiene cleanup** — needs explicit authorization for `git rm --cached` + `.gitignore` broadening (coordinator/maintenance owner).
+12. **Commit status:** **No commit or push made.** No reset/clean/checkout-overwrite/history rewrite. HEAD remains `7d05ae0`.
+
+**The two reproduced defects are independently verified fixed; the interrupted regression checks are reconciled as complete and passing from retained evidence; the final diff and preservation checks are documented. Production readiness is NOT claimed — Tamil narration, full-episode E2E with human sign-off, and live provider paths remain the honest blockers.**

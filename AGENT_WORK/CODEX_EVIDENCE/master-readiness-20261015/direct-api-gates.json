@@ -1,0 +1,56 @@
+[
+  {
+    "method": "GET",
+    "path": "/api/jobs/DISPOSABLE_JOB",
+    "expected": 401,
+    "actual": 401
+  },
+  {
+    "method": "GET",
+    "path": "/api/jobs/DISPOSABLE_JOB",
+    "expected": 404,
+    "actual": 404
+  },
+  {
+    "method": "GET",
+    "path": "/api/jobs/DISPOSABLE_JOB/script/export/en",
+    "expected": 409,
+    "actual": 409
+  },
+  {
+    "method": "POST",
+    "path": "/api/jobs/DISPOSABLE_JOB/scene/generate",
+    "expected": 409,
+    "actual": 409
+  },
+  {
+    "method": "POST",
+    "path": "/api/jobs/DISPOSABLE_JOB/audio/en/generate",
+    "expected": 409,
+    "actual": 409
+  },
+  {
+    "method": "POST",
+    "path": "/api/jobs/DISPOSABLE_JOB/visual/en/plan",
+    "expected": 409,
+    "actual": 409
+  },
+  {
+    "method": "POST",
+    "path": "/api/jobs/DISPOSABLE_JOB/render/en/start",
+    "expected": 409,
+    "actual": 409
+  },
+  {
+    "method": "POST",
+    "path": "/api/jobs/DISPOSABLE_JOB/qc/en/run",
+    "expected": 404,
+    "actual": 404
+  },
+  {
+    "method": "POST",
+    "path": "/api/jobs/DISPOSABLE_JOB/package/en/build",
+    "expected": 409,
+    "actual": 409
+  }
+]

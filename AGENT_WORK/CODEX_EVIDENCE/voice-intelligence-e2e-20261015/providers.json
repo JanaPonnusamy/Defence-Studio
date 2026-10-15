@@ -1,0 +1,66 @@
+{
+  "providers": [
+    {
+      "provider": "local-pyttsx3",
+      "model": "sapi5-or-espeak",
+      "is_mock": false,
+      "capabilities": [
+        "basic_rate_control",
+        "basic_volume_control",
+        "postprocess_pitch"
+      ],
+      "output_format": "wav",
+      "controls": {
+        "rate_wpm": {
+          "range": [
+            80,
+            260
+          ],
+          "kind": "native requested WPM; measure output"
+        },
+        "volume": {
+          "range": [
+            0,
+            1
+          ],
+          "kind": "native amplitude"
+        },
+        "pitch_semitones": {
+          "range": [
+            -3,
+            3
+          ],
+          "kind": "librosa post-processing; not native"
+        }
+      },
+      "notes": "rate/volume approximation only; no native emotional TTS",
+      "available": true,
+      "voices": [
+        {
+          "id": "HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Speech\\Voices\\Tokens\\TTS_MS_EN-GB_HAZEL_11.0",
+          "name": "Microsoft Hazel Desktop - English (Great Britain)",
+          "languages": [
+            "en-gb"
+          ]
+        },
+        {
+          "id": "HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Speech\\Voices\\Tokens\\TTS_MS_EN-US_ZIRA_11.0",
+          "name": "Microsoft Zira Desktop - English (United States)",
+          "languages": [
+            "en-us"
+          ]
+        }
+      ]
+    },
+    {
+      "provider": "mock-tts",
+      "model": "mock-sine-synth-v1",
+      "capabilities": [
+        "duration_estimate_only"
+      ],
+      "output_format": "wav",
+      "is_mock": true,
+      "notes": "MOCK ADAPTER: produces a placeholder tone, not real speech. For testing only."
+    }
+  ]
+}

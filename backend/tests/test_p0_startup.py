@@ -7,6 +7,12 @@ import sys
 import pytest
 
 
+def test_voice_numpy_is_a_runtime_dependency():
+    import tomllib
+    project = tomllib.loads((Path(__file__).parents[1] / 'pyproject.toml').read_text())['project']
+    assert any(item.startswith('numpy') for item in project['dependencies'])
+
+
 @pytest.mark.parametrize("secret", [None, "short", "x" * 32])
 def test_entrypoint_secret_validation_in_fresh_process(tmp_path, secret):
     env = dict(os.environ)

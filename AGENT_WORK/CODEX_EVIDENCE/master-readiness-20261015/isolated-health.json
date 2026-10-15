@@ -1,0 +1,35 @@
+{
+  "audio": {
+    "status": "ok",
+    "service": "audio-module"
+  },
+  "visual": {
+    "status": "ok",
+    "service": "video-visual-module",
+    "version": "1.1.0",
+    "database": "ok"
+  },
+  "render": {
+    "status": "ok",
+    "version": "0.1.0",
+    "ffmpeg": {
+      "status": "AVAILABLE",
+      "ffmpeg": "D:\\ffmpeg\\bin\\ffmpeg.EXE",
+      "ffprobe": "D:\\ffmpeg\\bin\\ffprobe.EXE",
+      "version": "8.1.1-essentials_build-www.gyan.dev",
+      "license_flags": {
+        "gpl": true,
+        "version3": true,
+        "nonfree": false,
+        "libx264": true,
+        "libfdk_aac": false,
+        "summary": "GPLv3"
+      }
+    },
+    "recovery": {
+      "interrupted": [],
+      "requeued": []
+    },
+    "storage_root": "C:\\Users\\Pharma\\AppData\\Local\\Temp\\ds-master-integration-t8de5qfy\\render"
+  }
+}
