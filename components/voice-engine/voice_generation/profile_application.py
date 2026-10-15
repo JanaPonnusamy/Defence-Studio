@@ -98,8 +98,12 @@ def apply_profile(profile: dict, raw_direction: dict, direction: dict, *, suppor
         not_applied.append({"control": "energy",
                             "reason": "profile loudness (dBFS) reflects recording level, not delivery"})
     emo = (profile.get("emotion_profile") or {})
-    not_applied.append({"control": "emotion", "label_share": emo.get("label_share"),
-                        "reason": "heuristic INFERENCE, and the selected voice has no emotion control"})
+    if "emotion" in supported:
+        not_applied.append({"control": "emotion", "label_share": emo.get("label_share"),
+                            "reason": "heuristic INFERENCE, not ground-truth delivery; not auto-applied from profile"})
+    else:
+        not_applied.append({"control": "emotion", "label_share": emo.get("label_share"),
+                            "reason": "heuristic INFERENCE, and the selected voice has no emotion control"})
     not_applied.append({"control": "emphasis",
                         "reason": "emphasis candidates carry no text (word alignment unavailable)"})
 

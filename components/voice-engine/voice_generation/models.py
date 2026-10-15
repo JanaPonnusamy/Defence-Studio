@@ -15,11 +15,19 @@ class VoiceModel(abc.ABC):
 
     @abc.abstractmethod
     def synthesize(self, text: str, language: str, controls: dict) -> tuple[np.ndarray, int]:
-        """controls: tempo (0.5-2), energy (0-1), pitch_variation (0-1), emphasis (0-1). Returns (mono float32, sr)."""
+        """Controls include tempo, energy, pitch_variation, emphasis; adapters advertising emotion also receive
+        ``emotion={label, intensity}``. Returns (mono float32, sr)."""
 
     @abc.abstractmethod
     def capabilities(self) -> dict:
         """{'languages': [...], 'controls': [...], 'identity': 'SYNTHETIC_TEST'|'OS_VOICE'|...}"""
+
+    def applied_controls(self, controls: dict) -> dict:
+        """Subset of ``controls`` this adapter actually used. Emotion is never implied: an adapter must
+        override this and include ``emotion`` only when it changed synthesis from that field."""
+        advertised = set(self.capabilities().get("controls") or ())
+        return {key: controls[key] for key in ("tempo", "energy", "pitch_variation", "emphasis")
+                if key in advertised and key in controls}
 
     def validate(self, language: str) -> None:
         if language not in self.capabilities()["languages"]:

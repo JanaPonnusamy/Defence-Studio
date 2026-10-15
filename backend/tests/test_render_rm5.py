@@ -60,6 +60,45 @@ def test_cues_are_contiguous_within_scene_and_cover_every_scene():
     assert any("no subtitle cue" in p for p in subs.check_cues(cues[:-1] if len(cues) > 4 else [], scenes, 9.0))
 
 
+def test_concat_narration_inserts_requested_inter_scene_silence(tmp_path):
+    import io
+    import struct
+    from defence_studio.services.render import RenderService
+
+    def wav(seconds):
+        rate = 8000
+        buf = io.BytesIO()
+        with wave.open(buf, "wb") as audio:
+            audio.setnchannels(1); audio.setsampwidth(2); audio.setframerate(rate)
+            audio.writeframes(struct.pack("<h", 12000) * int(seconds * rate))
+        return buf.getvalue()
+
+    class Store:
+        files = {"a": wav(1.0), "b": wav(1.0)}
+
+        def read_bytes(self, _job_id, uri):
+            return self.files[uri]
+
+    service = object.__new__(RenderService)
+    service.store = Store()
+    output = tmp_path / "joined.wav"
+    duration, spans = service._concat_narration("synthetic-job", {
+        "scenes": [
+            {"scene_id": "a", "text": "first", "audio_uri": "a",
+             "voice_direction": {"requested": {"pause_after_ms": 350}}},
+            {"scene_id": "b", "text": "second", "audio_uri": "b",
+             "voice_direction": {"requested": {"pause_after_ms": 0}}},
+        ]
+    }, output)
+
+    with wave.open(str(output), "rb") as rendered:
+        samples = struct.unpack("<" + "h" * rendered.getnframes(), rendered.readframes(rendered.getnframes()))
+    assert duration == 2.35
+    assert spans[1]["start"] == 1.35
+    assert samples[8000:10800] == (0,) * 2800
+    assert samples[10799] == 0 and samples[10800] == 12000
+
+
 def test_exports_are_well_formed():
     cues = [{"index": 1, "scene_id": "a", "start": 0.0, "end": 1.5, "text": "Hello {x}"}]
     assert subs.to_srt(cues).startswith("1\n00:00:00,000 --> 00:00:01,500\nHello")

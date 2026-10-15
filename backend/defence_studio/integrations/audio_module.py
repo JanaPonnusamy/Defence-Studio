@@ -102,13 +102,16 @@ class AudioModuleClient:
         with self._factory(timeout=self.request_timeout) as client:
             return self._call(client, "GET", "/tts/providers").get("providers", [])
 
-    def synthesize(self, text: str, *, provider: str, language: str, voice_id: str | None = None) -> dict:
+    def synthesize(self, text: str, *, provider: str, language: str, voice_id: str | None = None,
+                   controls: dict | None = None) -> dict:
         """Returns ``{generated_id, duration, sample_rate, channels, validation_status,
         provider, model, provider_metadata, audio_bytes, audio_sha256}``. The bytes are
         hashed here so callers never trust an unverified file."""
         with self._factory(timeout=self.request_timeout) as client:
-            job = self._call(client, "POST", "/tts/synthesize", json={
-                "text": text, "provider": provider, "language": language, "voice_id": voice_id})
+            body = {"text": text, "provider": provider, "language": language, "voice_id": voice_id}
+            if controls:
+                body["controls"] = controls
+            job = self._call(client, "POST", "/tts/synthesize", json=body)
             job = self._wait(client, job, "TTS synthesis")
             meta = self._call(client, "GET", f"/generated/{job['result_id']}")
             data = self._call(client, "GET", f"/generated/{job['result_id']}/file", raw=True)

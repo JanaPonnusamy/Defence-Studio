@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-15T18:02:38.828836+00:00",
+  "generated_at": "2026-10-15T18:07:55.769977+00:00",
   "repo": "E:\\Jana Soft\\DefenceStudio",
   "mp4_path": "E:\\Jana Soft\\DefenceStudio\\AGENT_WORK\\CODEX_EVIDENCE\\master-readiness-20261015\\real-module-subtitled.mp4",
   "commands_run": [
@@ -14,7 +14,18 @@
   "git": {
     "branch": "main",
     "status_short": [
-      "?? AGENT_WORK/CODEX_EVIDENCE/p1-pipeline-20261015/"
+      " M AGENT_WORK/CODEX_EVIDENCE/p1-pipeline-20261015/report.json",
+      " M AGENT_WORK/CODEX_EVIDENCE/p1-pipeline-20261015/run_p1_verify.py",
+      " M backend/defence_studio/integrations/audio_module.py",
+      " M backend/defence_studio/services/audio.py",
+      " M backend/tests/test_render_rm5.py",
+      "?? AGENT_WORK/CODEX_EVIDENCE/p1-pipeline-20261015/focused-audio-pause-tests.exit",
+      "?? AGENT_WORK/CODEX_EVIDENCE/p1-pipeline-20261015/frames-20261015-233618/",
+      "?? AGENT_WORK/CODEX_EVIDENCE/p1-pipeline-20261015/report.pre-final-run.json",
+      "?? AGENT_WORK/CODEX_EVIDENCE/p1-pipeline-20261015/report.pre-final-run.md",
+      "?? AGENT_WORK/CODEX_EVIDENCE/p1-pipeline-20261015/report.second-live-run.json",
+      "?? AGENT_WORK/CODEX_EVIDENCE/p1-pipeline-20261015/report.second-live-run.md",
+      "?? AGENT_WORK/CODEX_EVIDENCE/p1-pipeline-20261015/tts-20261015-233618/"
     ],
     "exit_code": 0,
     "stderr": null
@@ -179,13 +190,30 @@
     "silent_run_count": 3,
     "longest_silent_run_s": 1.0,
     "silent_runs_over_0_25s": 3,
+    "silent_runs": [
+      {
+        "start_s": 1.75,
+        "end_s": 2.75,
+        "duration_s": 1.0
+      },
+      {
+        "start_s": 5.25,
+        "end_s": 6.25,
+        "duration_s": 1.0
+      },
+      {
+        "start_s": 7.75,
+        "end_s": 8.7253,
+        "duration_s": 0.9753
+      }
+    ],
     "frame_rms_cv": 0.8263,
     "energy_varies": true
   },
   "subtitle_frames": [
     {
       "time_s": 1.0,
-      "path": "E:\\Jana Soft\\DefenceStudio\\AGENT_WORK\\CODEX_EVIDENCE\\p1-pipeline-20261015\\frames-live-20261015\\frame_1.0s.png",
+      "path": "E:\\Jana Soft\\DefenceStudio\\AGENT_WORK\\CODEX_EVIDENCE\\p1-pipeline-20261015\\frames-20261015-233755\\frame_1.0s.png",
       "extract_exit": 0,
       "lower_third_mean_luma": 29.23,
       "lower_third_std_luma": 16.35,
@@ -195,7 +223,7 @@
     },
     {
       "time_s": 3.5,
-      "path": "E:\\Jana Soft\\DefenceStudio\\AGENT_WORK\\CODEX_EVIDENCE\\p1-pipeline-20261015\\frames-live-20261015\\frame_3.5s.png",
+      "path": "E:\\Jana Soft\\DefenceStudio\\AGENT_WORK\\CODEX_EVIDENCE\\p1-pipeline-20261015\\frames-20261015-233755\\frame_3.5s.png",
       "extract_exit": 0,
       "lower_third_mean_luma": 29.55,
       "lower_third_std_luma": 18.48,
@@ -205,7 +233,7 @@
     },
     {
       "time_s": 6.5,
-      "path": "E:\\Jana Soft\\DefenceStudio\\AGENT_WORK\\CODEX_EVIDENCE\\p1-pipeline-20261015\\frames-live-20261015\\frame_6.5s.png",
+      "path": "E:\\Jana Soft\\DefenceStudio\\AGENT_WORK\\CODEX_EVIDENCE\\p1-pipeline-20261015\\frames-20261015-233755\\frame_6.5s.png",
       "extract_exit": 0,
       "lower_third_mean_luma": 29.22,
       "lower_third_std_luma": 16.2,
@@ -260,7 +288,7 @@
             "WPM uses supplied whitespace-delimited words / complete duration, not recognized speech.",
             "No word alignment or native emotion measurement; listening review required."
           ],
-          "path": "E:\\Jana Soft\\DefenceStudio\\AGENT_WORK\\CODEX_EVIDENCE\\p1-pipeline-20261015\\tts-live-20261015\\rate_110.wav",
+          "path": "E:\\Jana Soft\\DefenceStudio\\AGENT_WORK\\CODEX_EVIDENCE\\p1-pipeline-20261015\\tts-20261015-233755\\rate_110.wav",
           "voice_id": "HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Speech\\Voices\\Tokens\\TTS_MS_EN-GB_HAZEL_11.0",
           "controls": {
             "rate_wpm": 110,
@@ -300,7 +328,7 @@
             "WPM uses supplied whitespace-delimited words / complete duration, not recognized speech.",
             "No word alignment or native emotion measurement; listening review required."
           ],
-          "path": "E:\\Jana Soft\\DefenceStudio\\AGENT_WORK\\CODEX_EVIDENCE\\p1-pipeline-20261015\\tts-live-20261015\\rate_230.wav",
+          "path": "E:\\Jana Soft\\DefenceStudio\\AGENT_WORK\\CODEX_EVIDENCE\\p1-pipeline-20261015\\tts-20261015-233755\\rate_230.wav",
           "voice_id": "HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Speech\\Voices\\Tokens\\TTS_MS_EN-GB_HAZEL_11.0",
           "controls": {
             "rate_wpm": 230,
@@ -340,7 +368,7 @@
             "WPM uses supplied whitespace-delimited words / complete duration, not recognized speech.",
             "No word alignment or native emotion measurement; listening review required."
           ],
-          "path": "E:\\Jana Soft\\DefenceStudio\\AGENT_WORK\\CODEX_EVIDENCE\\p1-pipeline-20261015\\tts-live-20261015\\volume_0.25.wav",
+          "path": "E:\\Jana Soft\\DefenceStudio\\AGENT_WORK\\CODEX_EVIDENCE\\p1-pipeline-20261015\\tts-20261015-233755\\volume_0.25.wav",
           "voice_id": "HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Speech\\Voices\\Tokens\\TTS_MS_EN-GB_HAZEL_11.0",
           "controls": {
             "rate_wpm": 170,
@@ -380,7 +408,7 @@
             "WPM uses supplied whitespace-delimited words / complete duration, not recognized speech.",
             "No word alignment or native emotion measurement; listening review required."
           ],
-          "path": "E:\\Jana Soft\\DefenceStudio\\AGENT_WORK\\CODEX_EVIDENCE\\p1-pipeline-20261015\\tts-live-20261015\\volume_1.0.wav",
+          "path": "E:\\Jana Soft\\DefenceStudio\\AGENT_WORK\\CODEX_EVIDENCE\\p1-pipeline-20261015\\tts-20261015-233755\\volume_1.0.wav",
           "voice_id": "HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Speech\\Voices\\Tokens\\TTS_MS_EN-GB_HAZEL_11.0",
           "controls": {
             "rate_wpm": 170,
@@ -424,7 +452,7 @@
             "WPM uses supplied whitespace-delimited words / complete duration, not recognized speech.",
             "No word alignment or native emotion measurement; listening review required."
           ],
-          "path": "E:\\Jana Soft\\DefenceStudio\\AGENT_WORK\\CODEX_EVIDENCE\\p1-pipeline-20261015\\tts-live-20261015\\pitch_0.wav",
+          "path": "E:\\Jana Soft\\DefenceStudio\\AGENT_WORK\\CODEX_EVIDENCE\\p1-pipeline-20261015\\tts-20261015-233755\\pitch_0.wav",
           "voice_id": "HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Speech\\Voices\\Tokens\\TTS_MS_EN-GB_HAZEL_11.0",
           "controls": {
             "rate_wpm": 170,
@@ -464,7 +492,7 @@
             "WPM uses supplied whitespace-delimited words / complete duration, not recognized speech.",
             "No word alignment or native emotion measurement; listening review required."
           ],
-          "path": "E:\\Jana Soft\\DefenceStudio\\AGENT_WORK\\CODEX_EVIDENCE\\p1-pipeline-20261015\\tts-live-20261015\\pitch_3.wav",
+          "path": "E:\\Jana Soft\\DefenceStudio\\AGENT_WORK\\CODEX_EVIDENCE\\p1-pipeline-20261015\\tts-20261015-233755\\pitch_3.wav",
           "voice_id": "HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Speech\\Voices\\Tokens\\TTS_MS_EN-GB_HAZEL_11.0",
           "controls": {
             "rate_wpm": 170,

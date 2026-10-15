@@ -90,10 +90,82 @@ def test_emphasis_and_pauses_applied(eng):
     s = eng.store.segments(emph["generation_id"])
     import json
     assert json.loads(s[1]["controls_json"])["emphasis"] == pytest.approx(0.88)
+    assert "emotion" not in json.loads(s[1]["controls_json"])
     assert json.loads(s[0]["controls_json"])["emphasis"] == 0.0
     # pause before emphasised sentence is real silence in the audio
     gap = s[1]["start_ms"] - s[0]["end_ms"]
     assert gap >= 420 + 300 - 60
+
+
+def test_emotion_direction_reaches_advertising_provider(tmp_path):
+    class EmotionProbe(SyntheticModel):
+        seen = None
+
+        def capabilities(self):
+            caps = super().capabilities()
+            caps["controls"] = [*caps["controls"], "emotion"]
+            return caps
+
+        def synthesize(self, text, language, controls):
+            self.seen = dict(controls)
+            emo = controls.get("emotion") or {}
+            used = dict(controls)
+            used["energy"] = min(1.0, used.get("energy", 0.7) * (0.7 + 0.6 * float(emo.get("intensity", 0.5))))
+            return super().synthesize(text, language, used)
+
+        def applied_controls(self, controls):
+            out = super().applied_controls(controls)
+            if "emotion" in controls:
+                out["emotion"] = dict(controls["emotion"])
+            return out
+
+    model = EmotionProbe()
+    e = VoiceGenerationEngine(GenStore(), str(tmp_path / "audio"))
+    e.register_voice(VID, model, display_name="emotion-probe", license=LIC)
+    g = e.generate("A sentence.", D(emphasis=[], pauses=[]))
+    assert model.seen["emotion"] == {"label": "SERIOUS", "intensity": 0.72}
+    assert "emotion" in g["control_application"]["applied"]
+    assert "emotion" not in g["control_application"]["unsupported"]
+
+
+def test_unsupported_adapter_does_not_receive_emotion(eng):
+    class Capture(SyntheticModel):
+        seen = None
+
+        def synthesize(self, text, language, controls):
+            self.seen = dict(controls)
+            return super().synthesize(text, language, controls)
+
+    model = Capture()
+    eng.register_voice(VID, model, display_name="synthetic", license=LIC)
+    g = eng.generate("A sentence.", D(emphasis=[], pauses=[]))
+    assert "emotion" not in model.seen
+    assert set(model.seen) <= {"tempo", "energy", "pitch_variation", "emphasis"}
+    assert "emotion" in g["control_application"]["unsupported"]
+    assert "emotion" not in g["control_application"]["applied"]
+    assert "tempo" in g["control_application"]["applied"]
+
+
+def test_advertising_without_confirmation_is_not_applied(tmp_path):
+    class ForwardOnly(SyntheticModel):
+        seen = None
+
+        def capabilities(self):
+            caps = super().capabilities()
+            caps["controls"] = [*caps["controls"], "emotion"]
+            return caps
+
+        def synthesize(self, text, language, controls):
+            self.seen = dict(controls)
+            return super().synthesize(text, language, controls)
+
+    model = ForwardOnly()
+    e = VoiceGenerationEngine(GenStore(), str(tmp_path / "audio"))
+    e.register_voice(VID, model, display_name="forward-only", license=LIC)
+    g = e.generate("A sentence.", D(emphasis=[], pauses=[]))
+    assert model.seen.get("emotion") == {"label": "SERIOUS", "intensity": 0.72}
+    assert "emotion" not in g["control_application"]["applied"]
+    assert g["control_application"]["unsupported"] == ["emotion"]
 
 
 def test_idempotent_replay_and_hash(eng):

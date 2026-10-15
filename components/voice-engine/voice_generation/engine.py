@@ -130,6 +130,8 @@ class VoiceGenerationEngine:
             pauses.setdefault(p["position"], p["duration_ms"])
         emph = d["emphasis"]
         chunks, segs, cursor = [], [], 0
+        advertised = set(model.capabilities().get("controls") or ())
+        supports_emotion = "emotion" in advertised
 
         def add_silence(ms):
             nonlocal cursor
@@ -144,14 +146,19 @@ class VoiceGenerationEngine:
             strength = max((e["strength"] for e in hit), default=0.0)
             controls = {"tempo": d["tempo"] * (1 - 0.1 * strength), "energy": d["energy"],
                         "pitch_variation": d["pitch_variation"], "emphasis": strength}
+            if supports_emotion:
+                controls["emotion"] = dict(d["emotion"])
             if hit:
                 add_silence(pauses.get("before_emphasis", 0))
             x, msr = model.synthesize(sent, d["language"], controls)
+            applied = {k: v for k, v in (model.applied_controls(controls) or {}).items() if k in controls}
+            unsupported = ["emotion"] if d.get("emotion") and "emotion" not in applied else []
+            stored = {**controls, "application": {"applied": applied, "unsupported": unsupported}}
             x = wavutil.resample(x, msr, sr)
             a, b = wavutil.speech_span_ms(x, sr)
             chunks.append(x)
             segs.append({"text": sent, "start_ms": int((cursor / sr) * 1000) + a,
-                         "end_ms": int((cursor / sr) * 1000) + b, "controls": controls})
+                         "end_ms": int((cursor / sr) * 1000) + b, "controls": stored})
             cursor += len(x)
             if hit:
                 add_silence(pauses.get("after_emphasis", 0))
@@ -183,13 +190,21 @@ class VoiceGenerationEngine:
         g = self.store.generation(gid)
         if not g:
             return None
+        segs = self.store.segments(gid)
+        applied, unsupported = {}, set()
+        for s in segs:
+            blob = json.loads(s["controls_json"])
+            app = blob.get("application") or {}
+            applied.update(app.get("applied") or {})
+            unsupported.update(app.get("unsupported") or [])
         return {"generation_id": gid, "voice_id": g["voice_id"], "style_profile_id": g["style_profile_id"],
                 "language": g["language"], "audio_format": g["audio_format"], "sample_rate": g["sample_rate"],
                 "duration_ms": g["duration_ms"], "audio_reference": g["audio_reference"],
                 "generation_version": g["generation_version"], "generation_hash": g["generation_hash"],
                 "status": g["status"], "attempt": g["attempt"], "error": g["error"],
+                "control_application": {"applied": applied, "unsupported": sorted(unsupported)},
                 "segments": [{"text": s["text"], "start_ms": s["start_ms"], "end_ms": s["end_ms"]}
-                             for s in self.store.segments(gid)]}
+                             for s in segs]}
 
     def alignment(self, gid: str):
         return self.store.alignment(gid)

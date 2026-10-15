@@ -14,13 +14,14 @@ Honesty rules enforced here:
   ``is_mock`` so QC/render approval can refuse it.
 * Word-level timing is the module's approximation (its own ``quality_label``
   and confidence are carried through); scene-level durations are measured from
-  the actual audio. Rate/pitch voice-direction values are recorded as
-  *requested* with ``applied: false`` -- the module's public API cannot apply
-  them directly.
+  the actual audio. Supported rate/pitch directions are passed through the
+  documented API and marked applied only when provider metadata confirms them.
+  Tone remains unsupported, and requested pauses are applied by the renderer.
 """
 from __future__ import annotations
 
 import hashlib
+import math
 import os
 
 from defence_studio.integrations.audio_module import AudioModuleClient, AudioModuleError, provider_languages
@@ -40,6 +41,27 @@ class AudioService(IntegrationService):
 
     def _client(self) -> AudioModuleClient:
         return self._audio_client or AudioModuleClient()
+
+    @staticmethod
+    def _tts_controls(scene: dict, provider: str) -> tuple[dict, list[str]]:
+        """Map only verified local-engine controls; surface the rest explicitly."""
+        direction = scene.get("voice_direction") or {}
+        controls, unsupported = {}, ["tone"]
+        rate = float(direction.get("rate", 1.0))
+        if rate != 1.0:
+            rate_wpm = round(170 * rate)
+            if provider == "local-pyttsx3" and 80 <= rate_wpm <= 260:
+                controls["rate_wpm"] = rate_wpm
+            else:
+                unsupported.append("rate")
+        pitch = float(direction.get("pitch", 1.0))
+        if pitch != 1.0:
+            pitch_semitones = round(12 * math.log2(pitch), 2)
+            if provider == "local-pyttsx3" and -3 <= pitch_semitones <= 3:
+                controls["pitch_semitones"] = pitch_semitones
+            else:
+                unsupported.append("pitch")
+        return controls, unsupported
 
     # -- policy ---------------------------------------------------------------
 
@@ -99,14 +121,19 @@ class AudioService(IntegrationService):
                 self._transition(job_id, language, AUDIO_KIND, version, "RUNNING",
                                  detail=f"Synthesizing scene {index + 1}/{total}",
                                  progress=round(0.05 + 0.9 * index / total, 3))
+                controls, unsupported = self._tts_controls(scene, binding["provider"])
                 result = client.synthesize(scene["narration"], provider=binding["provider"],
-                                           language=language, voice_id=binding.get("voice_id"))
+                                           language=language, voice_id=binding.get("voice_id"), controls=controls)
                 sha = hashlib.sha256(result["audio_bytes"]).hexdigest()
                 if sha != result["audio_sha256"]:
                     raise AudioModuleError("integrity", "Audio bytes changed in transit")
                 uri = f"jobs/{job_id}/audio/{language}/{sha}.wav"
                 self.store.write_bytes(job_id, uri, result["audio_bytes"], "audio/wav")
                 meta = result.get("provider_metadata") or {}
+                returned_controls = meta.get("controls") or {}
+                applied_controls = {key: value for key, value in controls.items()
+                                    if returned_controls.get(key) == value}
+                unsupported.extend(key for key in controls if key not in applied_controls)
                 entry = {
                     "scene_id": scene["scene_id"], "order": scene["order"], "text": scene["narration"],
                     "generated_id": result["generated_id"], "audio_uri": uri, "audio_sha256": sha,
@@ -117,9 +144,12 @@ class AudioService(IntegrationService):
                     "provider": result.get("provider"), "model": result.get("model"),
                     "voice": meta.get("voice"), "is_mock": bool(meta.get("is_mock")),
                     "planned_seconds": scene["planned_timing"]["estimated_seconds"],
-                    "voice_direction": {"requested": scene.get("voice_direction"), "applied": False,
-                                        "note": "Rate/pitch are not applied by the module's public API; "
-                                                "pause_after_ms is applied by the renderer when mixing."},
+                    "voice_direction": {"requested": scene.get("voice_direction"),
+                                        "applied": bool(applied_controls),
+                                        "applied_controls": applied_controls,
+                                        "unsupported_controls": sorted(set(unsupported)),
+                                        "note": "Rate/pitch are applied only when confirmed by provider metadata; "
+                                                "tone is not implemented, and pause_after_ms is applied by the renderer."},
                     "alignment": None,
                 }
                 if not entry["duration_seconds"] or entry["validation_status"] != "PASSED":

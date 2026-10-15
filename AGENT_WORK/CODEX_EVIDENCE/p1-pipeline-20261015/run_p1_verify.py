@@ -16,8 +16,9 @@ REPO = Path(r"E:\Jana Soft\DefenceStudio")
 MP4 = REPO / "AGENT_WORK/CODEX_EVIDENCE/master-readiness-20261015/real-module-subtitled.mp4"
 EXPECTED_SHA = "914f576bb18575e023fe23ea01debf9c187ce1f198abe8ade07af1f531fda265"
 OUT = Path(__file__).resolve().parent
-FRAMES = OUT / "frames-live-20261015"
-TTS = OUT / "tts-live-20261015"
+RUN_ID = datetime.now().strftime("%Y%m%d-%H%M%S")
+FRAMES = OUT / f"frames-{RUN_ID}"
+TTS = OUT / f"tts-{RUN_ID}"
 TEXT = "The army ordered new jets last week."
 PYTHON_CANDIDATES = [
     Path(r"C:\Users\Pharma\AppData\Local\Temp\defence-master-audio-20261015\Scripts\python.exe"),
@@ -101,6 +102,7 @@ def speech_metrics(path: Path) -> dict:
     total_frames = max(1, math.ceil(n / frame))
     rms_vals = []
     silent_run = longest_silent_run = 0
+    silent_start_s = None
     silent_runs = []
     for i in range(0, n, frame):
         chunk = samples[i : i + frame]
@@ -110,13 +112,18 @@ def speech_metrics(path: Path) -> dict:
         rms_vals.append(rms)
         if rms < thresh:
             silent_frames += 1
+            if silent_start_s is None:
+                silent_start_s = i / sr
             silent_run += len(chunk)
         elif silent_run:
-            silent_runs.append(silent_run / sr)
+            silent_runs.append({"start_s": round(silent_start_s, 4), "end_s": round(i / sr, 4),
+                                "duration_s": round(silent_run / sr, 4)})
             longest_silent_run = max(longest_silent_run, silent_run)
             silent_run = 0
+            silent_start_s = None
     if silent_run:
-        silent_runs.append(silent_run / sr)
+        silent_runs.append({"start_s": round((n - silent_run) / sr, 4), "end_s": round(n / sr, 4),
+                            "duration_s": round(silent_run / sr, 4)})
         longest_silent_run = max(longest_silent_run, silent_run)
     overall_rms = math.sqrt(sum(s * s for s in samples) / max(1, len(samples))) / 32768.0
     rms_db = 20 * math.log10(max(overall_rms, 1e-12))
@@ -135,7 +142,8 @@ def speech_metrics(path: Path) -> dict:
         "silent_frame_fraction": round(silent_frames / total_frames, 4),
         "silent_run_count": len(silent_runs),
         "longest_silent_run_s": round(longest_silent_run / sr, 4),
-        "silent_runs_over_0_25s": sum(run > 0.25 for run in silent_runs),
+        "silent_runs_over_0_25s": sum(run["duration_s"] > 0.25 for run in silent_runs),
+        "silent_runs": silent_runs,
         "frame_rms_cv": round(cv, 4),
         "energy_varies": cv > 0.15 and overall_rms > thresh,
     }
