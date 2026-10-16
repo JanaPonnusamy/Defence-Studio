@@ -1,0 +1,126 @@
+{
+  "started_at": "2026-10-16T04:17:11.344696+00:00",
+  "steps": [
+    {
+      "step": "discovery: local fixture RSS",
+      "ok": true,
+      "seconds": 0.2,
+      "candidates": 1,
+      "selected": [
+        "https://fixture-one.example/article"
+      ],
+      "providers": [
+        [
+          "rss_feed",
+          "OK"
+        ]
+      ]
+    },
+    {
+      "step": "acquisition + analysis: local fixture article transport",
+      "ok": true,
+      "seconds": 0.3,
+      "stages": {
+        "application_foundation": "COMPLETED",
+        "news_feed_and_topic_discovery": "COMPLETED",
+        "topic_search_and_source_collection": "COMPLETED",
+        "extraction_validation_normalization_deduplication": "COMPLETED",
+        "evidence_analysis_and_review": "AWAITING_REVIEW",
+        "script_generation_and_approval": "PENDING",
+        "scene_creation_and_voice_direction": "PENDING",
+        "asset_rights_review_and_assignment": "PENDING",
+        "voice_audio_finishing_and_alignment": "PENDING",
+        "video_rendering": "PENDING",
+        "quality_control_final_review_and_export": "PENDING",
+        "channel_branding_and_publishing_package": "PENDING",
+        "cross_domain_and_format_reuse": "PENDING"
+      },
+      "sources": 1,
+      "claims_extracted": 4
+    },
+    {
+      "step": "evidence review (simulated reviewer) + package approval",
+      "ok": true,
+      "seconds": 0.3,
+      "claims_approved": 4,
+      "eligible": 4
+    },
+    {
+      "step": "script: offline extractive provider, validation, approval",
+      "ok": true,
+      "seconds": 0.2,
+      "words": 51,
+      "provider": "offline-extractive",
+      "warnings": [
+        "SOURCE_DATE_UNKNOWN",
+        "SOURCE_DATE_UNKNOWN",
+        "SOURCE_DATE_UNKNOWN",
+        "SOURCE_DATE_UNKNOWN",
+        "TARGET_LENGTH_MISSED"
+      ]
+    },
+    {
+      "step": "scene plan: generate + approve",
+      "ok": true,
+      "seconds": 0.1,
+      "scenes": 5
+    },
+    {
+      "step": "assets: ingest, rights review, assign (synthetic rights-cleared still)",
+      "ok": true,
+      "seconds": 0.7,
+      "assigned_scenes": 5
+    },
+    {
+      "step": "audio: real Audio Module (local OS English voice)",
+      "ok": true,
+      "seconds": 31.728,
+      "version": 1,
+      "scenes": 5,
+      "mock": false
+    },
+    {
+      "step": "visual: real Visual Module, measured timing, imported asset",
+      "ok": true,
+      "seconds": 1.8,
+      "version": 1,
+      "shots": 5,
+      "gaps": 4,
+      "assignments_honored": 1
+    },
+    {
+      "step": "render: real Renderer + FFmpeg + subtitles",
+      "ok": true,
+      "seconds": 31.728,
+      "version": 1,
+      "probe": {
+        "avg_frame_rate": "25/1",
+        "codec": "h264",
+        "height": 720,
+        "pix_fmt": "yuv420p",
+        "width": 1280
+      },
+      "cues": 9
+    },
+    {
+      "step": "qc + final approval",
+      "ok": false,
+      "seconds": 12.2,
+      "error": "AssertionError: {'VISUAL_COVERAGE': 'FAIL'}"
+    }
+  ],
+  "simulated": [
+    "human review decisions (harness acts as owner/reviewer)",
+    "script text: offline extractive provider restating approved claims, no LLM",
+    "rights-cleared still: synthetic image created by the harness",
+    "RSS and article HTTP transport: controlled local text, never live news"
+  ],
+  "not_done": [],
+  "input_mode": "LOCAL_HTTP_TRANSPORT_FIXTURE",
+  "job_id": "fe60ce51-c2bf-42c2-b099-d9b95f0ba484",
+  "topic": "Training",
+  "database": "C:\\dstmp\\next-fixture-0945\\e2e-1792124231.sqlite3",
+  "finished_at": "2026-10-16T04:19:45.712799+00:00",
+  "ok": false,
+  "acceptance_status": "BLOCKED"
+}

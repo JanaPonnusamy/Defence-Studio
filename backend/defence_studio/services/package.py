@@ -316,8 +316,17 @@ class PackageService(QcService):
                          allowed_from=("AWAITING_REVIEW",))
         return self.get_integration(job_id, owner_id, language, PACKAGE_KIND, version)
 
+    def verify_package_asset_rights(self, job_id: str, owner_id: str, language: str, body: dict) -> None:
+        """Shared by file download and the streaming publishing worker."""
+        render = self.get_integration(job_id, owner_id, language, RENDER_KIND, body["binding"]["render_version"])
+        visual_version = render["input_binding"].get("visual_version")
+        if visual_version is not None:
+            visual = self.get_integration(job_id, owner_id, language, "visual_timeline", visual_version)
+            self.verify_visual_asset_rights(job_id, language, visual["input_binding"])
+
     def package_file(self, job_id: str, owner_id: str, language: str, version: int, name: str) -> tuple[bytes, str]:
         body = self.read_integration_body(job_id, owner_id, language, PACKAGE_KIND, version)
+        self.verify_package_asset_rights(job_id, owner_id, language, body)
         ref = body["files"].get(name)
         if not ref:
             raise IntegrationStale(f"No file {name!r} in this package")

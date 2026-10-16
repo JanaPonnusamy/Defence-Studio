@@ -303,6 +303,51 @@ def test_schedule_validation_and_timezone_conversion(pub):
 # -- execution ---------------------------------------------------------------------------------
 
 
+def test_revoked_rights_are_terminal_through_publish_worker(pub, monkeypatch):
+    svc = pub["svc"]
+    gate_calls = []
+    def revoked(*_):
+        gate_calls.append(1)
+        raise IntegrationStale("Visual asset rights or assignments changed; rebuild the visual timeline")
+    monkeypatch.setattr(svc, "_video_path", revoked)
+    def no_provider(*_):
+        pytest.fail("A revoked publishing job must fail before provider credential access")
+    monkeypatch.setattr(svc, "_access_token", no_provider)
+    base = ["QUEUED", "VALIDATING", "READY_TO_UPLOAD", "UPLOADING"]
+    paths = [base, base + ["UPLOAD_PAUSED"], base + ["UPLOADED_PRIVATE"],
+             base + ["UPLOADED_PRIVATE", "THUMBNAIL_PENDING"],
+             base + ["UPLOADED_PRIVATE", "CAPTIONS_PENDING"],
+             base + ["UPLOADED_PRIVATE", "PUBLISHING"],
+             base + ["UPLOADED_PRIVATE", "PUBLISHING", "SCHEDULED"],
+             base + ["UPLOADED_PRIVATE", "PUBLISHING", "PUBLISHED"]]
+    for i, path in enumerate(paths):
+        job = _job(pub, f"revoked-{i}")
+        _approve(pub, job)
+        for state in path:
+            svc._set_state(job["publish_id"], state, "isolated worker-state fixture")
+        if "UPLOADED_PRIVATE" in path:
+            svc._cols(job["publish_id"], youtube_video_id="MOCK_ALREADY_PRIVATE")
+        calls_before = len(pub["g"].calls)
+        svc.run_job(job["publish_id"])
+        failed = svc.get_job(OWNER, job["publish_id"])
+        assert failed["state"] == "FAILED_FINAL", failed
+        assert failed["error_code"] == "precondition" and "rights" in failed["error_message"]
+        assert len(pub["g"].calls) == calls_before
+        checks_before = len(gate_calls)
+        svc.run_job(job["publish_id"])
+        assert len(gate_calls) == checks_before  # terminal jobs never re-enter the gate
+    job = _job(pub, "cancel-wins-rights")
+    _approve(pub, job)
+    for state in base:
+        svc._set_state(job["publish_id"], state, "isolated cancellation fixture")
+    def cancel_then_revoke(*_):
+        svc._set_state(job["publish_id"], "CANCEL_REQUESTED", "owner cancellation won")
+        raise IntegrationStale("rights changed after cancellation")
+    monkeypatch.setattr(svc, "_video_path", cancel_then_revoke)
+    svc.run_job(job["publish_id"])
+    assert svc.get_job(OWNER, job["publish_id"])["state"] == "CANCELLED"
+
+
 def test_private_upload_thumbnail_captions_verified_and_audited(pub):
     job = _job(pub)
     _approve(pub, job)

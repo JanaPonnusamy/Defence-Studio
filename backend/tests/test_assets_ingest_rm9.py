@@ -78,6 +78,24 @@ def _approved_assigned_asset(s, plan, scene_index=0, key="a1", rights=RIGHTS):
     return svc, aid, scene_id, asset
 
 
+def test_expiry_is_rechecked_when_selecting_previously_approved_asset(approved_script, monkeypatch):
+    s = approved_script
+    plan = _english_plan_for_assets(s)
+    svc, _, _, _ = _approved_assigned_asset(s, plan, rights={**RIGHTS, "expires_at": "2090-01-01T00:00:00+00:00"})
+    sha = _plan_sha(s["scene"], s["job"], plan["version"], "en")
+    assert len(svc.assigned_assets(s["job"], "en", sha)) == 1
+    monkeypatch.setattr("defence_studio.services.assets._now", lambda: "2091-01-01T00:00:00+00:00")
+    assert svc.assigned_assets(s["job"], "en", sha) == []
+
+
+def test_non_web_rights_are_not_imported_for_web_video(approved_script):
+    s = approved_script
+    plan = _english_plan_for_assets(s)
+    svc, _, _, _ = _approved_assigned_asset(s, plan, rights={**RIGHTS, "permitted_uses": ["broadcast"]})
+    sha = _plan_sha(s["scene"], s["job"], plan["version"], "en")
+    assert svc.assigned_assets(s["job"], "en", sha) == []
+
+
 def test_upload_measures_real_bytes_and_rejects_non_images(approved_script):
     s = approved_script
     svc = VisualService(s["db"], s["root"], provider=s["provider"])

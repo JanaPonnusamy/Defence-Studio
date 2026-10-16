@@ -1,0 +1,31 @@
+Write isn't available in this read-only context, so here is the review directly.
+
+## Independent read-only review — visual-asset rights re-check at render/export boundaries
+
+I verified the diff against source with Read/Grep only. **This is my static review**; execution results are attributed to the supplied evidence, not run by me.
+
+### Verified sound (correctness)
+- **`PermittedUse.WEB`** exists (`contracts/assets.py:149`); **`_derive_effective_rights`** accepts `target_use` and defaults `now_iso=_now()` (`assets.py:100-110`), so expiry is genuinely evaluated at use time — the inline comment and `test_expiry_is_rechecked...` (which monkeypatches `assets._now`) are accurate.
+- **Key alignment across build → verify:** `assigned_assets` returns `asset_sha256` and `scene_ids` (`integration.py:289-291`); the visual binding is written as `{asset_id, sha256, scenes}` (`visual.py:88`); `verify_visual_asset_rights` reads `old["asset_id"]/["sha256"]/["scenes"]` against those. Consistent.
+- **Every call site is well-formed:** render binding carries both `scene_plan_sha256` and `assets` (`render.py:83-87`), which `verify_visual_asset_rights` requires; `package.py`/`qc.py`/`render_file` resolve `visual_timeline` and pass its `input_binding`. All fail-closed via `IntegrationStale`.
+- **WEB/`CLEAR`-only gate** correctly excludes non-web (`RESTRICTED`) and expired assets; `evaluate_effective_rights` fail-closed ordering (UNVERIFIED → EXPIRED → BLOCKED → RESTRICTED) is intact.
+
+### Low severity (no blockers)
+1. **`e2e_acceptance.py:95-98` diagnostic branch is unexercised.** It accesses `p['provider']`/`p['status']`/`p.get('message')`; `list_candidates` does return provider dicts with those fields, so it's correct — but it only runs on zero candidates, and the fixture run had 1 candidate, so this path has **not executed**. Diagnostic-only, inside an already-failing assertion.
+2. **Redundant (not wrong) filter:** the DB-cached `effective_rights in ("CLEAR","RESTRICTED")` at `integration.py:271` is now superseded by the authoritative re-derivation at 278. Both fail closed; could be dropped for clarity.
+3. `assigned_assets` now runs a pydantic `model_validate` per candidate (via `_derive_effective_rights`) instead of a pure DB read. Stored descriptors are validated at registration, so no raise expected — noting the behavioural shift.
+
+**No high/medium defects. No security regressions** — ownership checks, fail-closed derivation, and staleness/optimistic-concurrency semantics preserved.
+
+### Status & evidence semantics (honoured, not asserted beyond evidence)
+- Protected production script remains **`AWAITING_REVIEW`** (`artifact-and-protection-validation.json`).
+- Core workflow queue job remains **`PAUSED`** (`restart-check.json`) despite the media-chain fixture passing; the e2e change now records `scope: "...simulated reviews do not complete the research queue job"`, which is accurate.
+- **Full regression still running — I do not claim it passed.** Only the cited `final-rights-regression.log` (4 passed) and `affected-tests.log` (42 passed, 1 skipped) are execution evidence, which I did not produce.
+- Acceptance was reduced-profile (640×360, 12fps, 600s) fixture; **full 1080p NOT_RUN**. Tamil remains blocked.
+- Baseline 1933a62; concurrent evidence-only commit cbf380d preserved — not re-litigated.
+- No inference of human/legal acceptance; evidence reviews are harness-simulated.
+
+### Limitations of this review
+Static only — I did not execute tests, FFmpeg probes, or the fixture chain; I did not open the sqlite DBs or the long-render JSON. Claims about provider-dict shape rest on `discovery.py`/`providers.py` source, not a runtime trace of the error branch.
+
+**Recommendation:** correct and safe to carry forward; the two low-severity notes are optional cleanups.

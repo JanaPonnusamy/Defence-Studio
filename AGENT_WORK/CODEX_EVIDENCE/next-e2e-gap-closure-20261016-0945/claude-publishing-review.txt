@@ -1,0 +1,30 @@
+I've completed the static review of the final branch. Here are the findings.
+
+## Result: no actionable correctness/security defects
+
+The reproduced streaming-publisher bypass is closed at every boundary, and the worker failure-transition gap is correctly resolved with legal, race-safe transitions.
+
+### What I verified
+
+**Shared rights gate** — `verify_package_asset_rights` (`package.py:319`) resolves render → visual_timeline and delegates to `verify_visual_asset_rights`, mirroring the existing render/qc chain (`render.py:331`, `qc.py:437`). `body["binding"]["render_version"]` is always present on real package bodies (`package.py:235`).
+
+**Gate coverage at all boundaries:**
+- `package_file` download — `package.py:329`
+- `_validate` preflight — `youtube.py:716`; IntegrationStale caught locally → `FAILED_FINAL` via the problems list (`:724`, `:738-740`), with the specific `except` correctly ordered before the broad one
+- `_upload` — `youtube.py:757-758`: rights checked **before** `_access_token` (the bypass fix)
+- `_post_upload` — entry recheck at `:818` before any provider/token call, plus a second recheck at `:850` before `update_status`, covering revocation during thumbnail/caption work
+
+**Worker transitions** — IntegrationStale (and its subclass `YtConflict`, `youtube.py:88`) is handled at `_advance` (`:598-606`) → `FAILED_FINAL` with `error_code="precondition"`, and preserves terminal state when cancellation/completion wins the race. Every worker-reachable state now has `FAILED_FINAL` in its TRANSITIONS set — the added entries (QUEUED, READY_TO_UPLOAD, UPLOADED_PRIVATE, THUMBNAIL_PENDING, CAPTIONS_PENDING, SCHEDULED, PUBLISHED) are exactly the ones previously missing. No `force=True`; all transitions stay legal.
+
+**Render worker** — IntegrationStale from `verify_visual_asset_rights` is caught by the broad `except Exception` (`render.py:271`) → status `FAILED`, detail contains "rights", matching the new test.
+
+**Tests valid** — monkeypatches isolate each boundary. The `_post_upload` test's assertion that IntegrationStale raises before `_access_token` holds because `:818` precedes `:819`.
+
+### Minor, non-blocking (informational)
+- **N1** `render.py:271` — IntegrationStale on the render worker surfaces as `"<step>: internal: IntegrationStale: ..."`. Functionally correct (FAILED, detail contains "rights") but mislabeled as internal rather than a precondition. Optional: add it to the typed `except` at `render.py:268`.
+- **N2** `youtube.py:604-606` — the inner `except YtConflict` re-raise on a non-terminal state is unreachable given current TRANSITIONS (all reachable states allow `FAILED_FINAL`). If it ever fired it would propagate out of `_advance` and abort the `process_due` loop. Purely theoretical; no change needed.
+
+### Caveats
+Static review only; no external Google/legal verification claimed. Per the evidence provided, `publishing-rights-after.log` and `publisher-state-after.log` each show 1 passed, but the full mocked-Google and final export/lifecycle suites were still running — I am **not** claiming final regression is complete.
+
+(Note: I was unable to write the plan file — the Write tool is not enabled in this context — so the findings are reported here directly.)

@@ -1,0 +1,10 @@
+**No actionable defect.**
+
+I reviewed the permanent `IntegrationStale` handler against `TRANSITIONS` for cancellation correctness:
+
+- **CANCEL_REQUESTED branch:** `CANCEL_REQUESTED → CANCELLED` is the only edge out of `CANCEL_REQUESTED` and is explicitly allowed, so the cancellation-wins path is legal. `CANCEL_REQUESTED` is reachable only from `QUEUED`/`UPLOADING` (the stages where `_video_path` rights-gate runs), consistent with the test's `base`-ending-at-`UPLOADING` fixture.
+- **FAILED_FINAL branch:** gated by `state not in TERMINAL`, and every state the test drives through the gate (`UPLOADING`, `UPLOAD_PAUSED`, `UPLOADED_PRIVATE`, `THUMBNAIL_PENDING`, `CAPTIONS_PENDING`, `PUBLISHING`, `SCHEDULED`, `PUBLISHED`) has `FAILED_FINAL` in its allowed set — no illegal transition.
+- **State re-read:** `state = self._state(publish_id)` is re-fetched inside the handler, so a cancellation that landed after the exception was raised is observed correctly rather than acting on a stale in-memory value. This is exactly what the `cancel_then_revoke` fixture exercises.
+- **YtConflict fallback:** the race guard re-reads state and only re-raises when still non-terminal, correctly deferring to a concurrent cancellation/completion that won the transition.
+
+The handler is internally consistent with the transition table and the two branches are mutually exclusive and exhaustive over the reachable states. Static review only — no defect found.

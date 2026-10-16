@@ -1,0 +1,47 @@
+[
+  {
+    "port": 8001,
+    "process_id": 9672,
+    "health": {
+      "status": "ok",
+      "service": "audio-module"
+    }
+  },
+  {
+    "port": 8765,
+    "process_id": 20672,
+    "health": {
+      "status": "ok",
+      "service": "video-visual-module",
+      "version": "1.1.0",
+      "database": "ok"
+    }
+  },
+  {
+    "port": 8780,
+    "process_id": 25416,
+    "health": {
+      "status": "ok",
+      "version": "0.1.0",
+      "ffmpeg": {
+        "status": "AVAILABLE",
+        "ffmpeg": "D:\\ffmpeg\\bin\\ffmpeg.EXE",
+        "ffprobe": "D:\\ffmpeg\\bin\\ffprobe.EXE",
+        "version": "8.1.1-essentials_build-www.gyan.dev",
+        "license_flags": {
+          "gpl": true,
+          "version3": true,
+          "nonfree": false,
+          "libx264": true,
+          "libfdk_aac": false,
+          "summary": "GPLv3"
+        }
+      },
+      "recovery": {
+        "interrupted": [],
+        "requeued": []
+      },
+      "storage_root": "C:\\dstmp\\next-modules-20261016-0945\\renderer"
+    }
+  }
+]

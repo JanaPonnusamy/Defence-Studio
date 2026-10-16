@@ -43,23 +43,23 @@ from defence_studio.services.integration import (
 TRANSITIONS = {
     "DRAFT": {"AWAITING_APPROVAL", "CANCELLED"},
     "AWAITING_APPROVAL": {"QUEUED", "DRAFT", "CANCELLED"},
-    "QUEUED": {"VALIDATING", "CANCELLED", "CANCEL_REQUESTED"},
+    "QUEUED": {"VALIDATING", "FAILED_FINAL", "CANCELLED", "CANCEL_REQUESTED"},
     "VALIDATING": {"READY_TO_UPLOAD", "FAILED_FINAL", "FAILED_RETRYABLE", "REAUTH_REQUIRED", "CANCELLED"},
-    "READY_TO_UPLOAD": {"UPLOADING", "CANCELLED", "FAILED_RETRYABLE"},
+    "READY_TO_UPLOAD": {"UPLOADING", "CANCELLED", "FAILED_RETRYABLE", "FAILED_FINAL"},
     "UPLOADING": {"UPLOAD_PAUSED", "UPLOAD_RETRY_WAIT", "UPLOADED_PRIVATE", "FAILED_RETRYABLE", "FAILED_FINAL",
                   "REAUTH_REQUIRED", "CANCEL_REQUESTED", "CANCELLED"},
     "UPLOAD_PAUSED": {"UPLOADING", "FAILED_FINAL", "CANCELLED"},
     "UPLOAD_RETRY_WAIT": {"UPLOADING", "FAILED_FINAL", "CANCELLED"},
-    "UPLOADED_PRIVATE": {"THUMBNAIL_PENDING", "CAPTIONS_PENDING", "PUBLISHING", "VERIFYING", "FAILED_RETRYABLE",
+    "UPLOADED_PRIVATE": {"THUMBNAIL_PENDING", "CAPTIONS_PENDING", "PUBLISHING", "VERIFYING", "FAILED_RETRYABLE", "FAILED_FINAL",
                          "REAUTH_REQUIRED", "CANCELLED"},
-    "THUMBNAIL_PENDING": {"THUMBNAIL_UPLOADING", "CAPTIONS_PENDING", "PUBLISHING", "VERIFYING", "CANCELLED"},
+    "THUMBNAIL_PENDING": {"THUMBNAIL_UPLOADING", "CAPTIONS_PENDING", "PUBLISHING", "VERIFYING", "FAILED_FINAL", "CANCELLED"},
     "THUMBNAIL_UPLOADING": {"CAPTIONS_PENDING", "PUBLISHING", "VERIFYING", "FAILED_RETRYABLE", "FAILED_FINAL",
                             "REAUTH_REQUIRED"},
-    "CAPTIONS_PENDING": {"CAPTIONS_UPLOADING", "PUBLISHING", "VERIFYING", "CANCELLED"},
+    "CAPTIONS_PENDING": {"CAPTIONS_UPLOADING", "PUBLISHING", "VERIFYING", "FAILED_FINAL", "CANCELLED"},
     "CAPTIONS_UPLOADING": {"PUBLISHING", "VERIFYING", "FAILED_RETRYABLE", "FAILED_FINAL", "REAUTH_REQUIRED"},
     "PUBLISHING": {"SCHEDULED", "PUBLISHED", "VERIFYING", "FAILED_RETRYABLE", "FAILED_FINAL", "REAUTH_REQUIRED"},
-    "SCHEDULED": {"VERIFYING"},
-    "PUBLISHED": {"VERIFYING"},
+    "SCHEDULED": {"VERIFYING", "FAILED_FINAL"},
+    "PUBLISHED": {"VERIFYING", "FAILED_FINAL"},
     "VERIFYING": {"COMPLETED", "FAILED_RETRYABLE", "FAILED_FINAL", "REAUTH_REQUIRED"},
     "FAILED_RETRYABLE": {"QUEUED", "UPLOADING", "THUMBNAIL_PENDING", "CAPTIONS_PENDING", "PUBLISHING",
                          "VERIFYING", "CANCELLED", "FAILED_FINAL"},
@@ -595,8 +595,18 @@ class YouTubeService(ReportsMixin, PackageService):
                 self._post_upload(publish_id)
         except YouTubeError as exc:
             self._handle_error(publish_id, exc)
-        except YtConflict as exc:
-            self._set_state(publish_id, "FAILED_FINAL", f"Precondition failed: {exc}")
+        except IntegrationStale as exc:
+            # A rebuilt/reviewed package is required; retries cannot repair rights.
+            try:
+                state = self._state(publish_id)
+                if state == "CANCEL_REQUESTED":
+                    self._set_state(publish_id, "CANCELLED", "Cancellation won the precondition failure")
+                elif state not in TERMINAL:
+                    self._set_state(publish_id, "FAILED_FINAL", f"Precondition failed: {exc}",
+                                    error_code="precondition", error_message=str(exc)[:500])
+            except YtConflict:
+                if self._state(publish_id) not in TERMINAL:
+                    raise  # Otherwise cancellation/completion won the transition race.
         except Exception as exc:  # never leave a job silently RUNNING
             self._safe_fail(publish_id, f"internal: {type(exc).__name__}: {exc}")
 
@@ -706,6 +716,7 @@ class YouTubeService(ReportsMixin, PackageService):
         try:
             manifest = self.read_integration_body(job["job_id"], job["owner_id"], job["language"], PACKAGE_KIND,
                                                   job["package_version"])
+            self.verify_package_asset_rights(job["job_id"], job["owner_id"], job["language"], manifest)
             pkg_row = self.get_integration(job["job_id"], job["owner_id"], job["language"], PACKAGE_KIND,
                                            job["package_version"])
             if pkg_row["sha256"] != job["package_sha256"] or pkg_row["status"] != "APPROVED":
@@ -713,6 +724,8 @@ class YouTubeService(ReportsMixin, PackageService):
             v = manifest["files"]["video_branded"]
             if self.store.sha256_of(job["job_id"], v["uri"]) != v["sha256"]:
                 problems.append("video file failed its integrity check")
+        except IntegrationStale as exc:
+            problems.append(f"package rights or state changed: {exc}")
         except Exception as exc:
             problems.append(f"package unreadable: {type(exc).__name__}")
         if job["scheduled_utc"] and job["scheduled_utc"] <= self._now_fn().isoformat():
@@ -734,6 +747,7 @@ class YouTubeService(ReportsMixin, PackageService):
     def _video_path(self, job: dict) -> tuple[Path, dict]:
         manifest = self.read_integration_body(job["job_id"], job["owner_id"], job["language"], PACKAGE_KIND,
                                               job["package_version"])
+        self.verify_package_asset_rights(job["job_id"], job["owner_id"], job["language"], manifest)
         ref = manifest["files"]["video_branded"]
         return self.store.job_dir(job["job_id"]) / ref["uri"].split(f"jobs/{job['job_id']}/", 1)[1], manifest
 
@@ -743,8 +757,8 @@ class YouTubeService(ReportsMixin, PackageService):
             return
         if job["state"] != "UPLOADING":
             self._set_state(publish_id, "UPLOADING", "Starting/resuming transfer")
-        token = self._access_token(job["connection_id"])
         path, _ = self._video_path(job)
+        token = self._access_token(job["connection_id"])
         total = path.stat().st_size
         api = self.api()
         session = None
@@ -804,6 +818,7 @@ class YouTubeService(ReportsMixin, PackageService):
     def _post_upload(self, publish_id: str) -> None:
         job = self._load(publish_id)
         vid = job["youtube_video_id"]
+        self._video_path(job)  # Recheck rights before any post-upload provider call.
         token = self._access_token(job["connection_id"])
         api = self.api()
         # Reconcile: the video must still exist before any further call.
@@ -835,6 +850,7 @@ class YouTubeService(ReportsMixin, PackageService):
                           "selfDeclaredMadeForKids": bool(job["made_for_kids"])}
             else:
                 status = {"privacyStatus": job["visibility"], "selfDeclaredMadeForKids": bool(job["made_for_kids"])}
+            self._video_path(job)  # A revocation during thumbnail/caption work blocks publication.
             api.update_status(token, vid, status)
             self._spend(publish_id, "videos.update")
             self._set_state(publish_id, "SCHEDULED" if job["scheduled_utc"] else "PUBLISHED",

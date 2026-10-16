@@ -1,0 +1,22 @@
+The Write/ExitPlanMode tools aren't available in this context, so I'll report the review directly. I've traced the full gate chain and the worker driver.
+
+## Review result
+
+**Gate placement is correct.** `verify_package_asset_rights` (package.py:319) reads `body["binding"]["render_version"]` — matching the stored package body shape (package.py:235) — then resolves the *real* render row's `input_binding["visual_version"]` (set at render.py:84) and the real visual row, delegating to `verify_visual_asset_rights` (integration.py:294). The chain is genuine, not short-circuited. Ordering is sound: `_upload` checks `_video_path` before `_access_token` (youtube.py:750-751); `_post_upload` rechecks at entry (youtube.py:811) and again before the visibility flip (youtube.py:843). No credential/provider access precedes the rights check. The original `_video_path` streaming bypass is closed.
+
+### Finding 1 — Medium — permanent rights revocation mislabeled as retryable by the publish worker
+**`backend/defence_studio/services/youtube.py:596-601`** (triggered by `_video_path` raising `IntegrationStale` at youtube.py:740, reached via :750 / :811 / :843).
+
+`_advance` catches `YouTubeError`, then `YtConflict`, then bare `Exception`. `YtConflict` is a *subclass* of `IntegrationStale` (youtube.py:88), so a **plain** `IntegrationStale` from the new `_video_path` gate is **not** caught by `except YtConflict` — it falls through to `except Exception` → `_safe_fail` (youtube.py:607) → **`FAILED_RETRYABLE`** (that target is in TRANSITIONS for UPLOADING/UPLOADED_PRIVATE/PUBLISHING). The retry sweep (youtube.py:662) re-runs `_advance`, re-hits the same revocation, and re-fails — an unbounded loop, with no `attempts`/`max_attempts` cap since `_safe_fail` bypasses attempt accounting.
+
+Rights revocation is permanent (needs a rebuilt visual timeline/package/publish job), so the correct terminal state is **`FAILED_FINAL`** — exactly how the sibling `YtConflict` (line 599) and the `_validate` preflight path (line 717/733) already route it.
+
+- **Security impact: none** — no revoked content is published; the already-uploaded video stays private and the public visibility flip is correctly blocked. This is a state-semantics/operational defect (wrong terminal class + retry churn + misleading status).
+- **Fix:** add `except IntegrationStale as exc: self._set_state(publish_id, "FAILED_FINAL", f"Precondition failed: {exc}")` immediately below the `except YtConflict` handler (or raise `YtConflict` from the rights gate).
+
+### Finding 2 — Low — publishing rights tests bypass the worker driver
+**`backend/tests/test_render_rm5.py`** (`test_rights_changed_after_visual_plan_blocks_render`).
+
+The publishing assertions call `_video_path(...)` and `_post_upload(...)` directly and assert `IntegrationStale`. They never drive the gate through `_advance`, so they can't observe the terminal state the worker actually reaches — which is precisely why Finding 1 is invisible to this suite. The render-side companion correctly exercises the worker (`pending.pop()()`) and asserts `FAILED`; the publishing path has no equivalent. Add an `_advance`-level case asserting the publish job lands in `FAILED_FINAL` (not `FAILED_RETRYABLE`) on revocation, with no provider token/API call.
+
+No other actionable correctness, security, or test-validity defects in the changed source. As instructed, I make no claim about the still-running mocked-Google / final-export suites or any external Google/legal verification.

@@ -92,7 +92,12 @@ def main() -> int:
         w.run_once(); w.run_once()
         res = d.list_candidates(job, OWNER)
         c = res["candidates"]
-        assert c, "no candidates from live feeds"
+        if not c:
+            # Keep the actual provider diagnostics: zero candidates can mean a
+            # policy rejection before any HTTP request, not an upstream outage.
+            REPORT["discovery_providers"] = res["providers"]
+            raise AssertionError("no candidates from live feeds: " + "; ".join(
+                f"{p['provider']}={p['status']}: {p.get('message', '')}" for p in res["providers"]))
         pick = [x for x in c if "bbc" not in (x["declared_metadata"].get("publisher") or "").lower()][:2] or c[:2]
         d.select_candidates(job, OWNER, [x["candidate_id"] for x in pick])
         return {"candidates": len(c), "selected": [x["canonical_url"] for x in pick],
@@ -245,7 +250,10 @@ def main() -> int:
         n = fresh.recover_interrupted()
         status = fresh.package_status(job, OWNER, "en")
         gate = fresh.approved_render(job, OWNER, "en")
-        return {"recovered_rows": n, "package_status": status["items"][-1]["status"], "approved_render": gate["render_version"]}
+        state = JobService(db).get(job, OWNER)
+        return {"recovered_rows": n, "package_status": status["items"][-1]["status"],
+                "approved_render": gate["render_version"], "workflow_job_status": state["status"],
+                "scope": "media service chain; simulated reviews do not complete the research queue job"}
 
     code = 0
     try:

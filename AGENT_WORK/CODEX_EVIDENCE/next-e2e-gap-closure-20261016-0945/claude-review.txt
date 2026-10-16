@@ -1,0 +1,32 @@
+The Write tool isn't available in this context, so I'll deliver the review findings directly.
+
+# Independent read-only review — rights-at-use-boundary hardening
+
+Static review only (Read/Grep). I did not execute anything; all pass/fail counts and JSON evidence below are the author's, not my verification.
+
+## Verified correct against source
+
+- **Use-time rights re-derivation** — `assigned_assets` (integration.py:278) re-derives via `_derive_effective_rights(..., target_use=WEB)` and keeps only strictly `CLEAR`. This correctly moves expiry/non-web evaluation to use time rather than the cached review-time column. The underlying `evaluate_effective_rights` (contracts/assets.py:383-411) is fail-closed (missing provenance/basis/commercial → UNVERIFIED; past/malformed expiry → EXPIRED; prohibited/NC → BLOCKED; target_use not permitted → RESTRICTED). Both rm9 tests exercise the real paths.
+- **Binding shape alignment** — producer visual.py:88 emits `{asset_id, sha256, scenes}`; consumer `verify_visual_asset_rights` (integration.py:294-305) compares `sha256`↔`asset_sha256` and `scenes⊆scene_ids`. Consistent; no key mismatch.
+- **Boundary coverage is complete** — start_render (render.py:70), worker start (177), post-renderer (230), pre-store (260), render_file download (328), package_file (package.py:321-325), and the export gate approved_render (qc.py:437-440). Export gates pull the visual timeline's authoritative `input_binding`.
+- **Race fix is sound** — verify now runs *after* the QUEUED→RUNNING transition (render.py:175-177); the raised `IntegrationStale` hits the generic `except` → `_fail_if_running`, which transitions only `allowed_from=("RUNNING",)` (132-139) → FAILED. Cancellation safety holds: a CANCELLED row fails the RUNNING transition, so `_fail_if_running` no-ops and the terminal state survives. This matches the author's description of the corrected order.
+
+## Findings (concrete, file/line, severity)
+
+- **LOW — evidence gap (fresh process):** In `real-rights-revocation.json` the gate named `fresh_process_equivalent_service` is same-process (a reconstructed service object), which the follow-up concedes. The only true fresh-process artifact, `restart-check.json`, does **not** exercise revocation — rights are still valid there (package APPROVED, all shas match). So cross-restart blocking of the revocation gates is supported by same-process execution + my static reasoning, **not** by fresh-process execution evidence. Scope the claim to that.
+- **LOW — dead/narrowed semantics:** integration.py:271 still admits `RESTRICTED` on the cached DB column, but :278 then drops anything not strictly `CLEAR`. The column branch is now effectively unreachable for RESTRICTED. Intended per the new tests, but a one-line comment would prevent a future reader "restoring" RESTRICTED import. No false-positive risk since visual-build uses the same `assigned_assets`.
+- **LOW — portability:** `target_use=PermittedUse.WEB` is hardcoded (integration.py:278). Correct for the current web/YouTube product; would wrongly exclude assets if a non-web output profile is ever added. Not a current defect.
+- **INFO — backward compat:** pre-patch renders have no `binding["assets"]`; `verify_visual_asset_rights` no-ops on empty, so those rows are unprotected at the render-level checks. The qc/package export gates re-read the visual timeline's `input_binding` (which does carry assets), so the final gate still protects them. Acceptable.
+
+No correctness or security defect found in the changed logic itself.
+
+## Evidence status (as instructed — reporting, not endorsing)
+
+- Production protected script remains **AWAITING_REVIEW** (artifact-and-protection-validation.json) — consistent.
+- Core workflow queue remains **PAUSED** (`workflow_job_status=PAUSED` in fixture-e2e/restart-check); media-chain fixture passed but the queue is not complete.
+- `live-e2e.json` is `ok:false` (allowlist/missing credentials block discovery) — not a passing live E2E. Tamil still blocked, no new provider.
+- Full 1080p acceptance **NOT_RUN**; only reduced 640x360/12fps/600s fixture.
+- Full/broad regression **still running — not claimed passed.** Focused logs (final-rights-regression 4, affected-tests 42/1-skip, queued-rights-after 1) are author-run; I did not re-run them.
+- No human/legal acceptance inferred.
+
+Limitations: I could not run tests or confirm the `.log` counts; the two new render tests monkeypatch `read_integration_body`/`get_integration`, so they prove the gate call-sites raise but not the full stored-render path end-to-end — the fixture/revocation JSONs cover that, with the same-process caveat above.

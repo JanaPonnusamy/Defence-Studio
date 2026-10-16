@@ -1,0 +1,55 @@
+{
+  "started_at": "2026-10-16T04:15:38.667506+00:00",
+  "steps": [
+    {
+      "step": "discovery: real RSS feeds",
+      "ok": false,
+      "seconds": 0.2,
+      "error": "AssertionError: no candidates from live feeds: configured_search_api=UNAVAILABLE_MISSING_CREDENTIALS: Set DEFENCE_STUDIO_DISCOVERY_SEARCH_API_URL and DEFENCE_STUDIO_DISCOVERY_SEARCH_API_KEY to enable this provider.; rss_feed=ERROR: All configured feeds failed: https://feeds.bbci.co.uk/news/world/rss.xml: SOURCE_NOT_ALLOWLISTED: URL host/path is not permitted by the source registry (host feeds.bbci.co.uk); add an enabled entry to config/source_policy.json to allow it; https://www.defensenews.com/arc/outboundfeeds/rss/?outputType=xml: SOURCE_NOT_ALLOWLISTED: URL host/path is not permitted by the source registry (host www.defensenews.com); add an enabled entry to config/source_policy.json to allow it; https://breakingdefense.com/feed/: SOURCE_NOT_ALLOWLISTED: URL host/path is not permitted by the source registry (host breakingdefense.com); add an enabled entry to config/source_policy.json to allow it; https://www.thehindu.com/news/national/feeder/default.rss: SOURCE_NOT_ALLOWLISTED: URL host/path is not permitted by the source registry (host www.thehindu.com); add an enabled entry to config/source_policy.json to allow it"
+    }
+  ],
+  "simulated": [
+    "human review decisions (harness acts as owner/reviewer)",
+    "script text: offline extractive provider restating approved claims, no LLM",
+    "rights-cleared still: synthetic image created by the harness"
+  ],
+  "not_done": [],
+  "job_id": "d1d3b033-f63a-4f9d-96e5-547571397f10",
+  "topic": "Ukraine",
+  "database": "C:\\dstmp\\next-live\\e2e-1792124138.sqlite3",
+  "discovery_providers": [
+    {
+      "candidates_returned": 0,
+      "duration_ms": 0,
+      "filters_applied": [],
+      "filters_not_supported": [],
+      "http_attempts": 0,
+      "message": "Set DEFENCE_STUDIO_DISCOVERY_SEARCH_API_URL and DEFENCE_STUDIO_DISCOVERY_SEARCH_API_KEY to enable this provider.",
+      "optional_dependency": false,
+      "provider": "configured_search_api",
+      "rate_limited": false,
+      "requires_credentials": true,
+      "status": "UNAVAILABLE_MISSING_CREDENTIALS",
+      "truncated": false
+    },
+    {
+      "candidates_returned": 0,
+      "duration_ms": 0,
+      "filters_applied": [
+        "language",
+        "topic"
+      ],
+      "filters_not_supported": [],
+      "http_attempts": 0,
+      "message": "All configured feeds failed: https://feeds.bbci.co.uk/news/world/rss.xml: SOURCE_NOT_ALLOWLISTED: URL host/path is not permitted by the source registry (host feeds.bbci.co.uk); add an enabled entry to config/source_policy.json to allow it; https://www.defensenews.com/arc/outboundfeeds/rss/?outputType=xml: SOURCE_NOT_ALLOWLISTED: URL host/path is not permitted by the source registry (host www.defensenews.com); add an enabled entry to config/source_policy.json to allow it; https://breakingdefense.com/feed/: SOURCE_NOT_ALLOWLISTED: URL host/path is not permitted by the source registry (host breakingdefense.com); add an enabled entry to config/source_policy.json to allow it; https://www.thehindu.com/news/national/feeder/default.rss: SOURCE_NOT_ALLOWLISTED: URL host/path is not permitted by the source registry (host www.thehindu.com); add an enabled entry to config/source_policy.json to allow it",
+      "optional_dependency": false,
+      "provider": "rss_feed",
+      "rate_limited": false,
+      "requires_credentials": false,
+      "status": "ERROR",
+      "truncated": false
+    }
+  ],
+  "finished_at": "2026-10-16T04:15:39.686605+00:00",
+  "ok": false
+}

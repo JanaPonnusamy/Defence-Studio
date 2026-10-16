@@ -1,0 +1,79 @@
+[
+  {
+    "suite": "backend",
+    "cwd": "E:\\Jana Soft\\DefenceStudio\\backend",
+    "command": [
+      "E:\\Jana Soft\\DefenceStudio\\.audit-venv\\Scripts\\python.exe",
+      "-m",
+      "pytest",
+      "-q",
+      "-ra",
+      "--basetemp",
+      "C:/dstmp/next-regression-0945"
+    ],
+    "exit": 1,
+    "seconds": 1266.25
+  },
+  {
+    "suite": "audio",
+    "cwd": "E:\\Jana Soft\\DefenceStudio\\standalone\\audio-module",
+    "command": [
+      "E:\\Jana Soft\\DefenceStudio\\.audit-venv\\Scripts\\python.exe",
+      "-m",
+      "pytest",
+      "-q",
+      "-ra"
+    ],
+    "exit": 0,
+    "seconds": 25.27
+  },
+  {
+    "suite": "voice",
+    "cwd": "E:\\Jana Soft\\DefenceStudio\\components\\voice-engine",
+    "command": [
+      "E:\\Jana Soft\\DefenceStudio\\.audit-venv\\Scripts\\python.exe",
+      "-m",
+      "pytest",
+      "-q",
+      "-ra"
+    ],
+    "exit": 0,
+    "seconds": 41.03
+  },
+  {
+    "suite": "visual",
+    "cwd": "E:\\Jana Soft\\DefenceStudio\\standalone\\video-visual-module",
+    "command": [
+      "E:\\Jana Soft\\DefenceStudio\\.audit-venv\\Scripts\\python.exe",
+      "-m",
+      "pytest",
+      "-q",
+      "-ra"
+    ],
+    "exit": 0,
+    "seconds": 66.55
+  },
+  {
+    "suite": "renderer",
+    "cwd": "E:\\Jana Soft\\DefenceStudio\\standalone\\video-renderer",
+    "command": [
+      "E:\\Jana Soft\\DefenceStudio\\.audit-venv\\Scripts\\python.exe",
+      "-m",
+      "pytest",
+      "-q",
+      "-ra"
+    ],
+    "exit": 0,
+    "seconds": 258.03
+  },
+  {
+    "suite": "frontend",
+    "cwd": "E:\\Jana Soft\\DefenceStudio\\frontend",
+    "command": [
+      "C:\\Program Files\\nodejs\\npm.cmd",
+      "test"
+    ],
+    "exit": 0,
+    "seconds": 11.59
+  }
+]

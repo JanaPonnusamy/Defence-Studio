@@ -1,0 +1,209 @@
+{
+  "profile": {
+    "width": 640,
+    "height": 360,
+    "fps": 12
+  },
+  "scope": "synthetic 140-shot duration acceptance; reduced resolution due to <1 GiB free RAM at baseline",
+  "runtime_seconds": 92.20300000000134,
+  "job": {
+    "job_id": "r_764e7fd6b58744",
+    "status": "SUCCEEDED",
+    "progress": 1.0,
+    "stage": "done",
+    "frames_done": 7200,
+    "frames_total": 7200,
+    "package_path": "E:\\Jana Soft\\DefenceStudio\\tmp\\next-long-0945\\package",
+    "retry_of": null,
+    "idempotency_key": "next-long-0945",
+    "cancel_requested": false,
+    "error_code": null,
+    "error_message": null,
+    "output_sha256": "a6cc376ee3c1d26e8a53f55390e2ea29931ded0a6a256804466600c854e9723b",
+    "created_at": "2026-10-16T04:18:33.813683",
+    "started_at": "2026-10-16T04:18:33.813683",
+    "completed_at": "2026-10-16T04:20:05.584939",
+    "output_url": "/renders/r_764e7fd6b58744/output",
+    "qc_url": "/renders/r_764e7fd6b58744/qc"
+  },
+  "actual_sha256": "a6cc376ee3c1d26e8a53f55390e2ea29931ded0a6a256804466600c854e9723b",
+  "size_bytes": 28676951,
+  "qc": {
+    "schema": "video-render-qc",
+    "version": "1",
+    "renderer_version": "0.1.0",
+    "job_id": "r_764e7fd6b58744",
+    "generated_at": "2026-10-16T04:20:05.523820+00:00",
+    "passed": true,
+    "checks": [
+      {
+        "name": "file_exists_nonempty",
+        "ok": true,
+        "detail": "28676951 bytes"
+      },
+      {
+        "name": "container_mp4",
+        "ok": true,
+        "detail": "format_name=mov,mp4,m4a,3gp,3g2,mj2"
+      },
+      {
+        "name": "video_stream_h264",
+        "ok": true,
+        "detail": "codec=h264"
+      },
+      {
+        "name": "pixel_format_yuv420p",
+        "ok": true,
+        "detail": "pix_fmt=yuv420p"
+      },
+      {
+        "name": "audio_stream_aac",
+        "ok": true,
+        "detail": "codec=aac"
+      },
+      {
+        "name": "audio_sample_rate_48k",
+        "ok": true,
+        "detail": "sample_rate=48000"
+      },
+      {
+        "name": "resolution",
+        "ok": true,
+        "detail": "640x360 (requested 640x360)"
+      },
+      {
+        "name": "frame_rate",
+        "ok": true,
+        "detail": "avg_frame_rate=12.0 (requested 12)"
+      },
+      {
+        "name": "duration_within_tolerance",
+        "ok": true,
+        "detail": "output 600.000s vs narration 600.000s (tolerance 0.1s)"
+      },
+      {
+        "name": "full_decode_no_errors",
+        "ok": true,
+        "detail": "no decoder errors"
+      },
+      {
+        "name": "frame_count",
+        "ok": true,
+        "detail": "decoded 7200 frames, expected 7200 (+/-1)"
+      }
+    ],
+    "warnings": [
+      {
+        "code": "TRANSITION_UNSUPPORTED",
+        "message": "transition 'FADE_IN' not supported in R1; CUT used",
+        "count": 23,
+        "shots": []
+      },
+      {
+        "code": "TRANSITION_UNSUPPORTED",
+        "message": "transition 'WIPE' not supported in R1; CUT used",
+        "count": 23,
+        "shots": []
+      }
+    ],
+    "output": {
+      "path": "E:\\Jana Soft\\DefenceStudio\\tmp\\next-long-0945\\storage\\renders\\r_764e7fd6b58744\\output.mp4",
+      "sha256": "a6cc376ee3c1d26e8a53f55390e2ea29931ded0a6a256804466600c854e9723b",
+      "size_bytes": 28676951
+    },
+    "requested": {
+      "width": 640,
+      "height": 360,
+      "fps": 12.0,
+      "source": "package",
+      "frames": 7200,
+      "audio_duration": 600.0,
+      "timeline_end": 600.0,
+      "timeline_start": 0.0
+    },
+    "probe": {
+      "format": {
+        "format_name": "mov,mp4,m4a,3gp,3g2,mj2",
+        "duration": "600.000000",
+        "size": "28676951",
+        "bit_rate": "382359"
+      },
+      "video": {
+        "codec_name": "h264",
+        "profile": "High",
+        "width": 640,
+        "height": 360,
+        "pix_fmt": "yuv420p",
+        "avg_frame_rate": "12/1",
+        "nb_frames": "7200",
+        "duration": "600.000000"
+      },
+      "audio": {
+        "codec_name": "aac",
+        "sample_rate": "48000",
+        "channels": 1,
+        "duration": "600.000000"
+      }
+    },
+    "decode": {
+      "frames": 7200,
+      "error_count": 0
+    },
+    "package": {
+      "path": "E:\\Jana Soft\\DefenceStudio\\tmp\\next-long-0945\\package",
+      "manifest_sha256": "3e4f79894fae1f67d3876ccb0d7c8637045acd0c4232dc754e76c619888bbf03",
+      "shots": 140,
+      "assets": 12,
+      "gap_shots": 4,
+      "visual_plan_id": "synthetic-plan-11"
+    },
+    "ffmpeg": {
+      "ffmpeg": "D:\\ffmpeg\\bin\\ffmpeg.EXE",
+      "ffprobe": "D:\\ffmpeg\\bin\\ffprobe.EXE",
+      "version": "8.1.1-essentials_build-www.gyan.dev",
+      "license_flags": {
+        "gpl": true,
+        "version3": true,
+        "nonfree": false,
+        "libx264": true,
+        "libfdk_aac": false,
+        "summary": "GPLv3"
+      },
+      "configuration": "--enable-gpl --enable-version3 --enable-static --disable-w32threads --disable-autodetect --enable-cairo --enable-fontconfig --enable-iconv --enable-gnutls --enable-libxml2 --enable-gmp --enable-bzlib --enable-lzma --enable-zlib --enable-libsrt --enable-libssh --enable-libzmq --enable-avisynth --enable-sdl2 --enable-libwebp --enable-libx264 --enable-libx265 --enable-libxvid --enable-libaom --enable-libopenjpeg --enable-libvpx --enable-mediafoundation --enable-libass --enable-libfreetype --enable-libfribidi --enable-libharfbuzz --enable-libvidstab --enable-libvmaf --enable-libzimg --enable-amf --enable-cuda-llvm --enable-cuvid --enable-dxva2 --enable-d3d11va --enable-d3d12va --enable-ffnvcodec --enable-libvpl --enable-nvdec --enable-nvenc --enable-vaapi --enable-openal --enable-libgme --enable-libopenmpt --enable-libopencore-amrwb --enable-libmp3lame --enable-libtheora --enable-libvo-amrwbenc --enable-libgsm --enable-libopencore-amrnb --enable-libopus --enable-libspeex --enable-libvorbis --enable-librubberband"
+    },
+    "encoder": {
+      "preset": "veryfast",
+      "crf": 20,
+      "audio_bitrate": "192k"
+    },
+    "timings_s": {
+      "frame_composition_and_encode": 62.83,
+      "output_validation": 2.19,
+      "total": 77.47
+    },
+    "memory_peak_mb": {
+      "renderer_process": 102.7,
+      "ffmpeg_process": 94.0
+    }
+  },
+  "restart_snapshot": {
+    "job_id": "r_764e7fd6b58744",
+    "status": "SUCCEEDED",
+    "progress": 1.0,
+    "stage": "done",
+    "frames_done": 7200,
+    "frames_total": 7200,
+    "package_path": "E:\\Jana Soft\\DefenceStudio\\tmp\\next-long-0945\\package",
+    "retry_of": null,
+    "idempotency_key": "next-long-0945",
+    "cancel_requested": false,
+    "error_code": null,
+    "error_message": null,
+    "output_sha256": "a6cc376ee3c1d26e8a53f55390e2ea29931ded0a6a256804466600c854e9723b",
+    "created_at": "2026-10-16T04:18:33.813683",
+    "started_at": "2026-10-16T04:18:33.813683",
+    "completed_at": "2026-10-16T04:20:05.584939",
+    "output_url": "/renders/r_764e7fd6b58744/output",
+    "qc_url": "/renders/r_764e7fd6b58744/qc"
+  }
+}

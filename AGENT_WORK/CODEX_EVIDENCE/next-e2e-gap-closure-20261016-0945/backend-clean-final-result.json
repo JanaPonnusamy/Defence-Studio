@@ -1,0 +1,5 @@
+{
+  "seconds": 1467.8185847,
+  "command": "C:/dstmp/next-clean-0945/Scripts/python.exe -m pytest -q -ra --basetemp C:/dstmp/nc",
+  "exit": 0
+}

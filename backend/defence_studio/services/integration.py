@@ -19,6 +19,7 @@ from contextlib import closing
 from datetime import datetime, timezone
 
 from defence_studio.contracts.evidence import canonical
+from defence_studio.contracts.assets import PermittedUse
 from defence_studio.database import connect
 from defence_studio.services.assets import AssetService
 from defence_studio.services.review import ReviewError, ReviewNotFound, ReviewValidationError, StaleRevision
@@ -255,7 +256,7 @@ class IntegrationService(AssetService):
 
     def assigned_assets(self, job_id: str, language: str, plan_sha256: str) -> list[dict]:
         """ACTIVE assignments on the current approved plan whose asset has real
-        bytes, an APPROVED review and CLEAR/RESTRICTED effective rights."""
+        bytes, an APPROVED review and current rights permitting commercial web use."""
         with closing(connect(self.database_file)) as c:
             rows = c.execute(
                 "SELECT a.scene_id, a.asset_id, a.version FROM asset_assignments a WHERE a.job_id=? AND a.language=? "
@@ -274,6 +275,8 @@ class IntegrationService(AssetService):
         result = []
         for asset_id, e in out.items():
             descriptor = self._read_json_artifact(job_id, e["row"])
+            if self._derive_effective_rights(descriptor, target_use=PermittedUse.WEB).value != "CLEAR":
+                continue  # Expiry must be evaluated at use time, not cached at review time.
             uri = self.asset_file_uri(job_id, descriptor)
             if not uri:
                 continue
@@ -287,6 +290,19 @@ class IntegrationService(AssetService):
                            "rights": rights, "uri": uri, "asset_sha256": e["row"]["sha256"],
                            "effective_rights": e["row"]["effective_rights"]})
         return sorted(result, key=lambda x: x["asset_id"])
+
+    def verify_visual_asset_rights(self, job_id: str, language: str, visual_binding: dict) -> None:
+        """Reject a timeline whose imported assets lost their reviewed rights/assignment."""
+        expected = visual_binding.get("assets", [])
+        if not expected:
+            return  # A timeline of explicit GAP cards contains no imported assets.
+        current = {a["asset_id"]: a for a in self.assigned_assets(
+            job_id, language, visual_binding["scene_plan_sha256"])}
+        for old in expected:
+            asset = current.get(old["asset_id"])
+            if (asset is None or asset["asset_sha256"] != old["sha256"]
+                    or not set(old["scenes"]).issubset(asset["scene_ids"])):
+                raise IntegrationStale("Visual asset rights or assignments changed; rebuild the visual timeline")
 
     # -- recovery / execution -------------------------------------------------
 

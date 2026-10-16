@@ -67,6 +67,7 @@ class RenderService(IntegrationService):
             if row["input_binding"].get("scene_plan_sha256") != plan_row["plan_sha256"]:
                 raise IntegrationStale(f"The {label} was built for a different scene plan")
         vb = visual_row["input_binding"]
+        self.verify_visual_asset_rights(job_id, language, vb)
         if vb.get("timing") != "measured_audio" or vb.get("audio_set_sha256") != audio_row["sha256"]:
             raise IntegrationStale("The visual timeline was not built from this audio's measured timing; rebuild it "
                                    "with audio_version set")
@@ -83,6 +84,7 @@ class RenderService(IntegrationService):
                    "audio_set_sha256": audio_row["sha256"], "visual_version": visual_version,
                    "visual_sha256": visual_row["sha256"], "burn_subtitles": bool(burn_subtitles),
                    "output": vb["options"], "language": language}
+        binding["assets"] = vb.get("assets", [])
         item, created = self._create_row(job_id, owner_id, language, RENDER_KIND, binding, idempotency_key)
         if created:
             self._launch(lambda: self._run(job_id, language, item["version"], binding, audio, timeline_body),
@@ -172,6 +174,7 @@ class RenderService(IntegrationService):
         try:
             self._transition(job_id, language, RENDER_KIND, version, "RUNNING", detail="Building render package",
                              progress=0.02, allowed_from=("QUEUED",))
+            self.verify_visual_asset_rights(job_id, language, binding)
             pkg_dir = self.store.job_dir(job_id) / "render" / language / f"pkg-{version:04d}"
             if pkg_dir.exists():
                 shutil.rmtree(pkg_dir)
@@ -224,6 +227,7 @@ class RenderService(IntegrationService):
             if not qc.get("passed"):
                 raise RenderError("renderer_qc_failed", "Renderer QC reported failure")
             plain = result["output_bytes"]
+            self.verify_visual_asset_rights(job_id, language, binding)
             plain_sha = hashlib.sha256(plain).hexdigest()
             if qc.get("output", {}).get("sha256") and qc["output"]["sha256"] != plain_sha:
                 raise RenderError("output_checksum", "Downloaded MP4 does not match the renderer's checksum")
@@ -253,6 +257,7 @@ class RenderService(IntegrationService):
                                  progress=0.82)
                 body["subtitles"], body["video_subtitled"] = self._subtitle_step(
                     job_id, language, spans, duration, plain_uri, manifest["output_profile"])
+            self.verify_visual_asset_rights(job_id, language, binding)
             uri, sha = self._store_json(job_id, f"renders/{language}", body)
             self._transition(job_id, language, RENDER_KIND, version, "SUCCEEDED",
                              detail=f"{round(duration, 1)}s video, {len(spans)} scene(s)", progress=1.0,
@@ -322,6 +327,8 @@ class RenderService(IntegrationService):
 
     def render_file(self, job_id: str, owner_id: str, language: str, version: int, which: str) -> tuple[bytes, str]:
         body = self.read_integration_body(job_id, owner_id, language, RENDER_KIND, version)
+        visual = self.get_integration(job_id, owner_id, language, "visual_timeline", body["binding"]["visual_version"])
+        self.verify_visual_asset_rights(job_id, language, visual["input_binding"])
         if which in ("plain", "subtitled"):
             ref = body["video_plain"] if which == "plain" else body.get("video_subtitled")
             mime = "video/mp4"

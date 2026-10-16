@@ -1,0 +1,33 @@
+{
+  "pid": 15420,
+  "fresh_os_process": true,
+  "database": "C:\\dstmp\\next-revocation-0945\\copy.sqlite3",
+  "job_id": "cd784cf0-256c-482e-89d9-bbabe0b7e2cd",
+  "checks": [
+    {
+      "gate": "new_render",
+      "blocked": true,
+      "reason": "Visual asset rights or assignments changed; rebuild the visual timeline"
+    },
+    {
+      "gate": "render_download",
+      "blocked": true,
+      "reason": "Visual asset rights or assignments changed; rebuild the visual timeline"
+    },
+    {
+      "gate": "package_download",
+      "blocked": true,
+      "reason": "Visual asset rights or assignments changed; rebuild the visual timeline"
+    },
+    {
+      "gate": "final_export_gate",
+      "blocked": true,
+      "reason": "Visual asset rights or assignments changed; rebuild the visual timeline"
+    },
+    {
+      "gate": "streaming_upload_path",
+      "blocked": true,
+      "reason": "Visual asset rights or assignments changed; rebuild the visual timeline"
+    }
+  ]
+}

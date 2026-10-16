@@ -298,6 +298,75 @@ def test_estimated_visual_timeline_cannot_be_rendered(chain):
                          visual_version=est["version"], background=False)
 
 
+def test_rights_changed_after_visual_plan_blocks_render(chain, monkeypatch):
+    from test_assets_ingest_rm9 import _approved_assigned_asset, ImportingVisualModule, RIGHTS
+    s = chain["s"]
+    plan = s["scene"].get_plan(s["job"], OWNER, "en", 1)
+    assets, aid, _, _ = _approved_assigned_asset(s, plan)
+    visual = VisualService(s["db"], s["root"], provider=s["provider"],
+                           visual_client=visual_client(ImportingVisualModule()))
+    v = visual.start_visual_plan(s["job"], OWNER, "en", "rights-v", background=False,
+                                audio_version=chain["a"]["version"])
+    assert v["status"] == "SUCCEEDED", v["detail"]
+    assets.set_rights(s["job"], OWNER, aid, {**RIGHTS, "commercial_use": "prohibited"}, "rights-revoked")
+    render = RenderService(s["db"], s["root"], provider=s["provider"],
+                           renderer_client=renderer_client(FakeRenderer()))
+    with pytest.raises(IntegrationStale, match="rights|assignments"):
+        render.start_render(s["job"], OWNER, "en", "revoked-render",
+                            audio_version=chain["a"]["version"], visual_version=v["version"], background=False)
+    # A previously stored render must also be withheld at the download boundary.
+    monkeypatch.setattr(render, "read_integration_body", lambda *a: {"binding": {"visual_version": v["version"]}})
+    with pytest.raises(IntegrationStale, match="rights|assignments"):
+        render.render_file(s["job"], OWNER, "en", 1, "plain")
+
+    from defence_studio.services.package import PackageService
+    package = PackageService(s["db"], s["root"], provider=s["provider"])
+    real_get = package.get_integration
+    monkeypatch.setattr(package, "get_integration", lambda job, owner, lang, kind, version:
+                        {"input_binding": {"visual_version": v["version"]}} if kind == "render"
+                        else real_get(job, owner, lang, kind, version))
+    monkeypatch.setattr(package, "read_integration_body", lambda *a: {"binding": {"render_version": 1}})
+    with pytest.raises(IntegrationStale, match="rights|assignments"):
+        package.package_file(s["job"], OWNER, "en", 1, "video_branded")
+    from defence_studio.services.youtube import YouTubeService
+    publishing = YouTubeService(s["db"], s["root"], provider=s["provider"])
+    monkeypatch.setattr(publishing, "get_integration", package.get_integration)
+    monkeypatch.setattr(publishing, "read_integration_body", lambda *a: {
+        "binding": {"render_version": 1},
+        "files": {"video_branded": {"uri": f"jobs/{s['job']}/test-video.mp4"}}})
+    with pytest.raises(IntegrationStale, match="rights|assignments"):
+        publishing._video_path({"job_id": s["job"], "owner_id": OWNER, "language": "en", "package_version": 1})
+    monkeypatch.setattr(publishing, "_load", lambda *_: {
+        "job_id": s["job"], "owner_id": OWNER, "language": "en", "package_version": 1, "youtube_video_id": "mock-only"})
+    def no_provider_call(*_):
+        pytest.fail("Revoked assets must be rejected before accessing provider credentials")
+    monkeypatch.setattr(publishing, "_access_token", no_provider_call)
+    with pytest.raises(IntegrationStale, match="rights|assignments"):
+        publishing._post_upload("isolated-metadata-only")
+
+
+def test_rights_revoked_before_worker_start_marks_render_failed(chain, monkeypatch):
+    from test_assets_ingest_rm9 import _approved_assigned_asset, ImportingVisualModule, RIGHTS
+    s = chain["s"]
+    assets, aid, _, _ = _approved_assigned_asset(s, s["scene"].get_plan(s["job"], OWNER, "en", 1))
+    visual = VisualService(s["db"], s["root"], provider=s["provider"],
+                           visual_client=visual_client(ImportingVisualModule()))
+    v = visual.start_visual_plan(s["job"], OWNER, "en", "queued-rights-v", background=False,
+                                audio_version=chain["a"]["version"])
+    assert v["status"] == "SUCCEEDED", v["detail"]
+    render = RenderService(s["db"], s["root"], provider=s["provider"])
+    pending = []
+    monkeypatch.setattr(render, "_launch", lambda work, background: pending.append(work))
+    row = render.start_render(s["job"], OWNER, "en", "queued-rights-r",
+                              audio_version=chain["a"]["version"], visual_version=v["version"])
+    assert row["status"] == "QUEUED"
+    assets.set_rights(s["job"], OWNER, aid, {**RIGHTS, "commercial_use": "prohibited"}, "queued-rights-revoked")
+    pending.pop()()
+    result = render.get_integration(s["job"], OWNER, "en", "render", row["version"])
+    assert result["status"] == "FAILED"
+    assert "rights" in result["detail"]
+
+
 @needs_ffmpeg
 def test_full_render_package_video_and_subtitles(chain):
     s = chain["s"]

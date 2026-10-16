@@ -1,0 +1,48 @@
+{
+  "pid": 28276,
+  "database": "C:\\dstmp\\next-fixture-0945\\e2e-1792125592.sqlite3",
+  "job_id": "7af82013-6133-4724-aff3-b8e3949c4e6c",
+  "package_status": "APPROVED",
+  "approved_render": 1,
+  "unauthenticated_approval_probe_status": 401,
+  "other_owner_approval_status": 404,
+  "artifact_checks": [
+    {
+      "name": "description",
+      "download_gate_passed": true,
+      "mime": "text/plain; charset=utf-8",
+      "sha256_matches": true
+    },
+    {
+      "name": "source_register",
+      "download_gate_passed": true,
+      "mime": "application/json",
+      "sha256_matches": true
+    },
+    {
+      "name": "subtitles_srt",
+      "download_gate_passed": true,
+      "mime": "text/plain; charset=utf-8",
+      "sha256_matches": true
+    },
+    {
+      "name": "subtitles_vtt",
+      "download_gate_passed": true,
+      "mime": "text/vtt; charset=utf-8",
+      "sha256_matches": true
+    },
+    {
+      "name": "thumbnail",
+      "download_gate_passed": true,
+      "mime": "image/jpeg",
+      "sha256_matches": true
+    },
+    {
+      "name": "video_branded",
+      "download_gate_passed": true,
+      "mime": "video/mp4",
+      "sha256_matches": true
+    }
+  ],
+  "job_status": "PAUSED"
+}

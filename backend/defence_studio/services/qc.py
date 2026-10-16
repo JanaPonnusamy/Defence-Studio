@@ -434,5 +434,9 @@ class QcService(IntegrationService):
             raise IntegrationStale("A newer QC report exists; the approval no longer applies")
         if not renders or renders[-1]["version"] != b["render_version"] or renders[-1]["sha256"] != b["render_sha256"]:
             raise IntegrationStale("A newer render exists; the approval no longer applies")
+        visual_version = renders[-1]["input_binding"].get("visual_version")
+        if visual_version is not None:
+            visual = self.get_integration(job_id, owner_id, language, "visual_timeline", visual_version)
+            self.verify_visual_asset_rights(job_id, language, visual["input_binding"])
         return {"approval": last, "qc_version": b["qc_version"], "render_version": b["render_version"],
                 "video_sha256": b["video_sha256"]}

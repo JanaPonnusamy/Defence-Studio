@@ -1,0 +1,33 @@
+{
+  "scope": "isolated copied fixture DB/store; actual previously rendered media",
+  "database": "C:\\dstmp\\next-revocation-0945\\copy.sqlite3",
+  "job_id": "cd784cf0-256c-482e-89d9-bbabe0b7e2cd",
+  "pre_revocation_video_bytes": 473578,
+  "checks": [
+    {
+      "gate": "new_render",
+      "blocked": true,
+      "reason": "Visual asset rights or assignments changed; rebuild the visual timeline"
+    },
+    {
+      "gate": "render_download",
+      "blocked": true,
+      "reason": "Visual asset rights or assignments changed; rebuild the visual timeline"
+    },
+    {
+      "gate": "package_download",
+      "blocked": true,
+      "reason": "Visual asset rights or assignments changed; rebuild the visual timeline"
+    },
+    {
+      "gate": "final_export_gate",
+      "blocked": true,
+      "reason": "Visual asset rights or assignments changed; rebuild the visual timeline"
+    },
+    {
+      "gate": "fresh_process_equivalent_service",
+      "blocked": true,
+      "reason": "Visual asset rights or assignments changed; rebuild the visual timeline"
+    }
+  ]
+}
