@@ -143,3 +143,8 @@ Video renderer: ffmpeg 8.1.1 with libx264, aac, and libass on PATH. `python -m p
 
 Timestamp 2026-10-15T20:59:28+05:30 | Cursor | Fact-check, local TTS, and standalone renderer | Each module VERIFIED WITH LIMITATIONS. Combined workflow not production-ready | Fact-check no longer counts retracted, failed, or rejected sources as corroboration. Tests 19 passed, 1 skipped. Real pyttsx3 English WAV decoded; eSpeak NG and Tamil voice are absent. Renderer tests 117 passed, 1 skipped; real MP4 from that WAV passed ffprobe and a full decode. Subtitles are not in the standalone R1 contract. Episode job was not modified. Do not mark production-ready.
 
+2026-10-16T03:35:00+05:30 | Cursor | QVault vs TTVC vs Defence Studio video-generator reuse audit | VERIFIED as read-only inspection | No QVault/TTVC/Defence Studio product source edited. No install, download, generate, paid call, git mutation, `.env` read, or DB/job write. QVault uncommitted GK-scraper files left intact. YouTube kwG9uCDeSk4 WebFetch 403 — no delivery analysis. Tamil narration remains BLOCKED. | Report: `AGENT_WORK/CURSOR_EVIDENCE/video-generator-reuse-audit-20261016.md`
+
+QVault is FastAPI+React with a **quiz** Video Generation Engine (`POST /api/videos/generate`, Edge TTS default, WordBoundary timings, Pillow→ffmpeg). `output/videos` empty — no real quiz MP4. TTVC is **Python/Tkinter**, not VB.NET; Edge Neerja/Pallavi + pydub; `Output/final_output.mp3` ffprobe 132.336 s; no MP4. Best reuse: **adapter** QVault Edge `TTSProvider` onto DS `TTSAdapter`, not copy quiz/MoviePy. No new TTS model recommended.
+
+

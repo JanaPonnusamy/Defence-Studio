@@ -1,0 +1,342 @@
+{
+  "schema": "video-visual-timeline",
+  "version": "1.1",
+  "visual_plan_id": "synthetic-plan-7",
+  "project_id": "synthetic-project",
+  "generated_at": "2026-10-13T00:00:00+00:00",
+  "start": 0.0,
+  "duration": 20.0,
+  "output": {
+    "width": null,
+    "height": null,
+    "frame_rate": null,
+    "defined": false,
+    "note": null
+  },
+  "timing": {
+    "sources": [
+      "ESTIMATED"
+    ],
+    "timing_source": "ESTIMATED",
+    "estimated": true,
+    "gaps_closed": 0,
+    "gap_seconds_closed": 0.0,
+    "units": "seconds on the narration timeline"
+  },
+  "shots": [
+    {
+      "shot_id": "shot-0000",
+      "scene_id": "scene-000",
+      "order": 0,
+      "start": 0.0,
+      "end": 5.0,
+      "duration": 5.0,
+      "asset_id": "asset-000",
+      "visual_type": "SOURCE_PHOTO",
+      "source_type": "EXTERNAL_SOURCE",
+      "editorial_label": "FACTUAL_EVIDENCE",
+      "intent": "CONTEXT",
+      "status": "READY",
+      "gap_code": null,
+      "narration_anchor": {
+        "segment_ids": [
+          "seg-0000"
+        ],
+        "text": "Narration for synthetic shot 0.",
+        "start": 0.0,
+        "end": 5.0,
+        "timing_source": "ESTIMATED"
+      },
+      "motion": {
+        "type": "SLOW_ZOOM_IN",
+        "easing": "linear",
+        "duration": 5.0,
+        "from_scale": 1.0,
+        "to_scale": 1.08,
+        "anchor": {
+          "x": 0.5,
+          "y": 0.5
+        }
+      },
+      "crop": {
+        "composition": "wide",
+        "x": 0,
+        "y": 0,
+        "w": 1,
+        "h": 1,
+        "aspect_preserved": true
+      },
+      "transition": "FADE_IN",
+      "overlays": [
+        {
+          "type": "source_caption",
+          "text": "Source: synthetic fixture asset-000 (shot 0)"
+        },
+        {
+          "type": "rights_warning",
+          "text": "Licence: CC0 - synthetic test image"
+        }
+      ],
+      "attribution": null,
+      "editorial_reason": "synthetic",
+      "frame_start": null,
+      "frame_end": null
+    },
+    {
+      "shot_id": "shot-0001",
+      "scene_id": "scene-000",
+      "order": 1,
+      "start": 5.0,
+      "end": 10.0,
+      "duration": 5.0,
+      "asset_id": "asset-001",
+      "visual_type": "SOURCE_PHOTO",
+      "source_type": "EXTERNAL_SOURCE",
+      "editorial_label": "ILLUSTRATIVE_VISUAL",
+      "intent": "CONTEXT",
+      "status": "READY",
+      "gap_code": null,
+      "narration_anchor": {
+        "segment_ids": [
+          "seg-0001"
+        ],
+        "text": "Narration for synthetic shot 1.",
+        "start": 5.0,
+        "end": 10.0,
+        "timing_source": "ESTIMATED"
+      },
+      "motion": {
+        "type": "PAN_RIGHT",
+        "easing": "linear",
+        "duration": 5.0,
+        "scale": 1.1,
+        "from_offset": {
+          "x": -0.04,
+          "y": 0
+        },
+        "to_offset": {
+          "x": 0.04,
+          "y": 0
+        },
+        "anchor": {
+          "x": 0.5,
+          "y": 0.5
+        }
+      },
+      "crop": {
+        "composition": "wide",
+        "x": 0,
+        "y": 0,
+        "w": 1,
+        "h": 1,
+        "aspect_preserved": true
+      },
+      "transition": "DISSOLVE",
+      "overlays": [
+        {
+          "type": "editorial_label",
+          "text": "ILLUSTRATIVE"
+        }
+      ],
+      "attribution": null,
+      "editorial_reason": "synthetic",
+      "frame_start": null,
+      "frame_end": null
+    },
+    {
+      "shot_id": "shot-0002",
+      "scene_id": "scene-000",
+      "order": 2,
+      "start": 10.0,
+      "end": 15.0,
+      "duration": 5.0,
+      "asset_id": null,
+      "visual_type": "SOURCE_PHOTO",
+      "source_type": "EXTERNAL_SOURCE",
+      "editorial_label": "UNKNOWN",
+      "intent": "CONTEXT",
+      "status": "GAP",
+      "gap_code": "NO_APPROVED_ASSET",
+      "narration_anchor": {
+        "segment_ids": [
+          "seg-0002"
+        ],
+        "text": "Narration for synthetic shot 2.",
+        "start": 10.0,
+        "end": 15.0,
+        "timing_source": "ESTIMATED"
+      },
+      "motion": {
+        "type": "STATIC",
+        "easing": "linear",
+        "duration": 5.0
+      },
+      "crop": {
+        "composition": "wide",
+        "x": 0,
+        "y": 0,
+        "w": 1,
+        "h": 1,
+        "aspect_preserved": true
+      },
+      "transition": "FADE",
+      "overlays": [],
+      "attribution": null,
+      "editorial_reason": "synthetic",
+      "frame_start": null,
+      "frame_end": null
+    },
+    {
+      "shot_id": "shot-0003",
+      "scene_id": "scene-000",
+      "order": 3,
+      "start": 15.0,
+      "end": 20.0,
+      "duration": 5.0,
+      "asset_id": "asset-003",
+      "visual_type": "SOURCE_PHOTO",
+      "source_type": "EXTERNAL_SOURCE",
+      "editorial_label": "FACTUAL_EVIDENCE",
+      "intent": "CONTEXT",
+      "status": "READY",
+      "gap_code": null,
+      "narration_anchor": {
+        "segment_ids": [
+          "seg-0003"
+        ],
+        "text": "Narration for synthetic shot 3.",
+        "start": 15.0,
+        "end": 20.0,
+        "timing_source": "ESTIMATED"
+      },
+      "motion": {
+        "type": "SLOW_ZOOM_OUT",
+        "easing": "linear",
+        "duration": 5.0,
+        "from_scale": 1.08,
+        "to_scale": 1.0,
+        "anchor": {
+          "x": 0.5,
+          "y": 0.5
+        }
+      },
+      "crop": {
+        "composition": "medium",
+        "x": 0.1,
+        "y": 0.1,
+        "w": 0.8,
+        "h": 0.8,
+        "aspect_preserved": true
+      },
+      "transition": "CUT",
+      "overlays": [],
+      "attribution": null,
+      "editorial_reason": "synthetic",
+      "frame_start": null,
+      "frame_end": null
+    }
+  ],
+  "assets": {
+    "asset-000": {
+      "asset_id": "asset-000",
+      "asset_type": "IMAGE",
+      "source_type": "EXTERNAL_SOURCE",
+      "editorial_label": "FACTUAL_EVIDENCE",
+      "is_mock": false,
+      "uri": "storage://assets/synthetic/asset-000.png",
+      "url": "/assets/asset-000/file",
+      "mime_type": "image/png",
+      "width": 1600,
+      "height": 900,
+      "duration": null,
+      "title": "Synthetic asset-000",
+      "attribution": "synthetic test fixture",
+      "licence": "CC0",
+      "rights_status": "LICENSED",
+      "rights_label": "Synthetic fixture (generated locally)",
+      "source_url": null,
+      "checksum_sha256": "2abcd54a5f111419985be57f5df707513c67418182c2f068d990241a69a4bcac",
+      "generation_kind": "NOT_GENERATED",
+      "provenance_class": "SOURCE_ORIGINAL",
+      "evidence_eligible": true,
+      "is_fallback": false,
+      "fallback_from": null,
+      "provider": null,
+      "model": null,
+      "provider_request_id": null,
+      "creator": null,
+      "source_identity": null,
+      "licence_url": null,
+      "attribution_required": false,
+      "acquired_at": null
+    },
+    "asset-001": {
+      "asset_id": "asset-001",
+      "asset_type": "IMAGE",
+      "source_type": "EXTERNAL_SOURCE",
+      "editorial_label": "ILLUSTRATIVE_VISUAL",
+      "is_mock": false,
+      "uri": "storage://assets/synthetic/asset-001.png",
+      "url": "/assets/asset-001/file",
+      "mime_type": "image/png",
+      "width": 900,
+      "height": 1600,
+      "duration": null,
+      "title": "Synthetic asset-001",
+      "attribution": "synthetic test fixture",
+      "licence": "CC0",
+      "rights_status": "LICENSED",
+      "rights_label": "Synthetic fixture (generated locally)",
+      "source_url": null,
+      "checksum_sha256": "6567bc6b50000a657e950639d0a72881be2b1da024a212b75aaec0994b70fefc",
+      "generation_kind": "NOT_GENERATED",
+      "provenance_class": "SOURCE_ORIGINAL",
+      "evidence_eligible": true,
+      "is_fallback": false,
+      "fallback_from": null,
+      "provider": null,
+      "model": null,
+      "provider_request_id": null,
+      "creator": null,
+      "source_identity": null,
+      "licence_url": null,
+      "attribution_required": false,
+      "acquired_at": null
+    },
+    "asset-003": {
+      "asset_id": "asset-003",
+      "asset_type": "IMAGE",
+      "source_type": "EXTERNAL_SOURCE",
+      "editorial_label": "ILLUSTRATIVE_VISUAL",
+      "is_mock": false,
+      "uri": "storage://assets/synthetic/asset-003.png",
+      "url": "/assets/asset-003/file",
+      "mime_type": "image/png",
+      "width": 1600,
+      "height": 900,
+      "duration": null,
+      "title": "Synthetic asset-003",
+      "attribution": "synthetic test fixture",
+      "licence": "CC0",
+      "rights_status": "LICENSED",
+      "rights_label": "Synthetic fixture (generated locally)",
+      "source_url": null,
+      "checksum_sha256": "f6503895bf8daf74e573678dc1571d80eb5e12784e28c5e0abd26ea670b49e42",
+      "generation_kind": "NOT_GENERATED",
+      "provenance_class": "SOURCE_ORIGINAL",
+      "evidence_eligible": true,
+      "is_fallback": false,
+      "fallback_from": null,
+      "provider": null,
+      "model": null,
+      "provider_request_id": null,
+      "creator": null,
+      "source_identity": null,
+      "licence_url": null,
+      "attribution_required": false,
+      "acquired_at": null
+    }
+  },
+  "attributions": [],
+  "summary": {}
+}

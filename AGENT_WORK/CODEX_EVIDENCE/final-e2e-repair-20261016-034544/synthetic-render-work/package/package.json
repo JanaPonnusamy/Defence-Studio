@@ -1,0 +1,51 @@
+{
+  "schema": "video-render-package",
+  "version": "1",
+  "timeline": "timeline.json",
+  "timeline_sha256": "414f2fd3023055aacc4dbcfc79ab4d41a75509981dbff14ae8a4f957237752d4",
+  "narration": {
+    "path": "narration.wav",
+    "sha256": "4d2a1a74301a79f40173fc76af35c86e127423c4b8356e1837447fe04cb7e2be"
+  },
+  "assets": {
+    "asset-000": {
+      "path": "assets/asset-000.png",
+      "sha256": "2abcd54a5f111419985be57f5df707513c67418182c2f068d990241a69a4bcac",
+      "mime_type": "image/png"
+    },
+    "asset-001": {
+      "path": "assets/asset-001.png",
+      "sha256": "6567bc6b50000a657e950639d0a72881be2b1da024a212b75aaec0994b70fefc",
+      "mime_type": "image/png"
+    },
+    "asset-002": {
+      "path": "assets/asset-002.jpg",
+      "sha256": "9ad2ce054674a29116f6f6dc86e86f728da1c72fdc2477f32c8053d37a35eff1",
+      "mime_type": "image/jpeg"
+    },
+    "asset-003": {
+      "path": "assets/asset-003.png",
+      "sha256": "f6503895bf8daf74e573678dc1571d80eb5e12784e28c5e0abd26ea670b49e42",
+      "mime_type": "image/png"
+    },
+    "asset-004": {
+      "path": "assets/asset-004.png",
+      "sha256": "a51235fcb52f063080ed544b240ab2cf45e0f7b9b9bfc09ea8eb0062a0ab7c73",
+      "mime_type": "image/png"
+    },
+    "asset-005": {
+      "path": "assets/asset-005.jpg",
+      "sha256": "b1e396e1e13edc9a4e5000d3b4ce022cd8d422e52cb124a8946f57663a5a8583",
+      "mime_type": "image/jpeg"
+    }
+  },
+  "output_profile": {
+    "width": 320,
+    "height": 180,
+    "fps": 12
+  },
+  "source": {
+    "generator": "renderer.synthetic",
+    "seed": 7
+  }
+}

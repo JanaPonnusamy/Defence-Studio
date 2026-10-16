@@ -1,0 +1,152 @@
+{
+  "schema": "video-render-qc",
+  "version": "1",
+  "renderer_version": "0.1.0",
+  "job_id": "r_91a68e5007c44e",
+  "generated_at": "2026-10-15T22:29:18.091914+00:00",
+  "passed": true,
+  "checks": [
+    {
+      "name": "file_exists_nonempty",
+      "ok": true,
+      "detail": "575233 bytes"
+    },
+    {
+      "name": "container_mp4",
+      "ok": true,
+      "detail": "format_name=mov,mp4,m4a,3gp,3g2,mj2"
+    },
+    {
+      "name": "video_stream_h264",
+      "ok": true,
+      "detail": "codec=h264"
+    },
+    {
+      "name": "pixel_format_yuv420p",
+      "ok": true,
+      "detail": "pix_fmt=yuv420p"
+    },
+    {
+      "name": "audio_stream_aac",
+      "ok": true,
+      "detail": "codec=aac"
+    },
+    {
+      "name": "audio_sample_rate_48k",
+      "ok": true,
+      "detail": "sample_rate=48000"
+    },
+    {
+      "name": "resolution",
+      "ok": true,
+      "detail": "320x180 (requested 320x180)"
+    },
+    {
+      "name": "frame_rate",
+      "ok": true,
+      "detail": "avg_frame_rate=12.0 (requested 12)"
+    },
+    {
+      "name": "duration_within_tolerance",
+      "ok": true,
+      "detail": "output 20.000s vs narration 20.000s (tolerance 0.1s)"
+    },
+    {
+      "name": "full_decode_no_errors",
+      "ok": true,
+      "detail": "no decoder errors"
+    },
+    {
+      "name": "frame_count",
+      "ok": true,
+      "detail": "decoded 240 frames, expected 240 (+/-1)"
+    }
+  ],
+  "warnings": [
+    {
+      "code": "UNUSED_ASSET",
+      "message": "3 asset(s) not used by any shot: asset-002, asset-004, asset-005",
+      "count": 3,
+      "shots": []
+    }
+  ],
+  "output": {
+    "path": "E:\\Jana Soft\\DefenceStudio\\AGENT_WORK\\CODEX_EVIDENCE\\final-e2e-repair-20261016-034544\\synthetic-render-work\\storage\\renders\\r_91a68e5007c44e\\output.mp4",
+    "sha256": "7f2ee1dddd193ffc843e570312e22eb42ceb0cb167f13dd05bf39f07a9b3183d",
+    "size_bytes": 575233
+  },
+  "requested": {
+    "width": 320,
+    "height": 180,
+    "fps": 12.0,
+    "source": "package",
+    "frames": 240,
+    "audio_duration": 20.0,
+    "timeline_end": 20.0,
+    "timeline_start": 0.0
+  },
+  "probe": {
+    "format": {
+      "format_name": "mov,mp4,m4a,3gp,3g2,mj2",
+      "duration": "20.000000",
+      "size": "575233",
+      "bit_rate": "230093"
+    },
+    "video": {
+      "codec_name": "h264",
+      "profile": "High",
+      "width": 320,
+      "height": 180,
+      "pix_fmt": "yuv420p",
+      "avg_frame_rate": "12/1",
+      "nb_frames": "240",
+      "duration": "20.000000"
+    },
+    "audio": {
+      "codec_name": "aac",
+      "sample_rate": "48000",
+      "channels": 1,
+      "duration": "20.000000"
+    }
+  },
+  "decode": {
+    "frames": 240,
+    "error_count": 0
+  },
+  "package": {
+    "path": "E:\\Jana Soft\\DefenceStudio\\AGENT_WORK\\CODEX_EVIDENCE\\final-e2e-repair-20261016-034544\\synthetic-render-work\\package",
+    "manifest_sha256": "97a45a7bd2c98f008745223612f7629f9157128b50f95cad928632ad92699321",
+    "shots": 4,
+    "assets": 6,
+    "gap_shots": 1,
+    "visual_plan_id": "synthetic-plan-7"
+  },
+  "ffmpeg": {
+    "ffmpeg": "D:\\ffmpeg\\bin\\ffmpeg.EXE",
+    "ffprobe": "D:\\ffmpeg\\bin\\ffprobe.EXE",
+    "version": "8.1.1-essentials_build-www.gyan.dev",
+    "license_flags": {
+      "gpl": true,
+      "version3": true,
+      "nonfree": false,
+      "libx264": true,
+      "libfdk_aac": false,
+      "summary": "GPLv3"
+    },
+    "configuration": "--enable-gpl --enable-version3 --enable-static --disable-w32threads --disable-autodetect --enable-cairo --enable-fontconfig --enable-iconv --enable-gnutls --enable-libxml2 --enable-gmp --enable-bzlib --enable-lzma --enable-zlib --enable-libsrt --enable-libssh --enable-libzmq --enable-avisynth --enable-sdl2 --enable-libwebp --enable-libx264 --enable-libx265 --enable-libxvid --enable-libaom --enable-libopenjpeg --enable-libvpx --enable-mediafoundation --enable-libass --enable-libfreetype --enable-libfribidi --enable-libharfbuzz --enable-libvidstab --enable-libvmaf --enable-libzimg --enable-amf --enable-cuda-llvm --enable-cuvid --enable-dxva2 --enable-d3d11va --enable-d3d12va --enable-ffnvcodec --enable-libvpl --enable-nvdec --enable-nvenc --enable-vaapi --enable-openal --enable-libgme --enable-libopenmpt --enable-libopencore-amrwb --enable-libmp3lame --enable-libtheora --enable-libvo-amrwbenc --enable-libgsm --enable-libopencore-amrnb --enable-libopus --enable-libspeex --enable-libvorbis --enable-librubberband"
+  },
+  "encoder": {
+    "preset": "veryfast",
+    "crf": 20,
+    "audio_bitrate": "192k"
+  },
+  "timings_s": {
+    "frame_composition_and_encode": 0.82,
+    "output_validation": 1.17,
+    "total": 2.48
+  },
+  "memory_peak_mb": {
+    "renderer_process": 76.3,
+    "ffmpeg_process": 39.6
+  }
+}
