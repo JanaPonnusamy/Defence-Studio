@@ -1,0 +1,214 @@
+INFO:     Started server process [22280]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://127.0.0.1:8037 (Press CTRL+C to quit)
+INFO:     127.0.0.1:62027 - "GET / HTTP/1.1" 200 OK
+INFO:     127.0.0.1:35483 - "GET /styles/main.css HTTP/1.1" 200 OK
+INFO:     127.0.0.1:44948 - "GET /js/app.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:44948 - "GET /js/api.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:35483 - "GET /js/components/status-badge.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:22174 - "GET /js/components/icons.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:1576 - "GET /js/views/script-view.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:20421 - "GET /js/views/evidence-view.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56971 - "GET /js/views/inspector-view.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:35483 - "GET /js/views/scene-view.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:22174 - "GET /js/views/production-view.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:44948 - "GET /js/views/factcheck-view.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:20421 - "GET /js/views/research-view.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56971 - "GET /js/state.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:1576 - "GET /js/views/voice-view.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:22174 - "GET /js/components/toast.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:35483 - "GET /js/components/text-field.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56971 - "GET /js/views/claims-view.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:1576 - "GET /js/views/dashboard-view.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:20421 - "GET /js/views/decision-panel.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:44948 - "GET /js/views/sources-view.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:22174 - "GET /js/views/login-view.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:35483 - "GET /js/views/discovery-view.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:1576 - "GET /js/components/confirm-dialog.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56971 - "GET /js/components/single-flight.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56971 - "GET /api/dev/session HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:56971 - "GET /api/jobs HTTP/1.1" 401 Unauthorized
+INFO:     127.0.0.1:56971 - "GET /api/jobs HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56971 - "GET /api/jobs HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56971 - "GET / HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:56971 - "GET /api/dev/session HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:56971 - "GET /api/jobs/7af82013-6133-4724-aff3-b8e3949c4e6c HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56971 - "GET /api/jobs/7af82013-6133-4724-aff3-b8e3949c4e6c HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56971 - "GET /api/jobs/7af82013-6133-4724-aff3-b8e3949c4e6c/pipeline/en HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56971 - "GET /api/jobs/7af82013-6133-4724-aff3-b8e3949c4e6c/scene/plans?language=en HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56971 - "GET /api/jobs/7af82013-6133-4724-aff3-b8e3949c4e6c/scene/plans/en/1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56971 - "GET /api/jobs/7af82013-6133-4724-aff3-b8e3949c4e6c/script/revisions?language=en HTTP/1.1" 200 OK
+INFO:     127.0.0.1:1576 - "GET /api/jobs/7af82013-6133-4724-aff3-b8e3949c4e6c/script/staleness?language=en HTTP/1.1" 200 OK
+INFO:     127.0.0.1:1576 - "GET /api/jobs/7af82013-6133-4724-aff3-b8e3949c4e6c/visual/en HTTP/1.1" 200 OK
+INFO:     127.0.0.1:1576 - "GET /api/jobs/7af82013-6133-4724-aff3-b8e3949c4e6c/audio/en HTTP/1.1" 200 OK
+INFO:     127.0.0.1:1576 - "GET /api/jobs/7af82013-6133-4724-aff3-b8e3949c4e6c/audio/en/1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:1576 - "GET /api/jobs/7af82013-6133-4724-aff3-b8e3949c4e6c/script/staleness?language=en HTTP/1.1" 200 OK
+INFO:     127.0.0.1:1576 - "GET /api/jobs/7af82013-6133-4724-aff3-b8e3949c4e6c/render/en HTTP/1.1" 200 OK
+INFO:     127.0.0.1:1576 - "GET /api/jobs/7af82013-6133-4724-aff3-b8e3949c4e6c/qc/en HTTP/1.1" 200 OK
+INFO:     127.0.0.1:1576 - "GET /api/jobs/7af82013-6133-4724-aff3-b8e3949c4e6c/qc/en/1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:1576 - "GET /api/jobs/7af82013-6133-4724-aff3-b8e3949c4e6c/package/en HTTP/1.1" 200 OK
+INFO:     127.0.0.1:1576 - "GET /api/jobs/7af82013-6133-4724-aff3-b8e3949c4e6c/package/en/1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:1576 - "GET /api/youtube/connections HTTP/1.1" 200 OK
+INFO:     127.0.0.1:1576 - "GET /api/youtube/jobs HTTP/1.1" 200 OK
+INFO:     127.0.0.1:1576 - "GET /api/jobs/7af82013-6133-4724-aff3-b8e3949c4e6c/usage HTTP/1.1" 200 OK
+INFO:     127.0.0.1:1576 - "GET /api/settings/credentials HTTP/1.1" 200 OK
+INFO:     127.0.0.1:1576 - "GET /api/jobs/7af82013-6133-4724-aff3-b8e3949c4e6c/pipeline/en HTTP/1.1" 200 OK
+INFO:     127.0.0.1:1576 - "GET /api/jobs/7af82013-6133-4724-aff3-b8e3949c4e6c/package/en HTTP/1.1" 200 OK
+INFO:     127.0.0.1:1576 - "GET /api/jobs/7af82013-6133-4724-aff3-b8e3949c4e6c/package/en/1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:33255 - "GET /api/jobs/7af82013-6133-4724-aff3-b8e3949c4e6c/package/en/1/file/video HTTP/1.1" 409 Conflict
+INFO:     127.0.0.1:1576 - "POST /api/jobs/7af82013-6133-4724-aff3-b8e3949c4e6c/script/revisions/en/1/approve HTTP/1.1" 401 Unauthorized
+INFO:     127.0.0.1:1576 - "POST /api/jobs/7af82013-6133-4724-aff3-b8e3949c4e6c/script/revisions/en/1/approve HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:1576 - "GET /api/jobs/7af82013-6133-4724-aff3-b8e3949c4e6c/package/en/1/file/video HTTP/1.1" 401 Unauthorized
+INFO:     127.0.0.1:1576 - "GET /api/jobs/7af82013-6133-4724-aff3-b8e3949c4e6c/package/en/1/file/video HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:1576 - "POST /api/youtube/jobs/nonexistent/queue HTTP/1.1" 401 Unauthorized
+INFO:     127.0.0.1:1576 - "POST /api/youtube/jobs/nonexistent/queue HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:5247 - "GET / HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:5247 - "GET /api/dev/session HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:5247 - "GET /api/jobs/7af82013-6133-4724-aff3-b8e3949c4e6c HTTP/1.1" 200 OK
+INFO:     127.0.0.1:5247 - "GET /api/jobs/7af82013-6133-4724-aff3-b8e3949c4e6c HTTP/1.1" 200 OK
+INFO:     127.0.0.1:5247 - "GET /api/jobs/7af82013-6133-4724-aff3-b8e3949c4e6c/pipeline/en HTTP/1.1" 200 OK
+INFO:     127.0.0.1:5247 - "GET /api/jobs/7af82013-6133-4724-aff3-b8e3949c4e6c/scene/plans?language=en HTTP/1.1" 200 OK
+INFO:     127.0.0.1:5247 - "GET /api/jobs/7af82013-6133-4724-aff3-b8e3949c4e6c/scene/plans/en/1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:5247 - "GET /api/jobs/7af82013-6133-4724-aff3-b8e3949c4e6c/script/revisions?language=en HTTP/1.1" 200 OK
+INFO:     127.0.0.1:12848 - "GET /api/jobs/7af82013-6133-4724-aff3-b8e3949c4e6c/script/staleness?language=en HTTP/1.1" 200 OK
+INFO:     127.0.0.1:12848 - "GET /api/jobs/7af82013-6133-4724-aff3-b8e3949c4e6c/visual/en HTTP/1.1" 200 OK
+INFO:     127.0.0.1:12848 - "GET /api/jobs/7af82013-6133-4724-aff3-b8e3949c4e6c/audio/en HTTP/1.1" 200 OK
+INFO:     127.0.0.1:12848 - "GET /api/jobs/7af82013-6133-4724-aff3-b8e3949c4e6c/audio/en/1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:12848 - "GET /api/jobs/7af82013-6133-4724-aff3-b8e3949c4e6c/script/staleness?language=en HTTP/1.1" 200 OK
+INFO:     127.0.0.1:12848 - "GET /api/jobs/7af82013-6133-4724-aff3-b8e3949c4e6c/render/en HTTP/1.1" 200 OK
+INFO:     127.0.0.1:12848 - "GET /api/jobs/7af82013-6133-4724-aff3-b8e3949c4e6c/qc/en HTTP/1.1" 200 OK
+INFO:     127.0.0.1:12848 - "GET /api/jobs/7af82013-6133-4724-aff3-b8e3949c4e6c/qc/en/1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:12848 - "GET /api/jobs/7af82013-6133-4724-aff3-b8e3949c4e6c/package/en HTTP/1.1" 200 OK
+INFO:     127.0.0.1:12848 - "GET /api/jobs/7af82013-6133-4724-aff3-b8e3949c4e6c/package/en/1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:12848 - "GET /api/youtube/connections HTTP/1.1" 200 OK
+INFO:     127.0.0.1:12848 - "GET /api/youtube/jobs HTTP/1.1" 200 OK
+INFO:     127.0.0.1:12848 - "GET /api/jobs/7af82013-6133-4724-aff3-b8e3949c4e6c/usage HTTP/1.1" 200 OK
+INFO:     127.0.0.1:12848 - "GET /api/settings/credentials HTTP/1.1" 200 OK
+INFO:     127.0.0.1:12848 - "GET / HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:12848 - "GET /api/dev/session HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:12848 - "GET /api/jobs/7af82013-6133-4724-aff3-b8e3949c4e6c HTTP/1.1" 200 OK
+INFO:     127.0.0.1:12848 - "GET /api/jobs/7af82013-6133-4724-aff3-b8e3949c4e6c HTTP/1.1" 200 OK
+INFO:     127.0.0.1:12848 - "GET /api/jobs/7af82013-6133-4724-aff3-b8e3949c4e6c/pipeline/en HTTP/1.1" 200 OK
+INFO:     127.0.0.1:12848 - "GET /api/jobs/7af82013-6133-4724-aff3-b8e3949c4e6c/scene/plans?language=en HTTP/1.1" 200 OK
+INFO:     127.0.0.1:12848 - "GET /api/jobs/7af82013-6133-4724-aff3-b8e3949c4e6c/scene/plans/en/1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:12848 - "GET /api/jobs/7af82013-6133-4724-aff3-b8e3949c4e6c/script/revisions?language=en HTTP/1.1" 200 OK
+INFO:     127.0.0.1:5247 - "GET /api/jobs/7af82013-6133-4724-aff3-b8e3949c4e6c/script/staleness?language=en HTTP/1.1" 200 OK
+INFO:     127.0.0.1:5247 - "GET /api/jobs/7af82013-6133-4724-aff3-b8e3949c4e6c/visual/en HTTP/1.1" 200 OK
+INFO:     127.0.0.1:5247 - "GET /api/jobs/7af82013-6133-4724-aff3-b8e3949c4e6c/audio/en HTTP/1.1" 200 OK
+INFO:     127.0.0.1:5247 - "GET /api/jobs/7af82013-6133-4724-aff3-b8e3949c4e6c/audio/en/1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:5247 - "GET /api/jobs/7af82013-6133-4724-aff3-b8e3949c4e6c/script/staleness?language=en HTTP/1.1" 200 OK
+INFO:     127.0.0.1:5247 - "GET /api/jobs/7af82013-6133-4724-aff3-b8e3949c4e6c/render/en HTTP/1.1" 200 OK
+INFO:     127.0.0.1:5247 - "GET /api/jobs/7af82013-6133-4724-aff3-b8e3949c4e6c/qc/en HTTP/1.1" 200 OK
+INFO:     127.0.0.1:5247 - "GET /api/jobs/7af82013-6133-4724-aff3-b8e3949c4e6c/qc/en/1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:5247 - "GET /api/jobs/7af82013-6133-4724-aff3-b8e3949c4e6c/package/en HTTP/1.1" 200 OK
+INFO:     127.0.0.1:5247 - "GET /api/jobs/7af82013-6133-4724-aff3-b8e3949c4e6c/package/en/1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:5247 - "GET /api/youtube/connections HTTP/1.1" 200 OK
+INFO:     127.0.0.1:5247 - "GET /api/youtube/jobs HTTP/1.1" 200 OK
+INFO:     127.0.0.1:5247 - "GET /api/jobs/7af82013-6133-4724-aff3-b8e3949c4e6c/usage HTTP/1.1" 200 OK
+INFO:     127.0.0.1:5247 - "GET /api/settings/credentials HTTP/1.1" 200 OK
+INFO:     127.0.0.1:14795 - "GET / HTTP/1.1" 200 OK
+INFO:     127.0.0.1:22632 - "GET /styles/main.css HTTP/1.1" 200 OK
+INFO:     127.0.0.1:16939 - "GET /js/app.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:22632 - "GET /js/components/status-badge.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:16939 - "GET /js/api.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:30536 - "GET /js/components/icons.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:12863 - "GET /js/views/inspector-view.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:11373 - "GET /js/views/script-view.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:2738 - "GET /js/views/evidence-view.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:35463 - "GET /js/state.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:30446 - "GET /js/views/factcheck-view.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:29470 - "GET /js/views/scene-view.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:18835 - "GET /js/views/research-view.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:4387 - "GET /js/views/voice-view.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64776 - "GET /js/views/production-view.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:35463 - "GET /js/components/text-field.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:18835 - "GET /js/views/sources-view.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:4387 - "GET /js/views/claims-view.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:30446 - "GET /js/components/toast.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:29470 - "GET /js/views/decision-panel.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64776 - "GET /js/views/dashboard-view.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:30446 - "GET /js/views/discovery-view.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:18835 - "GET /js/components/single-flight.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:4387 - "GET /js/components/confirm-dialog.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:35463 - "GET /js/views/login-view.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:30446 - "GET /api/dev/session HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:30446 - "GET /api/jobs HTTP/1.1" 401 Unauthorized
+INFO:     127.0.0.1:30446 - "GET /api/jobs HTTP/1.1" 200 OK
+INFO:     127.0.0.1:30446 - "GET /api/jobs HTTP/1.1" 200 OK
+INFO:     127.0.0.1:30446 - "GET / HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:30446 - "GET /api/dev/session HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:30446 - "GET /api/jobs/7af82013-6133-4724-aff3-b8e3949c4e6c HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64776 - "GET /api/jobs/7af82013-6133-4724-aff3-b8e3949c4e6c HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64776 - "GET /api/jobs/7af82013-6133-4724-aff3-b8e3949c4e6c/pipeline/en HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64776 - "GET /api/jobs/7af82013-6133-4724-aff3-b8e3949c4e6c/scene/plans?language=en HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64776 - "GET /api/jobs/7af82013-6133-4724-aff3-b8e3949c4e6c/scene/plans/en/1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64776 - "GET /api/jobs/7af82013-6133-4724-aff3-b8e3949c4e6c/script/revisions?language=en HTTP/1.1" 200 OK
+INFO:     127.0.0.1:30446 - "GET /api/jobs/7af82013-6133-4724-aff3-b8e3949c4e6c/script/staleness?language=en HTTP/1.1" 200 OK
+INFO:     127.0.0.1:30446 - "GET /api/jobs/7af82013-6133-4724-aff3-b8e3949c4e6c/visual/en HTTP/1.1" 200 OK
+INFO:     127.0.0.1:30446 - "GET /api/jobs/7af82013-6133-4724-aff3-b8e3949c4e6c/audio/en HTTP/1.1" 200 OK
+INFO:     127.0.0.1:30446 - "GET /api/jobs/7af82013-6133-4724-aff3-b8e3949c4e6c/audio/en/1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:30446 - "GET /api/jobs/7af82013-6133-4724-aff3-b8e3949c4e6c/script/staleness?language=en HTTP/1.1" 200 OK
+INFO:     127.0.0.1:30446 - "GET /api/jobs/7af82013-6133-4724-aff3-b8e3949c4e6c/render/en HTTP/1.1" 200 OK
+INFO:     127.0.0.1:30446 - "GET /api/jobs/7af82013-6133-4724-aff3-b8e3949c4e6c/qc/en HTTP/1.1" 200 OK
+INFO:     127.0.0.1:30446 - "GET /api/jobs/7af82013-6133-4724-aff3-b8e3949c4e6c/qc/en/1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:30446 - "GET /api/jobs/7af82013-6133-4724-aff3-b8e3949c4e6c/package/en HTTP/1.1" 200 OK
+INFO:     127.0.0.1:30446 - "GET /api/jobs/7af82013-6133-4724-aff3-b8e3949c4e6c/package/en/1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:30446 - "GET /api/youtube/connections HTTP/1.1" 200 OK
+INFO:     127.0.0.1:30446 - "GET /api/youtube/jobs HTTP/1.1" 200 OK
+INFO:     127.0.0.1:30446 - "GET /api/jobs/7af82013-6133-4724-aff3-b8e3949c4e6c/usage HTTP/1.1" 200 OK
+INFO:     127.0.0.1:30446 - "GET /api/settings/credentials HTTP/1.1" 200 OK
+INFO:     127.0.0.1:30446 - "GET /api/jobs/7af82013-6133-4724-aff3-b8e3949c4e6c/pipeline/en HTTP/1.1" 200 OK
+INFO:     127.0.0.1:30446 - "GET /api/jobs/7af82013-6133-4724-aff3-b8e3949c4e6c/package/en HTTP/1.1" 200 OK
+INFO:     127.0.0.1:30446 - "GET /api/jobs/7af82013-6133-4724-aff3-b8e3949c4e6c/package/en/1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:13161 - "GET /api/jobs/7af82013-6133-4724-aff3-b8e3949c4e6c/package/en/1/file/video_branded HTTP/1.1" 200 OK
+INFO:     127.0.0.1:30446 - "POST /api/jobs/7af82013-6133-4724-aff3-b8e3949c4e6c/script/revisions/en/1/approve HTTP/1.1" 401 Unauthorized
+INFO:     127.0.0.1:30446 - "POST /api/jobs/7af82013-6133-4724-aff3-b8e3949c4e6c/script/revisions/en/1/approve HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:30446 - "GET /api/jobs/7af82013-6133-4724-aff3-b8e3949c4e6c/package/en/1/file/video_branded HTTP/1.1" 401 Unauthorized
+INFO:     127.0.0.1:30446 - "GET /api/jobs/7af82013-6133-4724-aff3-b8e3949c4e6c/package/en/1/file/video_branded HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:30446 - "POST /api/youtube/jobs/nonexistent/queue HTTP/1.1" 401 Unauthorized
+INFO:     127.0.0.1:30446 - "POST /api/youtube/jobs/nonexistent/queue HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:62049 - "GET / HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:62049 - "GET /api/dev/session HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:62049 - "GET /api/jobs/7af82013-6133-4724-aff3-b8e3949c4e6c HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62049 - "GET /api/jobs/7af82013-6133-4724-aff3-b8e3949c4e6c HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62049 - "GET /api/jobs/7af82013-6133-4724-aff3-b8e3949c4e6c/pipeline/en HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62049 - "GET /api/jobs/7af82013-6133-4724-aff3-b8e3949c4e6c/scene/plans?language=en HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62049 - "GET /api/jobs/7af82013-6133-4724-aff3-b8e3949c4e6c/scene/plans/en/1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62049 - "GET /api/jobs/7af82013-6133-4724-aff3-b8e3949c4e6c/script/revisions?language=en HTTP/1.1" 200 OK
+INFO:     127.0.0.1:43313 - "GET /api/jobs/7af82013-6133-4724-aff3-b8e3949c4e6c/script/staleness?language=en HTTP/1.1" 200 OK
+INFO:     127.0.0.1:43313 - "GET /api/jobs/7af82013-6133-4724-aff3-b8e3949c4e6c/visual/en HTTP/1.1" 200 OK
+INFO:     127.0.0.1:43313 - "GET /api/jobs/7af82013-6133-4724-aff3-b8e3949c4e6c/audio/en HTTP/1.1" 200 OK
+INFO:     127.0.0.1:43313 - "GET /api/jobs/7af82013-6133-4724-aff3-b8e3949c4e6c/audio/en/1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:43313 - "GET /api/jobs/7af82013-6133-4724-aff3-b8e3949c4e6c/script/staleness?language=en HTTP/1.1" 200 OK
+INFO:     127.0.0.1:43313 - "GET /api/jobs/7af82013-6133-4724-aff3-b8e3949c4e6c/render/en HTTP/1.1" 200 OK
+INFO:     127.0.0.1:43313 - "GET /api/jobs/7af82013-6133-4724-aff3-b8e3949c4e6c/qc/en HTTP/1.1" 200 OK
+INFO:     127.0.0.1:43313 - "GET /api/jobs/7af82013-6133-4724-aff3-b8e3949c4e6c/qc/en/1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:43313 - "GET /api/jobs/7af82013-6133-4724-aff3-b8e3949c4e6c/package/en HTTP/1.1" 200 OK
+INFO:     127.0.0.1:43313 - "GET /api/jobs/7af82013-6133-4724-aff3-b8e3949c4e6c/package/en/1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:43313 - "GET /api/youtube/connections HTTP/1.1" 200 OK
+INFO:     127.0.0.1:43313 - "GET /api/youtube/jobs HTTP/1.1" 200 OK
+INFO:     127.0.0.1:43313 - "GET /api/jobs/7af82013-6133-4724-aff3-b8e3949c4e6c/usage HTTP/1.1" 200 OK
+INFO:     127.0.0.1:43313 - "GET /api/settings/credentials HTTP/1.1" 200 OK
+INFO:     127.0.0.1:43313 - "GET / HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:43313 - "GET /api/dev/session HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:43313 - "GET /api/jobs/7af82013-6133-4724-aff3-b8e3949c4e6c HTTP/1.1" 200 OK
+INFO:     127.0.0.1:43313 - "GET /api/jobs/7af82013-6133-4724-aff3-b8e3949c4e6c HTTP/1.1" 200 OK
+INFO:     127.0.0.1:43313 - "GET /api/jobs/7af82013-6133-4724-aff3-b8e3949c4e6c/pipeline/en HTTP/1.1" 200 OK
+INFO:     127.0.0.1:43313 - "GET /api/jobs/7af82013-6133-4724-aff3-b8e3949c4e6c/scene/plans?language=en HTTP/1.1" 200 OK
+INFO:     127.0.0.1:43313 - "GET /api/jobs/7af82013-6133-4724-aff3-b8e3949c4e6c/scene/plans/en/1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:43313 - "GET /api/jobs/7af82013-6133-4724-aff3-b8e3949c4e6c/script/revisions?language=en HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62049 - "GET /api/jobs/7af82013-6133-4724-aff3-b8e3949c4e6c/script/staleness?language=en HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62049 - "GET /api/jobs/7af82013-6133-4724-aff3-b8e3949c4e6c/visual/en HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62049 - "GET /api/jobs/7af82013-6133-4724-aff3-b8e3949c4e6c/audio/en HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62049 - "GET /api/jobs/7af82013-6133-4724-aff3-b8e3949c4e6c/audio/en/1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62049 - "GET /api/jobs/7af82013-6133-4724-aff3-b8e3949c4e6c/script/staleness?language=en HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62049 - "GET /api/jobs/7af82013-6133-4724-aff3-b8e3949c4e6c/render/en HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62049 - "GET /api/jobs/7af82013-6133-4724-aff3-b8e3949c4e6c/qc/en HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62049 - "GET /api/jobs/7af82013-6133-4724-aff3-b8e3949c4e6c/qc/en/1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62049 - "GET /api/jobs/7af82013-6133-4724-aff3-b8e3949c4e6c/package/en HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62049 - "GET /api/jobs/7af82013-6133-4724-aff3-b8e3949c4e6c/package/en/1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62049 - "GET /api/youtube/connections HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62049 - "GET /api/youtube/jobs HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62049 - "GET /api/jobs/7af82013-6133-4724-aff3-b8e3949c4e6c/usage HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62049 - "GET /api/settings/credentials HTTP/1.1" 200 OK

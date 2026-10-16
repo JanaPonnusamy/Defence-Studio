@@ -1,0 +1,8 @@
+{
+  "pid": 14556,
+  "database": "C:\\dstmp\\production-browser-20261016-1155\\ds.sqlite3",
+  "storage": "C:\\dstmp\\production-browser-20261016-1155\\store",
+  "job_id": "7af82013-6133-4724-aff3-b8e3949c4e6c",
+  "owner": "e2e-acceptance",
+  "scope": "real Chrome/app endpoints; copied synthetic fixture, simulated prior approvals; auth bypass disabled"
+}

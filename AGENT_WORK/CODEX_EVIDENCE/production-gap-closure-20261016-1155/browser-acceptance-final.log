@@ -1,0 +1,29 @@
+PASS auth-bypass-disabled production bearer login required
+PASS anonymous-jobs-denied 401
+PASS candidate-job-visible persisted fixture job listed
+PASS queue-state-matches-api Workflow queue PAUSED 5 / 13 stages complete. Next stage: script generation and approval. Media artifact states below are separate from queue completion.
+PASS media-not-queue-completion media outputs coexist with paused queue
+PASS authorized-output-hash 39e18534711be13e8630919160906188e7a056c3bf49bf86baff24b7b9094931
+PASS approval-anonymous-denied 401
+PASS approval-other-owner-denied 404
+PASS export-anonymous-denied 401
+PASS export-other-owner-denied 404
+PASS publish-anonymous-denied 401
+PASS publish-other-owner-denied 404
+PASS viewport-1440 {"sw":1430,"cw":1430,"overflowX":false}
+PASS viewport-768 {"sw":758,"cw":758,"overflowX":false}
+PASS viewport-390 {"sw":390,"cw":390,"overflowX":false}
+PASS refresh-keeps-review-pause re-read same durable queue state
+PASS backend-failure-visible Pipeline status
+Needs attention: workflow, render
+Workflow queue PAUSED 5 / 13 stages complete. Next stage: script generation and approval. Media artifact states below are separate from queue completion.
+APPROVED evidence package
+APPROVED script v1
+APPROVED scene plan v1
+PRESENT assets
+SUCCEEDED audio set v1 5 scene(s), 24.76s
+SUCCEEDED visual timeline v1 5 shot(s), 0 gap(s)
+FAILED render v1 Injected browser acceptance failure
+SUCCEEDED qc report v1 PASS: 0 blocking, 1 warning(s)
+APPROVED final 
+PASS no-browser-exceptions []

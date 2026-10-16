@@ -1,0 +1,63 @@
+{"job_id": "r_4665b29375f249", "status": "RUNNING", "progress": 0.0, "stage": "validating package", "frames_done": 0, "frames_total": null, "package_path": "E:\\Jana Soft\\DefenceStudio\\tmp\\production-1080-long-20261016-1155\\package", "retry_of": null, "idempotency_key": "production-1080-long", "cancel_requested": false, "error_code": null, "error_message": null, "output_sha256": null, "created_at": "2026-10-16T06:25:47.570041", "started_at": "2026-10-16T06:25:47.571048", "completed_at": null}
+{"job_id": "r_4665b29375f249", "status": "RUNNING", "progress": 0.1, "stage": "rendering", "frames_done": 1500, "frames_total": 15000, "package_path": "E:\\Jana Soft\\DefenceStudio\\tmp\\production-1080-long-20261016-1155\\package", "retry_of": null, "idempotency_key": "production-1080-long", "cancel_requested": false, "error_code": null, "error_message": null, "output_sha256": null, "created_at": "2026-10-16T06:25:47.570041", "started_at": "2026-10-16T06:25:47.571048", "completed_at": null}
+{"job_id": "r_4665b29375f249", "status": "RUNNING", "progress": 0.2, "stage": "rendering", "frames_done": 3000, "frames_total": 15000, "package_path": "E:\\Jana Soft\\DefenceStudio\\tmp\\production-1080-long-20261016-1155\\package", "retry_of": null, "idempotency_key": "production-1080-long", "cancel_requested": false, "error_code": null, "error_message": null, "output_sha256": null, "created_at": "2026-10-16T06:25:47.570041", "started_at": "2026-10-16T06:25:47.571048", "completed_at": null}
+{"job_id": "r_4665b29375f249", "status": "RUNNING", "progress": 0.3, "stage": "rendering", "frames_done": 4500, "frames_total": 15000, "package_path": "E:\\Jana Soft\\DefenceStudio\\tmp\\production-1080-long-20261016-1155\\package", "retry_of": null, "idempotency_key": "production-1080-long", "cancel_requested": false, "error_code": null, "error_message": null, "output_sha256": null, "created_at": "2026-10-16T06:25:47.570041", "started_at": "2026-10-16T06:25:47.571048", "completed_at": null}
+{"job_id": "r_4665b29375f249", "status": "RUNNING", "progress": 0.4, "stage": "rendering", "frames_done": 6000, "frames_total": 15000, "package_path": "E:\\Jana Soft\\DefenceStudio\\tmp\\production-1080-long-20261016-1155\\package", "retry_of": null, "idempotency_key": "production-1080-long", "cancel_requested": false, "error_code": null, "error_message": null, "output_sha256": null, "created_at": "2026-10-16T06:25:47.570041", "started_at": "2026-10-16T06:25:47.571048", "completed_at": null}
+{"job_id": "r_4665b29375f249", "status": "RUNNING", "progress": 0.5, "stage": "rendering", "frames_done": 7500, "frames_total": 15000, "package_path": "E:\\Jana Soft\\DefenceStudio\\tmp\\production-1080-long-20261016-1155\\package", "retry_of": null, "idempotency_key": "production-1080-long", "cancel_requested": false, "error_code": null, "error_message": null, "output_sha256": null, "created_at": "2026-10-16T06:25:47.570041", "started_at": "2026-10-16T06:25:47.571048", "completed_at": null}
+{"job_id": "r_4665b29375f249", "status": "RUNNING", "progress": 0.6, "stage": "rendering", "frames_done": 9000, "frames_total": 15000, "package_path": "E:\\Jana Soft\\DefenceStudio\\tmp\\production-1080-long-20261016-1155\\package", "retry_of": null, "idempotency_key": "production-1080-long", "cancel_requested": false, "error_code": null, "error_message": null, "output_sha256": null, "created_at": "2026-10-16T06:25:47.570041", "started_at": "2026-10-16T06:25:47.571048", "completed_at": null}
+{"job_id": "r_4665b29375f249", "status": "RUNNING", "progress": 0.7, "stage": "rendering", "frames_done": 10500, "frames_total": 15000, "package_path": "E:\\Jana Soft\\DefenceStudio\\tmp\\production-1080-long-20261016-1155\\package", "retry_of": null, "idempotency_key": "production-1080-long", "cancel_requested": false, "error_code": null, "error_message": null, "output_sha256": null, "created_at": "2026-10-16T06:25:47.570041", "started_at": "2026-10-16T06:25:47.571048", "completed_at": null}
+{"job_id": "r_4665b29375f249", "status": "RUNNING", "progress": 0.8, "stage": "rendering", "frames_done": 12000, "frames_total": 15000, "package_path": "E:\\Jana Soft\\DefenceStudio\\tmp\\production-1080-long-20261016-1155\\package", "retry_of": null, "idempotency_key": "production-1080-long", "cancel_requested": false, "error_code": null, "error_message": null, "output_sha256": null, "created_at": "2026-10-16T06:25:47.570041", "started_at": "2026-10-16T06:25:47.571048", "completed_at": null}
+{"job_id": "r_4665b29375f249", "status": "RUNNING", "progress": 0.9, "stage": "rendering", "frames_done": 13500, "frames_total": 15000, "package_path": "E:\\Jana Soft\\DefenceStudio\\tmp\\production-1080-long-20261016-1155\\package", "retry_of": null, "idempotency_key": "production-1080-long", "cancel_requested": false, "error_code": null, "error_message": null, "output_sha256": null, "created_at": "2026-10-16T06:25:47.570041", "started_at": "2026-10-16T06:25:47.571048", "completed_at": null}
+{"job_id": "r_4665b29375f249", "status": "RUNNING", "progress": 1.0, "stage": "rendering", "frames_done": 15000, "frames_total": 15000, "package_path": "E:\\Jana Soft\\DefenceStudio\\tmp\\production-1080-long-20261016-1155\\package", "retry_of": null, "idempotency_key": "production-1080-long", "cancel_requested": false, "error_code": null, "error_message": null, "output_sha256": null, "created_at": "2026-10-16T06:25:47.570041", "started_at": "2026-10-16T06:25:47.571048", "completed_at": null}
+{
+  "scope": "synthetic renderer acceptance; tone audio, no narration/human approval",
+  "profile": {
+    "width": 1920,
+    "height": 1080,
+    "fps": 25
+  },
+  "runtime_seconds": 612.9060000000027,
+  "storage_root": "E:\\Jana Soft\\DefenceStudio\\tmp\\production-1080-long-20261016-1155\\storage",
+  "job": {
+    "job_id": "r_4665b29375f249",
+    "status": "SUCCEEDED",
+    "progress": 1.0,
+    "stage": "done",
+    "frames_done": 15000,
+    "frames_total": 15000,
+    "package_path": "E:\\Jana Soft\\DefenceStudio\\tmp\\production-1080-long-20261016-1155\\package",
+    "retry_of": null,
+    "idempotency_key": "production-1080-long",
+    "cancel_requested": false,
+    "error_code": null,
+    "error_message": null,
+    "output_sha256": "81eb27de798341c604ad5a1bc150474867fc84abfb651832b3d0f95d615fa158",
+    "created_at": "2026-10-16T06:25:47.570041",
+    "started_at": "2026-10-16T06:25:47.571048",
+    "completed_at": "2026-10-16T06:36:00.437354",
+    "output_url": "/renders/r_4665b29375f249/output",
+    "qc_url": "/renders/r_4665b29375f249/qc"
+  },
+  "output_path": "E:\\Jana Soft\\DefenceStudio\\tmp\\production-1080-long-20261016-1155\\storage\\renders\\r_4665b29375f249\\output.mp4",
+  "actual_sha256": "81eb27de798341c604ad5a1bc150474867fc84abfb651832b3d0f95d615fa158",
+  "restart_snapshot": {
+    "job_id": "r_4665b29375f249",
+    "status": "SUCCEEDED",
+    "progress": 1.0,
+    "stage": "done",
+    "frames_done": 15000,
+    "frames_total": 15000,
+    "package_path": "E:\\Jana Soft\\DefenceStudio\\tmp\\production-1080-long-20261016-1155\\package",
+    "retry_of": null,
+    "idempotency_key": "production-1080-long",
+    "cancel_requested": false,
+    "error_code": null,
+    "error_message": null,
+    "output_sha256": "81eb27de798341c604ad5a1bc150474867fc84abfb651832b3d0f95d615fa158",
+    "created_at": "2026-10-16T06:25:47.570041",
+    "started_at": "2026-10-16T06:25:47.571048",
+    "completed_at": "2026-10-16T06:36:00.437354",
+    "output_url": "/renders/r_4665b29375f249/output",
+    "qc_url": "/renders/r_4665b29375f249/qc"
+  }
+}

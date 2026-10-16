@@ -1,0 +1,27 @@
+✔ overview exposes paused queue even when media artifacts succeeded (2.5462ms)
+✔ scene editor escapes narration, orders controls and gates approval on status (1.7423ms)
+✔ scene editor shows the staleness reason and keeps generate/approve disabled when the bound script is stale (0.5301ms)
+✔ audio section shows the staleness reason distinct from the no-approved-plan case (0.525ms)
+✔ runAction refreshes from the server on a 409 even though the action failed, so stale local readiness cannot linger (4.9515ms)
+✔ scenes section render() derives canGenerate from /script/staleness, not from status alone (upstream evidence change, refresh, recovery) (2.5156ms)
+✔ scenes section render() fails closed (disabled) when /script/staleness itself is unreachable (0.4415ms)
+✔ audio section render() requires the bound script version to be CURRENT, not just the plan's own APPROVED status (0.689ms)
+✔ visual section: build disabled until plan approved; shows stale and retry (0.4949ms)
+✔ sections registered and generic request sends auth + idempotency header (37.5481ms)
+✔ audio section shows measured vs planned, flags mock, approximate alignment and provider languages (0.9179ms)
+✔ render section: start disabled until measured visual timeline exists; downloads only for SUCCEEDED (0.638ms)
+✔ QC section: approve disabled on failure, warnings require acknowledgement controls, text escaped (0.5139ms)
+✔ package section: build gated on QC approval, metadata escaped, duplicate warning shown (0.3464ms)
+✔ YouTube connection: unconfigured server blocks connect, no secrets, confirmation required (1.327ms)
+✔ publish queue: typed confirmation shown for public, upload only after approval, thumbnail retry independent (0.5154ms)
+✔ overview flags stages needing attention and escapes (0.0919ms)
+✔ usage never shows an unmeasured cost as zero (0.9923ms)
+✔ credentials show only last four and a password field (0.1954ms)
+ℹ tests 19
+ℹ suites 0
+ℹ pass 19
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1333.6128

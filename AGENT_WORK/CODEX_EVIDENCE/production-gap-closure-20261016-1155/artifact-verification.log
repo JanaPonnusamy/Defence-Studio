@@ -1,0 +1,6 @@
+Traceback (most recent call last):
+  File "E:\Jana Soft\DefenceStudio\AGENT_WORK\CODEX_EVIDENCE\production-gap-closure-20261016-1155\verify_artifact.py", line 12, in <module>
+    from renderer.db import make_session_factory
+  File "E:\Jana Soft\DefenceStudio\standalone\video-renderer\renderer\db.py", line 6, in <module>
+    from sqlalchemy import Boolean, DateTime, Float, Integer, String, Text, create_engine, event
+ModuleNotFoundError: No module named 'sqlalchemy'

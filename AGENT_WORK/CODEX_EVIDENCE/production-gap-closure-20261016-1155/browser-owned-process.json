@@ -1,0 +1,5 @@
+{
+  "ProcessId": 14556,
+  "ParentProcessId": 31568,
+  "CommandLine": "C:/dstmp/next-clean-0945/Scripts/python.exe -m uvicorn defence_studio.api.app:app --host 127.0.0.1 --port 8037"
+}

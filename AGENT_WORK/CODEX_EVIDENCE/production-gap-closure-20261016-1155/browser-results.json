@@ -1,0 +1,96 @@
+{
+  "scope": "real Chrome/app endpoints; copied synthetic fixture, simulated prior approvals; auth bypass disabled",
+  "results": [
+    {
+      "id": "auth-bypass-disabled",
+      "ok": true,
+      "note": "production bearer login required"
+    },
+    {
+      "id": "anonymous-jobs-denied",
+      "ok": true,
+      "note": 401
+    },
+    {
+      "id": "candidate-job-visible",
+      "ok": true,
+      "note": "persisted fixture job listed"
+    },
+    {
+      "id": "queue-state-matches-api",
+      "ok": true,
+      "note": "Workflow queue PAUSED 5 / 13 stages complete. Next stage: script generation and approval. Media artifact states below are separate from queue completion."
+    },
+    {
+      "id": "media-not-queue-completion",
+      "ok": true,
+      "note": "media outputs coexist with paused queue"
+    },
+    {
+      "id": "authorized-output-hash",
+      "ok": true,
+      "note": "39e18534711be13e8630919160906188e7a056c3bf49bf86baff24b7b9094931"
+    },
+    {
+      "id": "approval-anonymous-denied",
+      "ok": true,
+      "note": 401
+    },
+    {
+      "id": "approval-other-owner-denied",
+      "ok": true,
+      "note": 404
+    },
+    {
+      "id": "export-anonymous-denied",
+      "ok": true,
+      "note": 401
+    },
+    {
+      "id": "export-other-owner-denied",
+      "ok": true,
+      "note": 404
+    },
+    {
+      "id": "publish-anonymous-denied",
+      "ok": true,
+      "note": 401
+    },
+    {
+      "id": "publish-other-owner-denied",
+      "ok": true,
+      "note": 404
+    },
+    {
+      "id": "viewport-1440",
+      "ok": true,
+      "note": "{\"sw\":1430,\"cw\":1430,\"overflowX\":false}"
+    },
+    {
+      "id": "viewport-768",
+      "ok": true,
+      "note": "{\"sw\":758,\"cw\":758,\"overflowX\":false}"
+    },
+    {
+      "id": "viewport-390",
+      "ok": true,
+      "note": "{\"sw\":390,\"cw\":390,\"overflowX\":false}"
+    },
+    {
+      "id": "refresh-keeps-review-pause",
+      "ok": true,
+      "note": "re-read same durable queue state"
+    },
+    {
+      "id": "backend-failure-visible",
+      "ok": true,
+      "note": "Pipeline status\nNeeds attention: workflow, render\nWorkflow queue PAUSED 5 / 13 stages complete. Next stage: script generation and approval. Media artifact states below are separate from queue completion.\nAPPROVED evidence package\nAPPROVED script v1\nAPPROVED scene plan v1\nPRESENT assets\nSUCCEEDED audio set v1 5 scene(s), 24.76s\nSUCCEEDED visual timeline v1 5 shot(s), 0 gap(s)\nFAILED render v1 Injected browser acceptance failure\nSUCCEEDED qc report v1 PASS: 0 blocking, 1 warning(s)\nAPPROVED final "
+    },
+    {
+      "id": "no-browser-exceptions",
+      "ok": true,
+      "note": "[]"
+    }
+  ],
+  "exceptions": []
+}

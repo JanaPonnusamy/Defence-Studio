@@ -1,0 +1,34 @@
+Input #0, mov,mp4,m4a,3gp,3g2,mj2, from 'E:\Jana Soft\DefenceStudio\tmp\production-1080-long-20261016-1155\storage\renders\r_4665b29375f249\output.mp4':
+  Metadata:
+    major_brand     : isom
+    minor_version   : 512
+    compatible_brands: isomiso2avc1mp41
+    encoder         : Lavf62.12.101
+  Duration: 00:10:00.00, start: 0.000000, bitrate: 1276 kb/s
+  Stream #0:0[0x1](und): Video: h264 (High) (avc1 / 0x31637661), yuv420p(tv, bt709/unknown/unknown, progressive), 1920x1080, 1121 kb/s, 25 fps, 25 tbr, 12800 tbn (default)
+    Metadata:
+      handler_name    : VideoHandler
+      encoder         : Lavc62.28.101 libx264
+  Stream #0:1[0x2](und): Audio: aac (LC) (mp4a / 0x6134706D), 48000 Hz, mono, fltp, 148 kb/s (default)
+    Metadata:
+      handler_name    : SoundHandler
+[Parsed_volumedetect_0 @ 0000018527fb5640] n_samples: 0
+Stream mapping:
+  Stream #0:1 -> #0:0 (aac (native) -> pcm_s16le (native))
+Press [q] to stop, [?] for help
+Output #0, null, to 'pipe:':
+  Metadata:
+    major_brand     : isom
+    minor_version   : 512
+    compatible_brands: isomiso2avc1mp41
+    encoder         : Lavf62.12.101
+  Stream #0:0(und): Audio: pcm_s16le, 48000 Hz, mono, s16, 768 kb/s (default)
+    Metadata:
+      encoder         : Lavc62.28.101 pcm_s16le
+      handler_name    : SoundHandler
+[Parsed_volumedetect_0 @ 0000018527fb4bc0] n_samples: 28800000
+[Parsed_volumedetect_0 @ 0000018527fb4bc0] mean_volume: -18.2 dB
+[Parsed_volumedetect_0 @ 0000018527fb4bc0] max_volume: -11.2 dB
+[Parsed_volumedetect_0 @ 0000018527fb4bc0] histogram_11db: 1202325
+[out#0/null @ 0000018527fb5ec0] video:0KiB audio:56250KiB subtitle:0KiB other streams:0KiB global headers:0KiB muxing overhead: unknown
+size=N/A time=00:10:00.00 bitrate=N/A speed=1.82e+03x elapsed=0:00:00.33    

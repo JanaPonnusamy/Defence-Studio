@@ -3,6 +3,17 @@ import assert from "node:assert/strict";
 import { createApiClient, ApiError } from "../js/api.js";
 import { renderScenesHtml, renderVisualHtml, renderAudioHtml, SECTIONS, runAction } from "../js/views/production-view.js";
 
+test("overview exposes paused queue even when media artifacts succeeded", () => {
+  const html = renderOverviewHtml({ workflow: { status: "PAUSED", stages_completed: 5,
+    stages_total: 12, next_stage: "script_generation_and_approval" }, needs_attention: ["workflow"],
+    stages: [{ stage: "render", status: "SUCCEEDED" }] });
+  assert.match(html, /data-workflow-status="PAUSED"/);
+  assert.match(html, /5 \/ 12 stages complete/);
+  assert.match(html, /Next stage: script generation and approval/);
+  assert.match(html, /separate from queue completion/);
+  assert.match(html, /SUCCEEDED/);
+});
+
 const plan = { version: 2, status: "DRAFT", scenes: [
   { scene_id: "sc-1", title: "<b>x</b>", narration: "<script>1</script>", claim_ids: ["c1"], transition_in: "cut",
     planned_timing: { estimated_seconds: 4.2 } },

@@ -176,6 +176,17 @@ def _run(pub, job, **kw):
     return pub["svc"].get_job(OWNER, job["publish_id"])
 
 
+def test_pipeline_overview_flags_persisted_publishing_failures(pub):
+    job = _job(pub, "overview-errors")
+    for state in ("FAILED_FINAL", "FAILED_RETRYABLE", "REAUTH_REQUIRED", "UPLOAD_PAUSED"):
+        # Isolated read-model fixture: no upload or state-machine execution.
+        with connect(pub["s"]["db"]) as c:
+            c.execute("UPDATE publishing_jobs SET state=? WHERE publish_id=?", (state, job["publish_id"]))
+        report = pub["svc"].pipeline_overview(pub["s"]["job"], OWNER, "en")
+        assert report["stages"][-1]["status"] == state
+        assert "publishing" in report["needs_attention"]
+
+
 # -- OAuth / connection ------------------------------------------------------------------
 
 

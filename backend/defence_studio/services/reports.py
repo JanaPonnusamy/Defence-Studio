@@ -29,6 +29,13 @@ class ReportsMixin:
             def one(sql, *p):
                 r = c.execute(sql, p).fetchone()
                 return dict(r) if r else None
+            workflow = one("SELECT status FROM workflow_jobs WHERE job_id=?", job_id)
+            workflow_stages = [dict(r) for r in c.execute(
+                "SELECT stage_key,status FROM workflow_stages WHERE job_id=? ORDER BY ordinal", (job_id,))]
+            workflow["stages_completed"] = sum(s["status"] in ("COMPLETED", "SKIPPED") for s in workflow_stages)
+            workflow["stages_total"] = len(workflow_stages)
+            workflow["next_stage"] = next((s["stage_key"] for s in workflow_stages
+                                           if s["status"] not in ("COMPLETED", "SKIPPED")), None)
             evidence = one("SELECT version FROM evidence_packages WHERE job_id=? ORDER BY version DESC LIMIT 1", job_id)
             script = one("SELECT version,status FROM script_revisions WHERE job_id=? AND language=? "
                          "ORDER BY version DESC LIMIT 1", job_id, language)
@@ -63,8 +70,13 @@ class ReportsMixin:
             stages.append({"stage": kind, **(view(row) or {"status": "NONE"})})
         stages.append({"stage": "publishing", "status": publish[0]["state"] if publish else "NONE",
                        "jobs": publish})
-        blocked = [s["stage"] for s in stages if s["status"] in ("FAILED", "INTERRUPTED", "REJECTED", "VALIDATION_FAILED")]
-        return {"job_id": job_id, "language": language, "stages": stages, "needs_attention": blocked,
+        blocked = [s["stage"] for s in stages if s["status"] in
+                   ("FAILED", "FAILED_FINAL", "FAILED_RETRYABLE", "REAUTH_REQUIRED", "UPLOAD_PAUSED",
+                    "INTERRUPTED", "REJECTED", "VALIDATION_FAILED")]
+        if workflow["status"] in ("PAUSED", "AWAITING_REVIEW", "FAILED"):
+            blocked.insert(0, "workflow")
+        return {"job_id": job_id, "language": language, "workflow": workflow,
+                "stages": stages, "needs_attention": blocked,
                 "generated_at": datetime.now(timezone.utc).isoformat()}
 
     # -- usage / cost ------------------------------------------------------------

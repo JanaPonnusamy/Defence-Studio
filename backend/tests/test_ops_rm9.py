@@ -11,6 +11,7 @@ from defence_studio.api.app import create_app
 from defence_studio.database import SCHEMA_VERSION, connect, initialize_database
 from defence_studio.providers.openai_text import OpenAiTextProvider
 from defence_studio.services.script import ScriptService
+from defence_studio.services.review import ReviewNotFound
 from defence_studio.services.youtube import YouTubeService
 from defence_studio.storage.artifacts import ArtifactStore, StoragePathError
 from test_scene_service_m1 import OWNER, SCENE_CONFIG, _generate_plan, _plan_sha, approved_script  # noqa: F401
@@ -81,6 +82,20 @@ def test_pipeline_overview_is_derived_from_persisted_state(approved_script):
     after = {x["stage"]: x for x in fresh.pipeline_overview(s["job"], OWNER, "ta")["stages"]}
     assert after["scene_plan"]["status"] == "APPROVED" and after["audio_set"]["status"] == "NONE"
     assert after["publishing"]["status"] == "NONE"
+
+
+def test_pipeline_overview_keeps_paused_queue_separate_from_media(approved_script):
+    s = approved_script
+    with connect(s["db"]) as c:
+        c.execute("UPDATE workflow_jobs SET status='PAUSED' WHERE job_id=?", (s["job"],))
+    fresh = YouTubeService(s["db"], s["root"])
+    report = fresh.pipeline_overview(s["job"], OWNER, "ta")
+    assert report["workflow"]["status"] == "PAUSED"
+    assert report["workflow"]["stages_completed"] < report["workflow"]["stages_total"]
+    assert report["workflow"]["next_stage"]
+    assert "workflow" in report["needs_attention"]
+    with pytest.raises(ReviewNotFound):
+        fresh.pipeline_overview(s["job"], "intruder", "ta")
 
 
 def test_windows_deep_path_is_a_clear_error_not_a_crash(tmp_path):

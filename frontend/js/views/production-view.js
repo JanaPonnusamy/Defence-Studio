@@ -667,7 +667,13 @@ export function renderOverviewHtml(overview) {
       ${s.detail ? `<span class="meta">${esc(s.detail)}</span>` : ""}</li>`).join("");
   const attention = overview.needs_attention.length
     ? `<div class="banner warn">Needs attention: ${overview.needs_attention.map((x) => esc(x)).join(", ")}</div>` : "";
-  return `${attention}<ol class="run-list">${rows}</ol>
+  const workflow = overview.workflow;
+  const queue = workflow ? `<div data-workflow-status="${esc(workflow.status)}">
+    <strong>Workflow queue</strong> ${statusChip(workflow.status)}
+    <span class="meta">${esc(workflow.stages_completed)} / ${esc(workflow.stages_total)} stages complete.
+    ${workflow.next_stage ? `Next stage: ${esc(workflow.next_stage.replace(/_/g, " "))}.` : ""}
+    Media artifact states below are separate from queue completion.</span></div>` : "";
+  return `${attention}${queue}<ol class="run-list">${rows}</ol>
     <p class="meta">Derived from saved state; the same on every device and after a restart.</p>`;
 }
 
