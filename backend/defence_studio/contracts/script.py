@@ -121,8 +121,8 @@ class GenerationConfigV1(StrictModel):
     script_format: str = Field(min_length=1, max_length=200)
     target_duration_seconds: int = Field(ge=30, le=3600)
     target_words: int = Field(ge=100, le=5000)
-    min_words: int = Field(default=900, ge=1, le=5000)
-    max_words: int = Field(default=1300, ge=1, le=5000)
+    min_words: int | None = Field(default=None, ge=1, le=5000)
+    max_words: int | None = Field(default=None, ge=1, le=5000)
     model: str = Field(min_length=1, max_length=200)
     prompt_version: Literal["defence-studio.source-grounded-script.v1"]
     max_text_cost_inr: float = Field(gt=0, le=1000)
@@ -130,7 +130,11 @@ class GenerationConfigV1(StrictModel):
 
     @model_validator(mode="after")
     def _word_range(self):
-        if not (self.min_words <= self.target_words <= self.max_words):
+        if self.min_words is None and self.max_words is None:
+            return self
+        low = self.min_words if self.min_words is not None else 900
+        high = self.max_words if self.max_words is not None else 1300
+        if not (low <= self.target_words <= high):
             raise ValueError("min_words must be <= target_words <= max_words")
         return self
 

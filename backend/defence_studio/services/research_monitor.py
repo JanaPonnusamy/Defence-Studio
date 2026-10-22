@@ -176,6 +176,7 @@ class ResearchMonitorService:
             "stages": out_stages, "stages_total": len(out_stages),
             "stages_done": sum(1 for s in out_stages if s["status"] in _DONE),
             "sources": counts["sources"], "counts": counts["counts"],
+            "coverage": self.coverage_report(job_id, owner_id),
             "estimate": estimate,
             "controls": {"start": job["status"] in ("DRAFT",), "pause": False, "resume": False, "cancel": False,
                          "retry": False,
@@ -213,6 +214,10 @@ class ResearchMonitorService:
                     "fetch_duration_seconds": None,     # not recorded by the acquisition contract
                     "retry_count": None, "error": s.get("error"), "warnings": s.get("warnings") or [],
                     "acquired_at": s.get("acquisition_timestamp"),
+                    "requested_url": s.get("requested_url"),
+                    "final_url": s.get("final_url") or s.get("canonical_url"),
+                    "published_at": meta.get("published_at") or (ps or {}).get("published_at"),
+                    "publisher": (ps or {}).get("publisher") or meta.get("publisher"),
                 })
             c["duplicate"] = int(acq.get("skipped_duplicate") or 0)
             c["pending"] = max(0, int(acq.get("requested") or 0) - int(acq.get("succeeded") or 0)
@@ -222,6 +227,22 @@ class ResearchMonitorService:
                 done = int(acq.get("succeeded") or 0) + int(acq.get("failed") or 0) + c["duplicate"]
                 acq_stage["progress"] = {"done": done, "total": int(acq["requested"]), "unit": "sources"}
         return {"sources": rows, "counts": c}
+
+    def coverage_report(self, job_id: str, owner_id: str) -> dict:
+        """Counts from stored discovery/acquisition/analysis/policy artifacts only."""
+        from defence_studio.services.discovery import (
+            DISCOVERY_REQUEST_ARTIFACT_TYPE, DISCOVERY_RESULT_ARTIFACT_TYPE)
+        with closing(connect(self.database_file)) as c:
+            self._job(c, job_id, owner_id)
+            req_ref = ReviewService._latest_artifact(c, job_id, DISCOVERY_REQUEST_ARTIFACT_TYPE)
+            disc_ref = ReviewService._latest_artifact(c, job_id, DISCOVERY_RESULT_ARTIFACT_TYPE)
+        request = self.review._read_json_artifact(job_id, req_ref) if req_ref else {}
+        disc = self.review._read_json_artifact(job_id, disc_ref) if disc_ref else {}
+        try:
+            _, _, acq, ana = self._artifacts(job_id, owner_id)
+        except ReviewValidationError:
+            acq, ana = {}, {}
+        return build_coverage(request, disc, acq or {}, ana or {}, self._latest_policy(job_id, owner_id) or {})
 
     def _estimate(self, out_stages, history_rows) -> dict:
         durations: dict[str, list[float]] = {}
@@ -352,3 +373,77 @@ class ResearchMonitorService:
         # neutralise spreadsheet formula injection from fetched content
         text = re.sub(r"(?m)(^|,)\"?([=+@])", lambda m: m.group(0)[:-1] + "'" + m.group(2), text)
         return text, "text/csv", "evidence-report.csv"
+
+
+_NOT_CONFIGURED = {"UNAVAILABLE_MISSING_CREDENTIALS", "UNAVAILABLE_NOT_CONFIGURED",
+                   "UNAVAILABLE_OPTIONAL_DEPENDENCY_MISSING", "DISABLED"}
+_RAN = {"OK", "PARTIAL", "COMPLETED_NO_RESULTS", "ERROR"}
+
+
+def _provider_view(p: dict) -> dict:
+    """Provider fields from the stored outcome. `configured` is inferred only from
+    the outcome status; a status that does not establish it is reported as None."""
+    status = p.get("status")
+    configured = False if status in _NOT_CONFIGURED else (True if status in _RAN else None)
+    return {"name": p.get("provider") or p.get("name"), "status": status, "message": p.get("message"),
+            "configured": configured, "requires_credentials": p.get("requires_credentials"),
+            "candidates_returned": p.get("candidates_returned"), "http_attempts": p.get("http_attempts"),
+            "duration_ms": p.get("duration_ms")}
+
+
+def build_coverage(request: dict, disc: dict, acq: dict, ana: dict, pol: dict) -> dict:
+    """Pure derivation of coverage counts from stored artifacts. Discovered URLs,
+    attempted URLs, fetched sources and normalized documents are kept separate;
+    anything the artifacts do not record is None, never a guess."""
+    terms = request.get("search_terms") if isinstance(request.get("search_terms"), list) else None
+    providers = [_provider_view(p) for p in (disc.get("providers") or []) if isinstance(p, dict)]
+    attempts = [p["http_attempts"] for p in providers if isinstance(p["http_attempts"], int)]
+    attempted, fetched, rejected, errors = set(), 0, 0, 0
+    for s in acq.get("sources") or []:
+        url = s.get("requested_url") or s.get("canonical_url") or s.get("final_url")
+        if url:
+            attempted.add(url)
+        err = str(s.get("error") or "")
+        if "SOURCE_NOT_ALLOWLISTED" in err or "UrlValidation" in err:
+            rejected += 1
+        elif s.get("status") == "ACQUIRED":
+            fetched += 1
+        else:
+            errors += 1
+    normalized = ana.get("sources_normalized")
+    if not isinstance(normalized, int):
+        normalized = len(ana.get("normalized_sources") or [])
+    publishers = sorted({s["publisher"] for s in pol.get("sources") or [] if s.get("publisher")})
+    groups = sorted({s["independence_group"] for s in pol.get("sources") or [] if s.get("independence_group")})
+    claim_counts = (pol.get("counts") or {}).get("claims") or {}
+    return {
+        "search_terms": terms,
+        "search_terms_count": len(terms) if terms is not None else None,
+        "provider_http_attempts": sum(attempts) if attempts else None,
+        "providers": providers,
+        "providers_total": len(providers),
+        "providers_not_configured": sum(1 for p in providers if p["configured"] is False),
+        "candidate_urls_discovered": len(disc.get("candidates") or []) if disc else None,
+        "unique_urls_attempted": len(attempted),
+        "sources_fetched": fetched,
+        "sources_rejected_by_policy": rejected,
+        "sources_errors_or_unsupported": errors,
+        "sources_normalized": normalized,
+        "duplicate_urls_removed": int(acq.get("skipped_duplicate") or 0),
+        "duplicate_document_groups": len(ana.get("duplicate_groups") or []),
+        "unique_publishers": publishers,
+        "independent_source_groups": groups,
+        "claims_extracted": len(ana.get("claims") or []),
+        "claims_auto_accepted": int(claim_counts.get("AUTO_ACCEPTED") or 0),
+        "claims_needs_review": int(claim_counts.get("NEEDS_REVIEW") or 0),
+        "claims_rejected": int(claim_counts.get("REJECTED") or 0) + int(claim_counts.get("SOURCE_BLOCKED") or 0),
+        "ready_for_generation": bool(pol.get("ready_for_generation")),
+        "policy_version": pol.get("policy_version"),
+        "readiness_failures": pol.get("policy_criteria_failed") or [],
+        "unsupported_discovery": [
+            "X trends / social-media discovery has no configured provider",
+            "YouTube search discovery is not implemented; subtitle acquisition is separate",
+            "Hosted web search runs only when DEFENCE_STUDIO_DISCOVERY_SEARCH_API_URL and key are set",
+        ],
+        "images_and_assets": "NOT_IMPLEMENTED: no image acquisition, licence or attribution capture (gap G3)",
+    }

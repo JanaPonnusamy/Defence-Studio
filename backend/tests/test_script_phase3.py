@@ -29,6 +29,7 @@ from conftest import SECRET, access_token
 GOOD_CONFIG = {
     "language": "ta", "audience": "general public", "tone": "neutral",
     "script_format": "narration", "target_duration_seconds": 300, "target_words": 200,
+    "min_words": 1, "max_words": 5000,
     "model": "gpt-4o-mini", "prompt_version": "defence-studio.source-grounded-script.v1",
     "max_text_cost_inr": 10.0, "terminology": {"Rafale": "Rafale"},
 }

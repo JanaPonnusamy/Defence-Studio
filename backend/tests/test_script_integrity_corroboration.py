@@ -208,7 +208,7 @@ def test_fact_not_corroborated_raised_with_one_eligible_one_rejected():
         "sections": [{"section_id": "s1", "narration": "The army ordered 36 jets.", "requires_evidence": True,
                       "statement_kind": "VERIFIED_FACT",
                       "evidence": {"claim_ids": ["c1"], "source_ids": [], "qualification": ""}}],
-        "closing": "end", "title": "t", "config": {"target_words": 100}, "word_count": {"words": 100},
+        "closing": "end", "title": "t", "config": {"target_words": 100, "min_words": 1, "max_words": 5000}, "word_count": {"words": 100},
     }
     issues = {i["code"]: i["severity"] for i in si.integrity_issues(revision, pkg)}
     assert issues["FACT_NOT_CORROBORATED"] == "ERROR"
@@ -229,7 +229,7 @@ def test_no_false_corroboration_error_with_two_qualifying_sources():
         "sections": [{"section_id": "s1", "narration": "The army ordered 36 jets.", "requires_evidence": True,
                       "statement_kind": "VERIFIED_FACT",
                       "evidence": {"claim_ids": ["c1"], "source_ids": [], "qualification": ""}}],
-        "closing": "end", "title": "t", "config": {"target_words": 100}, "word_count": {"words": 100},
+        "closing": "end", "title": "t", "config": {"target_words": 100, "min_words": 1, "max_words": 5000}, "word_count": {"words": 100},
     }
     issues = {i["code"]: i["severity"] for i in si.integrity_issues(revision, pkg)}
     assert "FACT_NOT_CORROBORATED" not in issues
@@ -255,7 +255,7 @@ def test_unrelated_integrity_checks_still_correct_alongside_the_fix():
              "statement_kind": "ATTRIBUTED_CLAIM",
              "evidence": {"claim_ids": ["c5"], "source_ids": [], "qualification": "note"}},
         ],
-        "closing": "end", "title": "t", "config": {"target_words": 100}, "word_count": {"words": 100},
+        "closing": "end", "title": "t", "config": {"target_words": 100, "min_words": 1, "max_words": 5000}, "word_count": {"words": 100},
     }
     issues = {i["code"]: i["severity"] for i in si.integrity_issues(revision, pkg)}
     assert issues["UNSUPPORTED_NUMBER"] == "ERROR"   # unrelated to corroboration

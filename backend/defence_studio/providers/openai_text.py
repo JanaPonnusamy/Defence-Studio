@@ -92,6 +92,25 @@ def _is_reasoning_model(model: str) -> bool:
     return bool(re.match(r"^(o\d|gpt-5)", (model or "").strip().lower()))
 
 
+_MAX_OUTPUT_TOKENS_CEILING = 32000
+_JSON_OVERHEAD_TOKENS = 2000       # keys, evidence maps, qualifications around the narration
+_REASONING_ALLOWANCE_TOKENS = 8000  # reasoning models spend completion tokens before visible output
+
+
+def output_token_limit(model: str, language: str, max_words: int) -> int:
+    """Completion-token limit for a script of up to `max_words` spoken words.
+
+    Conservative tokens-per-word: ~2.5 for English, ~8 for Tamil and any other
+    language. Reasoning models (o-series, gpt-5) count hidden reasoning tokens
+    against the same limit, so they get an allowance. Capped at a fixed ceiling;
+    a truncated completion is a provider failure, never a successful script."""
+    per_word = 2.5 if (language or "").lower().startswith("en") else 8.0
+    limit = int(max_words * per_word) + _JSON_OVERHEAD_TOKENS
+    if _is_reasoning_model(model):
+        limit += _REASONING_ALLOWANCE_TOKENS
+    return min(limit, _MAX_OUTPUT_TOKENS_CEILING)
+
+
 def usd_to_inr_rate() -> float:
     try:
         return float(os.environ.get("DEFENCE_STUDIO_OPENAI_USD_TO_INR", _DEFAULT_USD_TO_INR))
@@ -153,7 +172,7 @@ class OpenAiTextProvider:
                 response_schema_name: str = "defence_studio_script_draft_v1") -> ProviderResult:
         if not self.api_key:
             raise ProviderError("missing_api_key", "DEFENCE_STUDIO_OPENAI_API_KEY is not configured", retryable=False)
-        if max_output_tokens <= 0 or max_output_tokens > 16000:
+        if max_output_tokens <= 0 or max_output_tokens > _MAX_OUTPUT_TOKENS_CEILING:
             raise ProviderError("invalid_bound", "max_output_tokens must be a bounded positive value", retryable=False)
         reasoning = _is_reasoning_model(model)
         body = {

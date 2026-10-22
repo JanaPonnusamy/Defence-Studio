@@ -63,12 +63,27 @@ export function renderMonitorHtml(m) {
   const counts = [["Approved", c.approved], ["Fetched", c.fetched], ["Failed", c.failed], ["Rejected", c.rejected],
     ["Duplicate", c.duplicate], ["Pending", c.pending]]
     .map(([k, v]) => `<div class="stat"><span class="meta">${k}</span><strong data-count="${k.toLowerCase()}">${esc(String(v ?? 0))}</strong></div>`).join("");
+  const cov = m.coverage || {};
+  const coverageStats = [
+    ["Search terms", cov.search_terms_count],
+    ["Candidates", cov.candidate_urls_discovered],
+    ["URLs attempted", cov.unique_urls_attempted],
+    ["Fetched", cov.sources_fetched],
+    ["Normalized", cov.sources_normalized],
+    ["Groups", (cov.independent_source_groups || []).length],
+    ["Eligible claims", cov.claims_auto_accepted],
+  ].map(([k, v]) => `<div class="stat"><span class="meta">${k}</span><strong>${esc(String(v ?? "—"))}</strong></div>`).join("");
+  const providerRows = (cov.providers || []).map((p) => `<tr>
+      <td>${esc(p.name || "Unknown")}</td><td>${esc(p.status || "Unknown")}</td>
+      <td>${esc(String(p.candidates_returned ?? "—"))}</td><td>${esc(p.message || "")}</td></tr>`).join("");
   const rows = (m.sources || []).map((s) => `<tr>
-      <td>${esc(s.hostname || "Unknown")}</td><td>${esc(s.title || "Unknown")}</td>
-      <td>${esc(s.category || "Unknown")}</td><td>${esc(s.independence_group || "Unknown")}</td>
+      <td>${esc(s.requested_url || s.final_url || s.url || "Unknown")}</td>
+      <td>${esc(s.publisher || s.hostname || "Unknown")}</td>
+      <td>${esc(s.published_at || "Unknown")}</td>
+      <td>${esc(s.title || "Unknown")}</td>
+      <td>${esc(s.independence_group || "Unknown")}</td>
       <td><span class="badge ${esc(s.acquisition_status || "")}">${esc(s.acquisition_status || "Unknown")}</span>
         ${s.policy_state ? `<span class="chip">${esc(s.policy_state)}</span>` : ""}</td>
-      <td>${esc(formatDuration(s.fetch_duration_seconds))}</td>
       <td>${esc(s.error || "")}</td></tr>`).join("");
   return `
     <h2>${esc(m.topic)}</h2>
@@ -82,10 +97,16 @@ export function renderMonitorHtml(m) {
       <dt>Estimated remaining</dt><dd>${remaining}</dd>
     </dl>
     <div class="stats">${counts}</div>
+    <h3>Source coverage</h3>
+    <div class="stats">${coverageStats || "<p class='meta'>Coverage is derived from stored discovery, acquisition, analysis and policy artifacts.</p>"}</div>
+    ${providerRows ? `<div class="table-wrap"><table><thead><tr><th>Provider</th><th>Status</th><th>Candidates</th><th>Message</th></tr></thead><tbody>${providerRows}</tbody></table></div>` : ""}
+    ${(cov.unsupported_discovery || []).length ? `<ul class="meta">${(cov.unsupported_discovery || []).map((n) => `<li>${esc(n)}</li>`).join("")}</ul>` : ""}
+    ${cov.ready_for_generation === false && (cov.readiness_failures || []).length
+      ? `<p class="error-state" role="alert">Not ready: ${esc(JSON.stringify(cov.readiness_failures))}</p>` : ""}
     <h3>Pipeline</h3><ol class="pipeline">${(m.stages || []).map(stageRow).join("")}</ol>
     <h3>Sources</h3>
-    ${rows ? `<div class="table-wrap"><table><thead><tr><th>Host</th><th>Title</th><th>Category</th><th>Independence group</th>
-      <th>Status</th><th>Fetch time</th><th>Error</th></tr></thead><tbody>${rows}</tbody></table></div>`
+    ${rows ? `<div class="table-wrap"><table><thead><tr><th>URL</th><th>Publisher</th><th>Date</th><th>Title</th><th>Independence group</th>
+      <th>Status</th><th>Error</th></tr></thead><tbody>${rows}</tbody></table></div>`
       : `<div class="empty-state">No sources have been acquired yet.</div>`}
     <p class="meta">Pause, resume and cancel controls are unavailable.</p>`;
 }

@@ -42,6 +42,7 @@ def system_prompt(language: str) -> str:
 
 def user_prompt(*, topic: str, language: str, audience: str, tone: str, script_format: str,
                 target_words: int, terminology: dict, eligible_claims: list[dict],
+                min_words: int = 900, max_words: int = 1300,
                 corroboration: dict | None = None) -> str:
     corroboration = corroboration or {}
     claims_payload = [
@@ -76,7 +77,11 @@ def user_prompt(*, topic: str, language: str, audience: str, tone: str, script_f
     }
     return (
         f"Topic: {topic}\nLanguage: {language}\nAudience: {audience}\nTone: {tone}\n"
-        f"Format: {script_format}\nTarget narration length: approximately {target_words} words.\n"
+        f"Format: {script_format}\nTarget narration length: approximately {target_words} words. "
+        f"The spoken narration (opening_hook + every section narration + closing, not headings, "
+        f"JSON keys, evidence maps, or metadata) MUST be between {min_words} and {max_words} words inclusive. "
+        f"Write at least eight body sections. Expand with complete spoken paragraphs that restate and "
+        f"qualify the approved evidence; use digit-free transitions and framing. Do not pad with invented facts.\n"
         f"Preserve these terms exactly where used: {json.dumps(terminology, ensure_ascii=False)}\n\n"
         "Statement-kind rules (a validator rejects the whole script otherwise):\n"
         "- Use VERIFIED_FACT ONLY when EVERY claim the section cites has verified_fact_allowed=true. "
@@ -117,7 +122,7 @@ def draft_response_schema() -> dict:
         "additionalProperties": False,
         "required": ["claim_ids", "source_ids", "qualification"],
         "properties": {
-            "claim_ids": {"type": "array", "items": {"type": "string"}},
+            "claim_ids": {"type": "array", "items": {"type": "string"}, "minItems": 1},
             "source_ids": {"type": "array", "items": {"type": "string"}},
             "qualification": {"type": "string"},
         },
@@ -130,7 +135,7 @@ def draft_response_schema() -> dict:
         "properties": {
             "section_id": {"type": "string"},
             "heading": {"type": "string"},
-            "narration": {"type": "string"},
+            "narration": {"type": "string", "minLength": 700},
             "requires_evidence": {"type": "boolean"},
             "statement_kind": {
                 "type": "string",
@@ -145,10 +150,10 @@ def draft_response_schema() -> dict:
         "additionalProperties": False,
         "required": ["title", "opening_hook", "sections", "closing"],
         "properties": {
-            "title": {"type": "string"},
-            "opening_hook": {"type": "string"},
-            "sections": {"type": "array", "items": section},
-            "closing": {"type": "string"},
+            "title": {"type": "string", "minLength": 8},
+            "opening_hook": {"type": "string", "minLength": 400},
+            "sections": {"type": "array", "items": section, "minItems": 6},
+            "closing": {"type": "string", "minLength": 200},
         },
     }
 

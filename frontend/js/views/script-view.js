@@ -9,7 +9,8 @@ import { singleFlight } from "../components/single-flight.js";
 
 const DEFAULT_CONFIG = {
   audience: "general public", tone: "neutral, measured", script_format: "narration",
-  target_duration_seconds: 300, target_words: 800, model: "gpt-4o-mini",
+  target_duration_seconds: 300, target_words: 1100, min_words: 900, max_words: 1300,
+  model: "gpt-4o-mini",
   prompt_version: "defence-studio.source-grounded-script.v1", max_text_cost_inr: 10,
 };
 
@@ -103,6 +104,8 @@ export async function mountScript({ api, jobId, list, detail, filters, isCurrent
             tone: list.querySelector("#gen-tone").value.trim(),
             script_format: list.querySelector("#gen-format").value.trim(),
             target_words: parseInt(list.querySelector("#gen-words").value, 10),
+            min_words: DEFAULT_CONFIG.min_words,
+            max_words: DEFAULT_CONFIG.max_words,
             target_duration_seconds: parseInt(list.querySelector("#gen-duration").value, 10),
             model: list.querySelector("#gen-model").value.trim(),
             prompt_version: DEFAULT_CONFIG.prompt_version,

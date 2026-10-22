@@ -176,13 +176,19 @@ def integrity_issues(revision: dict, package: dict) -> list[dict]:
     # evidence maps, headings and usage metadata are excluded by narration_word_count.
     words = narration_word_count(revision)
     cfg = revision.get("config") or {}
-    min_words = cfg.get("min_words", 900)
-    max_words = cfg.get("max_words", 1300)
-    if isinstance(min_words, int) and isinstance(max_words, int) and isinstance(words, int):
-        if words < min_words or words > max_words:
+    min_words = cfg.get("min_words")
+    max_words = cfg.get("max_words")
+    if min_words is None and max_words is None:
+        if isinstance(target, int) and target > 0 and abs(words - target) / target > 0.25:
+            issues.append(dict(code="TARGET_LENGTH_MISSED", severity="WARNING", section_id="",
+                               detail=f"{words} words versus a target of {target} (outside +/-25%)"))
+    else:
+        low = min_words if isinstance(min_words, int) else 900
+        high = max_words if isinstance(max_words, int) else 1300
+        if words < low or words > high:
             issues.append(dict(
                 code="NARRATION_LENGTH_OUT_OF_RANGE", severity="ERROR", section_id="",
-                detail=f"{words} spoken narration words; required {min_words}–{max_words}"))
+                detail=f"{words} spoken narration words; required {low}–{high}"))
         elif isinstance(target, int) and target > 0 and abs(words - target) / target > 0.25:
             issues.append(dict(code="TARGET_LENGTH_MISSED", severity="WARNING", section_id="",
                                detail=f"{words} words versus a target of {target} (outside +/-25%)"))

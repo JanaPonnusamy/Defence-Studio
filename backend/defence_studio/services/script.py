@@ -31,9 +31,11 @@ from defence_studio.contracts.script import (
     narration_word_count, validate_revision,
 )
 from defence_studio.database import connect
-from defence_studio.providers.openai_text import ProviderError
+from defence_studio.providers.openai_text import ProviderError, output_token_limit
 from defence_studio.services.evidence import EvidenceService
-from defence_studio.services.review import ReviewError, ReviewNotFound, ReviewValidationError, StaleRevision
+from defence_studio.services.review import (
+    ReviewError, ReviewNotFound, ReviewValidationError, RevisionConflict, StaleRevision,
+)
 from defence_studio.services import script_inspection
 from defence_studio.services.script_prompt import (
     DRAFT_SCHEMA_NAME, draft_response_schema, system_prompt, user_prompt,
@@ -105,6 +107,42 @@ def load_provider_json(text: str, exchange: dict | None):
     return value
 
 
+def draft_shape_problems(body) -> list[str]:
+    """Structural check of a parsed model draft, run before any counting so a
+    wrong-typed field fails as SCHEMA_INVALID instead of raising."""
+    if not isinstance(body, dict):
+        return ["draft: must be a JSON object"]
+    problems = []
+    for key in ("title", "opening_hook", "closing"):
+        if key not in body:
+            problems.append(f"{key}: required field missing")
+        elif not isinstance(body[key], str):
+            problems.append(f"{key}: must be a string")
+    sections = body.get("sections")
+    if sections is None:
+        problems.append("sections: required field missing")
+    elif not isinstance(sections, list):
+        problems.append("sections: must be a list")
+    else:
+        for n, section in enumerate(sections):
+            if not isinstance(section, dict):
+                problems.append(f"sections.{n}: must be an object")
+                continue
+            if not isinstance(section.get("narration"), str):
+                problems.append(f"sections.{n}.narration: required string")
+            if "section_id" in section and not isinstance(section["section_id"], str):
+                problems.append(f"sections.{n}.section_id: must be a string")
+            evidence = section.get("evidence")
+            if evidence is not None and not isinstance(evidence, dict):
+                problems.append(f"sections.{n}.evidence: must be an object")
+            elif isinstance(evidence, dict):
+                for k in ("claim_ids", "source_ids"):
+                    v = evidence.get(k)
+                    if v is not None and not (isinstance(v, list) and all(isinstance(x, str) for x in v)):
+                        problems.append(f"sections.{n}.evidence.{k}: must be a list of strings")
+    return problems
+
+
 class ScriptService(EvidenceService):
     """Extends `EvidenceService` to reuse its ownership checks, artifact store,
     and package assembly rather than re-implementing them."""
@@ -163,6 +201,19 @@ class ScriptService(EvidenceService):
             raise ScriptNotFound("Unknown script revision for this job/language")
         return self._materialize(job_id, dict(row))
 
+    def _replay(self, job_id: str, row: dict, parsed_config) -> dict:
+        """Idempotent replay only for the same generation settings. Reusing a key
+        with different settings (e.g. another word range) is a conflict, never a
+        silent return of the earlier revision."""
+        body = self._materialize(job_id, row)
+        try:
+            same = GenerationConfigV1.model_validate(body.get("config") or {}) == parsed_config
+        except _PydanticValidationError:
+            same = False
+        if not same:
+            raise RevisionConflict("This idempotency key was already used with different generation settings")
+        return body
+
     def _materialize(self, job_id: str, row: dict) -> dict:
         """The stored JSON body's embedded `status` is frozen at write time
         (generation, or the rewrite `approve()` performs). A later lifecycle
@@ -215,7 +266,7 @@ class ScriptService(EvidenceService):
                 (job_id, parsed_config.language, idempotency_key),
             ).fetchone()
             if replay is not None:
-                return self._materialize(job_id, dict(replay))
+                return self._replay(job_id, dict(replay), parsed_config)
             # Revalidate the package and approval immediately before generation.
             approved_package = self._snapshot_current_approved(connection, job_id, owner_id)
             package_sha = digest(approved_package)
@@ -238,6 +289,13 @@ class ScriptService(EvidenceService):
             "model": parsed_config.model,
             "prompt_version": parsed_config.prompt_version,
             "target_words": parsed_config.target_words,
+            "min_words": parsed_config.min_words,
+            "max_words": parsed_config.max_words,
+            "audience": parsed_config.audience,
+            "tone": parsed_config.tone,
+            "script_format": parsed_config.script_format,
+            "target_duration_seconds": parsed_config.target_duration_seconds,
+            "max_output_tokens": output_token_limit(parsed_config.model, parsed_config.language, parsed_config.max_words),
             "terminology": parsed_config.terminology,
             "max_text_cost_inr": parsed_config.max_text_cost_inr,
         }
@@ -249,6 +307,8 @@ class ScriptService(EvidenceService):
             topic=approved_package.get("topic", ""), language=parsed_config.language,
             audience=parsed_config.audience, tone=parsed_config.tone,
             script_format=parsed_config.script_format, target_words=parsed_config.target_words,
+            min_words=parsed_config.min_words if parsed_config.min_words is not None else 900,
+            max_words=parsed_config.max_words if parsed_config.max_words is not None else 1300,
             terminology=parsed_config.terminology, eligible_claims=eligible_claims, corroboration=corroboration,
         )
         system_text = system_prompt(parsed_config.language)
@@ -273,29 +333,42 @@ class ScriptService(EvidenceService):
             except Exception:  # noqa: BLE001 - best-effort diagnostics
                 pass
 
-        try:
-            self._budget_guard(provider, parsed_config, system_text, prompt_text)
-        except ScriptGenerationFailed as exc:
-            record("BLOCKED_BUDGET", str(exc))
-            raise
-        try:
-            state["calls"] = 1  # exactly one bounded call; validation failures are never retried here
+        spent_inr = 0.0
+        max_output_tokens = request_body["max_output_tokens"]
+
+        def _provider_call(user_text):
+            remaining = round(parsed_config.max_text_cost_inr - spent_inr, 6)
+            if remaining <= 0:
+                raise ScriptGenerationFailed("Budget exhausted; no further paid call was made")
+            guard_config = parsed_config.model_copy(update={"max_text_cost_inr": remaining})
+            self._budget_guard(provider, guard_config, system_text, user_text, max_output_tokens)
+            state["calls"] += 1
             call = {
                 "model": parsed_config.model,
                 "system_prompt": system_text,
-                "user_prompt": prompt_text,
+                "user_prompt": user_text,
             }
+            if "max_output_tokens" in inspect.signature(provider.generate).parameters:
+                call["max_output_tokens"] = max_output_tokens
             if "response_schema" in inspect.signature(provider.generate).parameters:
                 call["response_schema"] = draft_response_schema()
                 call["response_schema_name"] = DRAFT_SCHEMA_NAME
-            result = provider.generate(**call)
-            state["result"] = result
-        except ProviderError as exc:
-            # Provider failures never corrupt job/review state: nothing was
-            # written above except the released transaction's read, and the
-            # idempotency key was never consumed, so a client retry is safe.
-            record("PROVIDER_ERROR", f"{exc.code}: {exc.message}")
-            raise ScriptGenerationFailed(f"Provider call failed ({exc.code}): {exc.message}") from exc
+            try:
+                outcome = provider.generate(**call)
+            except ProviderError as exc:
+                record("PROVIDER_ERROR", f"{exc.code}: {exc.message}")
+                raise ScriptGenerationFailed(f"Provider call failed ({exc.code}): {exc.message}") from exc
+            state["result"] = outcome
+            return outcome
+
+        try:
+            result = _provider_call(prompt_text)
+        except ScriptGenerationFailed as exc:
+            if state["calls"] == 0:
+                record("BLOCKED_BUDGET", str(exc))
+            raise
+        if result.measured_text_cost_inr:
+            spent_inr += result.measured_text_cost_inr
 
         try:
             parsed_body = load_provider_json(result.text, getattr(provider, "last_exchange", None))
@@ -305,6 +378,12 @@ class ScriptService(EvidenceService):
         if not isinstance(parsed_body, dict):
             record("MALFORMED_JSON", "Provider output must be a JSON object")
             raise ScriptGenerationFailed("Provider output must be a JSON object")
+        shape_problems = draft_shape_problems(parsed_body)
+        if shape_problems:
+            record("SCHEMA_INVALID", f"{len(shape_problems)} problem(s)", schema_errors=shape_problems[:20])
+            raise ScriptGenerationFailed(
+                f"Provider output does not match the script schema ({len(shape_problems)} problem(s)): "
+                f"{'; '.join(shape_problems[:5])}")
         if result.measured_text_cost_inr is not None and result.measured_text_cost_inr > parsed_config.max_text_cost_inr:
             record("COST_EXCEEDED", "Measured text generation cost exceeds the configured budget")
             raise ScriptGenerationFailed("Measured text generation cost exceeds the configured budget")
@@ -343,6 +422,54 @@ class ScriptService(EvidenceService):
             },
         }
         validation = validate_revision_body(revision_body, cleared)
+        error_issues = [i for i in validation["issues"] if i.get("severity") == "ERROR"]
+        if error_issues and state["calls"] < 2:
+            issue_lines = "; ".join(
+                f"{i.get('code')} {i.get('section_id') or ''}: {i.get('detail')}" for i in error_issues[:12]
+            )
+            correction = (
+                prompt_text
+                + f"\n\nThe previous complete JSON draft had {word_count} spoken narration words and failed validation: "
+                + issue_lines
+                + f" Return a complete replacement JSON object whose spoken narration is between "
+                f"{parsed_config.min_words or 900} and {parsed_config.max_words or 1300} words. "
+                "Every section must cite at least one approved claim_id. Do not write a digit sequence "
+                "unless it appears in a claim cited by that same section. Do not add facts absent from the approved evidence."
+            )
+            try:
+                corrected = _provider_call(correction)
+            except ScriptGenerationFailed as exc:
+                record("LENGTH_CORRECTION_BLOCKED", str(exc), validation=validation)
+                corrected = None
+            if corrected is not None:
+                if corrected.measured_text_cost_inr:
+                    spent_inr += corrected.measured_text_cost_inr
+                if spent_inr > parsed_config.max_text_cost_inr:
+                    record("COST_EXCEEDED", "Measured text generation cost exceeds the configured budget")
+                    raise ScriptGenerationFailed("Measured text generation cost exceeds the configured budget")
+                try:
+                    parsed_body = load_provider_json(corrected.text, getattr(provider, "last_exchange", None))
+                except json.JSONDecodeError:
+                    parsed_body = None
+                if isinstance(parsed_body, dict) and not draft_shape_problems(parsed_body):
+                    word_count = narration_word_count(parsed_body)
+                    revision_body["title"] = parsed_body.get("title", "")
+                    revision_body["opening_hook"] = parsed_body.get("opening_hook", "")
+                    revision_body["sections"] = parsed_body.get("sections", [])
+                    revision_body["closing"] = parsed_body.get("closing", "")
+                    revision_body["word_count"] = estimate_duration(word_count)
+                    revision_body["usage"] = {
+                        "model": parsed_config.model, "provider": getattr(provider, "name", "openai"),
+                        "input_tokens": (result.input_tokens or 0) + (corrected.input_tokens or 0),
+                        "output_tokens": (result.output_tokens or 0) + (corrected.output_tokens or 0),
+                        "tokens_available": bool(result.tokens_available and corrected.tokens_available),
+                        "retries": (result.retries or 0) + (corrected.retries or 0) + 1,
+                        "measured_text_cost_inr": round(spent_inr, 6),
+                        "cost_is_measured": bool(result.cost_is_measured and corrected.cost_is_measured),
+                        "pricing_source": corrected.pricing_source or result.pricing_source,
+                        "currency": corrected.currency or result.currency,
+                    }
+                    validation = validate_revision_body(revision_body, cleared)
         revision_body["validation"] = validation
         revision_body["status"] = "AWAITING_REVIEW" if validation["passed"] else "VALIDATION_FAILED"
         # Validate the whole persisted shape (also re-checks status/approval integrity).
@@ -368,7 +495,7 @@ class ScriptService(EvidenceService):
                 (job_id, parsed_config.language, idempotency_key),
             ).fetchone()
             if replay is not None:
-                return self._materialize(job_id, dict(replay))
+                return self._replay(job_id, dict(replay), parsed_config)
             version = connection.execute(
                 "SELECT COALESCE(MAX(version), 0) + 1 FROM script_revisions WHERE job_id=? AND language=?",
                 (job_id, parsed_config.language),
@@ -548,7 +675,8 @@ class ScriptService(EvidenceService):
 
     # -- budget guard ---------------------------------------------------------
 
-    def _budget_guard(self, provider, config, system_text: str, prompt_text: str) -> None:
+    def _budget_guard(self, provider, config, system_text: str, prompt_text: str,
+                      max_output_tokens: int | None = None) -> None:
         """Refuse a *paid* call whose pre-call estimate exceeds the budget, or
         whose cost cannot be estimated. Estimate only: real cost is measured
         from provider usage afterwards. Free/offline providers skip the guard."""
@@ -558,7 +686,7 @@ class ScriptService(EvidenceService):
         chars = len(system_text) + len(prompt_text)
         # Conservative: Tamil/mixed text tokenizes at roughly 1 token / 1.5 chars.
         est_in = int(chars / 1.5) + 1
-        est_out = int(config.target_words * 4) + 200
+        est_out = max_output_tokens or (int((getattr(config, "max_words", None) or config.target_words) * 2) + 400)
         estimate = estimate_cost_inr(config.model, est_in, est_out)
         if estimate is None:
             raise ScriptGenerationFailed(

@@ -24,7 +24,7 @@ def package():
 
 
 def revision(claims, narration, *, closing="That is what the source reports.", source_ids=("src1",)):
-    return {"package_sha256": "a" * 64, "title": "t", "closing": closing, "config": {"target_words": 40}, "word_count": {"words": 40},
+    return {"package_sha256": "a" * 64, "title": "t", "closing": closing, "config": {"target_words": 40, "min_words": 1, "max_words": 5000}, "word_count": {"words": 40},
             "sections": [{"section_id": "s1", "narration": narration, "requires_evidence": True,
                           "statement_kind": "ATTRIBUTED_CLAIM",
                           "evidence": {"claim_ids": list(claims), "source_ids": list(source_ids), "qualification": "q"}}]}

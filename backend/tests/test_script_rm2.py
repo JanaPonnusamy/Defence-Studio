@@ -48,7 +48,7 @@ def _package():
 
 
 def _rev(sections, **extra):
-    return {"sections": sections, "closing": "end", "title": "t", "config": {"target_words": 100},
+    return {"sections": sections, "closing": "end", "title": "t", "config": {"target_words": 100, "min_words": 1, "max_words": 5000},
             "word_count": {"words": 100}, **extra}
 
 
