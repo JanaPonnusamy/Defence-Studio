@@ -20,6 +20,7 @@ import re
 import unicodedata
 from datetime import date
 
+from defence_studio.contracts.script import narration_word_count
 from defence_studio.discovery.ranking import parse_date
 
 INTEGRITY_VERSION = "defence-studio.script-integrity.v1"
@@ -171,11 +172,20 @@ def integrity_issues(revision: dict, package: dict) -> list[dict]:
             elif ref is not None and (ref - parsed).days > STALE_AFTER_DAYS:
                 add("STALE_SOURCE", "WARNING", sid,
                     f"Claim {c}: source was published {(ref - parsed).days} days before the evidence snapshot")
-    # Length target (warning only; the target is configuration, not a fact).
-    words = (revision.get("word_count") or {}).get("words")
-    if isinstance(target, int) and target > 0 and isinstance(words, int) and abs(words - target) / target > 0.25:
-        issues.append(dict(code="TARGET_LENGTH_MISSED", severity="WARNING", section_id="",
-                           detail=f"{words} words versus a target of {target} (outside +/-25%)"))
+    # Spoken narration only (hook + section narrations + closing). JSON keys,
+    # evidence maps, headings and usage metadata are excluded by narration_word_count.
+    words = narration_word_count(revision)
+    cfg = revision.get("config") or {}
+    min_words = cfg.get("min_words", 900)
+    max_words = cfg.get("max_words", 1300)
+    if isinstance(min_words, int) and isinstance(max_words, int) and isinstance(words, int):
+        if words < min_words or words > max_words:
+            issues.append(dict(
+                code="NARRATION_LENGTH_OUT_OF_RANGE", severity="ERROR", section_id="",
+                detail=f"{words} spoken narration words; required {min_words}–{max_words}"))
+        elif isinstance(target, int) and target > 0 and abs(words - target) / target > 0.25:
+            issues.append(dict(code="TARGET_LENGTH_MISSED", severity="WARNING", section_id="",
+                               detail=f"{words} words versus a target of {target} (outside +/-25%)"))
     return issues
 
 
