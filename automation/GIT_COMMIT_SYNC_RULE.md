@@ -38,4 +38,4 @@ Discovered via `CLAUDE.md` (Claude) and `AGENTS.md` (Codex, Cursor). Do not copy
 | Date (IST) | Agent | Task | Files | Tests | Commit | Sync result | Blockers / left uncommitted |
 |---|---|---|---|---|---|---|---|
 | 2026-10-22 | Claude | Register permanent git commit/sync rule | `automation/GIT_COMMIT_SYNC_RULE.md`, `CLAUDE.md`, `AGENTS.md` | Docs only; no code tests | `2c27f21` | Pushed `4715988..2c27f21` to origin/main; fetch confirms `0 0` (2026-10-22) | ~90 unrelated modified/untracked files from other agents left untouched |
-| 2026-10-22 | Claude | Cursor rule discovery (Cursor 3.24.18 installed; AGENTS.md auto-load not verifiable locally, so explicit rule added) | `.cursor/rules/git-commit-sync.mdc`, `automation/GIT_COMMIT_SYNC_RULE.md` | Docs only | pending | pending | ~92 unrelated paths untouched |
+| 2026-10-22 | Claude | Cursor rule discovery (Cursor 3.24.18 installed; AGENTS.md auto-load not verifiable locally, so explicit rule added) | `.cursor/rules/git-commit-sync.mdc`, `automation/GIT_COMMIT_SYNC_RULE.md` | Docs only | `d889c55` | Pushed `78033e6..d889c55`; fetch `0 0` (2026-10-22) | ~92 unrelated paths untouched |
