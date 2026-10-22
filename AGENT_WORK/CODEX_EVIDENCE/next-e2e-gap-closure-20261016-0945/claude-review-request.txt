@@ -1,0 +1,1098 @@
+Perform an independent read-only review of this Defence Studio change. Never edit, stage, commit, run shell commands, access credentials/.env files, or contact providers. Read/Grep/Glob only. Review correctness and security of current source and tests, status/progress semantics, rights revocation/expiry/use restrictions at render/export boundaries, and evidence claims. Do not infer human/legal acceptance. Identify concrete defects with file/line and severity, or say none found. Distinguish execution evidence from your static review. The production protected script must remain AWAITING_REVIEW. Full regression is still running: do not claim it passed. Core workflow queue remains PAUSED although media-chain fixture passed. Original baseline was 1933a62; concurrent independent evidence-only commit cbf380d arrived and is preserved.
+
+Diff:
+diff --git a/backend/defence_studio/services/integration.py b/backend/defence_studio/services/integration.py
+index 379f9b7..2c913a0 100644
+--- a/backend/defence_studio/services/integration.py
++++ b/backend/defence_studio/services/integration.py
+@@ -19,6 +19,7 @@ from contextlib import closing
+ from datetime import datetime, timezone
+ 
+ from defence_studio.contracts.evidence import canonical
++from defence_studio.contracts.assets import PermittedUse
+ from defence_studio.database import connect
+ from defence_studio.services.assets import AssetService
+ from defence_studio.services.review import ReviewError, ReviewNotFound, ReviewValidationError, StaleRevision
+@@ -255,7 +256,7 @@ class IntegrationService(AssetService):
+ 
+     def assigned_assets(self, job_id: str, language: str, plan_sha256: str) -> list[dict]:
+         """ACTIVE assignments on the current approved plan whose asset has real
+-        bytes, an APPROVED review and CLEAR/RESTRICTED effective rights."""
++        bytes, an APPROVED review and current rights permitting commercial web use."""
+         with closing(connect(self.database_file)) as c:
+             rows = c.execute(
+                 "SELECT a.scene_id, a.asset_id, a.version FROM asset_assignments a WHERE a.job_id=? AND a.language=? "
+@@ -274,6 +275,8 @@ class IntegrationService(AssetService):
+         result = []
+         for asset_id, e in out.items():
+             descriptor = self._read_json_artifact(job_id, e["row"])
++            if self._derive_effective_rights(descriptor, target_use=PermittedUse.WEB).value != "CLEAR":
++                continue  # Expiry must be evaluated at use time, not cached at review time.
+             uri = self.asset_file_uri(job_id, descriptor)
+             if not uri:
+                 continue
+@@ -288,6 +291,19 @@ class IntegrationService(AssetService):
+                            "effective_rights": e["row"]["effective_rights"]})
+         return sorted(result, key=lambda x: x["asset_id"])
+ 
++    def verify_visual_asset_rights(self, job_id: str, language: str, visual_binding: dict) -> None:
++        """Reject a timeline whose imported assets lost their reviewed rights/assignment."""
++        expected = visual_binding.get("assets", [])
++        if not expected:
++            return  # A timeline of explicit GAP cards contains no imported assets.
++        current = {a["asset_id"]: a for a in self.assigned_assets(
++            job_id, language, visual_binding["scene_plan_sha256"])}
++        for old in expected:
++            asset = current.get(old["asset_id"])
++            if (asset is None or asset["asset_sha256"] != old["sha256"]
++                    or not set(old["scenes"]).issubset(asset["scene_ids"])):
++                raise IntegrationStale("Visual asset rights or assignments changed; rebuild the visual timeline")
++
+     # -- recovery / execution -------------------------------------------------
+ 
+     def recover_interrupted(self) -> int:
+diff --git a/backend/defence_studio/services/package.py b/backend/defence_studio/services/package.py
+index b58e64d..2e09eba 100644
+--- a/backend/defence_studio/services/package.py
++++ b/backend/defence_studio/services/package.py
+@@ -318,6 +318,11 @@ class PackageService(QcService):
+ 
+     def package_file(self, job_id: str, owner_id: str, language: str, version: int, name: str) -> tuple[bytes, str]:
+         body = self.read_integration_body(job_id, owner_id, language, PACKAGE_KIND, version)
++        render = self.get_integration(job_id, owner_id, language, RENDER_KIND, body["binding"]["render_version"])
++        visual_version = render["input_binding"].get("visual_version")
++        if visual_version is not None:
++            visual = self.get_integration(job_id, owner_id, language, "visual_timeline", visual_version)
++            self.verify_visual_asset_rights(job_id, language, visual["input_binding"])
+         ref = body["files"].get(name)
+         if not ref:
+             raise IntegrationStale(f"No file {name!r} in this package")
+diff --git a/backend/defence_studio/services/qc.py b/backend/defence_studio/services/qc.py
+index fbfc78a..cb4db80 100644
+--- a/backend/defence_studio/services/qc.py
++++ b/backend/defence_studio/services/qc.py
+@@ -434,5 +434,9 @@ class QcService(IntegrationService):
+             raise IntegrationStale("A newer QC report exists; the approval no longer applies")
+         if not renders or renders[-1]["version"] != b["render_version"] or renders[-1]["sha256"] != b["render_sha256"]:
+             raise IntegrationStale("A newer render exists; the approval no longer applies")
++        visual_version = renders[-1]["input_binding"].get("visual_version")
++        if visual_version is not None:
++            visual = self.get_integration(job_id, owner_id, language, "visual_timeline", visual_version)
++            self.verify_visual_asset_rights(job_id, language, visual["input_binding"])
+         return {"approval": last, "qc_version": b["qc_version"], "render_version": b["render_version"],
+                 "video_sha256": b["video_sha256"]}
+diff --git a/backend/defence_studio/services/render.py b/backend/defence_studio/services/render.py
+index a186225..17d45e6 100644
+--- a/backend/defence_studio/services/render.py
++++ b/backend/defence_studio/services/render.py
+@@ -67,6 +67,7 @@ class RenderService(IntegrationService):
+             if row["input_binding"].get("scene_plan_sha256") != plan_row["plan_sha256"]:
+                 raise IntegrationStale(f"The {label} was built for a different scene plan")
+         vb = visual_row["input_binding"]
++        self.verify_visual_asset_rights(job_id, language, vb)
+         if vb.get("timing") != "measured_audio" or vb.get("audio_set_sha256") != audio_row["sha256"]:
+             raise IntegrationStale("The visual timeline was not built from this audio's measured timing; rebuild it "
+                                    "with audio_version set")
+@@ -83,6 +84,7 @@ class RenderService(IntegrationService):
+                    "audio_set_sha256": audio_row["sha256"], "visual_version": visual_version,
+                    "visual_sha256": visual_row["sha256"], "burn_subtitles": bool(burn_subtitles),
+                    "output": vb["options"], "language": language}
++        binding["assets"] = vb.get("assets", [])
+         item, created = self._create_row(job_id, owner_id, language, RENDER_KIND, binding, idempotency_key)
+         if created:
+             self._launch(lambda: self._run(job_id, language, item["version"], binding, audio, timeline_body),
+@@ -172,6 +174,7 @@ class RenderService(IntegrationService):
+         try:
+             self._transition(job_id, language, RENDER_KIND, version, "RUNNING", detail="Building render package",
+                              progress=0.02, allowed_from=("QUEUED",))
++            self.verify_visual_asset_rights(job_id, language, binding)
+             pkg_dir = self.store.job_dir(job_id) / "render" / language / f"pkg-{version:04d}"
+             if pkg_dir.exists():
+                 shutil.rmtree(pkg_dir)
+@@ -224,6 +227,7 @@ class RenderService(IntegrationService):
+             if not qc.get("passed"):
+                 raise RenderError("renderer_qc_failed", "Renderer QC reported failure")
+             plain = result["output_bytes"]
++            self.verify_visual_asset_rights(job_id, language, binding)
+             plain_sha = hashlib.sha256(plain).hexdigest()
+             if qc.get("output", {}).get("sha256") and qc["output"]["sha256"] != plain_sha:
+                 raise RenderError("output_checksum", "Downloaded MP4 does not match the renderer's checksum")
+@@ -253,6 +257,7 @@ class RenderService(IntegrationService):
+                                  progress=0.82)
+                 body["subtitles"], body["video_subtitled"] = self._subtitle_step(
+                     job_id, language, spans, duration, plain_uri, manifest["output_profile"])
++            self.verify_visual_asset_rights(job_id, language, binding)
+             uri, sha = self._store_json(job_id, f"renders/{language}", body)
+             self._transition(job_id, language, RENDER_KIND, version, "SUCCEEDED",
+                              detail=f"{round(duration, 1)}s video, {len(spans)} scene(s)", progress=1.0,
+@@ -322,6 +327,8 @@ class RenderService(IntegrationService):
+ 
+     def render_file(self, job_id: str, owner_id: str, language: str, version: int, which: str) -> tuple[bytes, str]:
+         body = self.read_integration_body(job_id, owner_id, language, RENDER_KIND, version)
++        visual = self.get_integration(job_id, owner_id, language, "visual_timeline", body["binding"]["visual_version"])
++        self.verify_visual_asset_rights(job_id, language, visual["input_binding"])
+         if which in ("plain", "subtitled"):
+             ref = body["video_plain"] if which == "plain" else body.get("video_subtitled")
+             mime = "video/mp4"
+diff --git a/backend/scripts/e2e_acceptance.py b/backend/scripts/e2e_acceptance.py
+index 0d528d4..db8ce2a 100644
+--- a/backend/scripts/e2e_acceptance.py
++++ b/backend/scripts/e2e_acceptance.py
+@@ -92,7 +92,12 @@ def main() -> int:
+         w.run_once(); w.run_once()
+         res = d.list_candidates(job, OWNER)
+         c = res["candidates"]
+-        assert c, "no candidates from live feeds"
++        if not c:
++            # Keep the actual provider diagnostics: zero candidates can mean a
++            # policy rejection before any HTTP request, not an upstream outage.
++            REPORT["discovery_providers"] = res["providers"]
++            raise AssertionError("no candidates from live feeds: " + "; ".join(
++                f"{p['provider']}={p['status']}: {p.get('message', '')}" for p in res["providers"]))
+         pick = [x for x in c if "bbc" not in (x["declared_metadata"].get("publisher") or "").lower()][:2] or c[:2]
+         d.select_candidates(job, OWNER, [x["candidate_id"] for x in pick])
+         return {"candidates": len(c), "selected": [x["canonical_url"] for x in pick],
+@@ -245,7 +250,10 @@ def main() -> int:
+         n = fresh.recover_interrupted()
+         status = fresh.package_status(job, OWNER, "en")
+         gate = fresh.approved_render(job, OWNER, "en")
+-        return {"recovered_rows": n, "package_status": status["items"][-1]["status"], "approved_render": gate["render_version"]}
++        state = JobService(db).get(job, OWNER)
++        return {"recovered_rows": n, "package_status": status["items"][-1]["status"],
++                "approved_render": gate["render_version"], "workflow_job_status": state["status"],
++                "scope": "media service chain; simulated reviews do not complete the research queue job"}
+ 
+     code = 0
+     try:
+diff --git a/backend/tests/test_assets_ingest_rm9.py b/backend/tests/test_assets_ingest_rm9.py
+index 83b4ea1..d64037c 100644
+--- a/backend/tests/test_assets_ingest_rm9.py
++++ b/backend/tests/test_assets_ingest_rm9.py
+@@ -78,6 +78,24 @@ def _approved_assigned_asset(s, plan, scene_index=0, key="a1", rights=RIGHTS):
+     return svc, aid, scene_id, asset
+ 
+ 
++def test_expiry_is_rechecked_when_selecting_previously_approved_asset(approved_script, monkeypatch):
++    s = approved_script
++    plan = _english_plan_for_assets(s)
++    svc, _, _, _ = _approved_assigned_asset(s, plan, rights={**RIGHTS, "expires_at": "2090-01-01T00:00:00+00:00"})
++    sha = _plan_sha(s["scene"], s["job"], plan["version"], "en")
++    assert len(svc.assigned_assets(s["job"], "en", sha)) == 1
++    monkeypatch.setattr("defence_studio.services.assets._now", lambda: "2091-01-01T00:00:00+00:00")
++    assert svc.assigned_assets(s["job"], "en", sha) == []
++
++
++def test_non_web_rights_are_not_imported_for_web_video(approved_script):
++    s = approved_script
++    plan = _english_plan_for_assets(s)
++    svc, _, _, _ = _approved_assigned_asset(s, plan, rights={**RIGHTS, "permitted_uses": ["broadcast"]})
++    sha = _plan_sha(s["scene"], s["job"], plan["version"], "en")
++    assert svc.assigned_assets(s["job"], "en", sha) == []
++
++
+ def test_upload_measures_real_bytes_and_rejects_non_images(approved_script):
+     s = approved_script
+     svc = VisualService(s["db"], s["root"], provider=s["provider"])
+diff --git a/backend/tests/test_render_rm5.py b/backend/tests/test_render_rm5.py
+index d30cb05..2f7b632 100644
+--- a/backend/tests/test_render_rm5.py
++++ b/backend/tests/test_render_rm5.py
+@@ -298,6 +298,60 @@ def test_estimated_visual_timeline_cannot_be_rendered(chain):
+                          visual_version=est["version"], background=False)
+ 
+ 
++def test_rights_changed_after_visual_plan_blocks_render(chain, monkeypatch):
++    from test_assets_ingest_rm9 import _approved_assigned_asset, ImportingVisualModule, RIGHTS
++    s = chain["s"]
++    plan = s["scene"].get_plan(s["job"], OWNER, "en", 1)
++    assets, aid, _, _ = _approved_assigned_asset(s, plan)
++    visual = VisualService(s["db"], s["root"], provider=s["provider"],
++                           visual_client=visual_client(ImportingVisualModule()))
++    v = visual.start_visual_plan(s["job"], OWNER, "en", "rights-v", background=False,
++                                audio_version=chain["a"]["version"])
++    assert v["status"] == "SUCCEEDED", v["detail"]
++    assets.set_rights(s["job"], OWNER, aid, {**RIGHTS, "commercial_use": "prohibited"}, "rights-revoked")
++    render = RenderService(s["db"], s["root"], provider=s["provider"],
++                           renderer_client=renderer_client(FakeRenderer()))
++    with pytest.raises(IntegrationStale, match="rights|assignments"):
++        render.start_render(s["job"], OWNER, "en", "revoked-render",
++                            audio_version=chain["a"]["version"], visual_version=v["version"], background=False)
++    # A previously stored render must also be withheld at the download boundary.
++    monkeypatch.setattr(render, "read_integration_body", lambda *a: {"binding": {"visual_version": v["version"]}})
++    with pytest.raises(IntegrationStale, match="rights|assignments"):
++        render.render_file(s["job"], OWNER, "en", 1, "plain")
++
++    from defence_studio.services.package import PackageService
++    package = PackageService(s["db"], s["root"], provider=s["provider"])
++    real_get = package.get_integration
++    monkeypatch.setattr(package, "get_integration", lambda job, owner, lang, kind, version:
++                        {"input_binding": {"visual_version": v["version"]}} if kind == "render"
++                        else real_get(job, owner, lang, kind, version))
++    monkeypatch.setattr(package, "read_integration_body", lambda *a: {"binding": {"render_version": 1}})
++    with pytest.raises(IntegrationStale, match="rights|assignments"):
++        package.package_file(s["job"], OWNER, "en", 1, "video_branded")
++
++
++def test_rights_revoked_before_worker_start_marks_render_failed(chain, monkeypatch):
++    from test_assets_ingest_rm9 import _approved_assigned_asset, ImportingVisualModule, RIGHTS
++    s = chain["s"]
++    assets, aid, _, _ = _approved_assigned_asset(s, s["scene"].get_plan(s["job"], OWNER, "en", 1))
++    visual = VisualService(s["db"], s["root"], provider=s["provider"],
++                           visual_client=visual_client(ImportingVisualModule()))
++    v = visual.start_visual_plan(s["job"], OWNER, "en", "queued-rights-v", background=False,
++                                audio_version=chain["a"]["version"])
++    assert v["status"] == "SUCCEEDED", v["detail"]
++    render = RenderService(s["db"], s["root"], provider=s["provider"])
++    pending = []
++    monkeypatch.setattr(render, "_launch", lambda work, background: pending.append(work))
++    row = render.start_render(s["job"], OWNER, "en", "queued-rights-r",
++                              audio_version=chain["a"]["version"], visual_version=v["version"])
++    assert row["status"] == "QUEUED"
++    assets.set_rights(s["job"], OWNER, aid, {**RIGHTS, "commercial_use": "prohibited"}, "queued-rights-revoked")
++    pending.pop()()
++    result = render.get_integration(s["job"], OWNER, "en", "render", row["version"])
++    assert result["status"] == "FAILED"
++    assert "rights" in result["detail"]
++
++
+ @needs_ffmpeg
+ def test_full_render_package_video_and_subtitles(chain):
+     s = chain["s"]
+
+Evidence fixture-e2e.json:
+{
+  "started_at": "2026-10-16T04:31:36.237036+00:00",
+  "steps": [
+    {
+      "step": "discovery: local fixture RSS",
+      "ok": true,
+      "seconds": 0.5,
+      "candidates": 1,
+      "selected": [
+        "https://fixture-one.example/article"
+      ],
+      "providers": [
+        [
+          "rss_feed",
+          "OK"
+        ]
+      ]
+    },
+    {
+      "step": "acquisition + analysis: local fixture article transport",
+      "ok": true,
+      "seconds": 0.4,
+      "stages": {
+        "application_foundation": "COMPLETED",
+        "news_feed_and_topic_discovery": "COMPLETED",
+        "topic_search_and_source_collection": "COMPLETED",
+        "extraction_validation_normalization_deduplication": "COMPLETED",
+        "evidence_analysis_and_review": "AWAITING_REVIEW",
+        "script_generation_and_approval": "PENDING",
+        "scene_creation_and_voice_direction": "PENDING",
+        "asset_rights_review_and_assignment": "PENDING",
+        "voice_audio_finishing_and_alignment": "PENDING",
+        "video_rendering": "PENDING",
+        "quality_control_final_review_and_export": "PENDING",
+        "channel_branding_and_publishing_package": "PENDING",
+        "cross_domain_and_format_reuse": "PENDING"
+      },
+      "sources": 1,
+      "claims_extracted": 8
+    },
+    {
+      "step": "evidence review (simulated reviewer) + package approval",
+      "ok": true,
+      "seconds": 0.6,
+      "claims_approved": 4,
+      "eligible": 4
+    },
+    {
+      "step": "script: offline extractive provider, validation, approval",
+      "ok": true,
+      "seconds": 0.2,
+      "words": 42,
+      "provider": "offline-extractive",
+      "warnings": [
+        "SOURCE_DATE_UNKNOWN",
+        "SOURCE_DATE_UNKNOWN",
+        "SOURCE_DATE_UNKNOWN",
+        "SOURCE_DATE_UNKNOWN",
+        "TARGET_LENGTH_MISSED"
+      ]
+    },
+    {
+      "step": "scene plan: generate + approve",
+      "ok": true,
+      "seconds": 0.1,
+      "scenes": 5
+    },
+    {
+      "step": "assets: ingest, rights review, assign (synthetic rights-cleared still)",
+      "ok": true,
+      "seconds": 0.6,
+      "assigned_scenes": 5
+    },
+    {
+      "step": "audio: real Audio Module (local OS English voice)",
+      "ok": true,
+      "seconds": 24.76,
+      "version": 1,
+      "scenes": 5,
+      "mock": false
+    },
+    {
+      "step": "visual: real Visual Module, measured timing, imported asset",
+      "ok": true,
+      "seconds": 1.1,
+      "version": 1,
+      "shots": 5,
+      "gaps": 0,
+      "assignments_honored": 5
+    },
+    {
+      "step": "render: real Renderer + FFmpeg + subtitles",
+      "ok": true,
+      "seconds": 24.76,
+      "version": 1,
+      "probe": {
+        "avg_frame_rate": "25/1",
+        "codec": "h264",
+        "height": 720,
+        "pix_fmt": "yuv420p",
+        "width": 1280
+      },
+      "cues": 5
+    },
+    {
+      "step": "qc + final approval",
+      "ok": true,
+      "seconds": 3.2,
+      "qc_version": 1,
+      "checks": {
+        "MANIFEST_CONSISTENCY": "PASS",
+        "OUTPUT_INTEGRITY": "PASS",
+        "AUDIO_INTEGRITY": "PASS",
+        "CONTAINER_STREAMS": "PASS",
+        "DURATION_MATCH": "PASS",
+        "DURATION_LIMITS": "PASS",
+        "FULL_DECODE": "PASS",
+        "VISUAL_COVERAGE": "PASS",
+        "BLACK_FRAMES": "PASS",
+        "FROZEN_FRAMES": "WARN",
+        "AUDIO_CLIPPING": "PASS",
+        "AUDIO_SILENCE": "PASS",
+        "LOUDNESS": "PASS",
+        "SUBTITLES_PRESENT": "PASS",
+        "SUBTITLE_SYNC": "PASS",
+        "SUBTITLE_OVERFLOW": "PASS",
+        "SUBTITLE_GLYPHS": "PASS",
+        "ASSET_RIGHTS": "PASS",
+        "AI_LABELLING": "PASS",
+        "ATTRIBUTION_REQUIRED": "PASS",
+        "EVIDENCE_REFS": "PASS",
+        "BRANDING_ASSETS": "NOT_CHECKED"
+      },
+      "loudness": -21.7
+    },
+    {
+      "step": "package: branding, thumbnail, metadata, source register",
+      "ok": true,
+      "seconds": 13.4,
+      "version": 1,
+      "title": "Training",
+      "sources": 1,
+      "duration": 31.786,
+      "thumbnail_ok": true
+    },
+    {
+      "step": "youtube: configuration check only (no credentials, nothing uploaded)",
+      "ok": true,
+      "seconds": 0.0,
+      "configured": false,
+      "missing": [
+        "DEFENCE_STUDIO_YT_CLIENT_ID",
+        "DEFENCE_STUDIO_YT_CLIENT_SECRET",
+        "DEFENCE_STUDIO_YT_REDIRECT_URI",
+        "DEFENCE_STUDIO_YT_TOKEN_KEY"
+      ]
+    },
+    {
+      "step": "persistence: fresh service instances read the same state",
+      "ok": true,
+      "seconds": 0.1,
+      "recovered_rows": 0,
+      "package_status": "APPROVED",
+      "approved_render": 1,
+      "workflow_job_status": "PAUSED",
+      "scope": "media service chain; simulated reviews do not complete the research queue job"
+    }
+  ],
+  "simulated": [
+    "human review decisions (harness acts as owner/reviewer)",
+    "script text: offline extractive provider restating approved claims, no LLM",
+    "rights-cleared still: synthetic image created by the harness",
+    "RSS and article HTTP transport: controlled local text, never live news"
+  ],
+  "not_done": [
+    "YouTube OAuth/upload: blocked, missing DEFENCE_STUDIO_YT_CLIENT_ID, DEFENCE_STUDIO_YT_CLIENT_SECRET, DEFENCE_STUDIO_YT_REDIRECT_URI, DEFENCE_STUDIO_YT_TOKEN_KEY"
+  ],
+  "input_mode": "LOCAL_HTTP_TRANSPORT_FIXTURE",
+  "job_id": "cd784cf0-256c-482e-89d9-bbabe0b7e2cd",
+  "topic": "Training",
+  "database": "C:\\dstmp\\next-fixture-0945\\e2e-1792125096.sqlite3",
+  "finished_at": "2026-10-16T04:32:34.822557+00:00",
+  "ok": true,
+  "acceptance_status": "FIXTURE_E2E_VERIFIED"
+}
+Evidence restart-check.json:
+{
+  "pid": 15972,
+  "database": "C:\\dstmp\\next-fixture-0945\\e2e-1792125096.sqlite3",
+  "job_id": "cd784cf0-256c-482e-89d9-bbabe0b7e2cd",
+  "package_status": "APPROVED",
+  "approved_render": 1,
+  "unauthenticated_approval_probe_status": 401,
+  "other_owner_approval_status": 404,
+  "artifact_checks": [
+    {
+      "name": "description",
+      "sha256_matches": true
+    },
+    {
+      "name": "source_register",
+      "sha256_matches": true
+    },
+    {
+      "name": "subtitles_srt",
+      "sha256_matches": true
+    },
+    {
+      "name": "subtitles_vtt",
+      "sha256_matches": true
+    },
+    {
+      "name": "thumbnail",
+      "sha256_matches": true
+    },
+    {
+      "name": "video_branded",
+      "sha256_matches": true
+    }
+  ],
+  "job_status": "PAUSED"
+}
+Evidence artifact-and-protection-validation.json:
+{
+  "protected_files_unchanged": {
+    "E:\\Jana Soft\\DefenceStudio\\data\\defence_studio.sqlite3": true,
+    "E:\\Jana Soft\\DefenceStudio\\data\\defence_studio.sqlite3.bak-20261011T161418Z": true,
+    "protected_episode_matches_retained_snapshot": true
+  },
+  "protected_script_fields": [
+    "language",
+    "version",
+    "status"
+  ],
+  "protected_script_rows": [
+    [
+      "en",
+      1,
+      "AWAITING_REVIEW"
+    ]
+  ],
+  "artifacts": [
+    {
+      "path": "E:\\Jana Soft\\DefenceStudio\\tmp\\next-long-0945\\storage\\renders\\r_764e7fd6b58744\\output.mp4",
+      "size": 28676951,
+      "sha256": "a6cc376ee3c1d26e8a53f55390e2ea29931ded0a6a256804466600c854e9723b",
+      "probe_command": [
+        "ffprobe",
+        "-v",
+        "error",
+        "-show_streams",
+        "-show_format",
+        "-of",
+        "json",
+        "E:\\Jana Soft\\DefenceStudio\\tmp\\next-long-0945\\storage\\renders\\r_764e7fd6b58744\\output.mp4"
+      ],
+      "probe_exit": 0,
+      "probe": {
+        "streams": [
+          {
+            "index": 0,
+            "codec_name": "h264",
+            "codec_long_name": "H.264 / AVC / MPEG-4 AVC / MPEG-4 part 10",
+            "profile": "High",
+            "codec_type": "video",
+            "codec_tag_string": "avc1",
+            "codec_tag": "0x31637661",
+            "mime_codec_string": "avc1.640016",
+            "width": 640,
+            "height": 360,
+            "coded_width": 640,
+            "coded_height": 360,
+            "has_b_frames": 2,
+            "pix_fmt": "yuv420p",
+            "level": 22,
+            "color_range": "tv",
+            "color_space": "bt709",
+            "chroma_location": "left",
+            "field_order": "progressive",
+            "is_avc": "true",
+            "nal_length_size": "4",
+            "id": "0x1",
+            "r_frame_rate": "12/1",
+            "avg_frame_rate": "12/1",
+            "time_base": "1/12288",
+            "start_pts": 0,
+            "start_time": "0.000000",
+            "duration_ts": 7372800,
+            "duration": "600.000000",
+            "bit_rate": "230044",
+            "bits_per_raw_sample": "8",
+            "nb_frames": "7200",
+            "extradata_size": 49,
+            "disposition": {
+              "default": 1,
+              "dub": 0,
+              "original": 0,
+              "comment": 0,
+              "lyrics": 0,
+              "karaoke": 0,
+              "forced": 0,
+              "hearing_impaired": 0,
+              "visual_impaired": 0,
+              "clean_effects": 0,
+              "attached_pic": 0,
+              "timed_thumbnails": 0,
+              "non_diegetic": 0,
+              "captions": 0,
+              "descriptions": 0,
+              "metadata": 0,
+              "dependent": 0,
+              "still_image": 0,
+              "multilayer": 0
+            },
+            "tags": {
+              "language": "und",
+              "handler_name": "VideoHandler",
+              "encoder": "Lavc62.28.101 libx264"
+            }
+          },
+          {
+            "index": 1,
+            "codec_name": "aac",
+            "codec_long_name": "AAC (Advanced Audio Coding)",
+            "profile": "LC",
+            "codec_type": "audio",
+            "codec_tag_string": "mp4a",
+            "codec_tag": "0x6134706d",
+            "mime_codec_string": "mp4a.40.2",
+            "sample_fmt": "fltp",
+            "sample_rate": "48000",
+            "channels": 1,
+            "channel_layout": "mono",
+            "bits_per_sample": 0,
+            "initial_padding": 0,
+            "id": "0x2",
+            "r_frame_rate": "0/0",
+            "avg_frame_rate": "0/0",
+            "time_base": "1/48000",
+            "start_pts": 0,
+            "start_time": "0.000000",
+            "duration_ts": 28800000,
+            "duration": "600.000000",
+            "bit_rate": "148673",
+            "nb_frames": "28126",
+            "extradata_size": 5,
+            "disposition": {
+              "default": 1,
+              "dub": 0,
+              "original": 0,
+              "comment": 0,
+              "lyrics": 0,
+              "karaoke": 0,
+              "forced": 0,
+              "hearing_impaired": 0,
+              "visual_impaired": 0,
+              "clean_effects": 0,
+              "attached_pic": 0,
+              "timed_thumbnails": 0,
+              "non_diegetic": 0,
+              "captions": 0,
+              "descriptions": 0,
+              "metadata": 0,
+              "dependent": 0,
+              "still_image": 0,
+              "multilayer": 0
+            },
+            "tags": {
+              "language": "und",
+              "handler_name": "SoundHandler"
+            }
+          }
+        ],
+        "format": {
+          "filename": "E:\\Jana Soft\\DefenceStudio\\tmp\\next-long-0945\\storage\\renders\\r_764e7fd6b58744\\output.mp4",
+          "nb_streams": 2,
+          "nb_programs": 0,
+          "nb_stream_groups": 0,
+          "format_name": "mov,mp4,m4a,3gp,3g2,mj2",
+          "format_long_name": "QuickTime / MOV",
+          "start_time": "0.000000",
+          "duration": "600.000000",
+          "size": "28676951",
+          "bit_rate": "382359",
+          "probe_score": 100,
+          "tags": {
+            "major_brand": "isom",
+            "minor_version": "512",
+            "compatible_brands": "isomiso2avc1mp41",
+            "encoder": "Lavf62.12.101"
+          }
+        }
+      },
+      "decode_command": [
+        "ffmpeg",
+        "-v",
+        "error",
+        "-i",
+        "E:\\Jana Soft\\DefenceStudio\\tmp\\next-long-0945\\storage\\renders\\r_764e7fd6b58744\\output.mp4",
+        "-f",
+        "null",
+        "-"
+      ],
+      "decode_exit": 0,
+      "decode_stderr": "",
+      "seconds": 8.640999999995984
+    },
+    {
+      "path": "C:\\dstmp\\next-fixture-0945\\store\\jobs\\cd784cf0-256c-482e-89d9-bbabe0b7e2cd\\render\\en\\7d1be62243e0163867bc645134fac90cf2ce2441c47d4f15ffd4299a68a0b713-subtitled.mp4",
+      "size": 451285,
+      "sha256": "7d1be62243e0163867bc645134fac90cf2ce2441c47d4f15ffd4299a68a0b713",
+      "probe_command": [
+        "ffprobe",
+        "-v",
+        "error",
+        "-show_streams",
+        "-show_format",
+        "-of",
+        "json",
+        "C:\\dstmp\\next-fixture-0945\\store\\jobs\\cd784cf0-256c-482e-89d9-bbabe0b7e2cd\\render\\en\\7d1be62243e0163867bc645134fac90cf2ce2441c47d4f15ffd4299a68a0b713-subtitled.mp4"
+      ],
+      "probe_exit": 0,
+      "probe": {
+        "streams": [
+          {
+            "index": 0,
+            "codec_name": "h264",
+            "codec_long_name": "H.264 / AVC / MPEG-4 AVC / MPEG-4 part 10",
+            "profile": "High",
+            "codec_type": "video",
+            "codec_tag_string": "avc1",
+            "codec_tag": "0x31637661",
+            "mime_codec_string": "avc1.64001f",
+            "width": 1280,
+            "height": 720,
+            "coded_width": 1280,
+            "coded_height": 720,
+            "has_b_frames": 2,
+            "pix_fmt": "yuv420p",
+            "level": 31,
+            "color_range": "tv",
+            "color_space": "bt709",
+            "chroma_location": "left",
+            "field_order": "progressive",
+            "is_avc": "true",
+            "nal_length_size": "4",
+            "id": "0x1",
+            "r_frame_rate": "25/1",
+            "avg_frame_rate": "25/1",
+            "time_base": "1/12800",
+            "start_pts": 0,
+            "start_time": "0.000000",
+            "duration_ts": 316928,
+            "duration": "24.760000",
+            "bit_rate": "21584",
+            "bits_per_raw_sample": "8",
+            "nb_frames": "619",
+            "extradata_size": 47,
+            "disposition": {
+              "default": 1,
+              "dub": 0,
+              "original": 0,
+              "comment": 0,
+              "lyrics": 0,
+              "karaoke": 0,
+              "forced": 0,
+              "hearing_impaired": 0,
+              "visual_impaired": 0,
+              "clean_effects": 0,
+              "attached_pic": 0,
+              "timed_thumbnails": 0,
+              "non_diegetic": 0,
+              "captions": 0,
+              "descriptions": 0,
+              "metadata": 0,
+              "dependent": 0,
+              "still_image": 0,
+              "multilayer": 0
+            },
+            "tags": {
+              "language": "und",
+              "handler_name": "VideoHandler",
+              "encoder": "Lavc62.28.101 libx264"
+            }
+          },
+          {
+            "index": 1,
+            "codec_name": "aac",
+            "codec_long_name": "AAC (Advanced Audio Coding)",
+            "profile": "LC",
+            "codec_type": "audio",
+            "codec_tag_string": "mp4a",
+            "codec_tag": "0x6134706d",
+            "mime_codec_string": "mp4a.40.2",
+            "sample_fmt": "fltp",
+            "sample_rate": "48000",
+            "channels": 1,
+            "channel_layout": "mono",
+            "bits_per_sample": 0,
+            "initial_padding": 0,
+            "id": "0x2",
+            "r_frame_rate": "0/0",
+            "avg_frame_rate": "0/0",
+            "time_base": "1/48000",
+            "start_pts": 0,
+            "start_time": "0.000000",
+            "duration_ts": 1188480,
+            "duration": "24.760000",
+            "bit_rate": "117564",
+            "nb_frames": "1162",
+            "extradata_size": 5,
+            "disposition": {
+              "default": 1,
+              "dub": 0,
+              "original": 0,
+              "comment": 0,
+              "lyrics": 0,
+              "karaoke": 0,
+              "forced": 0,
+              "hearing_impaired": 0,
+              "visual_impaired": 0,
+              "clean_effects": 0,
+              "attached_pic": 0,
+              "timed_thumbnails": 0,
+              "non_diegetic": 0,
+              "captions": 0,
+              "descriptions": 0,
+              "metadata": 0,
+              "dependent": 0,
+              "still_image": 0,
+              "multilayer": 0
+            },
+            "tags": {
+              "language": "und",
+              "handler_name": "SoundHandler"
+            }
+          }
+        ],
+        "format": {
+          "filename": "C:\\dstmp\\next-fixture-0945\\store\\jobs\\cd784cf0-256c-482e-89d9-bbabe0b7e2cd\\render\\en\\7d1be62243e0163867bc645134fac90cf2ce2441c47d4f15ffd4299a68a0b713-subtitled.mp4",
+          "nb_streams": 2,
+          "nb_programs": 0,
+          "nb_stream_groups": 0,
+          "format_name": "mov,mp4,m4a,3gp,3g2,mj2",
+          "format_long_name": "QuickTime / MOV",
+          "start_time": "0.000000",
+          "duration": "24.760000",
+          "size": "451285",
+          "bit_rate": "145810",
+          "probe_score": 100,
+          "tags": {
+            "major_brand": "isom",
+            "minor_version": "512",
+            "compatible_brands": "isomiso2avc1mp41",
+            "encoder": "Lavf62.12.101"
+          }
+        }
+      },
+      "decode_command": [
+        "ffmpeg",
+        "-v",
+        "error",
+        "-i",
+        "C:\\dstmp\\next-fixture-0945\\store\\jobs\\cd784cf0-256c-482e-89d9-bbabe0b7e2cd\\render\\en\\7d1be62243e0163867bc645134fac90cf2ce2441c47d4f15ffd4299a68a0b713-subtitled.mp4",
+        "-f",
+        "null",
+        "-"
+      ],
+      "decode_exit": 0,
+      "decode_stderr": "",
+      "seconds": 8.219000000004598
+    },
+    {
+      "path": "C:\\dstmp\\next-fixture-0945\\store\\jobs\\cd784cf0-256c-482e-89d9-bbabe0b7e2cd\\package\\en\\39e18534711be13e8630919160906188e7a056c3bf49bf86baff24b7b9094931.mp4",
+      "size": 473578,
+      "sha256": "39e18534711be13e8630919160906188e7a056c3bf49bf86baff24b7b9094931",
+      "probe_command": [
+        "ffprobe",
+        "-v",
+        "error",
+        "-show_streams",
+        "-show_format",
+        "-of",
+        "json",
+        "C:\\dstmp\\next-fixture-0945\\store\\jobs\\cd784cf0-256c-482e-89d9-bbabe0b7e2cd\\package\\en\\39e18534711be13e8630919160906188e7a056c3bf49bf86baff24b7b9094931.mp4"
+      ],
+      "probe_exit": 0,
+      "probe": {
+        "streams": [
+          {
+            "index": 0,
+            "codec_name": "h264",
+            "codec_long_name": "H.264 / AVC / MPEG-4 AVC / MPEG-4 part 10",
+            "profile": "High",
+            "codec_type": "video",
+            "codec_tag_string": "avc1",
+            "codec_tag": "0x31637661",
+            "mime_codec_string": "avc1.64001f",
+            "width": 1280,
+            "height": 720,
+            "coded_width": 1280,
+            "coded_height": 720,
+            "has_b_frames": 2,
+            "sample_aspect_ratio": "1:1",
+            "display_aspect_ratio": "16:9",
+            "pix_fmt": "yuv420p",
+            "level": 31,
+            "chroma_location": "left",
+            "field_order": "progressive",
+            "is_avc": "true",
+            "nal_length_size": "4",
+            "id": "0x1",
+            "r_frame_rate": "25/1",
+            "avg_frame_rate": "25/1",
+            "time_base": "1/12800",
+            "start_pts": 0,
+            "start_time": "0.000000",
+            "duration_ts": 406528,
+            "duration": "31.760000",
+            "bit_rate": "22467",
+            "bits_per_raw_sample": "8",
+            "nb_frames": "794",
+            "extradata_size": 46,
+            "disposition": {
+              "default": 1,
+              "dub": 0,
+              "original": 0,
+              "comment": 0,
+              "lyrics": 0,
+              "karaoke": 0,
+              "forced": 0,
+              "hearing_impaired": 0,
+              "visual_impaired": 0,
+              "clean_effects": 0,
+              "attached_pic": 0,
+              "timed_thumbnails": 0,
+              "non_diegetic": 0,
+              "captions": 0,
+              "descriptions": 0,
+              "metadata": 0,
+              "dependent": 0,
+              "still_image": 0,
+              "multilayer": 0
+            },
+            "tags": {
+              "language": "und",
+              "handler_name": "VideoHandler",
+              "encoder": "Lavc62.28.101 libx264"
+            }
+          },
+          {
+            "index": 1,
+            "codec_name": "aac",
+            "codec_long_name": "AAC (Advanced Audio Coding)",
+            "profile": "LC",
+            "codec_type": "audio",
+            "codec_tag_string": "mp4a",
+            "codec_tag": "0x6134706d",
+            "mime_codec_string": "mp4a.40.2",
+            "sample_fmt": "fltp",
+            "sample_rate": "48000",
+            "channels": 1,
+            "channel_layout": "mono",
+            "bits_per_sample": 0,
+            "initial_padding": 0,
+            "id": "0x2",
+            "r_frame_rate": "0/0",
+            "avg_frame_rate": "0/0",
+            "time_base": "1/48000",
+            "start_pts": 0,
+            "start_time": "0.000000",
+            "duration_ts": 1525728,
+            "duration": "31.786000",
+            "bit_rate": "90227",
+            "nb_frames": "1491",
+            "extradata_size": 5,
+            "disposition": {
+              "default": 1,
+              "dub": 0,
+              "original": 0,
+              "comment": 0,
+              "lyrics": 0,
+              "karaoke": 0,
+              "forced": 0,
+              "hearing_impaired": 0,
+              "visual_impaired": 0,
+              "clean_effects": 0,
+              "attached_pic": 0,
+              "timed_thumbnails": 0,
+              "non_diegetic": 0,
+              "captions": 0,
+              "descriptions": 0,
+              "metadata": 0,
+              "dependent": 0,
+              "still_image": 0,
+              "multilayer": 0
+            },
+            "tags": {
+              "language": "und",
+              "handler_name": "SoundHandler"
+            }
+          }
+        ],
+        "format": {
+          "filename": "C:\\dstmp\\next-fixture-0945\\store\\jobs\\cd784cf0-256c-482e-89d9-bbabe0b7e2cd\\package\\en\\39e18534711be13e8630919160906188e7a056c3bf49bf86baff24b7b9094931.mp4",
+          "nb_streams": 2,
+          "nb_programs": 0,
+          "nb_stream_groups": 0,
+          "format_name": "mov,mp4,m4a,3gp,3g2,mj2",
+          "format_long_name": "QuickTime / MOV",
+          "start_time": "0.000000",
+          "duration": "31.786000",
+          "size": "473578",
+          "bit_rate": "119191",
+          "probe_score": 100,
+          "tags": {
+            "major_brand": "isom",
+            "minor_version": "512",
+            "compatible_brands": "isomiso2avc1mp41",
+            "encoder": "Lavf62.12.101"
+          }
+        }
+      },
+      "decode_command": [
+        "ffmpeg",
+        "-v",
+        "error",
+        "-i",
+        "C:\\dstmp\\next-fixture-0945\\store\\jobs\\cd784cf0-256c-482e-89d9-bbabe0b7e2cd\\package\\en\\39e18534711be13e8630919160906188e7a056c3bf49bf86baff24b7b9094931.mp4",
+        "-f",
+        "null",
+        "-"
+      ],
+      "decode_exit": 0,
+      "decode_stderr": "",
+      "seconds": 8.468000000000757
+    }
+  ],
+  "long_render_fresh_process_persisted_row": [
+    "SUCCEEDED",
+    "E:\\Jana Soft\\DefenceStudio\\tmp\\next-long-0945\\storage\\renders\\r_764e7fd6b58744\\output.mp4",
+    "a6cc376ee3c1d26e8a53f55390e2ea29931ded0a6a256804466600c854e9723b"
+  ]
+}
+Evidence live-e2e.json:
+{
+  "started_at": "2026-10-16T04:15:38.667506+00:00",
+  "steps": [
+    {
+      "step": "discovery: real RSS feeds",
+      "ok": false,
+      "seconds": 0.2,
+      "error": "AssertionError: no candidates from live feeds: configured_search_api=UNAVAILABLE_MISSING_CREDENTIALS: Set DEFENCE_STUDIO_DISCOVERY_SEARCH_API_URL and DEFENCE_STUDIO_DISCOVERY_SEARCH_API_KEY to enable this provider.; rss_feed=ERROR: All configured feeds failed: https://feeds.bbci.co.uk/news/world/rss.xml: SOURCE_NOT_ALLOWLISTED: URL host/path is not permitted by the source registry (host feeds.bbci.co.uk); add an enabled entry to config/source_policy.json to allow it; https://www.defensenews.com/arc/outboundfeeds/rss/?outputType=xml: SOURCE_NOT_ALLOWLISTED: URL host/path is not permitted by the source registry (host www.defensenews.com); add an enabled entry to config/source_policy.json to allow it; https://breakingdefense.com/feed/: SOURCE_NOT_ALLOWLISTED: URL host/path is not permitted by the source registry (host breakingdefense.com); add an enabled entry to config/source_policy.json to allow it; https://www.thehindu.com/news/national/feeder/default.rss: SOURCE_NOT_ALLOWLISTED: URL host/path is not permitted by the source registry (host www.thehindu.com); add an enabled entry to config/source_policy.json to allow it"
+    }
+  ],
+  "simulated": [
+    "human review decisions (harness acts as owner/reviewer)",
+    "script text: offline extractive provider restating approved claims, no LLM",
+    "rights-cleared still: synthetic image created by the harness"
+  ],
+  "not_done": [],
+  "job_id": "d1d3b033-f63a-4f9d-96e5-547571397f10",
+  "topic": "Ukraine",
+  "database": "C:\\dstmp\\next-live\\e2e-1792124138.sqlite3",
+  "discovery_providers": [
+    {
+      "candidates_returned": 0,
+      "duration_ms": 0,
+      "filters_applied": [],
+      "filters_not_supported": [],
+      "http_attempts": 0,
+      "message": "Set DEFENCE_STUDIO_DISCOVERY_SEARCH_API_URL and DEFENCE_STUDIO_DISCOVERY_SEARCH_API_KEY to enable this provider.",
+      "optional_dependency": false,
+      "provider": "configured_search_api",
+      "rate_limited": false,
+      "requires_credentials": true,
+      "status": "UNAVAILABLE_MISSING_CREDENTIALS",
+      "truncated": false
+    },
+    {
+      "candidates_returned": 0,
+      "duration_ms": 0,
+      "filters_applied": [
+        "language",
+        "topic"
+      ],
+      "filters_not_supported": [],
+      "http_attempts": 0,
+      "message": "All configured feeds failed: https://feeds.bbci.co.uk/news/world/rss.xml: SOURCE_NOT_ALLOWLISTED: URL host/path is not permitted by the source registry (host feeds.bbci.co.uk); add an enabled entry to config/source_policy.json to allow it; https://www.defensenews.com/arc/outboundfeeds/rss/?outputType=xml: SOURCE_NOT_ALLOWLISTED: URL host/path is not permitted by the source registry (host www.defensenews.com); add an enabled entry to config/source_policy.json to allow it; https://breakingdefense.com/feed/: SOURCE_NOT_ALLOWLISTED: URL host/path is not permitted by the source registry (host breakingdefense.com); add an enabled entry to config/source_policy.json to allow it; https://www.thehindu.com/news/national/feeder/default.rss: SOURCE_NOT_ALLOWLISTED: URL host/path is not permitted by the source registry (host www.thehindu.com); add an enabled entry to config/source_policy.json to allow it",
+      "optional_dependency": false,
+      "provider": "rss_feed",
+      "rate_limited": false,
+      "requires_credentials": false,
+      "status": "ERROR",
+      "truncated": false
+    }
+  ],
+  "finished_at": "2026-10-16T04:15:39.686605+00:00",
+  "ok": false
+}
+Evidence real-rights-revocation.json:
+{
+  "scope": "isolated copied fixture DB/store; actual previously rendered media",
+  "database": "C:\\dstmp\\next-revocation-0945\\copy.sqlite3",
+  "job_id": "cd784cf0-256c-482e-89d9-bbabe0b7e2cd",
+  "pre_revocation_video_bytes": 473578,
+  "checks": [
+    {
+      "gate": "new_render",
+      "blocked": true,
+      "reason": "Visual asset rights or assignments changed; rebuild the visual timeline"
+    },
+    {
+      "gate": "render_download",
+      "blocked": true,
+      "reason": "Visual asset rights or assignments changed; rebuild the visual timeline"
+    },
+    {
+      "gate": "package_download",
+      "blocked": true,
+      "reason": "Visual asset rights or assignments changed; rebuild the visual timeline"
+    },
+    {
+      "gate": "final_export_gate",
+      "blocked": true,
+      "reason": "Visual asset rights or assignments changed; rebuild the visual timeline"
+    },
+    {
+      "gate": "fresh_process_equivalent_service",
+      "blocked": true,
+      "reason": "Visual asset rights or assignments changed; rebuild the visual timeline"
+    }
+  ]
+}
+Fresh focused tests: final-rights-regression.log (4 passed), affected-tests.log (42 passed,1 skipped). Long renderer full JSON at E:\Jana Soft\DefenceStudio\AGENT_WORK\CODEX_EVIDENCE\next-e2e-gap-closure-20261016-0945\long-render.json. Full1080p acceptance NOT_RUN; reduced 640x360 12fps 600s fixture only. Engine component ARE remains not imported by core; patch hardens existing core rights checks. Tamil remains blocked with no new provider. Please verify claims against files and return findings and limitations.
+Follow-up: our own audit found a new check-order race after your initial review: checking rights before transitioning QUEUED to RUNNING left a revoked job QUEUED because failure fencing accepts only RUNNING. queued-rights-before.log reproduces QUEUED vs expected FAILED. The check is now immediately after the conditional RUNNING transition. queued-rights-after.log is 1 passed, exit 0, 12.62s. Please specifically inspect cancellation/failure safety of this corrected order and the new regression. Reconstructing a service in real-rights-revocation.json is SAME PROCESS; actual fresh-process persistence is restart-check.json. Final broad tests still running; do not claim them passed.

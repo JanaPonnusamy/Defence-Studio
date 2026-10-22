@@ -412,7 +412,7 @@ class Worker:
     """A synchronous worker loop with a separate lease-heartbeat thread."""
 
     def __init__(self, database_file, worker_id: str, handlers: dict[str, StageHandler],
-                 lease_seconds: float = 60, retry_safe_stages: set[str] | None = None):
+                 lease_seconds: float = 60, retry_safe_stages: set[str] | None = None, after_stage=None):
         if not handlers:
             raise ValueError("At least one explicitly supported stage handler is required")
         if set(handlers) != set(retry_safe_stages or ()):
@@ -420,6 +420,7 @@ class Worker:
                 "Every registered handler must be explicitly declared retry-safe; "
                 "unsafe or unclassified stages fail closed"
             )
+        self.after_stage = after_stage
         self.store = WorkerService(database_file)
         self.worker_id = worker_id
         self.handlers = dict(handlers)
@@ -465,6 +466,8 @@ class Worker:
             if not claim_lost.is_set():
                 try:
                     self.store.complete(context, outputs)
+                    if self.after_stage is not None:
+                        self.after_stage(context)
                 except ClaimLost:
                     pass
             return True

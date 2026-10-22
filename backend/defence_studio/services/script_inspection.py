@@ -22,7 +22,7 @@ from defence_studio.providers.openai_text import scrub_secrets
 
 SCHEMA_VERSION = "defence-studio.script-inspection.v1"
 _PATH_RE = re.compile(r"[A-Za-z]:\\[^\s\"'<>|]+|(?<![\w.])/(?:home|Users|root|var|tmp|mnt)/[^\s\"'<>|]+")
-_ACCEPTED = "AWAITING_REVIEW"
+_ACCEPTED = {"AWAITING_REVIEW", "APPROVED"}
 
 
 def sanitize(value, *secrets_: str):
@@ -134,7 +134,7 @@ def build_record(*, job_id: str, language: str, request_sha256: str, package_sha
                 for cid in ev.get("claim_ids") or []:
                     refs.append({"section_id": s.get("section_id"), "claim_id": cid, "in_eligible_set": cid in known})
         parse_report["evidence_reference_checks"] = refs
-    accepted = outcome == _ACCEPTED
+    accepted = outcome in _ACCEPTED
     wire = (exchange or {}).get("request_body")
     record = {
         "schema_version": SCHEMA_VERSION,
@@ -152,6 +152,7 @@ def build_record(*, job_id: str, language: str, request_sha256: str, package_sha
             "structure": _classify_request(system_text, user_text, claims, wire),
             "budget_policy": budget,
             "timeout_s": (exchange or {}).get("timeout_s"), "max_retries": (exchange or {}).get("max_retries"),
+            "output_constraint": (exchange or {}).get("output_constraint"),
         },
         "provider_calls": provider_calls,
         "raw_response": {
@@ -170,6 +171,8 @@ def build_record(*, job_id: str, language: str, request_sha256: str, package_sha
         "clean_output": _clean_output(parsed, claims_by_id, accepted),
         "validation_report": validation,
     }
+    if outcome == "APPROVED" and record.get("clean_output"):
+        record["clean_output"]["status_label"] = "AUTO_APPROVED"
     return sanitize(record, api_key)
 
 

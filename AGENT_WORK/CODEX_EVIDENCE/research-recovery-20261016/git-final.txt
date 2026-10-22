@@ -1,0 +1,36 @@
+ M AGENT_WORK/CODEX.md
+ M backend/README.md
+ M backend/config/source_policy.json
+ M backend/defence_studio/acquisition/handler.py
+ M backend/defence_studio/acquisition/providers/http_page.py
+ M backend/defence_studio/api/app.py
+ M backend/defence_studio/discovery/handler.py
+ M backend/defence_studio/discovery/providers.py
+ M backend/defence_studio/services/discovery.py
+ M backend/defence_studio/services/research_monitor.py
+ M backend/defence_studio/services/script.py
+ M backend/tests/test_discovery_manual_url.py
+ M backend/tests/test_script_phase3.py
+ M data/defence_studio.sqlite3
+ M frontend/js/views/research-view.js
+ M frontend/js/views/script-view.js
+ M frontend/tests/research.test.mjs
+ M frontend/tests/script.test.mjs
+?? AGENT_WORK/CODEX_EVIDENCE/content-section-20261016-1705/
+?? AGENT_WORK/CODEX_EVIDENCE/next-e2e-gap-closure-20261016-0945/claude-help.txt
+?? AGENT_WORK/CODEX_EVIDENCE/next-e2e-gap-closure-20261016-0945/claude-publishing-review.stderr
+?? AGENT_WORK/CODEX_EVIDENCE/next-e2e-gap-closure-20261016-0945/claude-review-request.txt
+?? AGENT_WORK/CODEX_EVIDENCE/next-e2e-gap-closure-20261016-0945/claude-review.stderr
+?? AGENT_WORK/CODEX_EVIDENCE/next-e2e-gap-closure-20261016-0945/fixture-e2e-before-final.json
+?? AGENT_WORK/CODEX_EVIDENCE/next-e2e-gap-closure-20261016-0945/fixture-e2e-before-race-fix.json
+?? AGENT_WORK/CODEX_EVIDENCE/next-e2e-gap-closure-20261016-0945/git-final.json
+?? AGENT_WORK/CODEX_EVIDENCE/next-e2e-gap-closure-20261016-0945/reviewed-stage-files.json
+?? AGENT_WORK/CODEX_EVIDENCE/next-e2e-gap-closure-20261016-0945/source.patch
+?? AGENT_WORK/CODEX_EVIDENCE/next-e2e-gap-closure-20261016-0945/summary-console.txt
+?? AGENT_WORK/CODEX_EVIDENCE/production-gap-closure-20261016-1155/claude-request.txt
+?? AGENT_WORK/CODEX_EVIDENCE/production-gap-closure-20261016-1155/git-final.json
+?? AGENT_WORK/CODEX_EVIDENCE/research-recovery-20261016/
+?? backend/defence_studio/acquisition/source_dates.py
+?? backend/tests/test_content_flow.py
+?? backend/tests/test_research_recovery.py
+?? scripts/run_research_worker.ps1

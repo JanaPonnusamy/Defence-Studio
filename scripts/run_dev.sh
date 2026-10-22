@@ -31,6 +31,8 @@ fi
 
 export DEFENCE_STUDIO_DB_PATH="${DEFENCE_STUDIO_DB_PATH:-$root/data/defence_studio.sqlite3}"
 export DEFENCE_STUDIO_STORAGE_PATH="${DEFENCE_STUDIO_STORAGE_PATH:-$root/data/storage}"
+# Local jobs need a consumer. Set this to 0 when using the separate worker.
+export DEFENCE_STUDIO_RESEARCH_WORKER="${DEFENCE_STUDIO_RESEARCH_WORKER:-1}"
 
 py="$root/backend/.venv/Scripts/python.exe"
 [[ -x "$py" ]] || py="python"

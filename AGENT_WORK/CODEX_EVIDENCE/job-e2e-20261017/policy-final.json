@@ -1,0 +1,1679 @@
+{
+  "acquisition_sha256": "1f40dd6cbb59760274820ad053c525cd549bc1432d4fa3af86daff110f834a22",
+  "analysis_sha256": "c48015a7bc6a394c9b41f603feb1fe6fc2c1c2a802d1a161d47ac831837099c0",
+  "analysis_versions": {
+    "dedup_version": "defence-studio.dedup.v1",
+    "extractor_version": "defence-studio.claim-extractor.deterministic.v2",
+    "normalization_version": "defence-studio.normalizer.v3",
+    "schema_version": "defence-studio.analysis-result.v1"
+  },
+  "anchors": [
+    "commissioning",
+    "developments",
+    "samarthak"
+  ],
+  "assessor_version": "deterministic-evidence-policy.v2",
+  "claims": [
+    {
+      "assessment_basis": "Deterministic policy support and integrity checks; not verification of factual truth",
+      "assessment_outcome": "SUPPORTED",
+      "assessor_version": "deterministic-evidence-policy.v2",
+      "claim_class": "DESCRIPTIVE",
+      "claim_id": "claim-111e2d36168e5818",
+      "contradicting_evidence": [],
+      "corroboration": {
+        "applicable": false,
+        "independent_groups": [],
+        "quantities": [],
+        "single_source": null,
+        "source_ids": []
+      },
+      "flags": [],
+      "independent_groups": 1,
+      "passage": {
+        "end": 101,
+        "start": 21
+      },
+      "reasons": [
+        "substantive, topic-relevant, source usable, no uncertainty or dispute markers"
+      ],
+      "score": {
+        "calibrated": false,
+        "components": {
+          "attribution": 1.0,
+          "contradiction_clear": 1.0,
+          "corroboration": 0.5,
+          "freshness": 1.0,
+          "passage_match": 1.0,
+          "relevance": 1.0,
+          "source_credibility": 1.0
+        },
+        "scale": "0-100",
+        "scoring_policy_version": "defence-studio.claim-score.v1",
+        "total": 90.0,
+        "weights": {
+          "attribution": 10,
+          "contradiction_clear": 10,
+          "corroboration": 20,
+          "freshness": 10,
+          "passage_match": 15,
+          "relevance": 15,
+          "source_credibility": 20
+        }
+      },
+      "source_id": "12f889a1d38a791b79d8dafeb0e3bdf8c060ab92",
+      "state": "AUTO_ACCEPTED",
+      "supporting_evidence": [
+        {
+          "end": 101,
+          "source_id": "12f889a1d38a791b79d8dafeb0e3bdf8c060ab92",
+          "start": 21
+        }
+      ],
+      "text": "INDIAN NAVY COMMISSIONS INS SAMARTHAK, THE FIRST INDIGENOUS MULTI-PURPOSE VESSEL"
+    },
+    {
+      "assessment_basis": "Deterministic policy support and integrity checks; not verification of factual truth",
+      "assessment_outcome": "SUPPORTED",
+      "assessor_version": "deterministic-evidence-policy.v2",
+      "claim_class": "DESCRIPTIVE",
+      "claim_id": "claim-a17c0f35c86fe2da",
+      "contradicting_evidence": [],
+      "corroboration": {
+        "applicable": false,
+        "independent_groups": [],
+        "quantities": [],
+        "single_source": null,
+        "source_ids": []
+      },
+      "flags": [],
+      "independent_groups": 1,
+      "passage": {
+        "end": 278,
+        "start": 147
+      },
+      "reasons": [
+        "substantive, topic-relevant, source usable, no uncertainty or dispute markers"
+      ],
+      "score": {
+        "calibrated": false,
+        "components": {
+          "attribution": 1.0,
+          "contradiction_clear": 1.0,
+          "corroboration": 0.5,
+          "freshness": 1.0,
+          "passage_match": 1.0,
+          "relevance": 1.0,
+          "source_credibility": 1.0
+        },
+        "scale": "0-100",
+        "scoring_policy_version": "defence-studio.claim-score.v1",
+        "total": 90.0,
+        "weights": {
+          "attribution": 10,
+          "contradiction_clear": 10,
+          "corroboration": 20,
+          "freshness": 10,
+          "passage_match": 15,
+          "relevance": 15,
+          "source_credibility": 20
+        }
+      },
+      "source_id": "12f889a1d38a791b79d8dafeb0e3bdf8c060ab92",
+      "state": "AUTO_ACCEPTED",
+      "supporting_evidence": [
+        {
+          "end": 278,
+          "source_id": "12f889a1d38a791b79d8dafeb0e3bdf8c060ab92",
+          "start": 147
+        }
+      ],
+      "text": "Indian Naval Ship Samarthak, the first of class Multi-Purpose Vessels (MPVs), was commissioned into the Indian Navy on 16 Oct 2026."
+    },
+    {
+      "assessment_basis": "Deterministic policy support and integrity checks; not verification of factual truth",
+      "assessment_outcome": "INSUFFICIENT_EVIDENCE",
+      "assessor_version": "deterministic-evidence-policy.v2",
+      "claim_class": "DESCRIPTIVE",
+      "claim_id": "claim-ae309580752f618f",
+      "contradicting_evidence": [],
+      "corroboration": {
+        "applicable": false,
+        "independent_groups": [],
+        "quantities": [],
+        "single_source": null,
+        "source_ids": []
+      },
+      "flags": [],
+      "independent_groups": 1,
+      "passage": {
+        "end": 462,
+        "start": 279
+      },
+      "reasons": [
+        "no topic anchor term: not self-contained (refers to the topic only by pronoun or context), so it is not used as standalone evidence"
+      ],
+      "score": {
+        "calibrated": false,
+        "components": {
+          "attribution": 1.0,
+          "contradiction_clear": 1.0,
+          "corroboration": 0.5,
+          "freshness": 1.0,
+          "passage_match": 1.0,
+          "relevance": 0.0,
+          "source_credibility": 1.0
+        },
+        "scale": "0-100",
+        "scoring_policy_version": "defence-studio.claim-score.v1",
+        "total": 75.0,
+        "weights": {
+          "attribution": 10,
+          "contradiction_clear": 10,
+          "corroboration": 20,
+          "freshness": 10,
+          "passage_match": 15,
+          "relevance": 15,
+          "source_credibility": 20
+        }
+      },
+      "source_id": "12f889a1d38a791b79d8dafeb0e3bdf8c060ab92",
+      "state": "REJECTED",
+      "supporting_evidence": [
+        {
+          "end": 462,
+          "source_id": "12f889a1d38a791b79d8dafeb0e3bdf8c060ab92",
+          "start": 279
+        }
+      ],
+      "text": "The ceremony was presided over by the Hon\u2019ble Vice President of India, Shri Chandrapuram Ponnusamy Radhakrishnan, in the presence of Adm Krishna Swaminathan, Chief of the Naval Staff."
+    },
+    {
+      "assessment_basis": "Deterministic policy support and integrity checks; not verification of factual truth",
+      "assessment_outcome": "INSUFFICIENT_EVIDENCE",
+      "assessor_version": "deterministic-evidence-policy.v2",
+      "claim_class": "DESCRIPTIVE",
+      "claim_id": "claim-641907e944019252",
+      "contradicting_evidence": [],
+      "corroboration": {
+        "applicable": false,
+        "independent_groups": [],
+        "quantities": [],
+        "single_source": null,
+        "source_ids": []
+      },
+      "flags": [],
+      "independent_groups": 1,
+      "passage": {
+        "end": 649,
+        "start": 463
+      },
+      "reasons": [
+        "no topic anchor term: not self-contained (refers to the topic only by pronoun or context), so it is not used as standalone evidence"
+      ],
+      "score": {
+        "calibrated": false,
+        "components": {
+          "attribution": 1.0,
+          "contradiction_clear": 1.0,
+          "corroboration": 0.5,
+          "freshness": 1.0,
+          "passage_match": 1.0,
+          "relevance": 0.0,
+          "source_credibility": 1.0
+        },
+        "scale": "0-100",
+        "scoring_policy_version": "defence-studio.claim-score.v1",
+        "total": 75.0,
+        "weights": {
+          "attribution": 10,
+          "contradiction_clear": 10,
+          "corroboration": 20,
+          "freshness": 10,
+          "passage_match": 15,
+          "relevance": 15,
+          "source_credibility": 20
+        }
+      },
+      "source_id": "12f889a1d38a791b79d8dafeb0e3bdf8c060ab92",
+      "state": "REJECTED",
+      "supporting_evidence": [
+        {
+          "end": 649,
+          "source_id": "12f889a1d38a791b79d8dafeb0e3bdf8c060ab92",
+          "start": 463
+        }
+      ],
+      "text": "The Hon\u2019ble \u200bM\u200binister for Labour and Employment, Govt of Karnataka, along with senior naval and defence officials and dignitaries from the Ministry of Defence, also graced the occasion."
+    },
+    {
+      "assessment_basis": "Deterministic policy support and integrity checks; not verification of factual truth",
+      "assessment_outcome": "SUPPORTED",
+      "assessor_version": "deterministic-evidence-policy.v2",
+      "claim_class": "DESCRIPTIVE",
+      "claim_id": "claim-3038065ce75b3522",
+      "contradicting_evidence": [],
+      "corroboration": {
+        "applicable": false,
+        "independent_groups": [],
+        "quantities": [],
+        "single_source": null,
+        "source_ids": []
+      },
+      "flags": [],
+      "independent_groups": 1,
+      "passage": {
+        "end": 797,
+        "start": 650
+      },
+      "reasons": [
+        "substantive, topic-relevant, source usable, no uncertainty or dispute markers"
+      ],
+      "score": {
+        "calibrated": false,
+        "components": {
+          "attribution": 1.0,
+          "contradiction_clear": 1.0,
+          "corroboration": 0.5,
+          "freshness": 1.0,
+          "passage_match": 1.0,
+          "relevance": 1.0,
+          "source_credibility": 1.0
+        },
+        "scale": "0-100",
+        "scoring_policy_version": "defence-studio.claim-score.v1",
+        "total": 90.0,
+        "weights": {
+          "attribution": 10,
+          "contradiction_clear": 10,
+          "corroboration": 20,
+          "freshness": 10,
+          "passage_match": 15,
+          "relevance": 15,
+          "source_credibility": 20
+        }
+      },
+      "source_id": "12f889a1d38a791b79d8dafeb0e3bdf8c060ab92",
+      "state": "AUTO_ACCEPTED",
+      "supporting_evidence": [
+        {
+          "end": 797,
+          "source_id": "12f889a1d38a791b79d8dafeb0e3bdf8c060ab92",
+          "start": 650
+        }
+      ],
+      "text": "Key representatives of Larsen & Toubro Ltd (L&T) and OEMs associated with indigenous equipment were also present during the commissioning ceremony."
+    },
+    {
+      "assessment_basis": "Deterministic policy support and integrity checks; not verification of factual truth",
+      "assessment_outcome": "SUPPORTED",
+      "assessor_version": "deterministic-evidence-policy.v2",
+      "claim_class": "DESCRIPTIVE",
+      "claim_id": "claim-44d29a25afd98abe",
+      "contradicting_evidence": [],
+      "corroboration": {
+        "applicable": false,
+        "independent_groups": [],
+        "quantities": [],
+        "single_source": null,
+        "source_ids": []
+      },
+      "flags": [],
+      "independent_groups": 1,
+      "passage": {
+        "end": 997,
+        "start": 799
+      },
+      "reasons": [
+        "substantive, topic-relevant, source usable, no uncertainty or dispute markers"
+      ],
+      "score": {
+        "calibrated": false,
+        "components": {
+          "attribution": 1.0,
+          "contradiction_clear": 1.0,
+          "corroboration": 0.5,
+          "freshness": 1.0,
+          "passage_match": 1.0,
+          "relevance": 1.0,
+          "source_credibility": 1.0
+        },
+        "scale": "0-100",
+        "scoring_policy_version": "defence-studio.claim-score.v1",
+        "total": 90.0,
+        "weights": {
+          "attribution": 10,
+          "contradiction_clear": 10,
+          "corroboration": 20,
+          "freshness": 10,
+          "passage_match": 15,
+          "relevance": 15,
+          "source_credibility": 20
+        }
+      },
+      "source_id": "12f889a1d38a791b79d8dafeb0e3bdf8c060ab92",
+      "state": "AUTO_ACCEPTED",
+      "supporting_evidence": [
+        {
+          "end": 997,
+          "source_id": "12f889a1d38a791b79d8dafeb0e3bdf8c060ab92",
+          "start": 799
+        }
+      ],
+      "text": "Designed and constructed by L&T Shipyard, INS Samarthak marks a significant milestone in India\u2019s indigenous shipbuilding journey as the first major warship to be built by an Indian private shipyard."
+    },
+    {
+      "assessment_basis": "Deterministic policy support and integrity checks; not verification of factual truth",
+      "assessment_outcome": "SUPPORTED",
+      "assessor_version": "deterministic-evidence-policy.v2",
+      "claim_class": "DESCRIPTIVE",
+      "claim_id": "claim-dba560a332ce5c0e",
+      "contradicting_evidence": [],
+      "corroboration": {
+        "applicable": false,
+        "independent_groups": [],
+        "quantities": [],
+        "single_source": null,
+        "source_ids": []
+      },
+      "flags": [],
+      "independent_groups": 1,
+      "passage": {
+        "end": 1277,
+        "start": 998
+      },
+      "reasons": [
+        "substantive, topic-relevant, source usable, no uncertainty or dispute markers"
+      ],
+      "score": {
+        "calibrated": false,
+        "components": {
+          "attribution": 1.0,
+          "contradiction_clear": 1.0,
+          "corroboration": 0.5,
+          "freshness": 1.0,
+          "passage_match": 1.0,
+          "relevance": 1.0,
+          "source_credibility": 1.0
+        },
+        "scale": "0-100",
+        "scoring_policy_version": "defence-studio.claim-score.v1",
+        "total": 90.0,
+        "weights": {
+          "attribution": 10,
+          "contradiction_clear": 10,
+          "corroboration": 20,
+          "freshness": 10,
+          "passage_match": 15,
+          "relevance": 15,
+          "source_credibility": 20
+        }
+      },
+      "source_id": "12f889a1d38a791b79d8dafeb0e3bdf8c060ab92",
+      "state": "AUTO_ACCEPTED",
+      "supporting_evidence": [
+        {
+          "end": 1277,
+          "source_id": "12f889a1d38a791b79d8dafeb0e3bdf8c060ab92",
+          "start": 998
+        }
+      ],
+      "text": "The commissioning is a powerful testament to the growing maturity and capability of the nation\u2019s private shipbuilding industry and reflects the deepening synergy between the Indian Navy and the Indian shipbuilding industry in advancing the national vision of Aatmanirbhar Bharat."
+    },
+    {
+      "assessment_basis": "Deterministic policy support and integrity checks; not verification of factual truth",
+      "assessment_outcome": "NEEDS_MORE_SOURCES",
+      "assessor_version": "deterministic-evidence-policy.v2",
+      "claim_class": "OPERATIONAL",
+      "claim_id": "claim-b84efc9fe64b2778",
+      "contradicting_evidence": [],
+      "corroboration": {
+        "applicable": false,
+        "independent_groups": [],
+        "quantities": [],
+        "single_source": null,
+        "source_ids": []
+      },
+      "flags": [],
+      "independent_groups": 1,
+      "passage": {
+        "end": 1458,
+        "start": 1279
+      },
+      "reasons": [
+        "OPERATIONAL claim: 1 independent source group(s), policy requires 2 or explicit attribution"
+      ],
+      "score": {
+        "calibrated": false,
+        "components": {
+          "attribution": 1.0,
+          "contradiction_clear": 1.0,
+          "corroboration": 0.5,
+          "freshness": 1.0,
+          "passage_match": 1.0,
+          "relevance": 1.0,
+          "source_credibility": 1.0
+        },
+        "scale": "0-100",
+        "scoring_policy_version": "defence-studio.claim-score.v1",
+        "total": 90.0,
+        "weights": {
+          "attribution": 10,
+          "contradiction_clear": 10,
+          "corroboration": 20,
+          "freshness": 10,
+          "passage_match": 15,
+          "relevance": 15,
+          "source_credibility": 20
+        }
+      },
+      "source_id": "12f889a1d38a791b79d8dafeb0e3bdf8c060ab92",
+      "state": "NEEDS_REVIEW",
+      "supporting_evidence": [
+        {
+          "end": 1458,
+          "source_id": "12f889a1d38a791b79d8dafeb0e3bdf8c060ab92",
+          "start": 1279
+        }
+      ],
+      "text": "Conceived as a versatile platform for trials and evaluation, INS Samarthak embodies the enhanced technological and operational capabilities of the Indian Navy in the 21st century."
+    },
+    {
+      "assessment_basis": "Deterministic policy support and integrity checks; not verification of factual truth",
+      "assessment_outcome": "NEEDS_MORE_SOURCES",
+      "assessor_version": "deterministic-evidence-policy.v2",
+      "claim_class": "OPERATIONAL",
+      "claim_id": "claim-f0cae0ab9e71855c",
+      "contradicting_evidence": [],
+      "corroboration": {
+        "applicable": false,
+        "independent_groups": [],
+        "quantities": [],
+        "single_source": null,
+        "source_ids": []
+      },
+      "flags": [],
+      "independent_groups": 1,
+      "passage": {
+        "end": 2049,
+        "start": 1761
+      },
+      "reasons": [
+        "OPERATIONAL claim: 1 independent source group(s), policy requires 2 or explicit attribution"
+      ],
+      "score": {
+        "calibrated": false,
+        "components": {
+          "attribution": 1.0,
+          "contradiction_clear": 1.0,
+          "corroboration": 0.5,
+          "freshness": 1.0,
+          "passage_match": 1.0,
+          "relevance": 1.0,
+          "source_credibility": 1.0
+        },
+        "scale": "0-100",
+        "scoring_policy_version": "defence-studio.claim-score.v1",
+        "total": 90.0,
+        "weights": {
+          "attribution": 10,
+          "contradiction_clear": 10,
+          "corroboration": 20,
+          "freshness": 10,
+          "passage_match": 15,
+          "relevance": 15,
+          "source_credibility": 20
+        }
+      },
+      "source_id": "12f889a1d38a791b79d8dafeb0e3bdf8c060ab92",
+      "state": "NEEDS_REVIEW",
+      "supporting_evidence": [
+        {
+          "end": 2049,
+          "source_id": "12f889a1d38a791b79d8dafeb0e3bdf8c060ab92",
+          "start": 1761
+        }
+      ],
+      "text": "Aptly named Samarthak, meaning \u2018The Proponent\u2019, the ship represents the spirit of a dependable enabler, capable of supporting multiple missions and has been designed with inherent versatility and adaptability, enabling it to undertake diverse range of operational and developmental tasks."
+    },
+    {
+      "assessment_basis": "Deterministic policy support and integrity checks; not verification of factual truth",
+      "assessment_outcome": "SUPPORTED",
+      "assessor_version": "deterministic-evidence-policy.v2",
+      "claim_class": "DESCRIPTIVE",
+      "claim_id": "claim-c517136c102939d9",
+      "contradicting_evidence": [],
+      "corroboration": {
+        "applicable": false,
+        "independent_groups": [],
+        "quantities": [],
+        "single_source": null,
+        "source_ids": []
+      },
+      "flags": [],
+      "independent_groups": 1,
+      "passage": {
+        "end": 2243,
+        "start": 2050
+      },
+      "reasons": [
+        "substantive, topic-relevant, source usable, no uncertainty or dispute markers"
+      ],
+      "score": {
+        "calibrated": false,
+        "components": {
+          "attribution": 1.0,
+          "contradiction_clear": 1.0,
+          "corroboration": 0.5,
+          "freshness": 1.0,
+          "passage_match": 1.0,
+          "relevance": 1.0,
+          "source_credibility": 1.0
+        },
+        "scale": "0-100",
+        "scoring_policy_version": "defence-studio.claim-score.v1",
+        "total": 90.0,
+        "weights": {
+          "attribution": 10,
+          "contradiction_clear": 10,
+          "corroboration": 20,
+          "freshness": 10,
+          "passage_match": 15,
+          "relevance": 15,
+          "source_credibility": 20
+        }
+      },
+      "source_id": "12f889a1d38a791b79d8dafeb0e3bdf8c060ab92",
+      "state": "AUTO_ACCEPTED",
+      "supporting_evidence": [
+        {
+          "end": 2243,
+          "source_id": "12f889a1d38a791b79d8dafeb0e3bdf8c060ab92",
+          "start": 2050
+        }
+      ],
+      "text": "True to its name, INS Samarthak is capable of undertaking maritime surveillance and reconnaissance, offshore patrolling, and Humanitarian Assistance and Disaster Relief operations, as required."
+    },
+    {
+      "assessment_basis": "Deterministic policy support and integrity checks; not verification of factual truth",
+      "assessment_outcome": "SUPPORTED",
+      "assessor_version": "deterministic-evidence-policy.v2",
+      "claim_class": "DESCRIPTIVE",
+      "claim_id": "claim-be989869c9d5ce51",
+      "contradicting_evidence": [],
+      "corroboration": {
+        "applicable": false,
+        "independent_groups": [],
+        "quantities": [],
+        "single_source": null,
+        "source_ids": []
+      },
+      "flags": [],
+      "independent_groups": 1,
+      "passage": {
+        "end": 2706,
+        "start": 2537
+      },
+      "reasons": [
+        "substantive, topic-relevant, source usable, no uncertainty or dispute markers"
+      ],
+      "score": {
+        "calibrated": false,
+        "components": {
+          "attribution": 1.0,
+          "contradiction_clear": 1.0,
+          "corroboration": 0.5,
+          "freshness": 1.0,
+          "passage_match": 1.0,
+          "relevance": 1.0,
+          "source_credibility": 1.0
+        },
+        "scale": "0-100",
+        "scoring_policy_version": "defence-studio.claim-score.v1",
+        "total": 90.0,
+        "weights": {
+          "attribution": 10,
+          "contradiction_clear": 10,
+          "corroboration": 20,
+          "freshness": 10,
+          "passage_match": 15,
+          "relevance": 15,
+          "source_credibility": 20
+        }
+      },
+      "source_id": "12f889a1d38a791b79d8dafeb0e3bdf8c060ab92",
+      "state": "AUTO_ACCEPTED",
+      "supporting_evidence": [
+        {
+          "end": 2706,
+          "source_id": "12f889a1d38a791b79d8dafeb0e3bdf8c060ab92",
+          "start": 2537
+        }
+      ],
+      "text": "The commissioning of INS Samarthak reinforces the nation\u2019s commitment to maritime security, regional stability and cooperative engagement across the Indian Ocean Region."
+    },
+    {
+      "assessment_basis": "Deterministic policy support and integrity checks; not verification of factual truth",
+      "assessment_outcome": "SUPPORTED",
+      "assessor_version": "deterministic-evidence-policy.v2",
+      "claim_class": "DESCRIPTIVE",
+      "claim_id": "claim-1b175031d6f1acf6",
+      "contradicting_evidence": [],
+      "corroboration": {
+        "applicable": false,
+        "independent_groups": [],
+        "quantities": [],
+        "single_source": null,
+        "source_ids": []
+      },
+      "flags": [],
+      "independent_groups": 1,
+      "passage": {
+        "end": 2991,
+        "start": 2825
+      },
+      "reasons": [
+        "substantive, topic-relevant, source usable, no uncertainty or dispute markers"
+      ],
+      "score": {
+        "calibrated": false,
+        "components": {
+          "attribution": 1.0,
+          "contradiction_clear": 1.0,
+          "corroboration": 0.5,
+          "freshness": 1.0,
+          "passage_match": 1.0,
+          "relevance": 1.0,
+          "source_credibility": 1.0
+        },
+        "scale": "0-100",
+        "scoring_policy_version": "defence-studio.claim-score.v1",
+        "total": 90.0,
+        "weights": {
+          "attribution": 10,
+          "contradiction_clear": 10,
+          "corroboration": 20,
+          "freshness": 10,
+          "passage_match": 15,
+          "relevance": 15,
+          "source_credibility": 20
+        }
+      },
+      "source_id": "12f889a1d38a791b79d8dafeb0e3bdf8c060ab92",
+      "state": "AUTO_ACCEPTED",
+      "supporting_evidence": [
+        {
+          "end": 2991,
+          "source_id": "12f889a1d38a791b79d8dafeb0e3bdf8c060ab92",
+          "start": 2825
+        }
+      ],
+      "text": "The induction of INS Samarthak significantly strengthens India's ability for testing and training new sensors and weapons developed indigenously by domestic industry."
+    },
+    {
+      "assessment_basis": "Deterministic policy support and integrity checks; not verification of factual truth",
+      "assessment_outcome": "SUPPORTED",
+      "assessor_version": "deterministic-evidence-policy.v2",
+      "claim_class": "DESCRIPTIVE",
+      "claim_id": "claim-b0e3dbfe4e98fc16",
+      "contradicting_evidence": [],
+      "corroboration": {
+        "applicable": false,
+        "independent_groups": [],
+        "quantities": [],
+        "single_source": null,
+        "source_ids": []
+      },
+      "flags": [],
+      "independent_groups": 1,
+      "passage": {
+        "end": 157,
+        "start": 30
+      },
+      "reasons": [
+        "substantive, topic-relevant, source usable, no uncertainty or dispute markers"
+      ],
+      "score": {
+        "calibrated": false,
+        "components": {
+          "attribution": 1.0,
+          "contradiction_clear": 1.0,
+          "corroboration": 0.5,
+          "freshness": 1.0,
+          "passage_match": 1.0,
+          "relevance": 1.0,
+          "source_credibility": 1.0
+        },
+        "scale": "0-100",
+        "scoring_policy_version": "defence-studio.claim-score.v1",
+        "total": 90.0,
+        "weights": {
+          "attribution": 10,
+          "contradiction_clear": 10,
+          "corroboration": 20,
+          "freshness": 10,
+          "passage_match": 15,
+          "relevance": 15,
+          "source_credibility": 20
+        }
+      },
+      "source_id": "26a9d035e38e459b0ac5a3df57aeaafaad658489",
+      "state": "AUTO_ACCEPTED",
+      "supporting_evidence": [
+        {
+          "end": 157,
+          "source_id": "26a9d035e38e459b0ac5a3df57aeaafaad658489",
+          "start": 30
+        }
+      ],
+      "text": "Vice-President Shri C. P. Radhakrishnan Commissions Indian Navy\u2019s First Indigenous Multi-Purpose Vessel INS Samarthak at Karwar"
+    },
+    {
+      "assessment_basis": "Deterministic policy support and integrity checks; not verification of factual truth",
+      "assessment_outcome": "SUPPORTED",
+      "assessor_version": "deterministic-evidence-policy.v2",
+      "claim_class": "DESCRIPTIVE",
+      "claim_id": "claim-f753e8a93f0fe2ec",
+      "contradicting_evidence": [],
+      "corroboration": {
+        "applicable": false,
+        "independent_groups": [],
+        "quantities": [],
+        "single_source": null,
+        "source_ids": []
+      },
+      "flags": [],
+      "independent_groups": 1,
+      "passage": {
+        "end": 295,
+        "start": 159
+      },
+      "reasons": [
+        "substantive, topic-relevant, source usable, no uncertainty or dispute markers"
+      ],
+      "score": {
+        "calibrated": false,
+        "components": {
+          "attribution": 1.0,
+          "contradiction_clear": 1.0,
+          "corroboration": 0.5,
+          "freshness": 1.0,
+          "passage_match": 1.0,
+          "relevance": 1.0,
+          "source_credibility": 1.0
+        },
+        "scale": "0-100",
+        "scoring_policy_version": "defence-studio.claim-score.v1",
+        "total": 90.0,
+        "weights": {
+          "attribution": 10,
+          "contradiction_clear": 10,
+          "corroboration": 20,
+          "freshness": 10,
+          "passage_match": 15,
+          "relevance": 15,
+          "source_credibility": 20
+        }
+      },
+      "source_id": "26a9d035e38e459b0ac5a3df57aeaafaad658489",
+      "state": "AUTO_ACCEPTED",
+      "supporting_evidence": [
+        {
+          "end": 295,
+          "source_id": "26a9d035e38e459b0ac5a3df57aeaafaad658489",
+          "start": 159
+        }
+      ],
+      "text": "INS Samarthak, with over 75 per cent indigenous content, reflects India\u2019s growing self-reliance in defence manufacturing: Vice-President"
+    },
+    {
+      "assessment_basis": "Deterministic policy support and integrity checks; not verification of factual truth",
+      "assessment_outcome": "INSUFFICIENT_EVIDENCE",
+      "assessor_version": "deterministic-evidence-policy.v2",
+      "claim_class": "DESCRIPTIVE",
+      "claim_id": "claim-e50a06a0999ea8c9",
+      "contradicting_evidence": [],
+      "corroboration": {
+        "applicable": false,
+        "independent_groups": [],
+        "quantities": [],
+        "single_source": null,
+        "source_ids": []
+      },
+      "flags": [],
+      "independent_groups": 1,
+      "passage": {
+        "end": 404,
+        "start": 297
+      },
+      "reasons": [
+        "no topic anchor term: not self-contained (refers to the topic only by pronoun or context), so it is not used as standalone evidence"
+      ],
+      "score": {
+        "calibrated": false,
+        "components": {
+          "attribution": 1.0,
+          "contradiction_clear": 1.0,
+          "corroboration": 0.5,
+          "freshness": 1.0,
+          "passage_match": 1.0,
+          "relevance": 0.0,
+          "source_credibility": 1.0
+        },
+        "scale": "0-100",
+        "scoring_policy_version": "defence-studio.claim-score.v1",
+        "total": 75.0,
+        "weights": {
+          "attribution": 10,
+          "contradiction_clear": 10,
+          "corroboration": 20,
+          "freshness": 10,
+          "passage_match": 15,
+          "relevance": 15,
+          "source_credibility": 20
+        }
+      },
+      "source_id": "26a9d035e38e459b0ac5a3df57aeaafaad658489",
+      "state": "REJECTED",
+      "supporting_evidence": [
+        {
+          "end": 404,
+          "source_id": "26a9d035e38e459b0ac5a3df57aeaafaad658489",
+          "start": 297
+        }
+      ],
+      "text": "\u201cIndian Navy Stands Ever-Vigilant and Combat-Ready to Safeguard India\u2019s Maritime Interests\u201d: Vice-President"
+    },
+    {
+      "assessment_basis": "Deterministic policy support and integrity checks; not verification of factual truth",
+      "assessment_outcome": "SUPPORTED",
+      "assessor_version": "deterministic-evidence-policy.v2",
+      "claim_class": "DESCRIPTIVE",
+      "claim_id": "claim-824db06b64a36e5a",
+      "contradicting_evidence": [],
+      "corroboration": {
+        "applicable": false,
+        "independent_groups": [],
+        "quantities": [],
+        "single_source": null,
+        "source_ids": []
+      },
+      "flags": [],
+      "independent_groups": 1,
+      "passage": {
+        "end": 504,
+        "start": 406
+      },
+      "reasons": [
+        "substantive, topic-relevant, source usable, no uncertainty or dispute markers"
+      ],
+      "score": {
+        "calibrated": false,
+        "components": {
+          "attribution": 1.0,
+          "contradiction_clear": 1.0,
+          "corroboration": 0.5,
+          "freshness": 1.0,
+          "passage_match": 1.0,
+          "relevance": 1.0,
+          "source_credibility": 1.0
+        },
+        "scale": "0-100",
+        "scoring_policy_version": "defence-studio.claim-score.v1",
+        "total": 90.0,
+        "weights": {
+          "attribution": 10,
+          "contradiction_clear": 10,
+          "corroboration": 20,
+          "freshness": 10,
+          "passage_match": 15,
+          "relevance": 15,
+          "source_credibility": 20
+        }
+      },
+      "source_id": "26a9d035e38e459b0ac5a3df57aeaafaad658489",
+      "state": "AUTO_ACCEPTED",
+      "supporting_evidence": [
+        {
+          "end": 504,
+          "source_id": "26a9d035e38e459b0ac5a3df57aeaafaad658489",
+          "start": 406
+        }
+      ],
+      "text": "\u201cINS Samarthak Reflects the Growing Role of India\u2019s Private Shipbuilding Industry\u201d: Vice-President"
+    },
+    {
+      "assessment_basis": "Deterministic policy support and integrity checks; not verification of factual truth",
+      "assessment_outcome": "INSUFFICIENT_EVIDENCE",
+      "assessor_version": "deterministic-evidence-policy.v2",
+      "claim_class": "DESCRIPTIVE",
+      "claim_id": "claim-71dc38bfc0ad1d72",
+      "contradicting_evidence": [],
+      "corroboration": {
+        "applicable": false,
+        "independent_groups": [],
+        "quantities": [],
+        "single_source": null,
+        "source_ids": []
+      },
+      "flags": [],
+      "independent_groups": 1,
+      "passage": {
+        "end": 605,
+        "start": 506
+      },
+      "reasons": [
+        "no topic anchor term: not self-contained (refers to the topic only by pronoun or context), so it is not used as standalone evidence"
+      ],
+      "score": {
+        "calibrated": false,
+        "components": {
+          "attribution": 1.0,
+          "contradiction_clear": 1.0,
+          "corroboration": 0.5,
+          "freshness": 1.0,
+          "passage_match": 1.0,
+          "relevance": 0.0,
+          "source_credibility": 1.0
+        },
+        "scale": "0-100",
+        "scoring_policy_version": "defence-studio.claim-score.v1",
+        "total": 75.0,
+        "weights": {
+          "attribution": 10,
+          "contradiction_clear": 10,
+          "corroboration": 20,
+          "freshness": 10,
+          "passage_match": 15,
+          "relevance": 15,
+          "source_credibility": 20
+        }
+      },
+      "source_id": "26a9d035e38e459b0ac5a3df57aeaafaad658489",
+      "state": "REJECTED",
+      "supporting_evidence": [
+        {
+          "end": 605,
+          "source_id": "26a9d035e38e459b0ac5a3df57aeaafaad658489",
+          "start": 506
+        }
+      ],
+      "text": "\u201cKarwar Symbolises Both India\u2019s Glorious Maritime Heritage and Its Maritime Future\u201d: Vice-President"
+    },
+    {
+      "assessment_basis": "Deterministic policy support and integrity checks; not verification of factual truth",
+      "assessment_outcome": "SUPPORTED",
+      "assessor_version": "deterministic-evidence-policy.v2",
+      "claim_class": "DESCRIPTIVE",
+      "claim_id": "claim-66580f8654497d93",
+      "contradicting_evidence": [],
+      "corroboration": {
+        "applicable": false,
+        "independent_groups": [],
+        "quantities": [],
+        "single_source": null,
+        "source_ids": []
+      },
+      "flags": [],
+      "independent_groups": 1,
+      "passage": {
+        "end": 818,
+        "start": 651
+      },
+      "reasons": [
+        "substantive, topic-relevant, source usable, no uncertainty or dispute markers"
+      ],
+      "score": {
+        "calibrated": false,
+        "components": {
+          "attribution": 1.0,
+          "contradiction_clear": 1.0,
+          "corroboration": 0.5,
+          "freshness": 1.0,
+          "passage_match": 1.0,
+          "relevance": 1.0,
+          "source_credibility": 1.0
+        },
+        "scale": "0-100",
+        "scoring_policy_version": "defence-studio.claim-score.v1",
+        "total": 90.0,
+        "weights": {
+          "attribution": 10,
+          "contradiction_clear": 10,
+          "corroboration": 20,
+          "freshness": 10,
+          "passage_match": 15,
+          "relevance": 15,
+          "source_credibility": 20
+        }
+      },
+      "source_id": "26a9d035e38e459b0ac5a3df57aeaafaad658489",
+      "state": "AUTO_ACCEPTED",
+      "supporting_evidence": [
+        {
+          "end": 818,
+          "source_id": "26a9d035e38e459b0ac5a3df57aeaafaad658489",
+          "start": 651
+        }
+      ],
+      "text": "The Vice-President of India, Shri C. P. Radhakrishnan, today commissioned INS Samarthak, the Indian Navy\u2019s first indigenous Multi-Purpose Vessel, at Karwar, Karnataka."
+    },
+    {
+      "assessment_basis": "Deterministic policy support and integrity checks; not verification of factual truth",
+      "assessment_outcome": "SUPPORTED",
+      "assessor_version": "deterministic-evidence-policy.v2",
+      "claim_class": "DESCRIPTIVE",
+      "claim_id": "claim-6a5ae50900eb551e",
+      "contradicting_evidence": [],
+      "corroboration": {
+        "applicable": false,
+        "independent_groups": [],
+        "quantities": [],
+        "single_source": null,
+        "source_ids": []
+      },
+      "flags": [],
+      "independent_groups": 1,
+      "passage": {
+        "end": 1149,
+        "start": 997
+      },
+      "reasons": [
+        "substantive, topic-relevant, source usable, no uncertainty or dispute markers"
+      ],
+      "score": {
+        "calibrated": false,
+        "components": {
+          "attribution": 1.0,
+          "contradiction_clear": 1.0,
+          "corroboration": 0.5,
+          "freshness": 1.0,
+          "passage_match": 1.0,
+          "relevance": 1.0,
+          "source_credibility": 1.0
+        },
+        "scale": "0-100",
+        "scoring_policy_version": "defence-studio.claim-score.v1",
+        "total": 90.0,
+        "weights": {
+          "attribution": 10,
+          "contradiction_clear": 10,
+          "corroboration": 20,
+          "freshness": 10,
+          "passage_match": 15,
+          "relevance": 15,
+          "source_credibility": 20
+        }
+      },
+      "source_id": "26a9d035e38e459b0ac5a3df57aeaafaad658489",
+      "state": "AUTO_ACCEPTED",
+      "supporting_evidence": [
+        {
+          "end": 1149,
+          "source_id": "26a9d035e38e459b0ac5a3df57aeaafaad658489",
+          "start": 997
+        }
+      ],
+      "text": "Vice-President Shri C. P. Radhakrishnan today commissioned INS Samarthak, the Indian Navy\u2019s first indigenous Multi-Purpose Vessel, at Karwar, Karnataka."
+    },
+    {
+      "assessment_basis": "Deterministic policy support and integrity checks; not verification of factual truth",
+      "assessment_outcome": "SUPPORTED",
+      "assessor_version": "deterministic-evidence-policy.v2",
+      "claim_class": "DESCRIPTIVE",
+      "claim_id": "claim-4934f59c0c701dc4",
+      "contradicting_evidence": [],
+      "corroboration": {
+        "applicable": false,
+        "independent_groups": [],
+        "quantities": [],
+        "single_source": null,
+        "source_ids": []
+      },
+      "flags": [],
+      "independent_groups": 1,
+      "passage": {
+        "end": 1344,
+        "start": 1151
+      },
+      "reasons": [
+        "substantive, topic-relevant, source usable, no uncertainty or dispute markers"
+      ],
+      "score": {
+        "calibrated": false,
+        "components": {
+          "attribution": 1.0,
+          "contradiction_clear": 1.0,
+          "corroboration": 0.5,
+          "freshness": 1.0,
+          "passage_match": 1.0,
+          "relevance": 1.0,
+          "source_credibility": 1.0
+        },
+        "scale": "0-100",
+        "scoring_policy_version": "defence-studio.claim-score.v1",
+        "total": 90.0,
+        "weights": {
+          "attribution": 10,
+          "contradiction_clear": 10,
+          "corroboration": 20,
+          "freshness": 10,
+          "passage_match": 15,
+          "relevance": 15,
+          "source_credibility": 20
+        }
+      },
+      "source_id": "26a9d035e38e459b0ac5a3df57aeaafaad658489",
+      "state": "AUTO_ACCEPTED",
+      "supporting_evidence": [
+        {
+          "end": 1344,
+          "source_id": "26a9d035e38e459b0ac5a3df57aeaafaad658489",
+          "start": 1151
+        }
+      ],
+      "text": "With over 75% indigenous content, INS Samarthak reflects India\u2019s growing self-reliance in defence manufacturing and will support trials of next-generation weapons, sensors and unmanned systems."
+    },
+    {
+      "assessment_basis": "Deterministic policy support and integrity checks; not verification of factual truth",
+      "assessment_outcome": "SUPPORTED",
+      "assessor_version": "deterministic-evidence-policy.v2",
+      "claim_class": "DESCRIPTIVE",
+      "claim_id": "claim-8737780747cf021e",
+      "contradicting_evidence": [],
+      "corroboration": {
+        "applicable": false,
+        "independent_groups": [],
+        "quantities": [],
+        "single_source": null,
+        "source_ids": []
+      },
+      "flags": [],
+      "independent_groups": 1,
+      "passage": {
+        "end": 1714,
+        "start": 1500
+      },
+      "reasons": [
+        "substantive, topic-relevant, source usable, no uncertainty or dispute markers"
+      ],
+      "score": {
+        "calibrated": false,
+        "components": {
+          "attribution": 1.0,
+          "contradiction_clear": 1.0,
+          "corroboration": 0.5,
+          "freshness": 1.0,
+          "passage_match": 1.0,
+          "relevance": 1.0,
+          "source_credibility": 1.0
+        },
+        "scale": "0-100",
+        "scoring_policy_version": "defence-studio.claim-score.v1",
+        "total": 90.0,
+        "weights": {
+          "attribution": 10,
+          "contradiction_clear": 10,
+          "corroboration": 20,
+          "freshness": 10,
+          "passage_match": 15,
+          "relevance": 15,
+          "source_credibility": 20
+        }
+      },
+      "source_id": "26a9d035e38e459b0ac5a3df57aeaafaad658489",
+      "state": "AUTO_ACCEPTED",
+      "supporting_evidence": [
+        {
+          "end": 1714,
+          "source_id": "26a9d035e38e459b0ac5a3df57aeaafaad658489",
+          "start": 1500
+        }
+      ],
+      "text": "Addressing the gathering, the Vice-President said that INS Samarthak, with more than 75 per cent indigenous content, reflects the growing strength of India\u2019s industrial, technological and shipbuilding capabilities."
+    },
+    {
+      "assessment_basis": "Deterministic policy support and integrity checks; not verification of factual truth",
+      "assessment_outcome": "INSUFFICIENT_EVIDENCE",
+      "assessor_version": "deterministic-evidence-policy.v2",
+      "claim_class": "DESCRIPTIVE",
+      "claim_id": "claim-68a2321422174c42",
+      "contradicting_evidence": [],
+      "corroboration": {
+        "applicable": false,
+        "independent_groups": [],
+        "quantities": [],
+        "single_source": null,
+        "source_ids": []
+      },
+      "flags": [],
+      "independent_groups": 1,
+      "passage": {
+        "end": 1959,
+        "start": 1715
+      },
+      "reasons": [
+        "no topic anchor term: not self-contained (refers to the topic only by pronoun or context), so it is not used as standalone evidence"
+      ],
+      "score": {
+        "calibrated": false,
+        "components": {
+          "attribution": 1.0,
+          "contradiction_clear": 1.0,
+          "corroboration": 0.5,
+          "freshness": 1.0,
+          "passage_match": 1.0,
+          "relevance": 0.0,
+          "source_credibility": 1.0
+        },
+        "scale": "0-100",
+        "scoring_policy_version": "defence-studio.claim-score.v1",
+        "total": 75.0,
+        "weights": {
+          "attribution": 10,
+          "contradiction_clear": 10,
+          "corroboration": 20,
+          "freshness": 10,
+          "passage_match": 15,
+          "relevance": 15,
+          "source_credibility": 20
+        }
+      },
+      "source_id": "26a9d035e38e459b0ac5a3df57aeaafaad658489",
+      "state": "REJECTED",
+      "supporting_evidence": [
+        {
+          "end": 1959,
+          "source_id": "26a9d035e38e459b0ac5a3df57aeaafaad658489",
+          "start": 1715
+        }
+      ],
+      "text": "He observed that self-reliance in defence is no longer merely an aspiration but an emerging reality, contributing to India\u2019s strategic autonomy and the vision of a Viksit and Aatmanirbhar Bharat articulated by Prime Minister Shri Narendra Modi."
+    },
+    {
+      "assessment_basis": "Deterministic policy support and integrity checks; not verification of factual truth",
+      "assessment_outcome": "INSUFFICIENT_EVIDENCE",
+      "assessor_version": "deterministic-evidence-policy.v2",
+      "claim_class": "DESCRIPTIVE",
+      "claim_id": "claim-f0a46d903bb8af57",
+      "contradicting_evidence": [],
+      "corroboration": {
+        "applicable": false,
+        "independent_groups": [],
+        "quantities": [],
+        "single_source": null,
+        "source_ids": []
+      },
+      "flags": [],
+      "independent_groups": 1,
+      "passage": {
+        "end": 2200,
+        "start": 1961
+      },
+      "reasons": [
+        "no topic anchor term: not self-contained (refers to the topic only by pronoun or context), so it is not used as standalone evidence"
+      ],
+      "score": {
+        "calibrated": false,
+        "components": {
+          "attribution": 1.0,
+          "contradiction_clear": 1.0,
+          "corroboration": 0.5,
+          "freshness": 1.0,
+          "passage_match": 1.0,
+          "relevance": 0.0,
+          "source_credibility": 1.0
+        },
+        "scale": "0-100",
+        "scoring_policy_version": "defence-studio.claim-score.v1",
+        "total": 75.0,
+        "weights": {
+          "attribution": 10,
+          "contradiction_clear": 10,
+          "corroboration": 20,
+          "freshness": 10,
+          "passage_match": 15,
+          "relevance": 15,
+          "source_credibility": 20
+        }
+      },
+      "source_id": "26a9d035e38e459b0ac5a3df57aeaafaad658489",
+      "state": "REJECTED",
+      "supporting_evidence": [
+        {
+          "end": 2200,
+          "source_id": "26a9d035e38e459b0ac5a3df57aeaafaad658489",
+          "start": 1961
+        }
+      ],
+      "text": "Highlighting India\u2019s rich maritime heritage, Shri C. P. Radhakrishnan recalled the naval traditions of Chhatrapati Shivaji Maharaj and the Chola dynasty, which extended India\u2019s maritime influence across the Indian Ocean and Southeast Asia."
+    },
+    {
+      "assessment_basis": "Deterministic policy support and integrity checks; not verification of factual truth",
+      "assessment_outcome": "SUPPORTED",
+      "assessor_version": "deterministic-evidence-policy.v2",
+      "claim_class": "DESCRIPTIVE",
+      "claim_id": "claim-f320408b586cba3f",
+      "contradicting_evidence": [],
+      "corroboration": {
+        "applicable": false,
+        "independent_groups": [],
+        "quantities": [],
+        "single_source": null,
+        "source_ids": []
+      },
+      "flags": [],
+      "independent_groups": 1,
+      "passage": {
+        "end": 2787,
+        "start": 2576
+      },
+      "reasons": [
+        "substantive, topic-relevant, source usable, no uncertainty or dispute markers"
+      ],
+      "score": {
+        "calibrated": false,
+        "components": {
+          "attribution": 1.0,
+          "contradiction_clear": 1.0,
+          "corroboration": 0.5,
+          "freshness": 1.0,
+          "passage_match": 1.0,
+          "relevance": 1.0,
+          "source_credibility": 1.0
+        },
+        "scale": "0-100",
+        "scoring_policy_version": "defence-studio.claim-score.v1",
+        "total": 90.0,
+        "weights": {
+          "attribution": 10,
+          "contradiction_clear": 10,
+          "corroboration": 20,
+          "freshness": 10,
+          "passage_match": 15,
+          "relevance": 15,
+          "source_credibility": 20
+        }
+      },
+      "source_id": "26a9d035e38e459b0ac5a3df57aeaafaad658489",
+      "state": "AUTO_ACCEPTED",
+      "supporting_evidence": [
+        {
+          "end": 2787,
+          "source_id": "26a9d035e38e459b0ac5a3df57aeaafaad658489",
+          "start": 2576
+        }
+      ],
+      "text": "Highlighting the significance of INS Samarthak, the Vice-President said that the vessel will serve as a versatile platform for trials and evaluation of next-generation weapons, sensors and emerging technologies."
+    },
+    {
+      "assessment_basis": "Deterministic policy support and integrity checks; not verification of factual truth",
+      "assessment_outcome": "INSUFFICIENT_EVIDENCE",
+      "assessor_version": "deterministic-evidence-policy.v2",
+      "claim_class": "DESCRIPTIVE",
+      "claim_id": "claim-4767d2d26611ed44",
+      "contradicting_evidence": [],
+      "corroboration": {
+        "applicable": false,
+        "independent_groups": [],
+        "quantities": [],
+        "single_source": null,
+        "source_ids": []
+      },
+      "flags": [],
+      "independent_groups": 1,
+      "passage": {
+        "end": 3395,
+        "start": 3190
+      },
+      "reasons": [
+        "no topic anchor term: not self-contained (refers to the topic only by pronoun or context), so it is not used as standalone evidence"
+      ],
+      "score": {
+        "calibrated": false,
+        "components": {
+          "attribution": 1.0,
+          "contradiction_clear": 1.0,
+          "corroboration": 0.5,
+          "freshness": 1.0,
+          "passage_match": 1.0,
+          "relevance": 0.0,
+          "source_credibility": 1.0
+        },
+        "scale": "0-100",
+        "scoring_policy_version": "defence-studio.claim-score.v1",
+        "total": 75.0,
+        "weights": {
+          "attribution": 10,
+          "contradiction_clear": 10,
+          "corroboration": 20,
+          "freshness": 10,
+          "passage_match": 15,
+          "relevance": 15,
+          "source_credibility": 20
+        }
+      },
+      "source_id": "26a9d035e38e459b0ac5a3df57aeaafaad658489",
+      "state": "REJECTED",
+      "supporting_evidence": [
+        {
+          "end": 3395,
+          "source_id": "26a9d035e38e459b0ac5a3df57aeaafaad658489",
+          "start": 3190
+        }
+      ],
+      "text": "Referring to Karwar\u2019s strategic importance, Shri C. P. Radhakrishnan said that its deep natural harbour and proximity to the Arabian Sea make it a vital component of India\u2019s maritime security architecture."
+    },
+    {
+      "assessment_basis": "Deterministic policy support and integrity checks; not verification of factual truth",
+      "assessment_outcome": "INSUFFICIENT_EVIDENCE",
+      "assessor_version": "deterministic-evidence-policy.v2",
+      "claim_class": "DESCRIPTIVE",
+      "claim_id": "claim-1ddb6ee7cf576f5c",
+      "contradicting_evidence": [],
+      "corroboration": {
+        "applicable": false,
+        "independent_groups": [],
+        "quantities": [],
+        "single_source": null,
+        "source_ids": []
+      },
+      "flags": [],
+      "independent_groups": 1,
+      "passage": {
+        "end": 3865,
+        "start": 3632
+      },
+      "reasons": [
+        "no topic anchor term: not self-contained (refers to the topic only by pronoun or context), so it is not used as standalone evidence"
+      ],
+      "score": {
+        "calibrated": false,
+        "components": {
+          "attribution": 1.0,
+          "contradiction_clear": 1.0,
+          "corroboration": 0.5,
+          "freshness": 1.0,
+          "passage_match": 1.0,
+          "relevance": 0.0,
+          "source_credibility": 1.0
+        },
+        "scale": "0-100",
+        "scoring_policy_version": "defence-studio.claim-score.v1",
+        "total": 75.0,
+        "weights": {
+          "attribution": 10,
+          "contradiction_clear": 10,
+          "corroboration": 20,
+          "freshness": 10,
+          "passage_match": 15,
+          "relevance": 15,
+          "source_credibility": 20
+        }
+      },
+      "source_id": "26a9d035e38e459b0ac5a3df57aeaafaad658489",
+      "state": "REJECTED",
+      "supporting_evidence": [
+        {
+          "end": 3865,
+          "source_id": "26a9d035e38e459b0ac5a3df57aeaafaad658489",
+          "start": 3632
+        }
+      ],
+      "text": "The Vice-President also underscored the growing partnership between the Indian Navy, defence public sector undertakings, private shipyards, DRDO, academia, MSMEs and start-ups in strengthening India\u2019s defence manufacturing ecosystem."
+    },
+    {
+      "assessment_basis": "Deterministic policy support and integrity checks; not verification of factual truth",
+      "assessment_outcome": "SUPPORTED",
+      "assessor_version": "deterministic-evidence-policy.v2",
+      "claim_class": "DESCRIPTIVE",
+      "claim_id": "claim-b14ad3fdbc9f70d9",
+      "contradicting_evidence": [],
+      "corroboration": {
+        "applicable": false,
+        "independent_groups": [],
+        "quantities": [],
+        "single_source": null,
+        "source_ids": []
+      },
+      "flags": [],
+      "independent_groups": 1,
+      "passage": {
+        "end": 4632,
+        "start": 4137
+      },
+      "reasons": [
+        "substantive, topic-relevant, source usable, no uncertainty or dispute markers"
+      ],
+      "score": {
+        "calibrated": false,
+        "components": {
+          "attribution": 1.0,
+          "contradiction_clear": 1.0,
+          "corroboration": 0.5,
+          "freshness": 1.0,
+          "passage_match": 1.0,
+          "relevance": 1.0,
+          "source_credibility": 1.0
+        },
+        "scale": "0-100",
+        "scoring_policy_version": "defence-studio.claim-score.v1",
+        "total": 90.0,
+        "weights": {
+          "attribution": 10,
+          "contradiction_clear": 10,
+          "corroboration": 20,
+          "freshness": 10,
+          "passage_match": 15,
+          "relevance": 15,
+          "source_credibility": 20
+        }
+      },
+      "source_id": "26a9d035e38e459b0ac5a3df57aeaafaad658489",
+      "state": "AUTO_ACCEPTED",
+      "supporting_evidence": [
+        {
+          "end": 4632,
+          "source_id": "26a9d035e38e459b0ac5a3df57aeaafaad658489",
+          "start": 4137
+        }
+      ],
+      "text": "Admiral Krishna Swaminathan, Chief of the Naval Staff; Vice-Admiral Sanjay Vatsayan, Flag Officer Commanding-in-Chief; Vice-Admiral Sanjay Sadhu, Controller Warship Production and Acquisition; Rear Admiral Vikram Menon, Flag Officer (Karnataka); retired Rear Admiral G. K. Harish, Head of Shipbuilding, L&T; Commander Sushil Kumar Singh, Commanding Officer of INS Samarthak; senior officers of the Indian Navy and Ministry of Defence, and other distinguished guests were present on the occasion."
+    }
+  ],
+  "configuration_sha256": "52bd4b6574746d8ff9a3b39c60ecb909aa64913ba6fdd0d50a8fd60101f5df41",
+  "counts": {
+    "claims": {
+      "AUTO_ACCEPTED": 17,
+      "NEEDS_REVIEW": 2,
+      "REJECTED": 8,
+      "SOURCE_BLOCKED": 0
+    },
+    "sources": {
+      "AUTO_ACCEPTED": 2,
+      "REJECTED": 0,
+      "SOURCE_BLOCKED": 0
+    }
+  },
+  "default_configuration": true,
+  "explanation": "Generation is stopped: min_accepted_sources required 2 got 1; Automated policy: insufficient supporting sources after human exceptions; Automated policy: min_accepted_sources required 2 got 1; enable and acquire additional sources in config/source_policy.json that cover the topic",
+  "human_decisions_preserved": [],
+  "human_state_sha256": "1b8b4c0b6f6ad1d32565952720bc004eeb1f188f62045e4d5525ae2af8c78432",
+  "job_id": "ff16816c-7af1-477a-b5f7-888ebd42f21a",
+  "package_approval": null,
+  "package_blockers": [
+    "Automated policy: insufficient supporting sources after human exceptions",
+    "Automated policy: min_accepted_sources required 2 got 1; enable and acquire additional sources in config/source_policy.json that cover the topic"
+  ],
+  "package_ready": false,
+  "policy_criteria_failed": [
+    {
+      "action": "enable and acquire additional sources in config/source_policy.json that cover the topic",
+      "actual": 1,
+      "criterion": "min_accepted_sources",
+      "required": 2
+    }
+  ],
+  "policy_version": "defence-studio.evidence-policy.v1",
+  "ready_for_generation": false,
+  "registry_sha256": "61b1439b6ea3eb9733c7f8998992134fd9c669e411addb73a2ab0f98ca0d5ad8",
+  "run_id": "ead139498bab5716",
+  "schema_version": "defence-studio.evidence-policy-result.v1",
+  "scoring_policy_version": "defence-studio.claim-score.v1",
+  "source_policy_version": "defence-studio.source-policy.v1",
+  "sources": [
+    {
+      "anchor_mentions": 11,
+      "assessment_basis": "Deterministic policy support and integrity checks; not verification of factual truth",
+      "assessment_outcome": "SUPPORTED",
+      "assessor_version": "deterministic-evidence-policy.v2",
+      "canonical_url": "https://www.pib.gov.in/PressReleasePage.aspx?PRID=2324581&lang=1&reg=3",
+      "category": "GOVERNMENT_OFFICIAL",
+      "final_url": "https://www.pib.gov.in/PressReleasePage.aspx?PRID=2324581&lang=1&reg=3",
+      "independence_group": "gov-india",
+      "published_at": "2026-10-16",
+      "published_at_basis": "EXPLICIT_SOURCE_DATE",
+      "publisher": "Press Information Bureau, Government of India",
+      "publisher_basis": "SOURCE_REGISTRY",
+      "quantitative_trust": "ATTRIBUTED_ONLY",
+      "reasons": [
+        "allowlisted, acquired, integrity verified, topic-relevant"
+      ],
+      "registry_id": "pib-india",
+      "retrieved_at": "2026-10-17T09:55:20.582311+00:00",
+      "sha256": "740d207e857969ed04f889a08e600aa498403b86bd1c0220e98061249a9908c2",
+      "source_id": "12f889a1d38a791b79d8dafeb0e3bdf8c060ab92",
+      "state": "AUTO_ACCEPTED"
+    },
+    {
+      "anchor_mentions": 11,
+      "assessment_basis": "Deterministic policy support and integrity checks; not verification of factual truth",
+      "assessment_outcome": "SUPPORTED",
+      "assessor_version": "deterministic-evidence-policy.v2",
+      "canonical_url": "https://www.pib.gov.in/PressReleasePage.aspx?PRID=2324319&lang=1&reg=3",
+      "category": "GOVERNMENT_OFFICIAL",
+      "final_url": "https://www.pib.gov.in/PressReleasePage.aspx?PRID=2324319&lang=1&reg=3",
+      "independence_group": "gov-india",
+      "published_at": "2026-10-16",
+      "published_at_basis": "EXPLICIT_SOURCE_DATE",
+      "publisher": "Press Information Bureau, Government of India",
+      "publisher_basis": "SOURCE_REGISTRY",
+      "quantitative_trust": "ATTRIBUTED_ONLY",
+      "reasons": [
+        "allowlisted, acquired, integrity verified, topic-relevant"
+      ],
+      "registry_id": "pib-india",
+      "retrieved_at": "2026-10-17T09:55:20.901430+00:00",
+      "sha256": "c3b6fda1af5cc3be03a3459dc904a2abeb989c7516a98696ea5804ba2ff18c4d",
+      "source_id": "26a9d035e38e459b0ac5a3df57aeaafaad658489",
+      "state": "AUTO_ACCEPTED"
+    }
+  ],
+  "subject_categories": [
+    "INDIA_DEFENCE"
+  ],
+  "topic": "India defence developments: INS Samarthak commissioning",
+  "result_uri": "jobs/ff16816c-7af1-477a-b5f7-888ebd42f21a/evidence/policy_45e9727e2e35f1e3b7376b4e9271722ae2e10c96ee251bcdacaa35758dc146d8.json",
+  "result_sha256": "45e9727e2e35f1e3b7376b4e9271722ae2e10c96ee251bcdacaa35758dc146d8",
+  "is_stale": false
+}

@@ -1,0 +1,183 @@
+{
+  "started_at": "2026-10-16T04:21:46.367486+00:00",
+  "steps": [
+    {
+      "step": "discovery: local fixture RSS",
+      "ok": true,
+      "seconds": 1.0,
+      "candidates": 1,
+      "selected": [
+        "https://fixture-one.example/article"
+      ],
+      "providers": [
+        [
+          "rss_feed",
+          "OK"
+        ]
+      ]
+    },
+    {
+      "step": "acquisition + analysis: local fixture article transport",
+      "ok": true,
+      "seconds": 0.7,
+      "stages": {
+        "application_foundation": "COMPLETED",
+        "news_feed_and_topic_discovery": "COMPLETED",
+        "topic_search_and_source_collection": "COMPLETED",
+        "extraction_validation_normalization_deduplication": "COMPLETED",
+        "evidence_analysis_and_review": "AWAITING_REVIEW",
+        "script_generation_and_approval": "PENDING",
+        "scene_creation_and_voice_direction": "PENDING",
+        "asset_rights_review_and_assignment": "PENDING",
+        "voice_audio_finishing_and_alignment": "PENDING",
+        "video_rendering": "PENDING",
+        "quality_control_final_review_and_export": "PENDING",
+        "channel_branding_and_publishing_package": "PENDING",
+        "cross_domain_and_format_reuse": "PENDING"
+      },
+      "sources": 1,
+      "claims_extracted": 8
+    },
+    {
+      "step": "evidence review (simulated reviewer) + package approval",
+      "ok": true,
+      "seconds": 1.0,
+      "claims_approved": 4,
+      "eligible": 4
+    },
+    {
+      "step": "script: offline extractive provider, validation, approval",
+      "ok": true,
+      "seconds": 0.3,
+      "words": 42,
+      "provider": "offline-extractive",
+      "warnings": [
+        "SOURCE_DATE_UNKNOWN",
+        "SOURCE_DATE_UNKNOWN",
+        "SOURCE_DATE_UNKNOWN",
+        "SOURCE_DATE_UNKNOWN",
+        "TARGET_LENGTH_MISSED"
+      ]
+    },
+    {
+      "step": "scene plan: generate + approve",
+      "ok": true,
+      "seconds": 0.3,
+      "scenes": 5
+    },
+    {
+      "step": "assets: ingest, rights review, assign (synthetic rights-cleared still)",
+      "ok": true,
+      "seconds": 1.1,
+      "assigned_scenes": 5
+    },
+    {
+      "step": "audio: real Audio Module (local OS English voice)",
+      "ok": true,
+      "seconds": 24.76,
+      "version": 1,
+      "scenes": 5,
+      "mock": false
+    },
+    {
+      "step": "visual: real Visual Module, measured timing, imported asset",
+      "ok": true,
+      "seconds": 2.0,
+      "version": 1,
+      "shots": 5,
+      "gaps": 0,
+      "assignments_honored": 5
+    },
+    {
+      "step": "render: real Renderer + FFmpeg + subtitles",
+      "ok": true,
+      "seconds": 24.76,
+      "version": 1,
+      "probe": {
+        "avg_frame_rate": "25/1",
+        "codec": "h264",
+        "height": 720,
+        "pix_fmt": "yuv420p",
+        "width": 1280
+      },
+      "cues": 5
+    },
+    {
+      "step": "qc + final approval",
+      "ok": true,
+      "seconds": 3.4,
+      "qc_version": 1,
+      "checks": {
+        "MANIFEST_CONSISTENCY": "PASS",
+        "OUTPUT_INTEGRITY": "PASS",
+        "AUDIO_INTEGRITY": "PASS",
+        "CONTAINER_STREAMS": "PASS",
+        "DURATION_MATCH": "PASS",
+        "DURATION_LIMITS": "PASS",
+        "FULL_DECODE": "PASS",
+        "VISUAL_COVERAGE": "PASS",
+        "BLACK_FRAMES": "PASS",
+        "FROZEN_FRAMES": "WARN",
+        "AUDIO_CLIPPING": "PASS",
+        "AUDIO_SILENCE": "PASS",
+        "LOUDNESS": "PASS",
+        "SUBTITLES_PRESENT": "PASS",
+        "SUBTITLE_SYNC": "PASS",
+        "SUBTITLE_OVERFLOW": "PASS",
+        "SUBTITLE_GLYPHS": "PASS",
+        "ASSET_RIGHTS": "PASS",
+        "AI_LABELLING": "PASS",
+        "ATTRIBUTION_REQUIRED": "PASS",
+        "EVIDENCE_REFS": "PASS",
+        "BRANDING_ASSETS": "NOT_CHECKED"
+      },
+      "loudness": -21.7
+    },
+    {
+      "step": "package: branding, thumbnail, metadata, source register",
+      "ok": true,
+      "seconds": 9.3,
+      "version": 1,
+      "title": "Training",
+      "sources": 1,
+      "duration": 31.786,
+      "thumbnail_ok": true
+    },
+    {
+      "step": "youtube: configuration check only (no credentials, nothing uploaded)",
+      "ok": true,
+      "seconds": 0.0,
+      "configured": false,
+      "missing": [
+        "DEFENCE_STUDIO_YT_CLIENT_ID",
+        "DEFENCE_STUDIO_YT_CLIENT_SECRET",
+        "DEFENCE_STUDIO_YT_REDIRECT_URI",
+        "DEFENCE_STUDIO_YT_TOKEN_KEY"
+      ]
+    },
+    {
+      "step": "persistence: fresh service instances read the same state",
+      "ok": true,
+      "seconds": 0.1,
+      "recovered_rows": 0,
+      "package_status": "APPROVED",
+      "approved_render": 1
+    }
+  ],
+  "simulated": [
+    "human review decisions (harness acts as owner/reviewer)",
+    "script text: offline extractive provider restating approved claims, no LLM",
+    "rights-cleared still: synthetic image created by the harness",
+    "RSS and article HTTP transport: controlled local text, never live news"
+  ],
+  "not_done": [
+    "YouTube OAuth/upload: blocked, missing DEFENCE_STUDIO_YT_CLIENT_ID, DEFENCE_STUDIO_YT_CLIENT_SECRET, DEFENCE_STUDIO_YT_REDIRECT_URI, DEFENCE_STUDIO_YT_TOKEN_KEY"
+  ],
+  "input_mode": "LOCAL_HTTP_TRANSPORT_FIXTURE",
+  "job_id": "2712b624-76ab-4494-88fc-2be43be6e054",
+  "topic": "Training",
+  "database": "C:\\dstmp\\next-fixture-0945\\e2e-1792124506.sqlite3",
+  "finished_at": "2026-10-16T04:22:46.543905+00:00",
+  "ok": true,
+  "acceptance_status": "FIXTURE_E2E_VERIFIED"
+}

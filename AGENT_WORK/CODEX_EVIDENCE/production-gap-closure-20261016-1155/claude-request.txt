@@ -1,0 +1,103 @@
+Review this Defence Studio patch independently, read-only. Never edit files, run shell commands, access secrets/.env, contact providers, stage or commit. Read/Grep/Glob only. Find concrete correctness/security/status defects with severity and file/line. Focus on pipeline overview distinguishing durable PAUSED workflow from successful media artifacts, publishing failure attention, and tests. Review evidence scripts for honest claims and protection of production data. No full ARE integration or complete queue orchestration is claimed. Tamil/human/legal and external providers remain blocked; no paid calls/uploads. Ten-minute real renderer 1080p25 benchmark is running; do not infer success. Browser uses real Chrome, real app endpoints, copied synthetic fixture, simulated prior approvals; auth bypass disabled; failure injected only into run-owned copy. Your review is STATIC, do not claim you ran tests. Diff follows:
+diff --git a/backend/defence_studio/services/reports.py b/backend/defence_studio/services/reports.py
+index 0e7c8c5..d779d1a 100644
+--- a/backend/defence_studio/services/reports.py
++++ b/backend/defence_studio/services/reports.py
+@@ -29,6 +29,13 @@ class ReportsMixin:
+             def one(sql, *p):
+                 r = c.execute(sql, p).fetchone()
+                 return dict(r) if r else None
++            workflow = one("SELECT status FROM workflow_jobs WHERE job_id=?", job_id)
++            workflow_stages = [dict(r) for r in c.execute(
++                "SELECT stage_key,status FROM workflow_stages WHERE job_id=? ORDER BY ordinal", (job_id,))]
++            workflow["stages_completed"] = sum(s["status"] in ("COMPLETED", "SKIPPED") for s in workflow_stages)
++            workflow["stages_total"] = len(workflow_stages)
++            workflow["next_stage"] = next((s["stage_key"] for s in workflow_stages
++                                           if s["status"] not in ("COMPLETED", "SKIPPED")), None)
+             evidence = one("SELECT version FROM evidence_packages WHERE job_id=? ORDER BY version DESC LIMIT 1", job_id)
+             script = one("SELECT version,status FROM script_revisions WHERE job_id=? AND language=? "
+                          "ORDER BY version DESC LIMIT 1", job_id, language)
+@@ -63,8 +70,12 @@ class ReportsMixin:
+             stages.append({"stage": kind, **(view(row) or {"status": "NONE"})})
+         stages.append({"stage": "publishing", "status": publish[0]["state"] if publish else "NONE",
+                        "jobs": publish})
+-        blocked = [s["stage"] for s in stages if s["status"] in ("FAILED", "INTERRUPTED", "REJECTED", "VALIDATION_FAILED")]
+-        return {"job_id": job_id, "language": language, "stages": stages, "needs_attention": blocked,
++        blocked = [s["stage"] for s in stages if s["status"] in
++                   ("FAILED", "FAILED_FINAL", "UPLOAD_PAUSED", "INTERRUPTED", "REJECTED", "VALIDATION_FAILED")]
++        if workflow["status"] in ("PAUSED", "AWAITING_REVIEW", "FAILED"):
++            blocked.insert(0, "workflow")
++        return {"job_id": job_id, "language": language, "workflow": workflow,
++                "stages": stages, "needs_attention": blocked,
+                 "generated_at": datetime.now(timezone.utc).isoformat()}
+ 
+     # -- usage / cost ------------------------------------------------------------
+diff --git a/backend/tests/test_ops_rm9.py b/backend/tests/test_ops_rm9.py
+index 244088c..1530f0a 100644
+--- a/backend/tests/test_ops_rm9.py
++++ b/backend/tests/test_ops_rm9.py
+@@ -83,6 +83,20 @@ def test_pipeline_overview_is_derived_from_persisted_state(approved_script):
+     assert after["publishing"]["status"] == "NONE"
+ 
+ 
++def test_pipeline_overview_keeps_paused_queue_separate_from_media(approved_script):
++    s = approved_script
++    with connect(s["db"]) as c:
++        c.execute("UPDATE workflow_jobs SET status='PAUSED' WHERE job_id=?", (s["job"],))
++    fresh = YouTubeService(s["db"], s["root"])
++    report = fresh.pipeline_overview(s["job"], OWNER, "ta")
++    assert report["workflow"]["status"] == "PAUSED"
++    assert report["workflow"]["stages_completed"] < report["workflow"]["stages_total"]
++    assert report["workflow"]["next_stage"]
++    assert "workflow" in report["needs_attention"]
++    with pytest.raises(Exception):
++        fresh.pipeline_overview(s["job"], "intruder", "ta")
++
++
+ def test_windows_deep_path_is_a_clear_error_not_a_crash(tmp_path):
+     if os.name != "nt":
+         pytest.skip("Windows MAX_PATH guard")
+diff --git a/frontend/js/views/production-view.js b/frontend/js/views/production-view.js
+index 4fdd353..6a93719 100644
+--- a/frontend/js/views/production-view.js
++++ b/frontend/js/views/production-view.js
+@@ -667,7 +667,13 @@ export function renderOverviewHtml(overview) {
+       ${s.detail ? `<span class="meta">${esc(s.detail)}</span>` : ""}</li>`).join("");
+   const attention = overview.needs_attention.length
+     ? `<div class="banner warn">Needs attention: ${overview.needs_attention.map((x) => esc(x)).join(", ")}</div>` : "";
+-  return `${attention}<ol class="run-list">${rows}</ol>
++  const workflow = overview.workflow;
++  const queue = workflow ? `<div data-workflow-status="${esc(workflow.status)}">
++    <strong>Workflow queue</strong> ${statusChip(workflow.status)}
++    <span class="meta">${esc(workflow.stages_completed)} / ${esc(workflow.stages_total)} stages complete.
++    ${workflow.next_stage ? `Next stage: ${esc(workflow.next_stage.replace(/_/g, " "))}.` : ""}
++    Media artifact states below are separate from queue completion.</span></div>` : "";
++  return `${attention}${queue}<ol class="run-list">${rows}</ol>
+     <p class="meta">Derived from saved state; the same on every device and after a restart.</p>`;
+ }
+ 
+diff --git a/frontend/tests/production.test.mjs b/frontend/tests/production.test.mjs
+index 6683423..15af542 100644
+--- a/frontend/tests/production.test.mjs
++++ b/frontend/tests/production.test.mjs
+@@ -3,6 +3,17 @@ import assert from "node:assert/strict";
+ import { createApiClient, ApiError } from "../js/api.js";
+ import { renderScenesHtml, renderVisualHtml, renderAudioHtml, SECTIONS, runAction } from "../js/views/production-view.js";
+ 
++test("overview exposes paused queue even when media artifacts succeeded", () => {
++  const html = renderOverviewHtml({ workflow: { status: "PAUSED", stages_completed: 5,
++    stages_total: 12, next_stage: "script_generation_and_approval" }, needs_attention: ["workflow"],
++    stages: [{ stage: "render", status: "SUCCEEDED" }] });
++  assert.match(html, /data-workflow-status="PAUSED"/);
++  assert.match(html, /5 \/ 12 stages complete/);
++  assert.match(html, /Next stage: script generation and approval/);
++  assert.match(html, /separate from queue completion/);
++  assert.match(html, /SUCCEEDED/);
++});
++
+ const plan = { version: 2, status: "DRAFT", scenes: [
+   { scene_id: "sc-1", title: "<b>x</b>", narration: "<script>1</script>", claim_ids: ["c1"], transition_in: "cut",
+     planned_timing: { estimated_seconds: 4.2 } },
+
+Evidence directory: E:\Jana Soft\DefenceStudio\AGENT_WORK\CODEX_EVIDENCE\production-gap-closure-20261016-1155
+Read render_acceptance.py and browser_acceptance.mjs if useful. Fresh backend reports suite 8 passed, frontend production suite 19 passed. Initial frontend duplicate import was corrected; failed log retained. Initial browser harness used wrong video file name; corrected to video_branded, failed logs retained. Please also flag omitted real publishing error states.

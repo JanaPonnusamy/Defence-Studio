@@ -1,6 +1,22 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { renderStalenessBannerHtml, renderRepetitionHtml, renderComparisonHtml, renderRevisionDetail } from "../js/views/script-view.js";
+import { renderStalenessBannerHtml, renderRepetitionHtml, renderComparisonHtml, renderRevisionDetail, generationOutcome } from "../js/views/script-view.js";
+
+test("failed or malformed generation is never labelled a saved accepted draft", () => {
+  assert.match(generationOutcome({ version: 1, status: "AWAITING_REVIEW", validation: { passed: true } }), /Draft saved/);
+  for (const revision of [{version: 2, status: "VALIDATION_FAILED", validation: {passed: false}}, {}]) {
+    assert.match(generationOutcome(revision), /failed validation/);
+    assert.doesNotMatch(generationOutcome(revision), /Draft saved/);
+  }
+});
+
+test("automatic approval is reported only for a validated approved revision", () => {
+  const revision = { version: 2, status: "APPROVED", validation: { passed: true },
+    approval: { approval_kind: "AUTOMATED_VALIDATION" } };
+  assert.match(generationOutcome(revision), /automatically approved/);
+  assert.doesNotMatch(generationOutcome({ ...revision, validation: { passed: false } }), /automatically approved/);
+  assert.doesNotMatch(generationOutcome({ ...revision, approval: null }), /automatically approved/);
+});
 
 test("stale banner appears only when a revision is stale and escapes the reason", () => {
   assert.equal(renderStalenessBannerHtml({ revisions: [{ state: "CURRENT" }] }), "");
@@ -28,7 +44,8 @@ test("revision detail shows source attribution, the claim warning, and an offlin
   }, []);
   assert.ok(html.includes("claim-05608baa58e4c016") && html.includes("148827db7320d204c6c3f4e53296339538cf636f"));
   assert.ok(html.includes("Offline extractive draft") && html.includes("Recorded token usage: none"));
-  assert.ok(html.includes('id="approve-revision-btn"') && !html.includes('id="approve-revision-btn" disabled'));
+  assert.ok(!html.includes('id="approve-revision-btn"'));
+  assert.match(html, /approval is automatic/);
   const provider = renderRevisionDetail({
     title: "T", language: "en", version: 1, status: "AWAITING_REVIEW",
     word_count: { words: 1, estimated_duration_seconds: 1, words_per_minute: 150 },

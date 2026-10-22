@@ -135,7 +135,12 @@ class ResearchMonitorService:
         out_stages = []
         for s in stages:
             mine = [t for t in trans if t["stage_key"] == s["stage_key"]]
-            started = next((_parse(t["occurred_at"]) for t in mine if t["to_status"] == "RUNNING"), None)
+            # A retry starts a new attempt; never include the prior run or the
+            # time spent waiting for configuration in this attempt's duration.
+            reset = next((i for i in range(len(mine) - 1, -1, -1)
+                          if mine[i]["to_status"] == "PENDING"), -1)
+            mine = mine[reset + 1:]
+            started = next((_parse(t["occurred_at"]) for t in reversed(mine) if t["to_status"] == "RUNNING"), None)
             ended = next((_parse(t["occurred_at"]) for t in reversed(mine) if t["to_status"] in _TERMINAL), None) \
                 if s["status"] in _TERMINAL else None
             running = s["status"] == "RUNNING"
@@ -156,6 +161,11 @@ class ResearchMonitorService:
         terminal = job["status"] in ("COMPLETED", "FAILED", "CANCELLED")
         state = display_state(job["status"], stages)
         current = next((s for s in out_stages if s["status"] in ("RUNNING", "AWAITING_REVIEW", "FAILED")), None)
+        estimate = self._estimate(out_stages, history_rows)
+        if job["status"] in {"AWAITING_REVIEW", "PAUSED"}:
+            # Human decisions and missing evidence have no measurable deadline.
+            estimate = {"remaining_seconds": None, "basis": job["status"].lower(),
+                        "confidence": "n/a", "samples": 0}
         return {
             "job_id": job_id, "topic": job["topic"], "language": job["language"],
             "job_status": job["status"], "display_state": state,
@@ -166,7 +176,7 @@ class ResearchMonitorService:
             "stages": out_stages, "stages_total": len(out_stages),
             "stages_done": sum(1 for s in out_stages if s["status"] in _DONE),
             "sources": counts["sources"], "counts": counts["counts"],
-            "estimate": self._estimate(out_stages, history_rows),
+            "estimate": estimate,
             "controls": {"start": job["status"] in ("DRAFT",), "pause": False, "resume": False, "cancel": False,
                          "retry": False,
                          "note": "Pause, resume, cancel and retry are not implemented by the backend."},

@@ -1,0 +1,8 @@
+{
+  "model": "gpt-4o-mini-tts",
+  "voice": "marin",
+  "input": "வணக்கம். இது டிஃபென்ஸ் எரா தமிழ் குரல் சோதனை. தெளிவான உச்சரிப்பு, இயல்பான இடைவெளி, மற்றும் சீரான வேகத்தை இப்போது சோதிக்கிறோம். இது செயற்கை நுண்ணறிவால் உருவாக்கப்பட்ட குரல்.",
+  "instructions": "Speak in clear, natural Indian Tamil, like a calm and confident Tamil news presenter. Use accurate Tamil pronunciation, a steady medium pace, short natural pauses between sentences, and restrained emphasis. Sound professional and conversational. Read the supplied text exactly; do not add a greeting, explanation, translation, or sound effects.",
+  "response_format": "wav",
+  "speed": 1.0
+}

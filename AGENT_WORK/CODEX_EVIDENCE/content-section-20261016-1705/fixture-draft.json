@@ -1,0 +1,215 @@
+{
+  "scope": "real Chrome + app HTTP; research transport, review and model are controlled fixtures",
+  "draft": {
+    "approval": null,
+    "closing": "This briefing restates only what the reviewed sources report.",
+    "config": {
+      "audience": "general public",
+      "language": "en",
+      "max_text_cost_inr": 10.0,
+      "model": "gpt-4o-mini",
+      "prompt_version": "defence-studio.source-grounded-script.v1",
+      "script_format": "narration",
+      "target_duration_seconds": 300,
+      "target_words": 200,
+      "terminology": {},
+      "tone": "neutral, measured"
+    },
+    "created_at": "2026-10-16T11:42:03.350321+00:00",
+    "eligible_claim_ids": [
+      "claim-c52334a95e8e1893",
+      "claim-cd028142916b8b23"
+    ],
+    "job_id": "57350154-967e-4b8f-b150-f040e885f652",
+    "language": "en",
+    "opening_hook": "",
+    "package_sha256": "04387dd50f83e4d5d924e5f207c016916a25c43afe273aeb7210ca0a47cbcf6a",
+    "request_sha256": "3ff42b242bdcc7b67abcca550b94ebea630b7d5816ebae68522f55f4d7b38622",
+    "schema_version": "defence-studio.script-revision.v1",
+    "script_type": "narration",
+    "sections": [
+      {
+        "evidence": {
+          "claim_ids": [
+            "claim-c52334a95e8e1893"
+          ],
+          "qualification": "Reported by the cited source; not independently verified by this script.",
+          "source_ids": [
+            "3e9c744833869a0bb3ab9752e712d50f6a73cb1e"
+          ]
+        },
+        "heading": "",
+        "narration": "The Ministry of Defence reported that Varunastra was developed by Naval Science and Technological Laboratory.",
+        "presentation_note": "",
+        "requires_evidence": true,
+        "section_id": "s001",
+        "statement_kind": "ATTRIBUTED_CLAIM"
+      },
+      {
+        "evidence": {
+          "claim_ids": [
+            "claim-cd028142916b8b23"
+          ],
+          "qualification": "Reported by the cited source; not independently verified by this script.",
+          "source_ids": [
+            "3e9c744833869a0bb3ab9752e712d50f6a73cb1e"
+          ]
+        },
+        "heading": "",
+        "narration": "The Ministry of Defence stated that Varunastra enhances the Indian Navy anti-submarine capability.",
+        "presentation_note": "",
+        "requires_evidence": true,
+        "section_id": "s002",
+        "statement_kind": "ATTRIBUTED_CLAIM"
+      }
+    ],
+    "status": "AWAITING_REVIEW",
+    "title": "GSAT-7C and Varunastra defence contracts",
+    "usage": {
+      "cost_is_measured": true,
+      "currency": "INR",
+      "input_tokens": null,
+      "measured_text_cost_inr": 0.0,
+      "model": "gpt-4o-mini",
+      "output_tokens": null,
+      "pricing_source": "defence-studio.openai-pricing.manual.v1",
+      "provider": "mock-ai-content-contract",
+      "retries": 0,
+      "tokens_available": false
+    },
+    "validation": {
+      "checked_at": "2026-10-16T11:42:03.350321+00:00",
+      "issues": [
+        {
+          "code": "TARGET_LENGTH_MISSED",
+          "detail": "37 words versus a target of 200 (outside +/-25%)",
+          "section_id": "",
+          "severity": "WARNING"
+        }
+      ],
+      "package_sha256": "04387dd50f83e4d5d924e5f207c016916a25c43afe273aeb7210ca0a47cbcf6a",
+      "passed": true,
+      "validator_version": "defence-studio.script-validator.v2"
+    },
+    "version": 1,
+    "word_count": {
+      "estimated_duration_seconds": 15,
+      "is_estimate": true,
+      "method": "words-per-minute.v1",
+      "words": 37,
+      "words_per_minute": 150
+    }
+  },
+  "sources": {
+    "job_id": "57350154-967e-4b8f-b150-f040e885f652",
+    "acquisition_artifact_sha256": "e180d0e102d6662cae28c3bedf9a7e287e465f52bf89bc7c3ad4fdf297cfafbd",
+    "acquisition_artifact_uri": "jobs/57350154-967e-4b8f-b150-f040e885f652/research/acquisition_result.json",
+    "sources": [
+      {
+        "acquisition_timestamp": "2026-10-16T11:41:37.519287+00:00",
+        "artifacts": [
+          {
+            "artifact_type": "source_content",
+            "bytes": 844,
+            "media_type": "text/html",
+            "schema_version": "defence-studio.source-artifact.v1",
+            "sha256": "192936c65913b6ad51a774b7b5a863e737fcbe6d7f8686c979d3e711ed2888c5",
+            "uri": "jobs/57350154-967e-4b8f-b150-f040e885f652/research/sources/3e9c744833869a0bb3ab9752e712d50f6a73cb1e/content.html"
+          }
+        ],
+        "canonical_url": "https://www.pib.gov.in/PressReleaseIframePage.aspx?PRID=2323814&lang=2&reg=48",
+        "declared_metadata": {
+          "language": "en",
+          "language_status": "COLLECTED",
+          "published_at": "2026-10-15T15:22:00+05:30",
+          "published_at_status": "COLLECTED",
+          "publisher": "Ministry of Defence / PIB",
+          "publisher_status": "COLLECTED",
+          "title": "GSAT-7C and Varunastra contracts",
+          "title_status": "COLLECTED"
+        },
+        "error": null,
+        "final_url": "https://www.pib.gov.in/PressReleaseIframePage.aspx?PRID=2323814&lang=2&reg=48",
+        "method": "auto",
+        "original_metadata": {
+          "declared_media_type": "text/html",
+          "http_status": 200,
+          "response_headers": {
+            "content-length": "844",
+            "content-type": "text/html"
+          }
+        },
+        "provenance": {
+          "acquired_at": "2026-10-16T11:41:37.519287+00:00",
+          "canonical_url": "https://www.pib.gov.in/PressReleaseIframePage.aspx?PRID=2323814&lang=2&reg=48",
+          "final_url": "https://www.pib.gov.in/PressReleaseIframePage.aspx?PRID=2323814&lang=2&reg=48",
+          "provider": "http_page",
+          "provider_version": "0.1.0",
+          "request_target_id": "3e9c744833869a0bb3ab9752e712d50f6a73cb1e",
+          "requested_url": "https://www.pib.gov.in/PressReleaseIframePage.aspx?PRID=2323814&lang=2&reg=48",
+          "source_component": "defence_studio.acquisition.providers.http_page@0.1.0"
+        },
+        "requested_url": "https://www.pib.gov.in/PressReleaseIframePage.aspx?PRID=2323814&lang=2&reg=48",
+        "source_id": "3e9c744833869a0bb3ab9752e712d50f6a73cb1e",
+        "source_type": "web_page",
+        "status": "ACQUIRED",
+        "target_id": "3e9c744833869a0bb3ab9752e712d50f6a73cb1e",
+        "warnings": [],
+        "normalized": {
+          "canonical_url": "https://www.pib.gov.in/PressReleaseIframePage.aspx?PRID=2323814&lang=2&reg=48",
+          "dates": {
+            "acquired_at": "2026-10-16T11:41:37.519287+00:00",
+            "published_at": "2026-10-15T15:22:00+05:30"
+          },
+          "declared_metadata": {
+            "language": "en",
+            "language_status": "COLLECTED",
+            "published_at": "2026-10-15T15:22:00+05:30",
+            "published_at_status": "COLLECTED",
+            "publisher": "Ministry of Defence / PIB",
+            "publisher_status": "COLLECTED",
+            "title": "GSAT-7C and Varunastra contracts",
+            "title_status": "COLLECTED"
+          },
+          "final_url": "https://www.pib.gov.in/PressReleaseIframePage.aspx?PRID=2323814&lang=2&reg=48",
+          "language_detected": "en",
+          "media_type": "text/html",
+          "normalization_version": "defence-studio.normalizer.v2",
+          "normalized_char_count": 580,
+          "normalized_sha256": "8b41bccd2606a7eb5d1c9b46d0ef33d4f87a18a2bcdb1c53939fd1c40a9d2c79",
+          "normalized_text": "According to the Ministry of Defence, GSAT-7C is intended for the Indian Air Force. The Ministry of Defence reported that GSAT-7C supports secure communications for Air Force assets. The Ministry of Defence described GSAT-7C as indigenously designed and manufactured. According to the Ministry of Defence, Varunastra is an indigenous ship-launched anti-submarine torpedo. The Ministry of Defence reported that Varunastra was developed by Naval Science and Technological Laboratory. The Ministry of Defence stated that Varunastra enhances the Indian Navy anti-submarine capability.",
+          "original_artifact": {
+            "artifact_type": "source_content",
+            "bytes": 844,
+            "media_type": "text/html",
+            "sha256": "192936c65913b6ad51a774b7b5a863e737fcbe6d7f8686c979d3e711ed2888c5",
+            "uri": "jobs/57350154-967e-4b8f-b150-f040e885f652/research/sources/3e9c744833869a0bb3ab9752e712d50f6a73cb1e/content.html"
+          },
+          "original_sha256_verified": true,
+          "requested_url": "https://www.pib.gov.in/PressReleaseIframePage.aspx?PRID=2323814&lang=2&reg=48",
+          "schema_version": "defence-studio.normalized-source.v1",
+          "source_id": "3e9c744833869a0bb3ab9752e712d50f6a73cb1e",
+          "source_type": "web_page",
+          "status": "NORMALIZED",
+          "target_id": "3e9c744833869a0bb3ab9752e712d50f6a73cb1e",
+          "warnings": []
+        },
+        "duplicate_groups": [],
+        "review": {
+          "job_id": "57350154-967e-4b8f-b150-f040e885f652",
+          "subject_id": "3e9c744833869a0bb3ab9752e712d50f6a73cb1e",
+          "decision": "APPROVED_FOR_USE",
+          "reviewed_artifact_type": "acquisition_manifest",
+          "reviewed_artifact_sha256": "e180d0e102d6662cae28c3bedf9a7e287e465f52bf89bc7c3ad4fdf297cfafbd",
+          "reviewer_id": "content-fixture-reviewer",
+          "note": "TEST ONLY simulated source review",
+          "revision": 1,
+          "created_at": "2026-10-16T11:41:37.994999+00:00",
+          "updated_at": "2026-10-16T11:41:37.994999+00:00"
+        },
+        "review_status": "APPROVED_FOR_USE",
+        "is_stale": false
+      }
+    ]
+  }
+}

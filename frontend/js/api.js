@@ -30,15 +30,27 @@ async function handle(response) {
   return body;
 }
 
-export function createApiClient(getToken) {
+export function createApiClient(getToken, onUnauthorized = () => {}) {
   const base = "/api";
+  async function fetchWithSession(url, options) {
+    const sentAuthorization = options?.headers?.Authorization;
+    if (url !== `${base}/dev/session` && !sentAuthorization) {
+      throw new ApiError(401, "Sign in to continue.");
+    }
+    const response = await fetch(url, options);
+    // Only invalidate the session used by this request. A delayed failure from
+    // an older token must not sign out a newly authenticated session.
+    if (response.status === 401 && sentAuthorization &&
+        sentAuthorization === `Bearer ${getToken()}`) onUnauthorized();
+    return response;
+  }
   return {
     authHeader() { return authHeaders(getToken()); },
     // Generic authenticated call for stage routes (scene/visual/audio/render/...).
     // `path` is relative to /api. Throws ApiError with the server's message.
     async request(method, path, { body, idempotencyKey } = {}) {
       const extra = idempotencyKey ? { "Idempotency-Key": idempotencyKey } : undefined;
-      return handle(await fetch(`${base}${path}`, {
+      return handle(await fetchWithSession(`${base}${path}`, {
         method, headers: authHeaders(getToken(), extra),
         body: body === undefined ? undefined : JSON.stringify(body),
       }));
@@ -46,55 +58,55 @@ export function createApiClient(getToken) {
     // Canonical Phase 2 surface is /package/* + /timeline (core-design route
     // names). Method names kept stable for the evidence view that calls them.
     async evidencePackage(jobId) {
-      return handle(await fetch(`${base}/jobs/${encodeURIComponent(jobId)}/package`, { headers: authHeaders(getToken()) }));
+      return handle(await fetchWithSession(`${base}/jobs/${encodeURIComponent(jobId)}/package`, { headers: authHeaders(getToken()) }));
     },
     async evidenceTimeline(jobId, filters = {}) {
       const params = new URLSearchParams(Object.entries(filters).filter(([, value]) => value));
-      return handle(await fetch(`${base}/jobs/${encodeURIComponent(jobId)}/timeline?${params}`, { headers: authHeaders(getToken()) }));
+      return handle(await fetchWithSession(`${base}/jobs/${encodeURIComponent(jobId)}/timeline?${params}`, { headers: authHeaders(getToken()) }));
     },
     async approveEvidence(jobId, revision, note, key) {
-      return handle(await fetch(`${base}/jobs/${encodeURIComponent(jobId)}/package/approve`, {
+      return handle(await fetchWithSession(`${base}/jobs/${encodeURIComponent(jobId)}/package/approve`, {
         method: "POST", headers: authHeaders(getToken(), { "Idempotency-Key": key }), body: JSON.stringify({ revision, note }),
       }));
     },
     async exportEvidence(jobId, draft = false) {
-      return handle(await fetch(`${base}/jobs/${encodeURIComponent(jobId)}/package/export?draft=${draft}`, { headers: authHeaders(getToken()) }));
+      return handle(await fetchWithSession(`${base}/jobs/${encodeURIComponent(jobId)}/package/export?draft=${draft}`, { headers: authHeaders(getToken()) }));
     },
     async getJob(jobId) {
-      return handle(await fetch(`${base}/jobs/${encodeURIComponent(jobId)}`, {
+      return handle(await fetchWithSession(`${base}/jobs/${encodeURIComponent(jobId)}`, {
         headers: authHeaders(getToken()),
       }));
     },
     // Owner-scoped job list for the dashboard (real persisted jobs, no mocks).
     async listJobs() {
-      return handle(await fetch(`${base}/jobs`, { headers: authHeaders(getToken()) }));
+      return handle(await fetchWithSession(`${base}/jobs`, { headers: authHeaders(getToken()) }));
     },
     // Development entry: ask the server to mint a short-lived token. Only
     // succeeds under the safe loopback dev-bypass config; 404 otherwise. The
     // token is never fabricated client-side.
     async devSession() {
-      return handle(await fetch(`${base}/dev/session`, { headers: { "Content-Type": "application/json" } }));
+      return handle(await fetchWithSession(`${base}/dev/session`, { headers: { "Content-Type": "application/json" } }));
     },
     async listSources(jobId, status) {
       const qs = status ? `?status=${encodeURIComponent(status)}` : "";
-      return handle(await fetch(`${base}/jobs/${encodeURIComponent(jobId)}/review/sources${qs}`, {
+      return handle(await fetchWithSession(`${base}/jobs/${encodeURIComponent(jobId)}/review/sources${qs}`, {
         headers: authHeaders(getToken()),
       }));
     },
     async getSource(jobId, sourceId) {
-      return handle(await fetch(
+      return handle(await fetchWithSession(
         `${base}/jobs/${encodeURIComponent(jobId)}/review/sources/${encodeURIComponent(sourceId)}`,
         { headers: authHeaders(getToken()) },
       ));
     },
     async sourceHistory(jobId, sourceId) {
-      return handle(await fetch(
+      return handle(await fetchWithSession(
         `${base}/jobs/${encodeURIComponent(jobId)}/review/sources/${encodeURIComponent(sourceId)}/history`,
         { headers: authHeaders(getToken()) },
       ));
     },
     async decideSource(jobId, sourceId, body, idempotencyKey) {
-      return handle(await fetch(
+      return handle(await fetchWithSession(
         `${base}/jobs/${encodeURIComponent(jobId)}/review/sources/${encodeURIComponent(sourceId)}/decisions`,
         {
           method: "POST",
@@ -109,24 +121,24 @@ export function createApiClient(getToken) {
       if (conflict) params.set("conflict", "true");
       if (sourceId) params.set("source_id", sourceId);
       const qs = params.toString() ? `?${params.toString()}` : "";
-      return handle(await fetch(`${base}/jobs/${encodeURIComponent(jobId)}/review/claims${qs}`, {
+      return handle(await fetchWithSession(`${base}/jobs/${encodeURIComponent(jobId)}/review/claims${qs}`, {
         headers: authHeaders(getToken()),
       }));
     },
     async getClaim(jobId, claimId) {
-      return handle(await fetch(
+      return handle(await fetchWithSession(
         `${base}/jobs/${encodeURIComponent(jobId)}/review/claims/${encodeURIComponent(claimId)}`,
         { headers: authHeaders(getToken()) },
       ));
     },
     async claimHistory(jobId, claimId) {
-      return handle(await fetch(
+      return handle(await fetchWithSession(
         `${base}/jobs/${encodeURIComponent(jobId)}/review/claims/${encodeURIComponent(claimId)}/history`,
         { headers: authHeaders(getToken()) },
       ));
     },
     async decideClaim(jobId, claimId, body, idempotencyKey) {
-      return handle(await fetch(
+      return handle(await fetchWithSession(
         `${base}/jobs/${encodeURIComponent(jobId)}/review/claims/${encodeURIComponent(claimId)}/decisions`,
         {
           method: "POST",
@@ -136,24 +148,24 @@ export function createApiClient(getToken) {
       ));
     },
     async createJob(topic, language, idempotencyKey) {
-      return handle(await fetch(`${base}/jobs`, {
+      return handle(await fetchWithSession(`${base}/jobs`, {
         method: "POST",
         headers: authHeaders(getToken(), { "Idempotency-Key": idempotencyKey }),
         body: JSON.stringify({ topic, language }),
       }));
     },
     async queueJob(jobId) {
-      return handle(await fetch(`${base}/jobs/${encodeURIComponent(jobId)}/queue`, {
+      return handle(await fetchWithSession(`${base}/jobs/${encodeURIComponent(jobId)}/queue`, {
         method: "POST", headers: authHeaders(getToken()),
       }));
     },
     async getDiscoveryRequest(jobId) {
-      return handle(await fetch(`${base}/jobs/${encodeURIComponent(jobId)}/discovery/requests`, {
+      return handle(await fetchWithSession(`${base}/jobs/${encodeURIComponent(jobId)}/discovery/requests`, {
         headers: authHeaders(getToken()),
       }));
     },
     async createDiscoveryRequest(jobId, body) {
-      return handle(await fetch(`${base}/jobs/${encodeURIComponent(jobId)}/discovery/requests`, {
+      return handle(await fetchWithSession(`${base}/jobs/${encodeURIComponent(jobId)}/discovery/requests`, {
         method: "POST", headers: authHeaders(getToken()), body: JSON.stringify(body),
       }));
     },
@@ -168,97 +180,97 @@ export function createApiClient(getToken) {
         if (opts[key]) params.set(name, opts[key]);
       }
       const qs = params.toString() ? `?${params.toString()}` : "";
-      return handle(await fetch(`${base}/jobs/${encodeURIComponent(jobId)}/discovery/candidates${qs}`, {
+      return handle(await fetchWithSession(`${base}/jobs/${encodeURIComponent(jobId)}/discovery/candidates${qs}`, {
         headers: authHeaders(getToken()),
       }));
     },
     async getDiscoveryProviders() {
-      return handle(await fetch(`${base}/discovery/providers`, { headers: authHeaders(getToken()) }));
+      return handle(await fetchWithSession(`${base}/discovery/providers`, { headers: authHeaders(getToken()) }));
     },
     async getDiscoveryTaxonomy() {
-      return handle(await fetch(`${base}/discovery/taxonomy`, { headers: authHeaders(getToken()) }));
+      return handle(await fetchWithSession(`${base}/discovery/taxonomy`, { headers: authHeaders(getToken()) }));
     },
     async listDiscoverySearches() {
-      return handle(await fetch(`${base}/discovery/searches`, { headers: authHeaders(getToken()) }));
+      return handle(await fetchWithSession(`${base}/discovery/searches`, { headers: authHeaders(getToken()) }));
     },
     async rerunDiscovery(jobId) {
-      return handle(await fetch(`${base}/jobs/${encodeURIComponent(jobId)}/discovery/rerun`, {
+      return handle(await fetchWithSession(`${base}/jobs/${encodeURIComponent(jobId)}/discovery/rerun`, {
         method: "POST", headers: authHeaders(getToken()),
       }));
     },
     async selectDiscoveryCandidates(jobId, candidateIds) {
-      return handle(await fetch(`${base}/jobs/${encodeURIComponent(jobId)}/discovery/selection`, {
+      return handle(await fetchWithSession(`${base}/jobs/${encodeURIComponent(jobId)}/discovery/selection`, {
         method: "POST", headers: authHeaders(getToken()), body: JSON.stringify({ candidate_ids: candidateIds }),
       }));
     },
     async getDiscoverySelection(jobId) {
-      return handle(await fetch(`${base}/jobs/${encodeURIComponent(jobId)}/discovery/selection`, {
+      return handle(await fetchWithSession(`${base}/jobs/${encodeURIComponent(jobId)}/discovery/selection`, {
         headers: authHeaders(getToken()),
       }));
     },
     async getPipelineTrace(jobId) {
-      return handle(await fetch(`${base}/jobs/${encodeURIComponent(jobId)}/research/pipeline-trace`, {
+      return handle(await fetchWithSession(`${base}/jobs/${encodeURIComponent(jobId)}/research/pipeline-trace`, {
         headers: authHeaders(getToken()),
       }));
     },
     async listScriptInspections(jobId, language) {
-      return handle(await fetch(
+      return handle(await fetchWithSession(
         `${base}/jobs/${encodeURIComponent(jobId)}/script/inspections/${encodeURIComponent(language)}`,
         { headers: authHeaders(getToken()) }));
     },
     async getScriptInspection(jobId, language, recordId) {
-      return handle(await fetch(
+      return handle(await fetchWithSession(
         `${base}/jobs/${encodeURIComponent(jobId)}/script/inspections/${encodeURIComponent(language)}/${encodeURIComponent(recordId)}`,
         { headers: authHeaders(getToken()) }));
     },
     // -- Phase 3: source-grounded script generation, review, approval --------
     async listScriptRevisions(jobId, language) {
       const qs = language ? `?language=${encodeURIComponent(language)}` : "";
-      return handle(await fetch(`${base}/jobs/${encodeURIComponent(jobId)}/script/revisions${qs}`, {
+      return handle(await fetchWithSession(`${base}/jobs/${encodeURIComponent(jobId)}/script/revisions${qs}`, {
         headers: authHeaders(getToken()),
       }));
     },
     async getScriptRevision(jobId, language, version) {
-      return handle(await fetch(
+      return handle(await fetchWithSession(
         `${base}/jobs/${encodeURIComponent(jobId)}/script/revisions/${encodeURIComponent(language)}/${version}`,
         { headers: authHeaders(getToken()) },
       ));
     },
     async getScriptStaleness(jobId, language) {
       const qs = language ? `?language=${encodeURIComponent(language)}` : "";
-      return handle(await fetch(`${base}/jobs/${encodeURIComponent(jobId)}/script/staleness${qs}`, {
+      return handle(await fetchWithSession(`${base}/jobs/${encodeURIComponent(jobId)}/script/staleness${qs}`, {
         headers: authHeaders(getToken()),
       }));
     },
     async compareScriptRevisions(jobId, language, oldVersion, newVersion) {
-      return handle(await fetch(
+      return handle(await fetchWithSession(
         `${base}/jobs/${encodeURIComponent(jobId)}/script/compare/${encodeURIComponent(language)}?old=${oldVersion}&new=${newVersion}`,
         { headers: authHeaders(getToken()) }));
     },
     async getScriptRepetition(jobId, language, version) {
-      return handle(await fetch(
+      return handle(await fetchWithSession(
         `${base}/jobs/${encodeURIComponent(jobId)}/script/revisions/${encodeURIComponent(language)}/${version}/repetition`,
         { headers: authHeaders(getToken()) }));
     },
     async getScriptRevisionHistory(jobId, language, version) {
-      return handle(await fetch(
+      return handle(await fetchWithSession(
         `${base}/jobs/${encodeURIComponent(jobId)}/script/revisions/${encodeURIComponent(language)}/${version}/history`,
         { headers: authHeaders(getToken()) },
       ));
     },
     async generateScript(jobId, config, idempotencyKey) {
-      return handle(await fetch(`${base}/jobs/${encodeURIComponent(jobId)}/script/generate`, {
+      return handle(await fetchWithSession(`${base}/jobs/${encodeURIComponent(jobId)}/script/generate`, {
         method: "POST", headers: authHeaders(getToken(), { "Idempotency-Key": idempotencyKey }), body: JSON.stringify(config),
       }));
     },
     async requestScriptChanges(jobId, language, version, note, idempotencyKey) {
-      return handle(await fetch(
+      return handle(await fetchWithSession(
         `${base}/jobs/${encodeURIComponent(jobId)}/script/revisions/${encodeURIComponent(language)}/${version}/request-changes`,
         { method: "POST", headers: authHeaders(getToken(), { "Idempotency-Key": idempotencyKey }), body: JSON.stringify({ note }) },
       ));
     },
     async approveScriptRevision(jobId, language, version, revisionSha256, note, idempotencyKey) {
-      return handle(await fetch(
+      return handle(await fetchWithSession(
         `${base}/jobs/${encodeURIComponent(jobId)}/script/revisions/${encodeURIComponent(language)}/${version}/approve`,
         {
           method: "POST", headers: authHeaders(getToken(), { "Idempotency-Key": idempotencyKey }),
@@ -267,48 +279,48 @@ export function createApiClient(getToken) {
       ));
     },
     async exportApprovedScript(jobId, language) {
-      return handle(await fetch(`${base}/jobs/${encodeURIComponent(jobId)}/script/export/${encodeURIComponent(language)}`, {
+      return handle(await fetchWithSession(`${base}/jobs/${encodeURIComponent(jobId)}/script/export/${encodeURIComponent(language)}`, {
         headers: authHeaders(getToken()),
       }));
     },
     // -- Phase 4 M1: scene planning, persistence, editing, approval ----------
     async listScenePlans(jobId, language) {
       const qs = language ? `?language=${encodeURIComponent(language)}` : "";
-      return handle(await fetch(`${base}/jobs/${encodeURIComponent(jobId)}/scene/plans${qs}`, {
+      return handle(await fetchWithSession(`${base}/jobs/${encodeURIComponent(jobId)}/scene/plans${qs}`, {
         headers: authHeaders(getToken()),
       }));
     },
     async getScenePlan(jobId, language, version) {
-      return handle(await fetch(
+      return handle(await fetchWithSession(
         `${base}/jobs/${encodeURIComponent(jobId)}/scene/plans/${encodeURIComponent(language)}/${version}`,
         { headers: authHeaders(getToken()) },
       ));
     },
     async getScenePlanHistory(jobId, language, version) {
-      return handle(await fetch(
+      return handle(await fetchWithSession(
         `${base}/jobs/${encodeURIComponent(jobId)}/scene/plans/${encodeURIComponent(language)}/${version}/history`,
         { headers: authHeaders(getToken()) },
       ));
     },
     async generateScenePlan(jobId, config, idempotencyKey) {
-      return handle(await fetch(`${base}/jobs/${encodeURIComponent(jobId)}/scene/generate`, {
+      return handle(await fetchWithSession(`${base}/jobs/${encodeURIComponent(jobId)}/scene/generate`, {
         method: "POST", headers: authHeaders(getToken(), { "Idempotency-Key": idempotencyKey }), body: JSON.stringify(config),
       }));
     },
     async reviseScenePlan(jobId, language, baseVersion, edits, idempotencyKey) {
-      return handle(await fetch(`${base}/jobs/${encodeURIComponent(jobId)}/scene/plans/${encodeURIComponent(language)}/revise`, {
+      return handle(await fetchWithSession(`${base}/jobs/${encodeURIComponent(jobId)}/scene/plans/${encodeURIComponent(language)}/revise`, {
         method: "POST", headers: authHeaders(getToken(), { "Idempotency-Key": idempotencyKey }),
         body: JSON.stringify({ base_version: baseVersion, edits }),
       }));
     },
     async requestScenePlanChanges(jobId, language, version, note, idempotencyKey) {
-      return handle(await fetch(
+      return handle(await fetchWithSession(
         `${base}/jobs/${encodeURIComponent(jobId)}/scene/plans/${encodeURIComponent(language)}/${version}/request-changes`,
         { method: "POST", headers: authHeaders(getToken(), { "Idempotency-Key": idempotencyKey }), body: JSON.stringify({ note }) },
       ));
     },
     async approveScenePlan(jobId, language, version, planSha256, note, idempotencyKey) {
-      return handle(await fetch(
+      return handle(await fetchWithSession(
         `${base}/jobs/${encodeURIComponent(jobId)}/scene/plans/${encodeURIComponent(language)}/${version}/approve`,
         {
           method: "POST", headers: authHeaders(getToken(), { "Idempotency-Key": idempotencyKey }),
@@ -317,18 +329,18 @@ export function createApiClient(getToken) {
       ));
     },
     async factcheckProviders() {
-      return handle(await fetch(`${base}/factcheck/providers`, { headers: authHeaders(getToken()) }));
+      return handle(await fetchWithSession(`${base}/factcheck/providers`, { headers: authHeaders(getToken()) }));
     },
     async factcheckPackage(jobId) {
-      return handle(await fetch(`${base}/jobs/${encodeURIComponent(jobId)}/factcheck/package`, { headers: authHeaders(getToken()) }));
+      return handle(await fetchWithSession(`${base}/jobs/${encodeURIComponent(jobId)}/factcheck/package`, { headers: authHeaders(getToken()) }));
     },
     async factcheckClaims(jobId, body, idempotencyKey) {
-      return handle(await fetch(`${base}/jobs/${encodeURIComponent(jobId)}/factcheck/claims`, {
+      return handle(await fetchWithSession(`${base}/jobs/${encodeURIComponent(jobId)}/factcheck/claims`, {
         method: "POST", headers: authHeaders(getToken(), { "Idempotency-Key": idempotencyKey }), body: JSON.stringify(body),
       }));
     },
     async factcheckBuildPackage(jobId, topic, idempotencyKey) {
-      return handle(await fetch(`${base}/jobs/${encodeURIComponent(jobId)}/factcheck/package`, {
+      return handle(await fetchWithSession(`${base}/jobs/${encodeURIComponent(jobId)}/factcheck/package`, {
         method: "POST", headers: authHeaders(getToken(), { "Idempotency-Key": idempotencyKey }), body: JSON.stringify({ topic }),
       }));
     },
@@ -337,20 +349,20 @@ export function createApiClient(getToken) {
       const token = getToken();
       if (token) headers.Authorization = `Bearer ${token}`;
       headers["Idempotency-Key"] = idempotencyKey;
-      return handle(await fetch(`${base}/jobs/${encodeURIComponent(jobId)}/factcheck/media`, { method: "POST", headers, body: form }));
+      return handle(await fetchWithSession(`${base}/jobs/${encodeURIComponent(jobId)}/factcheck/media`, { method: "POST", headers, body: form }));
     },
     async factcheckApprove(jobId, packageId, note) {
-      return handle(await fetch(`${base}/jobs/${encodeURIComponent(jobId)}/factcheck/approve`, {
+      return handle(await fetchWithSession(`${base}/jobs/${encodeURIComponent(jobId)}/factcheck/approve`, {
         method: "POST", headers: authHeaders(getToken()), body: JSON.stringify({ package_id: packageId, note }),
       }));
     },
     async factcheckOverride(jobId, body) {
-      return handle(await fetch(`${base}/jobs/${encodeURIComponent(jobId)}/factcheck/override`, {
+      return handle(await fetchWithSession(`${base}/jobs/${encodeURIComponent(jobId)}/factcheck/override`, {
         method: "POST", headers: authHeaders(getToken()), body: JSON.stringify(body),
       }));
     },
     async factcheckHistory(jobId) {
-      return handle(await fetch(`${base}/jobs/${encodeURIComponent(jobId)}/factcheck/history`, { headers: authHeaders(getToken()) }));
+      return handle(await fetchWithSession(`${base}/jobs/${encodeURIComponent(jobId)}/factcheck/history`, { headers: authHeaders(getToken()) }));
     },
   };
 }

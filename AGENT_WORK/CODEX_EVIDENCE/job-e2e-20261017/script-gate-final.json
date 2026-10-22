@@ -1,0 +1,6 @@
+{
+  "status": 409,
+  "body": {
+    "detail": "Script generation requires a ready, currently approved evidence package"
+  }
+}

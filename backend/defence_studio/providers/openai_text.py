@@ -68,8 +68,28 @@ class ProviderResult:
     currency: str = "INR"
 
 
+# Server-environment key names, in precedence order. The readiness check
+# (verification/providers.py), the credential status view and the provider all
+# resolve through these so they can never disagree about "configured".
+API_KEY_ENV_NAMES = ("DEFENCE_STUDIO_OPENAI_API_KEY", "OPENAI_API_KEY")
+
+
+def api_key_env_source() -> str | None:
+    """Name (never the value) of the environment variable that supplies the key."""
+    for name in API_KEY_ENV_NAMES:
+        if (os.environ.get(name) or "").strip():
+            return name
+    return None
+
+
 def configured_api_key() -> str:
-    return os.environ.get("DEFENCE_STUDIO_OPENAI_API_KEY", "")
+    name = api_key_env_source()
+    return os.environ[name].strip() if name else ""
+
+
+def _is_reasoning_model(model: str) -> bool:
+    """o-series and gpt-5 models reject `max_tokens` and a non-default temperature."""
+    return bool(re.match(r"^(o\d|gpt-5)", (model or "").strip().lower()))
 
 
 def usd_to_inr_rate() -> float:
@@ -77,6 +97,21 @@ def usd_to_inr_rate() -> float:
         return float(os.environ.get("DEFENCE_STUDIO_OPENAI_USD_TO_INR", _DEFAULT_USD_TO_INR))
     except (TypeError, ValueError):
         return _DEFAULT_USD_TO_INR
+
+
+def supports_strict_json_schema(model: str) -> bool:
+    """True only for Chat Completions models known to accept strict json_schema.
+
+    Anything else stays on parse-and-validate. This client does not send a
+    second paid request to discover support.
+    """
+    name = (model or "").strip().lower()
+    if not name:
+        return False
+    for prefix in ("gpt-4o-mini", "gpt-4.1-mini", "gpt-4.1-nano", "gpt-4.1", "gpt-4o"):
+        if name == prefix or name.startswith(prefix + "-"):
+            return True
+    return False
 
 
 def estimate_cost_inr(model: str, input_tokens: int, output_tokens: int) -> float | None:
@@ -91,6 +126,7 @@ def estimate_cost_inr(model: str, input_tokens: int, output_tokens: int) -> floa
 class OpenAiTextProvider:
     name = "openai"
     is_paid = True
+    supports_response_schema = True
 
     """Bounded, retrying Chat-Completions client behind a testable seam.
 
@@ -112,25 +148,52 @@ class OpenAiTextProvider:
         self.last_exchange: dict | None = None
 
     def generate(self, *, model: str, system_prompt: str, user_prompt: str,
-                max_output_tokens: int = _DEFAULT_MAX_OUTPUT_TOKENS) -> ProviderResult:
+                max_output_tokens: int = _DEFAULT_MAX_OUTPUT_TOKENS,
+                response_schema: dict | None = None,
+                response_schema_name: str = "defence_studio_script_draft_v1") -> ProviderResult:
         if not self.api_key:
             raise ProviderError("missing_api_key", "DEFENCE_STUDIO_OPENAI_API_KEY is not configured", retryable=False)
         if max_output_tokens <= 0 or max_output_tokens > 16000:
             raise ProviderError("invalid_bound", "max_output_tokens must be a bounded positive value", retryable=False)
+        reasoning = _is_reasoning_model(model)
         body = {
             "model": model,
             "messages": [
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_prompt},
             ],
-            "max_tokens": max_output_tokens,
-            "temperature": 0.2,
         }
+        # `max_tokens` is deprecated and rejected by reasoning models; the official
+        # endpoint takes `max_completion_tokens`. A custom OpenAI-compatible base URL
+        # keeps the widely supported legacy name.
+        official = self.base_url.rstrip("/") == _DEFAULT_BASE_URL
+        body["max_completion_tokens" if (official or reasoning) else "max_tokens"] = max_output_tokens
+        if not reasoning:
+            body["temperature"] = 0.2
+        constrained = bool(response_schema) and supports_strict_json_schema(model)
+        if constrained:
+            body["response_format"] = {
+                "type": "json_schema",
+                "json_schema": {
+                    "name": response_schema_name,
+                    "strict": True,
+                    "schema": response_schema,
+                },
+            }
+        elif response_schema is None:
+            # JSON mode only. It is not a strict schema and is not reported as one.
+            body["response_format"] = {"type": "json_object"}
         headers = {"Authorization": f"Bearer {self.api_key}", "Content-Type": "application/json"}
         endpoint = f"{self.base_url}/chat/completions"
         exchange = self.last_exchange = {
             "endpoint": endpoint, "method": "POST", "timeout_s": self.timeout, "max_retries": self.max_retries,
             "request_body": body, "attempts": [], "response": None,
+            "output_constraint": {
+                "mode": "json_schema" if constrained else "parse_and_validate",
+                "schema_name": response_schema_name if response_schema else None,
+                "strict": constrained,
+                "parse": None,
+            },
         }
         started = time.monotonic()
 
@@ -180,9 +243,27 @@ class OpenAiTextProvider:
                                         retryable=False)
                 try:
                     parsed = response.json()
-                    text = parsed["choices"][0]["message"]["content"]
+                    choice = parsed["choices"][0]
+                    message = choice["message"]
+                    if not isinstance(message, dict):
+                        raise ValueError("completion message was not an object")
+                    finish = choice.get("finish_reason")
+                    if finish == "length":
+                        raise ProviderError("truncated_output", "Provider output was truncated at the token limit", retryable=False)
+                    if finish == "content_filter":
+                        raise ProviderError("content_filtered", "Provider content filter rejected the completion", retryable=False)
+                    refusal = message.get("refusal")
+                    if isinstance(refusal, str) and refusal.strip():
+                        raise ProviderError(
+                            "refusal",
+                            "Provider refused the request: " + scrub_secrets(refusal[:500], self.api_key),
+                            retryable=False,
+                        )
+                    text = message.get("content")
                     if not isinstance(text, str) or not text.strip():
                         raise ValueError("empty completion")
+                except ProviderError:
+                    raise
                 except (KeyError, IndexError, ValueError, TypeError, json.JSONDecodeError) as exc:
                     raise ProviderError("malformed_response", f"Provider response did not match the expected shape: {exc}",
                                         retryable=False) from exc

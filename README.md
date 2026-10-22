@@ -9,6 +9,14 @@ the UI and continue work immediately.
 > Authoritative design: `DEFENCE_STUDIO_CORE_PROJECT_DESIGN.md` ·
 > Current state: `project_status.md`
 
+Evidence packages approve automatically when the configured policy requirements
+pass. Generated script drafts also approve automatically after validation and a
+freshness check against their evidence, with the decision recorded as
+`AUTOMATED_VALIDATION`. No manual evidence-package or script approval is needed
+in this flow. Missing evidence or failed validation still blocks progress.
+Generation remains an explicit action; automatic approval does not start paid
+generation, narration, rendering or publishing by itself.
+
 ---
 
 ## What's included for local development
@@ -62,6 +70,13 @@ Open `http://127.0.0.1:8011/`. With the dev bypass enabled, click **Enter
 development mode** on the login screen — the server mints a short-lived token
 for you (no copy/paste). The **Dashboard** lists the included job; open it to
 review its sources and claims.
+
+The development launcher also runs the research queue worker, so **Start
+research** advances through discovery, acquisition, extraction and evidence
+assessment. It stops at the review/readiness gate. Set
+`DEFENCE_STUDIO_RESEARCH_WORKER=0` in `backend/.env.local` for API-only startup
+and run `scripts/run_research_worker.ps1` separately. Direct `uvicorn` startup
+only enables the embedded worker when `DEFENCE_STUDIO_RESEARCH_WORKER=1`.
 
 > Git Bash users: use `scripts/run_dev.sh` instead of the `.ps1`.
 

@@ -1,0 +1,441 @@
+diff --git a/backend/defence_studio/services/integration.py b/backend/defence_studio/services/integration.py
+index 379f9b7..2c913a0 100644
+--- a/backend/defence_studio/services/integration.py
++++ b/backend/defence_studio/services/integration.py
+@@ -19,6 +19,7 @@ from contextlib import closing
+ from datetime import datetime, timezone
+ 
+ from defence_studio.contracts.evidence import canonical
++from defence_studio.contracts.assets import PermittedUse
+ from defence_studio.database import connect
+ from defence_studio.services.assets import AssetService
+ from defence_studio.services.review import ReviewError, ReviewNotFound, ReviewValidationError, StaleRevision
+@@ -255,7 +256,7 @@ class IntegrationService(AssetService):
+ 
+     def assigned_assets(self, job_id: str, language: str, plan_sha256: str) -> list[dict]:
+         """ACTIVE assignments on the current approved plan whose asset has real
+-        bytes, an APPROVED review and CLEAR/RESTRICTED effective rights."""
++        bytes, an APPROVED review and current rights permitting commercial web use."""
+         with closing(connect(self.database_file)) as c:
+             rows = c.execute(
+                 "SELECT a.scene_id, a.asset_id, a.version FROM asset_assignments a WHERE a.job_id=? AND a.language=? "
+@@ -274,6 +275,8 @@ class IntegrationService(AssetService):
+         result = []
+         for asset_id, e in out.items():
+             descriptor = self._read_json_artifact(job_id, e["row"])
++            if self._derive_effective_rights(descriptor, target_use=PermittedUse.WEB).value != "CLEAR":
++                continue  # Expiry must be evaluated at use time, not cached at review time.
+             uri = self.asset_file_uri(job_id, descriptor)
+             if not uri:
+                 continue
+@@ -288,6 +291,19 @@ class IntegrationService(AssetService):
+                            "effective_rights": e["row"]["effective_rights"]})
+         return sorted(result, key=lambda x: x["asset_id"])
+ 
++    def verify_visual_asset_rights(self, job_id: str, language: str, visual_binding: dict) -> None:
++        """Reject a timeline whose imported assets lost their reviewed rights/assignment."""
++        expected = visual_binding.get("assets", [])
++        if not expected:
++            return  # A timeline of explicit GAP cards contains no imported assets.
++        current = {a["asset_id"]: a for a in self.assigned_assets(
++            job_id, language, visual_binding["scene_plan_sha256"])}
++        for old in expected:
++            asset = current.get(old["asset_id"])
++            if (asset is None or asset["asset_sha256"] != old["sha256"]
++                    or not set(old["scenes"]).issubset(asset["scene_ids"])):
++                raise IntegrationStale("Visual asset rights or assignments changed; rebuild the visual timeline")
++
+     # -- recovery / execution -------------------------------------------------
+ 
+     def recover_interrupted(self) -> int:
+diff --git a/backend/defence_studio/services/package.py b/backend/defence_studio/services/package.py
+index b58e64d..0300019 100644
+--- a/backend/defence_studio/services/package.py
++++ b/backend/defence_studio/services/package.py
+@@ -316,8 +316,17 @@ class PackageService(QcService):
+                          allowed_from=("AWAITING_REVIEW",))
+         return self.get_integration(job_id, owner_id, language, PACKAGE_KIND, version)
+ 
++    def verify_package_asset_rights(self, job_id: str, owner_id: str, language: str, body: dict) -> None:
++        """Shared by file download and the streaming publishing worker."""
++        render = self.get_integration(job_id, owner_id, language, RENDER_KIND, body["binding"]["render_version"])
++        visual_version = render["input_binding"].get("visual_version")
++        if visual_version is not None:
++            visual = self.get_integration(job_id, owner_id, language, "visual_timeline", visual_version)
++            self.verify_visual_asset_rights(job_id, language, visual["input_binding"])
++
+     def package_file(self, job_id: str, owner_id: str, language: str, version: int, name: str) -> tuple[bytes, str]:
+         body = self.read_integration_body(job_id, owner_id, language, PACKAGE_KIND, version)
++        self.verify_package_asset_rights(job_id, owner_id, language, body)
+         ref = body["files"].get(name)
+         if not ref:
+             raise IntegrationStale(f"No file {name!r} in this package")
+diff --git a/backend/defence_studio/services/qc.py b/backend/defence_studio/services/qc.py
+index fbfc78a..cb4db80 100644
+--- a/backend/defence_studio/services/qc.py
++++ b/backend/defence_studio/services/qc.py
+@@ -434,5 +434,9 @@ class QcService(IntegrationService):
+             raise IntegrationStale("A newer QC report exists; the approval no longer applies")
+         if not renders or renders[-1]["version"] != b["render_version"] or renders[-1]["sha256"] != b["render_sha256"]:
+             raise IntegrationStale("A newer render exists; the approval no longer applies")
++        visual_version = renders[-1]["input_binding"].get("visual_version")
++        if visual_version is not None:
++            visual = self.get_integration(job_id, owner_id, language, "visual_timeline", visual_version)
++            self.verify_visual_asset_rights(job_id, language, visual["input_binding"])
+         return {"approval": last, "qc_version": b["qc_version"], "render_version": b["render_version"],
+                 "video_sha256": b["video_sha256"]}
+diff --git a/backend/defence_studio/services/render.py b/backend/defence_studio/services/render.py
+index a186225..17d45e6 100644
+--- a/backend/defence_studio/services/render.py
++++ b/backend/defence_studio/services/render.py
+@@ -67,6 +67,7 @@ class RenderService(IntegrationService):
+             if row["input_binding"].get("scene_plan_sha256") != plan_row["plan_sha256"]:
+                 raise IntegrationStale(f"The {label} was built for a different scene plan")
+         vb = visual_row["input_binding"]
++        self.verify_visual_asset_rights(job_id, language, vb)
+         if vb.get("timing") != "measured_audio" or vb.get("audio_set_sha256") != audio_row["sha256"]:
+             raise IntegrationStale("The visual timeline was not built from this audio's measured timing; rebuild it "
+                                    "with audio_version set")
+@@ -83,6 +84,7 @@ class RenderService(IntegrationService):
+                    "audio_set_sha256": audio_row["sha256"], "visual_version": visual_version,
+                    "visual_sha256": visual_row["sha256"], "burn_subtitles": bool(burn_subtitles),
+                    "output": vb["options"], "language": language}
++        binding["assets"] = vb.get("assets", [])
+         item, created = self._create_row(job_id, owner_id, language, RENDER_KIND, binding, idempotency_key)
+         if created:
+             self._launch(lambda: self._run(job_id, language, item["version"], binding, audio, timeline_body),
+@@ -172,6 +174,7 @@ class RenderService(IntegrationService):
+         try:
+             self._transition(job_id, language, RENDER_KIND, version, "RUNNING", detail="Building render package",
+                              progress=0.02, allowed_from=("QUEUED",))
++            self.verify_visual_asset_rights(job_id, language, binding)
+             pkg_dir = self.store.job_dir(job_id) / "render" / language / f"pkg-{version:04d}"
+             if pkg_dir.exists():
+                 shutil.rmtree(pkg_dir)
+@@ -224,6 +227,7 @@ class RenderService(IntegrationService):
+             if not qc.get("passed"):
+                 raise RenderError("renderer_qc_failed", "Renderer QC reported failure")
+             plain = result["output_bytes"]
++            self.verify_visual_asset_rights(job_id, language, binding)
+             plain_sha = hashlib.sha256(plain).hexdigest()
+             if qc.get("output", {}).get("sha256") and qc["output"]["sha256"] != plain_sha:
+                 raise RenderError("output_checksum", "Downloaded MP4 does not match the renderer's checksum")
+@@ -253,6 +257,7 @@ class RenderService(IntegrationService):
+                                  progress=0.82)
+                 body["subtitles"], body["video_subtitled"] = self._subtitle_step(
+                     job_id, language, spans, duration, plain_uri, manifest["output_profile"])
++            self.verify_visual_asset_rights(job_id, language, binding)
+             uri, sha = self._store_json(job_id, f"renders/{language}", body)
+             self._transition(job_id, language, RENDER_KIND, version, "SUCCEEDED",
+                              detail=f"{round(duration, 1)}s video, {len(spans)} scene(s)", progress=1.0,
+@@ -322,6 +327,8 @@ class RenderService(IntegrationService):
+ 
+     def render_file(self, job_id: str, owner_id: str, language: str, version: int, which: str) -> tuple[bytes, str]:
+         body = self.read_integration_body(job_id, owner_id, language, RENDER_KIND, version)
++        visual = self.get_integration(job_id, owner_id, language, "visual_timeline", body["binding"]["visual_version"])
++        self.verify_visual_asset_rights(job_id, language, visual["input_binding"])
+         if which in ("plain", "subtitled"):
+             ref = body["video_plain"] if which == "plain" else body.get("video_subtitled")
+             mime = "video/mp4"
+diff --git a/backend/defence_studio/services/youtube.py b/backend/defence_studio/services/youtube.py
+index 10cb5d2..2b13a9c 100644
+--- a/backend/defence_studio/services/youtube.py
++++ b/backend/defence_studio/services/youtube.py
+@@ -43,23 +43,23 @@ from defence_studio.services.integration import (
+ TRANSITIONS = {
+     "DRAFT": {"AWAITING_APPROVAL", "CANCELLED"},
+     "AWAITING_APPROVAL": {"QUEUED", "DRAFT", "CANCELLED"},
+-    "QUEUED": {"VALIDATING", "CANCELLED", "CANCEL_REQUESTED"},
++    "QUEUED": {"VALIDATING", "FAILED_FINAL", "CANCELLED", "CANCEL_REQUESTED"},
+     "VALIDATING": {"READY_TO_UPLOAD", "FAILED_FINAL", "FAILED_RETRYABLE", "REAUTH_REQUIRED", "CANCELLED"},
+-    "READY_TO_UPLOAD": {"UPLOADING", "CANCELLED", "FAILED_RETRYABLE"},
++    "READY_TO_UPLOAD": {"UPLOADING", "CANCELLED", "FAILED_RETRYABLE", "FAILED_FINAL"},
+     "UPLOADING": {"UPLOAD_PAUSED", "UPLOAD_RETRY_WAIT", "UPLOADED_PRIVATE", "FAILED_RETRYABLE", "FAILED_FINAL",
+                   "REAUTH_REQUIRED", "CANCEL_REQUESTED", "CANCELLED"},
+     "UPLOAD_PAUSED": {"UPLOADING", "FAILED_FINAL", "CANCELLED"},
+     "UPLOAD_RETRY_WAIT": {"UPLOADING", "FAILED_FINAL", "CANCELLED"},
+-    "UPLOADED_PRIVATE": {"THUMBNAIL_PENDING", "CAPTIONS_PENDING", "PUBLISHING", "VERIFYING", "FAILED_RETRYABLE",
++    "UPLOADED_PRIVATE": {"THUMBNAIL_PENDING", "CAPTIONS_PENDING", "PUBLISHING", "VERIFYING", "FAILED_RETRYABLE", "FAILED_FINAL",
+                          "REAUTH_REQUIRED", "CANCELLED"},
+-    "THUMBNAIL_PENDING": {"THUMBNAIL_UPLOADING", "CAPTIONS_PENDING", "PUBLISHING", "VERIFYING", "CANCELLED"},
++    "THUMBNAIL_PENDING": {"THUMBNAIL_UPLOADING", "CAPTIONS_PENDING", "PUBLISHING", "VERIFYING", "FAILED_FINAL", "CANCELLED"},
+     "THUMBNAIL_UPLOADING": {"CAPTIONS_PENDING", "PUBLISHING", "VERIFYING", "FAILED_RETRYABLE", "FAILED_FINAL",
+                             "REAUTH_REQUIRED"},
+-    "CAPTIONS_PENDING": {"CAPTIONS_UPLOADING", "PUBLISHING", "VERIFYING", "CANCELLED"},
++    "CAPTIONS_PENDING": {"CAPTIONS_UPLOADING", "PUBLISHING", "VERIFYING", "FAILED_FINAL", "CANCELLED"},
+     "CAPTIONS_UPLOADING": {"PUBLISHING", "VERIFYING", "FAILED_RETRYABLE", "FAILED_FINAL", "REAUTH_REQUIRED"},
+     "PUBLISHING": {"SCHEDULED", "PUBLISHED", "VERIFYING", "FAILED_RETRYABLE", "FAILED_FINAL", "REAUTH_REQUIRED"},
+-    "SCHEDULED": {"VERIFYING"},
+-    "PUBLISHED": {"VERIFYING"},
++    "SCHEDULED": {"VERIFYING", "FAILED_FINAL"},
++    "PUBLISHED": {"VERIFYING", "FAILED_FINAL"},
+     "VERIFYING": {"COMPLETED", "FAILED_RETRYABLE", "FAILED_FINAL", "REAUTH_REQUIRED"},
+     "FAILED_RETRYABLE": {"QUEUED", "UPLOADING", "THUMBNAIL_PENDING", "CAPTIONS_PENDING", "PUBLISHING",
+                          "VERIFYING", "CANCELLED", "FAILED_FINAL"},
+@@ -595,8 +595,18 @@ class YouTubeService(ReportsMixin, PackageService):
+                 self._post_upload(publish_id)
+         except YouTubeError as exc:
+             self._handle_error(publish_id, exc)
+-        except YtConflict as exc:
+-            self._set_state(publish_id, "FAILED_FINAL", f"Precondition failed: {exc}")
++        except IntegrationStale as exc:
++            # A rebuilt/reviewed package is required; retries cannot repair rights.
++            try:
++                state = self._state(publish_id)
++                if state == "CANCEL_REQUESTED":
++                    self._set_state(publish_id, "CANCELLED", "Cancellation won the precondition failure")
++                elif state not in TERMINAL:
++                    self._set_state(publish_id, "FAILED_FINAL", f"Precondition failed: {exc}",
++                                    error_code="precondition", error_message=str(exc)[:500])
++            except YtConflict:
++                if self._state(publish_id) not in TERMINAL:
++                    raise  # Otherwise cancellation/completion won the transition race.
+         except Exception as exc:  # never leave a job silently RUNNING
+             self._safe_fail(publish_id, f"internal: {type(exc).__name__}: {exc}")
+ 
+@@ -706,6 +716,7 @@ class YouTubeService(ReportsMixin, PackageService):
+         try:
+             manifest = self.read_integration_body(job["job_id"], job["owner_id"], job["language"], PACKAGE_KIND,
+                                                   job["package_version"])
++            self.verify_package_asset_rights(job["job_id"], job["owner_id"], job["language"], manifest)
+             pkg_row = self.get_integration(job["job_id"], job["owner_id"], job["language"], PACKAGE_KIND,
+                                            job["package_version"])
+             if pkg_row["sha256"] != job["package_sha256"] or pkg_row["status"] != "APPROVED":
+@@ -713,6 +724,8 @@ class YouTubeService(ReportsMixin, PackageService):
+             v = manifest["files"]["video_branded"]
+             if self.store.sha256_of(job["job_id"], v["uri"]) != v["sha256"]:
+                 problems.append("video file failed its integrity check")
++        except IntegrationStale as exc:
++            problems.append(f"package rights or state changed: {exc}")
+         except Exception as exc:
+             problems.append(f"package unreadable: {type(exc).__name__}")
+         if job["scheduled_utc"] and job["scheduled_utc"] <= self._now_fn().isoformat():
+@@ -734,6 +747,7 @@ class YouTubeService(ReportsMixin, PackageService):
+     def _video_path(self, job: dict) -> tuple[Path, dict]:
+         manifest = self.read_integration_body(job["job_id"], job["owner_id"], job["language"], PACKAGE_KIND,
+                                               job["package_version"])
++        self.verify_package_asset_rights(job["job_id"], job["owner_id"], job["language"], manifest)
+         ref = manifest["files"]["video_branded"]
+         return self.store.job_dir(job["job_id"]) / ref["uri"].split(f"jobs/{job['job_id']}/", 1)[1], manifest
+ 
+@@ -743,8 +757,8 @@ class YouTubeService(ReportsMixin, PackageService):
+             return
+         if job["state"] != "UPLOADING":
+             self._set_state(publish_id, "UPLOADING", "Starting/resuming transfer")
+-        token = self._access_token(job["connection_id"])
+         path, _ = self._video_path(job)
++        token = self._access_token(job["connection_id"])
+         total = path.stat().st_size
+         api = self.api()
+         session = None
+@@ -804,6 +818,7 @@ class YouTubeService(ReportsMixin, PackageService):
+     def _post_upload(self, publish_id: str) -> None:
+         job = self._load(publish_id)
+         vid = job["youtube_video_id"]
++        self._video_path(job)  # Recheck rights before any post-upload provider call.
+         token = self._access_token(job["connection_id"])
+         api = self.api()
+         # Reconcile: the video must still exist before any further call.
+@@ -835,6 +850,7 @@ class YouTubeService(ReportsMixin, PackageService):
+                           "selfDeclaredMadeForKids": bool(job["made_for_kids"])}
+             else:
+                 status = {"privacyStatus": job["visibility"], "selfDeclaredMadeForKids": bool(job["made_for_kids"])}
++            self._video_path(job)  # A revocation during thumbnail/caption work blocks publication.
+             api.update_status(token, vid, status)
+             self._spend(publish_id, "videos.update")
+             self._set_state(publish_id, "SCHEDULED" if job["scheduled_utc"] else "PUBLISHED",
+diff --git a/backend/scripts/e2e_acceptance.py b/backend/scripts/e2e_acceptance.py
+index 0d528d4..db8ce2a 100644
+--- a/backend/scripts/e2e_acceptance.py
++++ b/backend/scripts/e2e_acceptance.py
+@@ -92,7 +92,12 @@ def main() -> int:
+         w.run_once(); w.run_once()
+         res = d.list_candidates(job, OWNER)
+         c = res["candidates"]
+-        assert c, "no candidates from live feeds"
++        if not c:
++            # Keep the actual provider diagnostics: zero candidates can mean a
++            # policy rejection before any HTTP request, not an upstream outage.
++            REPORT["discovery_providers"] = res["providers"]
++            raise AssertionError("no candidates from live feeds: " + "; ".join(
++                f"{p['provider']}={p['status']}: {p.get('message', '')}" for p in res["providers"]))
+         pick = [x for x in c if "bbc" not in (x["declared_metadata"].get("publisher") or "").lower()][:2] or c[:2]
+         d.select_candidates(job, OWNER, [x["candidate_id"] for x in pick])
+         return {"candidates": len(c), "selected": [x["canonical_url"] for x in pick],
+@@ -245,7 +250,10 @@ def main() -> int:
+         n = fresh.recover_interrupted()
+         status = fresh.package_status(job, OWNER, "en")
+         gate = fresh.approved_render(job, OWNER, "en")
+-        return {"recovered_rows": n, "package_status": status["items"][-1]["status"], "approved_render": gate["render_version"]}
++        state = JobService(db).get(job, OWNER)
++        return {"recovered_rows": n, "package_status": status["items"][-1]["status"],
++                "approved_render": gate["render_version"], "workflow_job_status": state["status"],
++                "scope": "media service chain; simulated reviews do not complete the research queue job"}
+ 
+     code = 0
+     try:
+diff --git a/backend/tests/test_assets_ingest_rm9.py b/backend/tests/test_assets_ingest_rm9.py
+index 83b4ea1..d64037c 100644
+--- a/backend/tests/test_assets_ingest_rm9.py
++++ b/backend/tests/test_assets_ingest_rm9.py
+@@ -78,6 +78,24 @@ def _approved_assigned_asset(s, plan, scene_index=0, key="a1", rights=RIGHTS):
+     return svc, aid, scene_id, asset
+ 
+ 
++def test_expiry_is_rechecked_when_selecting_previously_approved_asset(approved_script, monkeypatch):
++    s = approved_script
++    plan = _english_plan_for_assets(s)
++    svc, _, _, _ = _approved_assigned_asset(s, plan, rights={**RIGHTS, "expires_at": "2090-01-01T00:00:00+00:00"})
++    sha = _plan_sha(s["scene"], s["job"], plan["version"], "en")
++    assert len(svc.assigned_assets(s["job"], "en", sha)) == 1
++    monkeypatch.setattr("defence_studio.services.assets._now", lambda: "2091-01-01T00:00:00+00:00")
++    assert svc.assigned_assets(s["job"], "en", sha) == []
++
++
++def test_non_web_rights_are_not_imported_for_web_video(approved_script):
++    s = approved_script
++    plan = _english_plan_for_assets(s)
++    svc, _, _, _ = _approved_assigned_asset(s, plan, rights={**RIGHTS, "permitted_uses": ["broadcast"]})
++    sha = _plan_sha(s["scene"], s["job"], plan["version"], "en")
++    assert svc.assigned_assets(s["job"], "en", sha) == []
++
++
+ def test_upload_measures_real_bytes_and_rejects_non_images(approved_script):
+     s = approved_script
+     svc = VisualService(s["db"], s["root"], provider=s["provider"])
+diff --git a/backend/tests/test_render_rm5.py b/backend/tests/test_render_rm5.py
+index d30cb05..9d974aa 100644
+--- a/backend/tests/test_render_rm5.py
++++ b/backend/tests/test_render_rm5.py
+@@ -298,6 +298,75 @@ def test_estimated_visual_timeline_cannot_be_rendered(chain):
+                          visual_version=est["version"], background=False)
+ 
+ 
++def test_rights_changed_after_visual_plan_blocks_render(chain, monkeypatch):
++    from test_assets_ingest_rm9 import _approved_assigned_asset, ImportingVisualModule, RIGHTS
++    s = chain["s"]
++    plan = s["scene"].get_plan(s["job"], OWNER, "en", 1)
++    assets, aid, _, _ = _approved_assigned_asset(s, plan)
++    visual = VisualService(s["db"], s["root"], provider=s["provider"],
++                           visual_client=visual_client(ImportingVisualModule()))
++    v = visual.start_visual_plan(s["job"], OWNER, "en", "rights-v", background=False,
++                                audio_version=chain["a"]["version"])
++    assert v["status"] == "SUCCEEDED", v["detail"]
++    assets.set_rights(s["job"], OWNER, aid, {**RIGHTS, "commercial_use": "prohibited"}, "rights-revoked")
++    render = RenderService(s["db"], s["root"], provider=s["provider"],
++                           renderer_client=renderer_client(FakeRenderer()))
++    with pytest.raises(IntegrationStale, match="rights|assignments"):
++        render.start_render(s["job"], OWNER, "en", "revoked-render",
++                            audio_version=chain["a"]["version"], visual_version=v["version"], background=False)
++    # A previously stored render must also be withheld at the download boundary.
++    monkeypatch.setattr(render, "read_integration_body", lambda *a: {"binding": {"visual_version": v["version"]}})
++    with pytest.raises(IntegrationStale, match="rights|assignments"):
++        render.render_file(s["job"], OWNER, "en", 1, "plain")
++
++    from defence_studio.services.package import PackageService
++    package = PackageService(s["db"], s["root"], provider=s["provider"])
++    real_get = package.get_integration
++    monkeypatch.setattr(package, "get_integration", lambda job, owner, lang, kind, version:
++                        {"input_binding": {"visual_version": v["version"]}} if kind == "render"
++                        else real_get(job, owner, lang, kind, version))
++    monkeypatch.setattr(package, "read_integration_body", lambda *a: {"binding": {"render_version": 1}})
++    with pytest.raises(IntegrationStale, match="rights|assignments"):
++        package.package_file(s["job"], OWNER, "en", 1, "video_branded")
++    from defence_studio.services.youtube import YouTubeService
++    publishing = YouTubeService(s["db"], s["root"], provider=s["provider"])
++    monkeypatch.setattr(publishing, "get_integration", package.get_integration)
++    monkeypatch.setattr(publishing, "read_integration_body", lambda *a: {
++        "binding": {"render_version": 1},
++        "files": {"video_branded": {"uri": f"jobs/{s['job']}/test-video.mp4"}}})
++    with pytest.raises(IntegrationStale, match="rights|assignments"):
++        publishing._video_path({"job_id": s["job"], "owner_id": OWNER, "language": "en", "package_version": 1})
++    monkeypatch.setattr(publishing, "_load", lambda *_: {
++        "job_id": s["job"], "owner_id": OWNER, "language": "en", "package_version": 1, "youtube_video_id": "mock-only"})
++    def no_provider_call(*_):
++        pytest.fail("Revoked assets must be rejected before accessing provider credentials")
++    monkeypatch.setattr(publishing, "_access_token", no_provider_call)
++    with pytest.raises(IntegrationStale, match="rights|assignments"):
++        publishing._post_upload("isolated-metadata-only")
++
++
++def test_rights_revoked_before_worker_start_marks_render_failed(chain, monkeypatch):
++    from test_assets_ingest_rm9 import _approved_assigned_asset, ImportingVisualModule, RIGHTS
++    s = chain["s"]
++    assets, aid, _, _ = _approved_assigned_asset(s, s["scene"].get_plan(s["job"], OWNER, "en", 1))
++    visual = VisualService(s["db"], s["root"], provider=s["provider"],
++                           visual_client=visual_client(ImportingVisualModule()))
++    v = visual.start_visual_plan(s["job"], OWNER, "en", "queued-rights-v", background=False,
++                                audio_version=chain["a"]["version"])
++    assert v["status"] == "SUCCEEDED", v["detail"]
++    render = RenderService(s["db"], s["root"], provider=s["provider"])
++    pending = []
++    monkeypatch.setattr(render, "_launch", lambda work, background: pending.append(work))
++    row = render.start_render(s["job"], OWNER, "en", "queued-rights-r",
++                              audio_version=chain["a"]["version"], visual_version=v["version"])
++    assert row["status"] == "QUEUED"
++    assets.set_rights(s["job"], OWNER, aid, {**RIGHTS, "commercial_use": "prohibited"}, "queued-rights-revoked")
++    pending.pop()()
++    result = render.get_integration(s["job"], OWNER, "en", "render", row["version"])
++    assert result["status"] == "FAILED"
++    assert "rights" in result["detail"]
++
++
+ @needs_ffmpeg
+ def test_full_render_package_video_and_subtitles(chain):
+     s = chain["s"]
+diff --git a/backend/tests/test_youtube_rm8.py b/backend/tests/test_youtube_rm8.py
+index fcd866c..4dbfa00 100644
+--- a/backend/tests/test_youtube_rm8.py
++++ b/backend/tests/test_youtube_rm8.py
+@@ -303,6 +303,51 @@ def test_schedule_validation_and_timezone_conversion(pub):
+ # -- execution ---------------------------------------------------------------------------------
+ 
+ 
++def test_revoked_rights_are_terminal_through_publish_worker(pub, monkeypatch):
++    svc = pub["svc"]
++    gate_calls = []
++    def revoked(*_):
++        gate_calls.append(1)
++        raise IntegrationStale("Visual asset rights or assignments changed; rebuild the visual timeline")
++    monkeypatch.setattr(svc, "_video_path", revoked)
++    def no_provider(*_):
++        pytest.fail("A revoked publishing job must fail before provider credential access")
++    monkeypatch.setattr(svc, "_access_token", no_provider)
++    base = ["QUEUED", "VALIDATING", "READY_TO_UPLOAD", "UPLOADING"]
++    paths = [base, base + ["UPLOAD_PAUSED"], base + ["UPLOADED_PRIVATE"],
++             base + ["UPLOADED_PRIVATE", "THUMBNAIL_PENDING"],
++             base + ["UPLOADED_PRIVATE", "CAPTIONS_PENDING"],
++             base + ["UPLOADED_PRIVATE", "PUBLISHING"],
++             base + ["UPLOADED_PRIVATE", "PUBLISHING", "SCHEDULED"],
++             base + ["UPLOADED_PRIVATE", "PUBLISHING", "PUBLISHED"]]
++    for i, path in enumerate(paths):
++        job = _job(pub, f"revoked-{i}")
++        _approve(pub, job)
++        for state in path:
++            svc._set_state(job["publish_id"], state, "isolated worker-state fixture")
++        if "UPLOADED_PRIVATE" in path:
++            svc._cols(job["publish_id"], youtube_video_id="MOCK_ALREADY_PRIVATE")
++        calls_before = len(pub["g"].calls)
++        svc.run_job(job["publish_id"])
++        failed = svc.get_job(OWNER, job["publish_id"])
++        assert failed["state"] == "FAILED_FINAL", failed
++        assert failed["error_code"] == "precondition" and "rights" in failed["error_message"]
++        assert len(pub["g"].calls) == calls_before
++        checks_before = len(gate_calls)
++        svc.run_job(job["publish_id"])
++        assert len(gate_calls) == checks_before  # terminal jobs never re-enter the gate
++    job = _job(pub, "cancel-wins-rights")
++    _approve(pub, job)
++    for state in base:
++        svc._set_state(job["publish_id"], state, "isolated cancellation fixture")
++    def cancel_then_revoke(*_):
++        svc._set_state(job["publish_id"], "CANCEL_REQUESTED", "owner cancellation won")
++        raise IntegrationStale("rights changed after cancellation")
++    monkeypatch.setattr(svc, "_video_path", cancel_then_revoke)
++    svc.run_job(job["publish_id"])
++    assert svc.get_job(OWNER, job["publish_id"])["state"] == "CANCELLED"
++
++
+ def test_private_upload_thumbnail_captions_verified_and_audited(pub):
+     job = _job(pub)
+     _approve(pub, job)

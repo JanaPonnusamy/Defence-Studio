@@ -1,0 +1,47 @@
+{
+  "scope": "real guarded HTTP discovery only; no DB, review, AI call or draft",
+  "outcome": {
+    "provider": "manual_url",
+    "status": "OK",
+    "message": "Fetched 1 seed URL(s); HTTP 200 shows reachability only.",
+    "candidates_returned": 1,
+    "requires_credentials": false,
+    "optional_dependency": false,
+    "duration_ms": 1093,
+    "http_attempts": 1,
+    "rate_limited": false,
+    "filters_applied": [
+      "seed_urls"
+    ],
+    "filters_not_supported": [],
+    "truncated": false
+  },
+  "candidates": [
+    {
+      "requested_url": "https://www.pib.gov.in/PressReleaseIframePage.aspx?PRID=2323814&lang=2&reg=48",
+      "title": "MoD inks Rs 4,106 crore contracts for GSAT-7C communication satellite and Varunastra Heavy Weight Torpedoes",
+      "publisher": "www.pib.gov.in",
+      "published_at": null,
+      "language": "en",
+      "source_type": "web_page",
+      "original_metadata": {
+        "seed_url": "https://www.pib.gov.in/PressReleaseIframePage.aspx?PRID=2323814&lang=2&reg=48",
+        "final_url": "https://www.pib.gov.in/PressReleaseIframePage.aspx?PRID=2323814&lang=2&reg=48",
+        "http_status": 200,
+        "media_type": "text/html",
+        "fetch_status": "REACHABLE",
+        "reachability_only": true,
+        "text_sha256": "7d80cc067488397516c8107995ba3b9d01513944031e309b761eb1e947c0bd21",
+        "text_chars": 3409,
+        "declared_canonical_url": null,
+        "publisher_declared": false
+      },
+      "snippet": "Press Release:Press Information Bureau Ministry of Defence MoD inks Rs 4,106 crore contracts for GSAT-7C communication satellite and Varunastra Heavy Weight Torpedoes \u092a\u094d\u0930\u0935\u093f\u0937\u094d\u091f\u093f \u0924\u093f\u0925\u093f: 15 OCT 2026 3:22PM by PIB Delhi The Ministry of Defence has signed contracts worth a total of approximately Rs 4,106 crore for the acquisition of a dedicated communication satellite capability, GSAT-7C for the Indian Air Force, and Varunastra Heavy Weight Torpedoes for the Indian Navy. The contract for GSAT-7C, valu",
+      "feed_category": null,
+      "feed_source_class": null,
+      "feed_region": null,
+      "provider_tag": "manual",
+      "provider_rank": null
+    }
+  ]
+}

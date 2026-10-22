@@ -1,0 +1,38 @@
+// Owned test Chrome only; never explicitly close an application or invoke a provider.
+import {launch} from '../../../frontend/tests/browser/cdp.mjs';
+import {readFileSync,writeFileSync} from 'node:fs';
+import {createHmac} from 'node:crypto';
+import {fileURLToPath} from 'node:url';
+const out=fileURLToPath(new URL('.',import.meta.url));
+const owned=await launch(9360);
+await owned.goto('http://127.0.0.1:8038/');
+const state=JSON.parse(readFileSync(out+'browser-state.json'));
+const enc=x=>Buffer.from(JSON.stringify(x)).toString('base64url');
+const body=enc({alg:'HS256',typ:'JWT'})+'.'+enc({sub:state.owner,exp:Math.floor(Date.now()/1000)+3600});
+const token=body+'.'+createHmac('sha256','content-browser-isolated-signing-secret-20261016').update(body).digest('base64url');
+await owned.eval(`localStorage.setItem('ds_review_token',${JSON.stringify(token)});localStorage.setItem('ds_review_job_id',${JSON.stringify(state.job_id)})`);
+await owned.send('Page.reload');
+const targets=await (await fetch('http://127.0.0.1:9360/json/list')).json();
+const page=targets.find(t=>t.type==='page');
+const ws=new WebSocket(page.webSocketDebuggerUrl);
+await new Promise((resolve,reject)=>{ws.onopen=resolve;ws.onerror=reject;});
+let id=0;const pending=new Map();
+ws.onmessage=e=>{const r=JSON.parse(e.data);if(pending.has(r.id)){pending.get(r.id)(r.result);pending.delete(r.id);}};
+const send=(method,params={})=>new Promise(resolve=>{const n=++id;pending.set(n,resolve);ws.send(JSON.stringify({id:n,method,params}));});
+const evaluate=async expression=>(await send('Runtime.evaluate',{expression,returnByValue:true,awaitPromise:true})).result?.value;
+await send('Page.navigate',{url:'http://127.0.0.1:8038/#/research'});
+let ready=false;
+for(let i=0;i<50;i++){ready=await evaluate(`!!document.querySelector('#rs-sources') && document.body.innerText.includes('manual_url')`);if(ready)break;await new Promise(r=>setTimeout(r,200));}
+const results=[];
+results.push({id:'existing-job-new-research-entry',ok:ready});
+results.push({id:'review-and-script-links',ok:await evaluate(`!!document.querySelector('#rm-discovery a[href="#/evidence"]') && !!document.querySelector('#rm-discovery a[href="#/script"]')`)});
+await evaluate(`document.querySelector('details').open=true;document.querySelector('#rs-topic').value='GSAT-7C and Varunastra';document.querySelector('#rs-sources').value='file:///not-allowed';document.querySelector('#research-start').requestSubmit()`);
+await new Promise(r=>setTimeout(r,300));
+results.push({id:'invalid-source-ui-error',ok:await evaluate(`!document.querySelector('#rs-error').hidden && document.querySelector('#rs-error').textContent.includes('http')`)});
+const shot=await send('Page.captureScreenshot',{format:'png'});
+writeFileSync(out+'research-entry.png',Buffer.from(shot.data,'base64'));
+writeFileSync(out+'browser-research-results.json',JSON.stringify(results,null,2));
+console.log(JSON.stringify(results));
+ws.close();
+process.exitCode=results.every(r=>r.ok)?0:1;
+process.exit(process.exitCode);

@@ -36,7 +36,8 @@ def capability_registry() -> list[dict]:
     reverse = (os.environ.get("DEFENCE_STUDIO_REVERSE_IMAGE_URL") or "").strip()
     search = (os.environ.get("DEFENCE_STUDIO_DISCOVERY_SEARCH_API_URL") or "").strip()
     search_key = (os.environ.get("DEFENCE_STUDIO_DISCOVERY_SEARCH_API_KEY") or "").strip()
-    openai = bool((os.environ.get("OPENAI_API_KEY") or os.environ.get("DEFENCE_STUDIO_OPENAI_API_KEY") or "").strip())
+    from defence_studio.providers.openai_text import api_key_env_source
+    openai = api_key_env_source() is not None
     try:
         from defence_studio.discovery.taxonomy import load_feed_configs
         rss_feeds = load_feed_configs()

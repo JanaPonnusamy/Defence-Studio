@@ -1,3 +1,4 @@
+import { renderAssessmentHtml } from "./assessment-panel.js?v=d0a35943cca5";
 import { escapeHtml, statusBadgeHtml } from "../components/status-badge.js";
 
 function excerpt(text, max = 160) {
@@ -16,7 +17,7 @@ export function renderClaimsList(claims, selectedId) {
         <p>${escapeHtml(excerpt(claim.claim_text))}</p>
         <p class="meta">Source: ${escapeHtml(claim.source_id)}</p>
         <div class="chip-row">
-          ${statusBadgeHtml(claim.review_status, { stale: claim.is_stale })}
+          ${claim.assessment ? `<span class="badge">${escapeHtml(claim.assessment.outcome)}</span>` : statusBadgeHtml(claim.review_status, { stale: claim.is_stale })}
           ${claim.has_conflict ? `<span class="badge CONFLICT_UNRESOLVED">Conflicting evidence</span>` : ""}
           ${claim.evidence_class ? `<span class="chip">${escapeHtml(claim.evidence_class)}</span>` : ""}
           ${claim.has_negation ? `<span class="chip">Negation</span>` : ""}
@@ -62,8 +63,9 @@ export function renderClaimDetail(claim, conflictPairs) {
     ${chip("Designations", entities.designations)}
     ${(claim.warnings || []).length ? `<div class="chip-row">${claim.warnings.map((w) => `<span class="chip">${escapeHtml(w)}</span>`).join("")}</div>` : ""}
     ${conflictBlock}
-    <h4>Review decision</h4>
+    ${renderAssessmentHtml(claim.assessment)}
+    <details><summary>Human exception review</summary><h4>Review decision</h4>
     <div id="decision-panel-mount"></div>
     <h4>History</h4>
-    <div id="history-mount"></div>`;
+    <div id="history-mount"></div></details>`;
 }

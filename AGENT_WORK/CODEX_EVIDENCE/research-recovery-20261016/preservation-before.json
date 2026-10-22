@@ -1,0 +1,58 @@
+{
+  "artifacts": [
+    {
+      "artifact_id": "22aecb1e-ad22-4d40-908d-1a54cbd69f30",
+      "job_id": "dfe0b173-d9ff-458b-99b6-7b4ad3cccb8e",
+      "stage_key": "application_foundation",
+      "artifact_type": "discovery_request",
+      "version": 1,
+      "uri": "jobs/dfe0b173-d9ff-458b-99b6-7b4ad3cccb8e/discovery/7e24b28d5e08e0db1a58dc6d06ac4964930af2bc1ece66462c6abb120c113e3c.json",
+      "sha256": "7e24b28d5e08e0db1a58dc6d06ac4964930af2bc1ece66462c6abb120c113e3c",
+      "schema_version": "defence-studio.discovery-request.v1",
+      "created_at": "2026-10-16T13:29:07.653902+00:00"
+    },
+    {
+      "artifact_id": "8f77f9db-2bf6-4f49-919d-d0afb3a2f7b9",
+      "job_id": "dfe0b173-d9ff-458b-99b6-7b4ad3cccb8e",
+      "stage_key": "extraction_validation_normalization_deduplication",
+      "artifact_type": "analysis_result",
+      "version": 1,
+      "uri": "jobs/dfe0b173-d9ff-458b-99b6-7b4ad3cccb8e/research/analysis/d9f9c645122c7873b88204a650f7bbd4042e655c9f658211ae614f44577289ff.json",
+      "sha256": "f4711bd718585c2d6e7ae01c5a159499fe2b3b17f401c23fa6e4aac7c3a7c123",
+      "schema_version": "defence-studio.analysis-result.v1",
+      "created_at": "2026-10-16T13:35:20.717043+00:00"
+    },
+    {
+      "artifact_id": "892e07c8-93f0-4149-9f39-fc7c6fb18c8d",
+      "job_id": "dfe0b173-d9ff-458b-99b6-7b4ad3cccb8e",
+      "stage_key": "news_feed_and_topic_discovery",
+      "artifact_type": "discovery_result",
+      "version": 1,
+      "uri": "jobs/dfe0b173-d9ff-458b-99b6-7b4ad3cccb8e/research/discovery_result.json",
+      "sha256": "519de714982812e94472403ff1f7a6cc9effb824850a100f2f14f1f795b29da0",
+      "schema_version": "defence-studio.discovery-result.v2",
+      "created_at": "2026-10-16T13:35:20.606131+00:00"
+    },
+    {
+      "artifact_id": "6da26920-868e-493f-93e2-5cfc4a942568",
+      "job_id": "dfe0b173-d9ff-458b-99b6-7b4ad3cccb8e",
+      "stage_key": "topic_search_and_source_collection",
+      "artifact_type": "acquisition_manifest",
+      "version": 1,
+      "uri": "jobs/dfe0b173-d9ff-458b-99b6-7b4ad3cccb8e/research/acquisition_result.json",
+      "sha256": "ec3123c532e6ad9d038b1566f684063480e7385230b38e1684d9a57cfe92b754",
+      "schema_version": "defence-studio.acquisition-result.v1",
+      "created_at": "2026-10-16T13:35:20.663110+00:00"
+    }
+  ],
+  "other_job_hashes": {
+    "workflow_jobs": "b13ce4801094ec6b55dd94f30ec8eeaea7860ef3e01f0f86de4485c304af8b65",
+    "workflow_stages": "1f228f7d9f1f956c734dc0c2db28616f31985bacb83449f8d4acbbf955c91fb4",
+    "workflow_artifacts": "ff4a50e684935b9d42ccf14275a685f75b899c3827118b79dbf98611c4ec1bfb",
+    "workflow_transitions": "36f3abf1281f9b7a374eb703c1c03a8ae22afc729eaf7d2ecbc8015e5f0c99ea",
+    "worker_claims": "317925d88678a2a6908f8449f0c14b56bff8ab2f8b5a1f0474ad66ca96b1e11c",
+    "claim_reviews": "23e80a05c35ed05061eb9ddae41d91a7714a25324d51e73df9de16534a6bb914",
+    "source_reviews": "07e9df64b880fe83c6e7a7f93005046a8cc18433a882389ce6ad47983bbc0b27",
+    "evidence_packages": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+  }
+}

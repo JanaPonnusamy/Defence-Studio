@@ -26,6 +26,13 @@ test("failed validation is never shown as success and unresolved refs are flagge
   assert.ok(html.includes("SYS &lt;b&gt;"), "instructions are escaped");
 });
 
+test("inspection displays automatic approval without asking for human review", () => {
+  const html = renderInspectionHtml(rec({ outcome: "APPROVED", script_accepted: true,
+    validation_report: { passed: true, issues: [] }, clean_output: null }));
+  assert.match(html, /Automatically approved after validation/);
+  assert.doesNotMatch(html, /Accepted for human review|not approved/);
+});
+
 test("no-call record states that the provider was not called", () => {
   const html = renderInspectionHtml(rec({ outcome: "BLOCKED_BUDGET", provider_calls: 0,
     raw_response: { available: false, attempts: [] }, request: { structure: {}, budget_policy: {} },

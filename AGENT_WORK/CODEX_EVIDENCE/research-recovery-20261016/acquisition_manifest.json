@@ -1,0 +1,65 @@
+{
+  "acquired_at": "2026-10-16T13:46:19.140121+00:00",
+  "failed": 0,
+  "job_id": "dfe0b173-d9ff-458b-99b6-7b4ad3cccb8e",
+  "requested": 1,
+  "schema_version": "defence-studio.acquisition-result.v1",
+  "skipped_duplicate": 0,
+  "sources": [
+    {
+      "acquisition_timestamp": "2026-10-16T13:46:19.140121+00:00",
+      "artifacts": [
+        {
+          "artifact_type": "source_content",
+          "bytes": 83911,
+          "media_type": "text/html",
+          "schema_version": "defence-studio.source-artifact.v1",
+          "sha256": "1142626b48c40df6d50bc0ecfbbeb8983631fd5bc5dfe3568c7212f3bc842b6d",
+          "uri": "jobs/dfe0b173-d9ff-458b-99b6-7b4ad3cccb8e/research/sources/3e9c744833869a0bb3ab9752e712d50f6a73cb1e/content.html"
+        }
+      ],
+      "canonical_url": "https://www.pib.gov.in/PressReleaseIframePage.aspx?PRID=2323814&lang=2&reg=48",
+      "declared_metadata": {
+        "language": "hi",
+        "language_status": "COLLECTED",
+        "published_at": "2026-10-15",
+        "published_at_status": "COLLECTED",
+        "publisher": null,
+        "publisher_status": "UNAVAILABLE",
+        "title": "Press Release:Press Information Bureau",
+        "title_status": "COLLECTED"
+      },
+      "error": null,
+      "final_url": "https://www.pib.gov.in/PressReleaseIframePage.aspx?PRID=2323814&lang=2&reg=48",
+      "method": "auto",
+      "original_metadata": {
+        "declared_media_type": "text/html",
+        "http_status": 200,
+        "response_headers": {
+          "content-length": "30672",
+          "content-type": "text/html; charset=utf-8",
+          "date": "Fri, 16 Oct 2026 13:46:19 GMT",
+          "etag": "XXXXXXXX"
+        }
+      },
+      "provenance": {
+        "acquired_at": "2026-10-16T13:46:19.140121+00:00",
+        "canonical_url": "https://www.pib.gov.in/PressReleaseIframePage.aspx?PRID=2323814&lang=2&reg=48",
+        "final_url": "https://www.pib.gov.in/PressReleaseIframePage.aspx?PRID=2323814&lang=2&reg=48",
+        "provider": "http_page",
+        "provider_version": "0.1.0",
+        "request_target_id": "3e9c744833869a0bb3ab9752e712d50f6a73cb1e",
+        "requested_url": "https://www.pib.gov.in/PressReleaseIframePage.aspx?PRID=2323814&lang=2&reg=48",
+        "source_component": "defence_studio.acquisition.providers.http_page@0.1.0"
+      },
+      "requested_url": "https://www.pib.gov.in/PressReleaseIframePage.aspx?PRID=2323814&lang=2&reg=48",
+      "source_id": "3e9c744833869a0bb3ab9752e712d50f6a73cb1e",
+      "source_type": "web_page",
+      "status": "ACQUIRED",
+      "target_id": "3e9c744833869a0bb3ab9752e712d50f6a73cb1e",
+      "warnings": []
+    }
+  ],
+  "succeeded": 1,
+  "warnings": []
+}

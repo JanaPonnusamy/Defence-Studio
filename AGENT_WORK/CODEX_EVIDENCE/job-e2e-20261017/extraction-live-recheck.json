@@ -1,0 +1,22 @@
+[
+  {
+    "source_id": "12f889a1d38a791b79d8dafeb0e3bdf8c060ab92",
+    "claims": 12,
+    "duplicate_claims": 0,
+    "offsets_valid": true,
+    "sample": [
+      "INDIAN NAVY COMMISSIONS INS SAMARTHAK, THE FIRST INDIGENOUS MULTI-PURPOSE VESSEL",
+      "Indian Naval Ship Samarthak, the first of class Multi-Purpose Vessels (MPVs), was commissioned into the Indian Navy on 16 Oct 2026."
+    ]
+  },
+  {
+    "source_id": "26a9d035e38e459b0ac5a3df57aeaafaad658489",
+    "claims": 15,
+    "duplicate_claims": 0,
+    "offsets_valid": true,
+    "sample": [
+      "Vice-President Shri C. P. Radhakrishnan Commissions Indian Navy\u2019s First Indigenous Multi-Purpose Vessel INS Samarthak at Karwar",
+      "INS Samarthak, with over 75 per cent indigenous content, reflects India\u2019s growing self-reliance in defence manufacturing: Vice-President"
+    ]
+  }
+]

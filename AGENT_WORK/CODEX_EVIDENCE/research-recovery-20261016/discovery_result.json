@@ -1,0 +1,89 @@
+{
+  "candidates": [
+    {
+      "candidate_id": "3e9c744833869a0bb3ab9752e712d50f6a73cb1e",
+      "canonical_url": "https://www.pib.gov.in/PressReleaseIframePage.aspx?PRID=2323814&lang=2&reg=48",
+      "category": "INDIAN_DEFENCE",
+      "category_basis": "KEYWORD_RULE",
+      "declared_metadata": {
+        "language": "en",
+        "language_status": "COLLECTED",
+        "published_at": "2026-10-15",
+        "published_at_status": "COLLECTED",
+        "publisher": "www.pib.gov.in",
+        "publisher_status": "COLLECTED",
+        "title": "MoD inks Rs 4,106 crore contracts for GSAT-7C communication satellite and Varunastra Heavy Weight Torpedoes",
+        "title_status": "COLLECTED"
+      },
+      "discovered_at": "2026-10-16T13:46:18.079074+00:00",
+      "filter_flags": [],
+      "merged_from_providers": [],
+      "original_metadata": {
+        "declared_canonical_url": null,
+        "fetch_status": "REACHABLE",
+        "final_url": "https://www.pib.gov.in/PressReleaseIframePage.aspx?PRID=2323814&lang=2&reg=48",
+        "http_status": 200,
+        "media_type": "text/html",
+        "publisher_declared": false,
+        "reachability_only": true,
+        "seed_url": "https://www.pib.gov.in/PressReleaseIframePage.aspx?PRID=2323814&lang=2&reg=48",
+        "text_chars": 3409,
+        "text_sha256": "8e1991b91cd9286603e367409e5abc7b787b396c32fc602a0fd7d29fd98d5390"
+      },
+      "provider": "manual_url",
+      "provider_rank": null,
+      "provider_version": "0.1.0",
+      "ranking": {
+        "explanation": [
+          "Title shares 0/4 topic token(s).",
+          "Published 1 day(s) ago.",
+          "Candidate language matches the requested language 'en'.",
+          "No source-type preference was set."
+        ],
+        "language_match_score": 1.0,
+        "recency_score": 0.9973,
+        "relevance_score": 0.0,
+        "source_type_score": 1.0,
+        "total_score": 0.4995
+      },
+      "region_basis": "KEYWORD_RULE",
+      "regions": [
+        "INDIA"
+      ],
+      "requested_url": "https://www.pib.gov.in/PressReleaseIframePage.aspx?PRID=2323814&lang=2&reg=48",
+      "retrieved_at": "2026-10-16T13:46:18.079074+00:00",
+      "snippet": "Press Release:Press Information Bureau Ministry of Defence MoD inks Rs 4,106 crore contracts for GSAT-7C communication satellite and Varunastra Heavy Weight Torpedoes \u092a\u094d\u0930\u0935\u093f\u0937\u094d\u091f\u093f \u0924\u093f\u0925\u093f: 15 OCT 2026 3:22PM by PIB Delhi The Ministry of Defence has signed contracts worth a total of approximately Rs 4,106 crore for the acquisition of a dedicated communication satellite capability, GSAT-7C for the Indian Air Force, and Varunastra Heavy Weight Torpedoes for the Indian Navy. The contract for GSAT-7C, valu",
+      "source_class": "UNKNOWN",
+      "source_type": "web_page",
+      "warnings": []
+    }
+  ],
+  "dedup_notes": [],
+  "discovered_at": "2026-10-16T13:46:18.079074+00:00",
+  "job_id": "dfe0b173-d9ff-458b-99b6-7b4ad3cccb8e",
+  "language": "en",
+  "providers": [
+    {
+      "candidates_returned": 1,
+      "duration_ms": 969,
+      "filters_applied": [
+        "seed_urls"
+      ],
+      "filters_not_supported": [],
+      "http_attempts": 1,
+      "message": "Fetched 1 seed URL(s); HTTP 200 shows reachability only.",
+      "optional_dependency": false,
+      "provider": "manual_url",
+      "rate_limited": false,
+      "requires_credentials": false,
+      "status": "OK",
+      "truncated": false
+    }
+  ],
+  "requested_limit": 10,
+  "returned": 1,
+  "schema_version": "defence-studio.discovery-result.v2",
+  "status": "COMPLETED",
+  "topic": "today indian defence news",
+  "warnings": []
+}

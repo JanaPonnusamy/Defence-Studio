@@ -6,6 +6,7 @@ from contextlib import closing
 from datetime import datetime, timezone
 
 from defence_studio.database import connect
+from defence_studio.providers.openai_text import api_key_env_source
 
 PROVIDERS = ("openai",)
 
@@ -50,7 +51,7 @@ def status(db, owner_id: str) -> list[dict]:
             "SELECT provider,last4,updated_at FROM provider_credentials WHERE owner_id=?", (owner_id,))}
     out = []
     for p in PROVIDERS:
-        env = bool(os.environ.get("DEFENCE_STUDIO_OPENAI_API_KEY")) if p == "openai" else False
+        env = (api_key_env_source() is not None) if p == "openai" else False
         r = rows.get(p)
         out.append({"provider": p, "configured": bool(r) or env,
                     "source": "owner" if r else ("server_environment" if env else None),

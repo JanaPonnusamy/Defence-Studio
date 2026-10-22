@@ -64,6 +64,33 @@ def test_valid_url_preserves_metadata_and_marks_reachability_only():
     assert c.original_metadata["fetch_status"] == "REACHABLE"
 
 
+def test_pib_article_endpoint_policy_is_narrow_and_keeps_ssrf_guard():
+    from defence_studio.acquisition.source_policy import SourcePolicy
+    policy = SourcePolicy.load()
+    url = "https://www.pib.gov.in/PressReleaseIframePage.aspx?PRID=2323814&lang=2&reg=48"
+    assert UrlGuard(policy=policy, resolver=lambda *_: [PUBLIC]).validate(url).host == "www.pib.gov.in"
+    for bad in (url.replace("www.pib.gov.in", "www.pib.gov.in.evil.example"),
+                url + "&redirect=http://127.0.0.1", url.replace("PRID=2323814", "PRID=bad"),
+                url.replace("https:", "file:")):
+        with pytest.raises(ValueError):
+            UrlGuard(policy=policy, resolver=lambda *_: [PUBLIC]).validate(bad)
+    with pytest.raises(ValueError, match="blocked"):
+        UrlGuard(policy=policy, resolver=lambda *_: [PRIVATE]).validate(url)
+
+
+def test_pib_explicit_visible_date_is_collected_without_inventing_other_dates():
+    from defence_studio.acquisition.source_dates import pib_publication_date
+    url = "https://www.pib.gov.in/PressReleaseIframePage.aspx?PRID=2323814"
+    assert pib_publication_date("<p>Posted On: <b>15 OCT 2026</b> 3:22PM by PIB Delhi</p>", url) == "2026-10-15"
+    assert pib_publication_date("<p>प्रविष्टि तिथि: 15 OCT 2026 3:22PM</p>", url) == "2026-10-15"
+    for html in ("Retrieved on 16 OCT 2026", "Posted On: 32 OCT 2026", "Posted On: 15 OCT 2026 Posted On: 16 OCT 2026",
+                 "<script>Posted On: 15 OCT 2026</script>"):
+        assert pib_publication_date(html, url) is None
+    assert pib_publication_date("Posted On: 15 OCT 2026", "https://example.com/") is None
+    extracted = extract_page(page(date=None, body="Posted On: 15 OCT 2026 " + BODY), url)
+    assert extracted["published_at"] == "2026-10-15"
+
+
 def test_missing_date_and_publisher_are_not_invented():
     p = provider({"https://a.example/x": html(page(site=None, date=None))})
     _, cands = p.discover(ctx(["https://a.example/x"]))

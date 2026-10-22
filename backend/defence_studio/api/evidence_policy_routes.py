@@ -12,7 +12,7 @@ def register_evidence_policy_routes(app: FastAPI, require_owner, policy: Evidenc
     @app.post("/api/jobs/{job_id}/evidence/policy/run")
     def run_policy(job_id: str, owner_id: str = Depends(require_owner)):
         try:
-            return policy.run(job_id, owner_id)
+            return policy.run_assessment(job_id, owner_id)
         except ReviewNotFound as exc:
             raise HTTPException(404, str(exc)) from None
         except ReviewValidationError as exc:

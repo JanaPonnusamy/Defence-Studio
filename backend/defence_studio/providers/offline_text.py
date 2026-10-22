@@ -23,6 +23,7 @@ _CLAIMS_RE = re.compile(r"for any material claim\):\n(\[.*?\n\])\n\nReturn a sin
 class OfflineExtractiveProvider:
     name = "offline-extractive"
     is_paid = False
+    supports_response_schema = False
 
     def generate(self, *, model: str, system_prompt: str, user_prompt: str,
                  max_output_tokens: int = 4096) -> ProviderResult:

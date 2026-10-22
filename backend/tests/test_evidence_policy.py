@@ -153,7 +153,9 @@ def test_policy_dispositions_provenance_and_readiness(tmp_path):
     for c in r["claims"]:
         by_text.setdefault(c["text"], c)          # first occurrence wins; later copies are duplicates
     corroborated = by_text["The S-400 can engage aerial targets at ranges up to 400 km according to the manufacturer."]
-    assert corroborated["state"] == AUTO_ACCEPTED and "quantitative" in corroborated["flags"]
+    # A shared number alone is not contextual corroboration.
+    assert corroborated["state"] == NEEDS_REVIEW
+    assert corroborated["assessment_outcome"] == "NEEDS_MORE_SOURCES"
     assert by_text["The deployment status of the S-400 40N6 missile is unclear."]["state"] == NEEDS_REVIEW
     texts = list(by_text)
     assert not any("Skip to" in t or "facebook" in t for t in texts)                 # boilerplate never a claim

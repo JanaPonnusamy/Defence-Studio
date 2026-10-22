@@ -1,0 +1,10 @@
+{
+  "pid": 22516,
+  "database": "C:\\dstmp\\content-browser-20261016-1705\\ds.sqlite3",
+  "root": "C:\\dstmp\\content-browser-20261016-1705\\store",
+  "job_id": "57350154-967e-4b8f-b150-f040e885f652",
+  "owner": "content-fixture-reviewer",
+  "mode_file": "C:\\dstmp\\content-browser-20261016-1705\\mock-mode.txt",
+  "calls_file": "C:\\dstmp\\content-browser-20261016-1705\\calls.jsonl",
+  "scope": "real Chrome + app HTTP; research transport, review and model are controlled fixtures"
+}

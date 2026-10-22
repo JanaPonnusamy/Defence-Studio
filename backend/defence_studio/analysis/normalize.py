@@ -20,7 +20,6 @@ Design constraints:
 
 from __future__ import annotations
 
-import html
 from html.parser import HTMLParser
 import re
 import unicodedata
@@ -39,7 +38,6 @@ _PLAIN_TYPES = {"text/plain", "text/markdown", "application/json", ""}
 
 _SCRIPT_STYLE = re.compile(r"<(script|style)\b[^>]*>.*?</\1>", re.IGNORECASE | re.DOTALL)
 _TAG = re.compile(r"<[^>]+>")
-_BLOCK_TAG = re.compile(r"</?(p|div|br|li|tr|h[1-6]|section|article)\b[^>]*>", re.IGNORECASE)
 # Tamil Unicode block; used for a conservative script-based language guess.
 _TAMIL = re.compile(r"[஀-௿]")
 _LATIN = re.compile(r"[A-Za-z]")
@@ -103,8 +101,8 @@ def _collapse_whitespace(text: str) -> str:
 # dropped before claim extraction so menus, share bars, cookie banners and
 # accessibility labels are never offered to a reviewer as "claims".
 _CHROME_TAGS = frozenset({
-    "nav", "footer", "aside", "form", "button", "select", "noscript", "svg",
-    "template", "iframe", "dialog", "menu", "head", "title",
+    "nav", "footer", "aside", "button", "select", "textarea", "noscript", "svg",
+    "template", "iframe", "dialog", "menu", "head", "title", "script", "style",
 })
 _CONTENT_ROOTS = frozenset({"article", "main"})
 _BLOCKS = frozenset({"p", "div", "br", "li", "tr", "h1", "h2", "h3", "h4", "h5", "h6",
@@ -129,6 +127,16 @@ class _ContentExtractor(HTMLParser):
         names = dict(attrs)
         if "hidden" in names or (names.get("aria-hidden") or "").lower() == "true":
             return True
+        # Server-rendered sites often wrap the whole article in a form, then
+        # repeat it in an invisible print panel. A form alone is not chrome;
+        # explicit hidden declarations and interactive controls are excluded.
+        styles = {}
+        for declaration in (names.get("style") or "").split(";"):
+            key, separator, value = declaration.partition(":")
+            if separator:
+                styles[key.strip().lower()] = value.split("!")[0].strip().lower()
+        if styles.get("display") == "none" or styles.get("visibility") in {"hidden", "collapse"}:
+            return True
         return False
 
     def handle_starttag(self, tag, attrs):
@@ -139,11 +147,11 @@ class _ContentExtractor(HTMLParser):
         if self._skip:
             self._skip.append(tag)
             return
-        if tag in _CONTENT_ROOTS:
-            self._content_depth += 1
         if self._is_chrome(tag, attrs):
             self._skip.append(tag)
             return
+        if tag in _CONTENT_ROOTS:
+            self._content_depth += 1
         if tag in _BLOCKS:
             self.parts.append("\n")
 
@@ -173,13 +181,10 @@ def normalize_html(raw: str) -> NormalizedText:
         parser.feed(stripped)
         parser.close()
         extracted = "".join(parser.parts)
-    except Exception:  # malformed markup: fall back to the tag-stripping path
-        extracted = ""
-    if not extracted.strip():
-        # Never lose a whole page to a skipped/unclosed container: fall back to
-        # the original conservative behaviour (all tags dropped).
-        stripped = _BLOCK_TAG.sub("\n", stripped)
-        extracted = html.unescape(_TAG.sub(" ", stripped))
+    except Exception as exc:
+        raise NormalizationError("Could not safely extract HTML text") from exc
+    # An empty visible document stays empty. Tag stripping would restore
+    # hidden content and encoded attribute values as apparent source text.
     text = _collapse_whitespace(extracted)
     return NormalizedText(text=text, language=detect_language(text))
 

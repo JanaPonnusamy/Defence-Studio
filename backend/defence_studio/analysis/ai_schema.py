@@ -79,3 +79,25 @@ def validate_ai_payload(payload: object, *, text_length: int) -> list[ValidatedA
     _require(isinstance(payload, list), "AI payload must be a list of claim objects")
     assert isinstance(payload, list)
     return [validate_ai_claim(item, text_length=text_length) for item in payload]
+
+
+def ground_ai_claim(claim: ValidatedAiClaim, source_text: str) -> tuple[ValidatedAiClaim, str]:
+    """Prove an AI-proposed claim is a verbatim span of the real normalized source.
+
+    Returns ``(claim, resolution)`` where resolution is ``"offsets"`` (the stated
+    offsets reproduce the text exactly) or ``"text_search"`` (the offsets were
+    wrong but the text occurs exactly once, so the true offsets were recovered).
+    Raises AiOutputError if the text is absent or ambiguous: a model can select a
+    span, never author one, and an unlocatable "claim" is rejected, not repaired.
+    """
+    start, end = claim.start_offset, claim.end_offset
+    if source_text[start:end] == claim.claim_text:
+        return claim, "offsets"
+    found = source_text.find(claim.claim_text)
+    _require(found >= 0, "claim_text is not present verbatim in the normalized source")
+    _require(source_text.find(claim.claim_text, found + 1) < 0,
+             "claim_text occurs more than once and the stated offsets do not identify which")
+    return ValidatedAiClaim(
+        claim_text=claim.claim_text, start_offset=found, end_offset=found + len(claim.claim_text),
+        qualifiers=claim.qualifiers, has_negation=claim.has_negation,
+    ), "text_search"

@@ -1,0 +1,102 @@
+[
+  {
+    "url": "https://feeds.bbci.co.uk/news/world/rss.xml",
+    "http": 200,
+    "final_url": "https://feeds.bbci.co.uk/news/world/rss.xml",
+    "media_type": "text/xml",
+    "entries": 36,
+    "samples": [
+      {
+        "title": "Zelensky says Ukraine has right to defend itself after Trump criticism",
+        "url": "https://www.bbc.co.uk/news/articles/c58jz174w89ro?at_medium=RSS&at_campaign=rss"
+      },
+      {
+        "title": "'It's really hard to believe' - How Oregon primary school shooting unfolded",
+        "url": "https://www.bbc.co.uk/news/videos/cwe8r29mjd05o?at_medium=RSS&at_campaign=rss"
+      },
+      {
+        "title": "Ship attack reports near Hormuz reach record high as oil exports slow",
+        "url": "https://www.bbc.co.uk/news/articles/cmde8dpg8g0no?at_medium=RSS&at_campaign=rss"
+      },
+      {
+        "title": "China tells Israel to stop 'forced establishment' of West Bank settlements",
+        "url": "https://www.bbc.co.uk/news/articles/cq1j3wdxy48ro?at_medium=RSS&at_campaign=rss"
+      }
+    ]
+  },
+  {
+    "url": "https://www.defensenews.com/arc/outboundfeeds/rss/?outputType=xml",
+    "http": 200,
+    "final_url": "https://www.defensenews.com/arc/outboundfeeds/rss/?outputType=xml",
+    "media_type": "application/xml",
+    "entries": 25,
+    "samples": [
+      {
+        "title": "Team digitally traces Polish Revolutionary War hero\u2019s West Point contributions",
+        "url": "https://www.defensenews.com/industry/techwatch/2026/10/15/team-digitally-traces-polish-revolutionary-war-heros-west-point-contributions/"
+      },
+      {
+        "title": "Recap: Autonomy dominates the US Army\u2019s 2026 conference in Washington",
+        "url": "https://www.defensenews.com/recap/ausa/2026/10/16/recap-autonomy-dominates-the-us-armys-2026-conference-in-washington/"
+      },
+      {
+        "title": "Blood supplies, autonomous systems shape US Army\u2019s Indo-Pacific combat care plans",
+        "url": "https://www.defensenews.com/news/your-military/2026/10/14/blood-supplies-autonomous-systems-shape-us-armys-indo-pacific-combat-care-plans/"
+      },
+      {
+        "title": "What is the US Army doing in Panama? A bit of everything.",
+        "url": "https://www.defensenews.com/news/your-military/2026/10/14/what-is-the-us-army-doing-in-panama-a-bit-of-everything/"
+      }
+    ]
+  },
+  {
+    "url": "https://breakingdefense.com/feed/",
+    "http": 200,
+    "final_url": "https://breakingdefense.com/feed/",
+    "media_type": "application/rss+xml",
+    "entries": 15,
+    "samples": [
+      {
+        "title": "Turkish Aerospace expands Anka 3 production with new line for upgraded drone",
+        "url": "https://breakingdefense.com/2026/10/turkish-aerospace-expands-anka-3-production-with-new-line-for-upgraded-drone/"
+      },
+      {
+        "title": "Latvian official warns Russia \u2018tempted to test\u2019 European readiness, sounds alarm over border issues",
+        "url": "https://breakingdefense.com/2026/10/latvian-official-warns-russia-tempted-to-test-european-readiness-sounds-alarm-over-border-issues/"
+      },
+      {
+        "title": "Army looks to add third CAML system, Lozano says",
+        "url": "https://breakingdefense.com/2026/10/army-looks-to-add-third-caml-system-lozano-says/"
+      },
+      {
+        "title": "Reprogramming robots in the mud: How Army Special Ops trains its new robot technicians",
+        "url": "https://breakingdefense.com/2026/10/reprogramming-robots-in-the-mud-how-army-special-ops-trains-its-new-robot-technicians/"
+      }
+    ]
+  },
+  {
+    "url": "https://www.thehindu.com/news/national/feeder/default.rss",
+    "http": 200,
+    "final_url": "https://www.thehindu.com/news/national/feeder/default.rss",
+    "media_type": "application/xml",
+    "entries": 60,
+    "samples": [
+      {
+        "title": "Kozhikode Corporation re-adopts Central Market demolition resolution",
+        "url": "https://www.thehindu.com/news/national/kerala/kozhikode-corporation-re-adopts-central-market-demolition-resolution/article71592626.ece"
+      },
+      {
+        "title": "Durga Puja 2026: All set for the beat of the dhak",
+        "url": "https://www.thehindu.com/society/history-and-culture/durga-puja-2026-stories-on-pandals-idols-food-festival/article71591166.ece"
+      },
+      {
+        "title": "Don't try to bulldoze Bill again, call all-party meet to discuss delimitation proposals: Kharge to Modi",
+        "url": "https://www.thehindu.com/news/national/dont-try-to-bulldoze-bill-again-call-all-party-meet-to-discuss-delimitation-proposals-kharge-to-modi/article71592086.ece"
+      },
+      {
+        "title": "DGP calls for stronger surveillance and night patrolling as crime cases rise in Malkajgiri Commissionerate limits",
+        "url": "https://www.thehindu.com/news/national/telangana/dgp-calls-for-stronger-surveillance-and-night-patrolling-as-crime-cases-rise-in-malkajgiri-commissionerate-limits/article71588819.ece"
+      }
+    ]
+  }
+]

@@ -1,0 +1,32 @@
+{
+  "job_id": "dfe0b173-d9ff-458b-99b6-7b4ad3cccb8e",
+  "topic": "today indian defence news",
+  "language": "en",
+  "discovered_at": "2026-10-16T13:48:12.146062+00:00",
+  "candidates": [],
+  "providers": [
+    {
+      "provider": "rss_feed",
+      "status": "COMPLETED_NO_RESULTS",
+      "message": "Feeds were read successfully but no entry matched the topic/search terms.",
+      "candidates_returned": 0,
+      "requires_credentials": false,
+      "optional_dependency": false,
+      "duration_ms": 1969,
+      "http_attempts": 4,
+      "rate_limited": false,
+      "filters_applied": [
+        "language",
+        "topic"
+      ],
+      "filters_not_supported": [],
+      "truncated": false
+    }
+  ],
+  "requested_limit": 10,
+  "returned": 0,
+  "status": "COMPLETED_NO_RESULTS",
+  "dedup_notes": [],
+  "warnings": [],
+  "schema_version": "defence-studio.discovery-result.v2"
+}

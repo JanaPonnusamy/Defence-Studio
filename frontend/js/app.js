@@ -1,7 +1,7 @@
 import { createApiClient, ApiError, newIdempotencyKey } from "./api.js";
 import { escapeHtml } from "./components/status-badge.js";
 import { icon } from "./components/icons.js";
-import { mountEvidence } from "./views/evidence-view.js";
+import { mountEvidence } from "./views/evidence-view.js?v=0e46136aa7bb";
 import { mountScript } from "./views/script-view.js";
 import { mountInspector } from "./views/inspector-view.js";
 import { mountScene } from "./views/scene-view.js";
@@ -12,8 +12,8 @@ import { mountResearch } from "./views/research-view.js";
 import { loadSession, saveToken, saveJobId } from "./state.js";
 import { textFieldHtml } from "./components/text-field.js";
 import { showToast } from "./components/toast.js";
-import { renderSourcesList, renderSourceDetail } from "./views/sources-view.js";
-import { renderClaimsList, renderClaimDetail } from "./views/claims-view.js";
+import { renderSourcesList, renderSourceDetail } from "./views/sources-view.js?v=727c0b1a462e";
+import { renderClaimsList, renderClaimDetail } from "./views/claims-view.js?v=dd30e41eef6b";
 import { renderDecisionPanelHtml, wireDecisionPanel, renderHistoryHtml } from "./views/decision-panel.js";
 import { renderDashboardHtml } from "./views/dashboard-view.js";
 import { renderLoginHtml } from "./views/login-view.js";
@@ -47,7 +47,7 @@ const state = {
   selectedCandidateIds: new Set(),
 };
 
-const api = createApiClient(() => state.token);
+const api = createApiClient(() => state.token, sessionRejected);
 
 const el = {
   shell: document.querySelector(".app-shell"),
@@ -128,6 +128,15 @@ function completeLogin(token) {
   hideLogin();
   renderSessionControl();
   bootWorkspace();
+}
+
+function sessionRejected() {
+  state.token = "";
+  saveToken("");
+  // Keep the job selection and route so normal sign-in resumes this workspace.
+  renderSessionControl();
+  showLogin();
+  showLoginError("Your session expired or was rejected. Please sign in again.");
 }
 
 function signOut() {
@@ -825,13 +834,13 @@ function dispatchTab() {
     if (!requireJob()) return;
     const jobId = state.jobId;
     mountEvidence({api, jobId, list:el.list, detail:el.detail, filters:el.filters,
-      isCurrent:() => state.tab === "evidence" && state.jobId === jobId});
+      isCurrent:() => !!state.token && state.tab === "evidence" && state.jobId === jobId});
   }
   else if (state.tab === "script") {
     if (!requireJob()) return;
     const jobId = state.jobId;
     mountScript({api, jobId, list:el.list, detail:el.detail, filters:el.filters,
-      isCurrent:() => state.tab === "script" && state.jobId === jobId});
+      isCurrent:() => !!state.token && state.tab === "script" && state.jobId === jobId});
   }
   else if (state.tab === "inspector") {
     if (!requireJob()) return;
@@ -861,7 +870,7 @@ function dispatchTab() {
     const jobId = state.jobId;
     mountResearch({api, jobId, list:el.list, detail:el.detail, filters:el.filters,
       onStarted:(id) => { selectJob(id, "research"); route(); },
-      isCurrent:() => state.tab === "research" && state.jobId === jobId});
+      isCurrent:() => !!state.token && state.tab === "research" && state.jobId === jobId});
   }
   else if (state.tab === "voice") {
     // Voice engines are job-independent: they do not need a selected research job.

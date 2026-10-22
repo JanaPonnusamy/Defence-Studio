@@ -1,0 +1,98 @@
+{
+  "outcome": {
+    "provider": "manual_url",
+    "status": "OK",
+    "message": "Fetched 3 seed URL(s); HTTP 200 shows reachability only.",
+    "candidates_returned": 3,
+    "requires_credentials": false,
+    "optional_dependency": false,
+    "duration_ms": 2438,
+    "http_attempts": 3,
+    "rate_limited": false,
+    "filters_applied": [
+      "seed_urls"
+    ],
+    "filters_not_supported": [],
+    "truncated": false
+  },
+  "candidates": [
+    {
+      "requested_url": "https://www.pib.gov.in/PressReleaseIframePage.aspx?PRID=2323814&lang=2&reg=48",
+      "title": "MoD inks Rs 4,106 crore contracts for GSAT-7C communication satellite and Varunastra Heavy Weight Torpedoes",
+      "publisher": "www.pib.gov.in",
+      "published_at": "2026-10-15",
+      "language": "en",
+      "source_type": "web_page",
+      "original_metadata": {
+        "seed_url": "https://www.pib.gov.in/PressReleaseIframePage.aspx?PRID=2323814&lang=2&reg=48",
+        "final_url": "https://www.pib.gov.in/PressReleaseIframePage.aspx?PRID=2323814&lang=2&reg=48",
+        "http_status": 200,
+        "media_type": "text/html",
+        "fetch_status": "REACHABLE",
+        "reachability_only": true,
+        "text_sha256": "1ff54080c2be960d7c7eb59b19b0ceef4bdbadd24776150e35bc8a079598c524",
+        "text_chars": 3419,
+        "declared_canonical_url": null,
+        "publisher_declared": false
+      },
+      "snippet": "Press Release:Press Information Bureau Ministry of Defence MoD inks Rs 4,106 crore contracts for GSAT-7C communication satellite and Varunastra Heavy Weight Torpedoes \u092a\u094d\u0930\u0935\u093f\u0937\u094d\u091f\u093f \u0924\u093f\u0925\u093f: 15 OCT 2026 3:22PM by PIB Delhi The Ministry of Defence has signed contracts worth a total of approximately Rs 4,106 crore for the acquisition of a dedicated communication satellite capability, GSAT-7C for the Indian Air Force, and Varunastra Heavy Weight Torpedoes for the Indian Navy. The contract for GSAT-7C, valu",
+      "feed_category": null,
+      "feed_source_class": null,
+      "feed_region": null,
+      "provider_tag": "manual",
+      "provider_rank": null
+    },
+    {
+      "requested_url": "https://www.pib.gov.in/PressReleasePage.aspx?PRID=2324581&lang=1&reg=3",
+      "title": "INDIAN NAVY COMMISSIONS INS SAMARTHAK, THE FIRST INDIGENOUS MULTI-PURPOSE VESSEL",
+      "publisher": "www.pib.gov.in",
+      "published_at": "2026-10-16",
+      "language": "en",
+      "source_type": "web_page",
+      "original_metadata": {
+        "seed_url": "https://www.pib.gov.in/PressReleasePage.aspx?PRID=2324581&lang=1&reg=3",
+        "final_url": "https://www.pib.gov.in/PressReleasePage.aspx?PRID=2324581&lang=1&reg=3",
+        "http_status": 200,
+        "media_type": "text/html",
+        "fetch_status": "REACHABLE",
+        "reachability_only": true,
+        "text_sha256": "2e3824142642ceffff74ea6cfc6515488379cfbd1ce8d3caa832301d816f4668",
+        "text_chars": 6435,
+        "declared_canonical_url": null,
+        "publisher_declared": false
+      },
+      "snippet": "Press Release Page | Press Information Bureau Ministry of Defence INDIAN NAVY COMMISSIONS INS SAMARTHAK, THE FIRST INDIGENOUS MULTI-PURPOSE VESSEL Posted On: 16 OCT 2026 9:09PM by PIB Delhi Indian Naval Ship Samarthak, the first of class Multi-Purpose Vessels (MPVs) , was commissioned into the Indian Navy on 16 Oct 2026 . The ceremony was presided over by the Hon\u2019ble Vice President of India, Shri Chandrapuram Ponnusamy Radhakrishnan , in the presence of Adm Krishna Swaminathan, Chief of the Nava",
+      "feed_category": null,
+      "feed_source_class": null,
+      "feed_region": null,
+      "provider_tag": "manual",
+      "provider_rank": null
+    },
+    {
+      "requested_url": "https://www.pib.gov.in/PressReleasePage.aspx?PRID=2324319&lang=1&reg=3",
+      "title": "Vice-President Shri C. P. Radhakrishnan Commissions Indian Navy\u2019s First Indigenous Multi-Purpose Vessel INS Samarthak at Karwar",
+      "publisher": "www.pib.gov.in",
+      "published_at": "2026-10-16",
+      "language": "en",
+      "source_type": "web_page",
+      "original_metadata": {
+        "seed_url": "https://www.pib.gov.in/PressReleasePage.aspx?PRID=2324319&lang=1&reg=3",
+        "final_url": "https://www.pib.gov.in/PressReleasePage.aspx?PRID=2324319&lang=1&reg=3",
+        "http_status": 200,
+        "media_type": "text/html",
+        "fetch_status": "REACHABLE",
+        "reachability_only": true,
+        "text_sha256": "6d5ffd75a3300774b676fbf36064b8152403d0852bd79222b260e2f19c08d1f6",
+        "text_chars": 9497,
+        "declared_canonical_url": null,
+        "publisher_declared": false
+      },
+      "snippet": "Press Release Page | Press Information Bureau Vice President's Secretariat Vice-President Shri C. P. Radhakrishnan Commissions Indian Navy\u2019s First Indigenous Multi-Purpose Vessel INS Samarthak at Karwar INS Samarthak, with over 75 per cent indigenous content, reflects India\u2019s growing self-reliance in defence manufacturing: Vice-President \u201cIndian Navy Stands Ever-Vigilant and Combat-Ready to Safeguard India\u2019s Maritime Interests\u201d: Vice-President \u201cINS Samarthak Reflects the Growing Role of India\u2019s ",
+      "feed_category": null,
+      "feed_source_class": null,
+      "feed_region": null,
+      "provider_tag": "manual",
+      "provider_rank": null
+    }
+  ]
+}

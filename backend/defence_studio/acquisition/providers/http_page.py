@@ -134,6 +134,9 @@ class HttpPageProvider(AcquisitionProvider):
             parser.feed(body.decode("utf-8", errors="replace"))
         except Exception:  # noqa: BLE001 - a malformed head must not fail acquisition
             parser = _HeadMetadata()
+        if not parser.published_at:
+            from defence_studio.acquisition.source_dates import pib_publication_date
+            parser.published_at = pib_publication_date(body.decode("utf-8", errors="replace"), context.validated_url.url)
         return DeclaredMetadata(
             title=parser.title or None,
             title_status=MetadataStatus.COLLECTED if parser.title else MetadataStatus.UNAVAILABLE,

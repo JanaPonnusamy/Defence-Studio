@@ -270,6 +270,83 @@ class DiscoveryApiService:
             runs.append(entry)
         return {"searches": runs, "count": len(runs)}
 
+    def retry_empty(self, job_id: str, owner_id: str, key: str, payload: dict) -> dict:
+        """Retry an empty research run in place, retaining all prior artifacts and history.
+
+        This deliberately excludes runs containing sources, reviews or downstream work.
+        The write lock fences the consumer and concurrent retry requests.
+        """
+        if not key or len(key) > 200:
+            raise DiscoveryValidationError("A retry Idempotency-Key of 1-200 characters is required")
+        try:
+            request = request_to_dict(request_from_dict(payload, job_id=job_id))
+        except RequestValidationError as exc:
+            raise DiscoveryValidationError(str(exc)) from None
+        body = json.dumps({"key": key, "request": request}, sort_keys=True).encode()
+        digest = hashlib.sha256(body).hexdigest()
+        key_digest = hashlib.sha256(key.encode()).hexdigest()
+        retry_uri = f"jobs/{job_id}/research/retries/{key_digest}.json"
+        with closing(connect(self.jobs.database_file)) as connection:
+            connection.execute("BEGIN IMMEDIATE")
+            repo = JobRepository(connection)
+            row = repo.get_owned_job(job_id, owner_id)
+            if row is None:
+                raise DiscoveryNotFound("Workflow job not found")
+            job = self.jobs._serialize(repo, row)
+            replay = next((a for a in job["artifacts"] if a["uri"] == retry_uri), None)
+            if replay:
+                if replay["sha256"] != digest:
+                    raise DiscoveryConflict("Retry key was already used with a different request")
+                return {"job_id": job_id, "status": job["status"], "replayed": True}
+            if request["topic"] != job["topic"] or request["language"] != job["language"]:
+                raise DiscoveryConflict("Retry must retain this job's topic and language")
+            stages = sorted(job["stages"], key=lambda s: s["ordinal"])
+            if (job["status"] != "AWAITING_REVIEW" or
+                    [s["status"] for s in stages[:5]] != ["COMPLETED"] * 4 + ["AWAITING_REVIEW"] or
+                    any(s["status"] != "PENDING" for s in stages[5:])):
+                raise DiscoveryConflict("Only an empty research run at the first review boundary can be retried")
+            if connection.execute("SELECT 1 FROM worker_claims WHERE job_id=? AND status='ACTIVE'", (job_id,)).fetchone():
+                raise DiscoveryConflict("Research is still claimed")
+            allowed = {"discovery_request", "discovery_result", "acquisition_manifest", "analysis_result", "research_retry"}
+            if any(a["artifact_type"] not in allowed for a in job["artifacts"]):
+                raise DiscoveryConflict("Existing selection, approval or downstream artifacts prevent empty retry")
+            for table in ("claim_reviews", "source_reviews", "claim_review_history", "source_review_history",
+                          "verification_runs", "evidence_packages"):
+                if connection.execute(f"SELECT 1 FROM {table} WHERE job_id=? LIMIT 1", (job_id,)).fetchone():
+                    raise DiscoveryConflict("Existing evidence reviews prevent empty retry")
+            if connection.execute("SELECT 1 FROM verification_packages WHERE subject_job_id=? LIMIT 1", (job_id,)).fetchone():
+                raise DiscoveryConflict("Existing verification packages prevent empty retry")
+            for artifact in job["artifacts"]:
+                kind = artifact["artifact_type"]
+                if kind not in {"discovery_result", "acquisition_manifest", "analysis_result"}:
+                    continue
+                data = self._read_json(job_id, artifact)
+                nonempty = (data.get("candidates") if kind == "discovery_result" else
+                            data.get("sources") if kind == "acquisition_manifest" else
+                            data.get("normalized_sources") or data.get("claims") or data.get("sources_total"))
+                if nonempty:
+                    raise DiscoveryConflict("Research already contains evidence; empty retry is not permitted")
+            if any(s["attempt_count"] >= s["max_attempts"] for s in stages[1:4]):
+                raise DiscoveryConflict("Research attempt limit reached")
+            now = datetime.now(timezone.utc).isoformat(timespec="microseconds")
+            req_bytes = json.dumps(request, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode()
+            req_sha = hashlib.sha256(req_bytes).hexdigest()
+            for kind, uri, content, schema in (
+                ("research_retry", retry_uri, body, "defence-studio.research-retry.v1"),
+                ("discovery_request", f"jobs/{job_id}/discovery/{req_sha}.json", req_bytes, DISCOVERY_REQUEST_SCHEMA),
+            ):
+                stored = self.store.write_bytes(job_id, uri, content, "application/json")
+                version = connection.execute("SELECT COALESCE(MAX(version),0)+1 FROM workflow_artifacts WHERE job_id=? AND artifact_type=?", (job_id, kind)).fetchone()[0]
+                connection.execute("INSERT INTO workflow_artifacts(artifact_id,job_id,stage_key,artifact_type,version,uri,sha256,schema_version,created_at) VALUES(?,?,?,?,?,?,?,?,?)",
+                                   (str(uuid.uuid4()), job_id, DISCOVERY_PREDECESSOR_STAGE, kind, version, stored.uri, stored.sha256, schema, now))
+            for stage in stages[1:5]:
+                connection.execute("UPDATE workflow_stages SET status='PENDING',version=version+1,updated_at=?,error='',retry_after=NULL WHERE job_id=? AND stage_key=?", (now, job_id, stage["stage_key"]))
+                connection.execute("INSERT INTO workflow_transitions(job_id,stage_key,from_status,to_status,stage_version,occurred_at,error) SELECT job_id,stage_key,?,'PENDING',version,?,? FROM workflow_stages WHERE job_id=? AND stage_key=?",
+                                   (stage["status"], now, "Owner requested retry of empty research; prior evidence retained", job_id, stage["stage_key"]))
+            connection.execute("UPDATE workflow_jobs SET status='QUEUED',queued_at=?,updated_at=? WHERE job_id=?", (now, now, job_id))
+            connection.commit()
+        return {"job_id": job_id, "status": "QUEUED", "replayed": False}
+
     def rerun(self, job_id: str, owner_id: str, idempotency_key: str | None = None) -> dict:
         """Create a NEW job + identical request from a past run (history is
         immutable). The caller still queues the job explicitly."""

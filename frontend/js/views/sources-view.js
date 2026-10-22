@@ -1,3 +1,4 @@
+import { renderAssessmentHtml } from "./assessment-panel.js?v=d0a35943cca5";
 import { escapeHtml, statusBadgeHtml } from "../components/status-badge.js";
 
 function safeLink(url) {
@@ -35,7 +36,7 @@ export function renderSourcesList(sources, selectedId, emptyMessage) {
           &middot; ${escapeHtml(source.declared_metadata?.language || "language unknown")}</p>
         <div class="chip-row">
           ${statusBadgeHtml(source.status)}
-          ${statusBadgeHtml(source.review_status, { stale: source.is_stale })}
+          ${source.assessment ? `<span class="badge">${escapeHtml(source.assessment.outcome)}</span>` : statusBadgeHtml(source.review_status, { stale: source.is_stale })}
         </div>
       </div>`;
   }).join("");
@@ -87,8 +88,9 @@ export function renderSourceDetail(source) {
     <div style="margin-top:0.6rem;">
       <button type="button" data-action="view-claims">View claims from this source</button>
     </div>
-    <h4>Review decision</h4>
+    ${renderAssessmentHtml(source.assessment)}
+    <details><summary>Human exception review</summary><h4>Review decision</h4>
     <div id="decision-panel-mount"></div>
     <h4>History</h4>
-    <div id="history-mount"></div>`;
+    <div id="history-mount"></div></details>`;
 }

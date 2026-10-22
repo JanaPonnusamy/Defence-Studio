@@ -2,10 +2,12 @@
 import csv
 import io
 import json
+from contextlib import closing
 
 import pytest
 
 from defence_studio.api.app import create_app
+from defence_studio.database import connect
 from defence_studio.services.research_monitor import ResearchMonitorService, display_state
 from defence_studio.services.review import ReviewNotFound
 from test_evidence_policy import OWNER, make_job, policy_service
@@ -45,10 +47,25 @@ def test_stage_timing_and_unmeasured_progress_are_not_fabricated(ran):
 
 
 def test_estimate_without_history_is_labelled_default_low_confidence(ran):
-    mon, job, *_ = ran
+    mon, job, db, _ = ran
+    # The assessed fixture is paused; estimates apply only while work runs.
+    with closing(connect(db)) as c:
+        c.execute("UPDATE workflow_jobs SET status='RUNNING' WHERE job_id=?", (job,))
+        c.commit()
     est = mon.monitor(job, OWNER)["estimate"]
     assert est["basis"] in ("default", "complete") and est["confidence"] in ("low", "n/a")
     assert est["samples"] == 0
+
+
+@pytest.mark.parametrize("status", ["AWAITING_REVIEW", "PAUSED"])
+def test_waiting_for_review_or_action_has_no_completion_estimate(ran, status):
+    mon, job, db, _ = ran
+    with closing(connect(db)) as c:
+        c.execute("UPDATE workflow_jobs SET status=? WHERE job_id=?", (status, job))
+        c.commit()
+    est = mon.monitor(job, OWNER)["estimate"]
+    assert est["remaining_seconds"] is None
+    assert est["basis"] == status.lower()
 
 
 def test_controls_do_not_claim_unimplemented_operations(ran):

@@ -45,10 +45,10 @@ def test_record_matches_actual_wire_request_and_hides_secrets(approved):
     assert rec["request"]["wire_body"] == sent[0]                      # exactly what the client sent
     assert rec["request"]["structure"]["wire_messages_match_client_input"] is True
     assert rec["request"]["structure"]["evidence_references"]["claim_ids"] == [s["claim_id"]]
-    assert rec["outcome"] == "AWAITING_REVIEW" and rec["script_accepted"] is True
+    assert rec["outcome"] == "APPROVED" and rec["script_accepted"] is True
     assert rec["raw_response"]["http"]["provider_request_id"] == "req_abc"
     assert rec["raw_response"]["usage"]["input_tokens"] == 400
-    assert rec["clean_output"]["status_label"] == "ACCEPTED_FOR_REVIEW"
+    assert rec["clean_output"]["status_label"] == "AUTO_APPROVED"
     assert "authorization" in {k.lower() for k in sent[1]}              # sent on the wire...
     assert KEY not in json.dumps(rec) and "Bearer" not in json.dumps(rec)  # ...never stored
 
@@ -203,3 +203,78 @@ def test_success_is_exactly_one_request(approved):
         transport=httpx.MockTransport(responder), **k))
     ScriptService(s["db"], s["root"], provider=prov).generate(s["job"], OWNER, GOOD_CONFIG, "one-req")
     assert len(p_calls) == 1
+    assert prov.last_exchange["output_constraint"]["mode"] == "json_schema"
+    assert prov.last_exchange["output_constraint"]["strict"] is True
+
+
+def _completion(content, refusal=None):
+    message = {"content": content}
+    if refusal is not None:
+        message["refusal"] = refusal
+    return {"choices": [{"message": message, "finish_reason": "stop"}],
+            "usage": {"prompt_tokens": 3, "completion_tokens": 2}}
+
+
+def _provider(responder):
+    return OpenAiTextProvider(api_key=KEY, max_retries=0, client_factory=lambda **kw: httpx.Client(
+        transport=httpx.MockTransport(responder), **kw))
+
+
+def test_configured_model_sends_strict_json_schema_once():
+    from defence_studio.services.script_prompt import DRAFT_SCHEMA_NAME, draft_response_schema
+    sent = []
+
+    def responder(request):
+        sent.append(json.loads(request.content))
+        return httpx.Response(200, json=_completion(json.dumps({"title": "T"})))
+
+    schema = draft_response_schema()
+    _provider(responder).generate(
+        model="gpt-4o-mini", system_prompt="s", user_prompt="u",
+        response_schema=schema, response_schema_name=DRAFT_SCHEMA_NAME)
+    fmt = sent[0]["response_format"]
+    assert fmt["type"] == "json_schema" and fmt["json_schema"]["strict"] is True
+    assert fmt["json_schema"]["name"] == DRAFT_SCHEMA_NAME
+    assert fmt["json_schema"]["schema"] == schema
+    assert len(sent) == 1
+
+
+def test_unknown_model_is_parse_and_validate_not_structured_output():
+    from defence_studio.services.script import load_provider_json
+    from defence_studio.services.script_prompt import draft_response_schema
+    sent = []
+
+    def responder(request):
+        sent.append(json.loads(request.content))
+        return httpx.Response(200, json=_completion('```json\n{"title": "T"}\n```'))
+
+    provider = _provider(responder)
+    result = provider.generate(
+        model="priced-other", system_prompt="s", user_prompt="u", response_schema=draft_response_schema())
+    assert "response_format" not in sent[0]
+    assert provider.last_exchange["output_constraint"]["mode"] == "parse_and_validate"
+    assert provider.last_exchange["output_constraint"]["strict"] is False
+    parsed = load_provider_json(result.text, provider.last_exchange)
+    assert parsed == {"title": "T"}
+    assert provider.last_exchange["output_constraint"]["parse"] == "markdown_fence_fallback"
+
+
+def test_strict_mode_does_not_strip_markdown_fences():
+    from defence_studio.services.script import load_provider_json
+    exchange = {"output_constraint": {"mode": "json_schema", "strict": True}}
+    with pytest.raises(json.JSONDecodeError):
+        load_provider_json('```json\n{"title": "T"}\n```', exchange)
+    assert exchange["output_constraint"]["strict"] is True
+
+
+def test_provider_refusal_is_not_a_completion(approved):
+    s = approved
+
+    def responder(request):
+        return httpx.Response(200, json=_completion(None, refusal="I can't help with that."))
+
+    provider = _provider(responder)
+    service = ScriptService(s["db"], s["root"], provider=provider)
+    with pytest.raises(ScriptGenerationFailed, match="refused"):
+        service.generate(s["job"], OWNER, GOOD_CONFIG, "refuse-1")
+    assert service.list_revisions(s["job"], OWNER)["revisions"] == []

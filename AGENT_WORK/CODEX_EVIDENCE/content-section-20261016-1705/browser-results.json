@@ -1,0 +1,40 @@
+{
+  "scope": "real Chrome + app HTTP; research transport, review and model are controlled fixtures",
+  "results": [
+    {
+      "id": "draft-opened-automatically",
+      "ok": true,
+      "note": "actual saved narration shown"
+    },
+    {
+      "id": "double-submit-one-provider-call",
+      "ok": true,
+      "note": 1
+    },
+    {
+      "id": "refresh-retrieves-draft",
+      "ok": true,
+      "note": "saved revision reopened"
+    },
+    {
+      "id": "invalid-not-success",
+      "ok": true,
+      "note": "Generation failed validation (version 2, VALIDATION_FAILED). Saved for inspection; this is not an accepted draft."
+    },
+    {
+      "id": "empty-not-success",
+      "ok": true,
+      "note": "Provider returned malformed JSON: Expecting value: line 1 column 1 (char 0)"
+    },
+    {
+      "id": "error-not-success",
+      "ok": true,
+      "note": "Provider call failed (test_unavailable): Mock content provider unavailable"
+    },
+    {
+      "id": "no-browser-exceptions",
+      "ok": true,
+      "note": "[]"
+    }
+  ]
+}

@@ -9,6 +9,8 @@ approval time, not just at generation time).
 
 Tamil and English are independent lineages: `(job_id, language, version)` is
 the revision identity, and approving one language never approves the other.
+New valid drafts are approved automatically, with validator provenance and a
+freshness recheck in the same transaction as revision persistence.
 
 The OpenAI provider is called only from `generate()`, which is an explicit,
 authorized action -- never from `get_status`/`list_revisions`/any read path.
@@ -16,7 +18,9 @@ authorized action -- never from `get_status`/`list_revisions`/any read path.
 from __future__ import annotations
 
 import hashlib
+import inspect
 import json
+import re
 import uuid
 from contextlib import closing
 from datetime import datetime, timezone
@@ -31,7 +35,9 @@ from defence_studio.providers.openai_text import ProviderError
 from defence_studio.services.evidence import EvidenceService
 from defence_studio.services.review import ReviewError, ReviewNotFound, ReviewValidationError, StaleRevision
 from defence_studio.services import script_inspection
-from defence_studio.services.script_prompt import system_prompt, user_prompt
+from defence_studio.services.script_prompt import (
+    DRAFT_SCHEMA_NAME, draft_response_schema, system_prompt, user_prompt,
+)
 from defence_studio.services.script_validation import validate_revision_body
 from defence_studio.services.factcheck import FactcheckError, factcheck_staleness, script_gate
 from defence_studio.services.script_integrity import (
@@ -63,13 +69,50 @@ def _now() -> str:
     return datetime.now(timezone.utc).isoformat(timespec="microseconds")
 
 
+_FENCED_JSON = re.compile(r"```(?:json)?\s*(\{.*\})\s*```", re.DOTALL)
+
+
+def load_provider_json(text: str, exchange: dict | None):
+    """Parse provider text.
+
+    Strict json_schema responses are parsed directly. A markdown fence is
+    accepted only for the unconstrained parse-and-validate path, and that
+    fallback is recorded on the exchange so it is not reported as structured
+    output.
+    """
+    try:
+        value = json.loads(text)
+    except json.JSONDecodeError as first:
+        mode = ((exchange or {}).get("output_constraint") or {}).get("mode")
+        if mode == "json_schema":
+            raise
+        match = _FENCED_JSON.search(text or "")
+        if match is None:
+            raise
+        try:
+            value = json.loads(match.group(1))
+        except json.JSONDecodeError:
+            raise first
+        if isinstance(exchange, dict):
+            constraint = exchange.setdefault("output_constraint", {})
+            constraint["mode"] = "parse_and_validate"
+            constraint["strict"] = False
+            constraint["parse"] = "markdown_fence_fallback"
+        return value
+    if isinstance(exchange, dict) and isinstance(exchange.get("output_constraint"), dict):
+        if not exchange["output_constraint"].get("parse"):
+            exchange["output_constraint"]["parse"] = "direct"
+    return value
+
+
 class ScriptService(EvidenceService):
     """Extends `EvidenceService` to reuse its ownership checks, artifact store,
     and package assembly rather than re-implementing them."""
 
-    def __init__(self, database_file, storage_root, *, provider=None):
+    def __init__(self, database_file, storage_root, *, provider=None, auto_approve=True):
         super().__init__(database_file, storage_root)
         self._provider = provider  # injected for tests; real provider built lazily otherwise
+        self.auto_approve = auto_approve
 
     def _resolve_provider(self, owner_id: str | None = None):
         if self._provider is not None:
@@ -106,7 +149,8 @@ class ScriptService(EvidenceService):
                 query += " AND language=?"
                 params.append(language)
             rows = [dict(r) for r in connection.execute(query + " ORDER BY language, version", params)]
-        return {"job_id": job_id, "revisions": rows}
+        return {"job_id": job_id, "revisions": rows,
+                "approval_mode": "AUTOMATIC" if self.auto_approve else "MANUAL"}
 
     def get_revision(self, job_id: str, owner_id: str, language: str, version: int) -> dict:
         self._check_ownership(job_id, owner_id)
@@ -156,13 +200,15 @@ class ScriptService(EvidenceService):
 
     def generate(self, job_id: str, owner_id: str, config: dict, idempotency_key: str) -> dict:
         """Explicit, authorized generation action. Fails closed on a stale,
-        unapproved, or invalid package; never implicitly approves anything."""
+        unapproved, or invalid package. Valid drafts receive an audited automatic
+        approval in the same transaction that persists the revision."""
         parsed_config = GenerationConfigV1.model_validate(config)
         idempotency_key = self._validate_idempotency_key(idempotency_key)
         cleared = None
         factcheck_binding = None
         with closing(connect(self.database_file)) as connection:
             connection.execute("BEGIN IMMEDIATE")
+            self._check_ownership_locked(connection, job_id, owner_id)
             # Idempotent replay: a duplicate request never creates a second revision.
             replay = connection.execute(
                 "SELECT * FROM script_revisions WHERE job_id=? AND language=? AND idempotency_key=?",
@@ -218,7 +264,7 @@ class ScriptService(EvidenceService):
                     job_id=job_id, language=parsed_config.language, request_sha256=request_sha,
                     package_sha256=package_sha, outcome=outcome, detail=detail, model=parsed_config.model,
                     provider_name=getattr(provider, "name", "openai"),
-                    max_output_tokens=((exchange or {}).get("request_body") or {}).get("max_tokens"),
+                    max_output_tokens=((exchange or {}).get("request_body") or {}).get("max_completion_tokens", ((exchange or {}).get("request_body") or {}).get("max_tokens")),
                     system_text=system_text, user_text=prompt_text, claims=eligible_claims, budget=budget_policy,
                     exchange=exchange, result=state["result"], validation=validation,
                     schema_errors=schema_errors, revision_version=version, provider_calls=state["calls"],
@@ -234,11 +280,15 @@ class ScriptService(EvidenceService):
             raise
         try:
             state["calls"] = 1  # exactly one bounded call; validation failures are never retried here
-            result = provider.generate(
-                model=parsed_config.model,
-                system_prompt=system_text,
-                user_prompt=prompt_text,
-            )
+            call = {
+                "model": parsed_config.model,
+                "system_prompt": system_text,
+                "user_prompt": prompt_text,
+            }
+            if "response_schema" in inspect.signature(provider.generate).parameters:
+                call["response_schema"] = draft_response_schema()
+                call["response_schema_name"] = DRAFT_SCHEMA_NAME
+            result = provider.generate(**call)
             state["result"] = result
         except ProviderError as exc:
             # Provider failures never corrupt job/review state: nothing was
@@ -248,7 +298,7 @@ class ScriptService(EvidenceService):
             raise ScriptGenerationFailed(f"Provider call failed ({exc.code}): {exc.message}") from exc
 
         try:
-            parsed_body = json.loads(result.text)
+            parsed_body = load_provider_json(result.text, getattr(provider, "last_exchange", None))
         except json.JSONDecodeError as exc:
             record("MALFORMED_JSON", str(exc))
             raise ScriptGenerationFailed(f"Provider returned malformed JSON: {exc}") from exc
@@ -306,8 +356,6 @@ class ScriptService(EvidenceService):
                 f"Provider output does not match the script schema ({exc.error_count()} problem(s)): "
                 f"{'; '.join(str(e['loc']) for e in exc.errors()[:5])}") from exc
 
-        record(canonical_body["status"], None, validation=validation, version=next_version)
-
         data = canonical(canonical_body)
         sha = hashlib.sha256(data).hexdigest()
         revision_sha = sha
@@ -346,11 +394,157 @@ class ScriptService(EvidenceService):
                 (job_id, parsed_config.language, version, revision_sha, uri, sha, package_sha, request_sha,
                  canonical_body["status"], owner_id, now, idempotency_key),
             )
-            connection.commit()
-            return self._materialize(job_id, dict(connection.execute(
+            if self.auto_approve and validation["passed"]:
+                try:
+                    self._approve_locked(connection, job_id, owner_id, parsed_config.language, version,
+                        revision_sha, "Passed script validation and current evidence checks.",
+                        f"auto-approve-{revision_sha}", automated=True)
+                except ScriptStaleRevision as exc:
+                    connection.rollback()
+                    record("STALE_EVIDENCE", str(exc), validation=validation, version=version)
+                    raise
+            saved = self._materialize(job_id, dict(connection.execute(
                 "SELECT * FROM script_revisions WHERE job_id=? AND language=? AND version=?",
                 (job_id, parsed_config.language, version),
             ).fetchone()))
+            connection.commit()
+        record(saved["status"], None, validation=validation, version=version)
+        return saved
+
+    # -- AI-assisted claim selection over normalized sources -------------------
+
+    def extract_claims_ai(self, job_id: str, owner_id: str, *, model: str, max_cost_inr: float,
+                          max_sources: int = 5, max_chars_per_source: int = 12000,
+                          max_claims_per_source: int = 15) -> dict:
+        """Explicit, paid action: send each source's real normalized text to the text
+        provider and keep only the verbatim spans it selects (see
+        `analysis/ai_extraction.py`). Reads the job's latest `analysis_result`; writes
+        a separate `ai_claim_extraction` artifact. It never touches the analysis
+        result, claim reviews, package approval or any script revision."""
+        from defence_studio.analysis import ai_extraction as ax
+        from defence_studio.analysis.ai_schema import AiOutputError
+        from defence_studio.contracts.analysis import ANALYSIS_RESULT_ARTIFACT, AnalysisLimits
+        from defence_studio.providers.openai_text import estimate_cost_inr
+
+        if not (0 < max_cost_inr <= 1000) or not (1 <= max_sources <= 10) \
+                or not (1000 <= max_chars_per_source <= 40000) or not (1 <= max_claims_per_source <= 40):
+            raise ScriptValidationError("AI extraction bounds are out of range")
+        self._check_ownership(job_id, owner_id)
+        with closing(connect(self.database_file)) as connection:
+            ref = self._latest_artifact(connection, job_id, ANALYSIS_RESULT_ARTIFACT)
+            topic = (connection.execute("SELECT topic FROM workflow_jobs WHERE job_id=?", (job_id,)).fetchone() or {"topic": ""})["topic"]
+        if ref is None:
+            raise ScriptStaleRevision("No analysis result exists for this job; run research first")
+        analysis = self._read_json_artifact(job_id, ref)
+        if analysis.get("job_id") != job_id:
+            raise ReviewValidationError("Artifact belongs to a different job")
+
+        limits = AnalysisLimits()
+        sources, skipped = [], []
+        for src in analysis.get("normalized_sources") or []:
+            text = src.get("normalized_text") or ""
+            if src.get("status") != "NORMALIZED" or not text:
+                continue
+            if hashlib.sha256(text.encode("utf-8")).hexdigest() != src.get("normalized_sha256"):
+                skipped.append({"source_id": src.get("source_id"), "code": "NORMALIZED_TEXT_INTEGRITY",
+                                "message": "normalized text does not match its recorded SHA-256"})
+                continue
+            sources.append({**src, "normalized_text": text[:max_chars_per_source]})
+            if len(sources) >= max_sources:
+                break
+        if not sources:
+            raise ScriptStaleRevision("The analysis result has no intact normalized source text to send")
+
+        bounds = {"max_sources": max_sources, "max_chars_per_source": max_chars_per_source,
+                  "max_claims_per_source": max_claims_per_source}
+        digest_value = digest({"analysis_sha256": ref["sha256"], "model": model, "schema": ax.AI_EXTRACTION_SCHEMA,
+                               "prompt": ax.AI_PROMPT_VERSION, "extractor": ax.AI_EXTRACTOR_VERSION, "bounds": bounds,
+                               "sources": [[s["source_id"], s["normalized_sha256"]] for s in sources]})
+        uri = f"jobs/{job_id}/research/ai_extraction/{digest_value}.json"
+        if self.store.exists(job_id, uri):
+            stored = json.loads(self.store.read_text(job_id, uri))
+            if stored.get("status") == "COMPLETED":
+                return {**stored, "reused": True}   # same inputs: never a second paid call
+
+        provider = self._resolve_provider(owner_id)
+        schema_kw = ({"response_schema": ax.AI_CLAIMS_JSON_SCHEMA, "response_schema_name": "claim_spans"}
+                     if getattr(provider, "supports_response_schema", False) else {})
+        prompts = [(s, ax.user_prompt(topic=topic, source_id=s["source_id"], text=s["normalized_text"],
+                                      max_claims=max_claims_per_source)) for s in sources]
+        if getattr(provider, "is_paid", False):
+            estimate = 0.0
+            for _s, prompt in prompts:
+                one = estimate_cost_inr(model, int((len(ax.SYSTEM_PROMPT) + len(prompt)) / 1.5) + 1,
+                                        max_claims_per_source * 150 + 100)
+                if one is None:
+                    raise ScriptGenerationFailed(
+                        f"Budget guard: no pricing is known for model {model!r}; refusing a paid call "
+                        "whose cost cannot be bounded.")
+                estimate += one
+            if estimate > max_cost_inr:
+                raise ScriptGenerationFailed(
+                    f"Budget guard: estimated cost INR {estimate:.2f} exceeds the configured budget "
+                    f"INR {max_cost_inr:.2f}; no paid call was made.")
+
+        known_ids = {c.get("claim_id") for c in analysis.get("claims") or []}
+        results, failures, spent, calls = [], list(skipped), 0.0, 0
+        for source, prompt in prompts:
+            if spent > max_cost_inr:
+                failures.append({"source_id": source["source_id"], "code": "COST_EXCEEDED",
+                                 "message": "measured cost already exceeded the budget; source not sent"})
+                continue
+            try:
+                calls += 1
+                result = provider.generate(model=model, system_prompt=ax.SYSTEM_PROMPT, user_prompt=prompt,
+                                           max_output_tokens=4096, **schema_kw)
+            except ProviderError as exc:
+                failures.append({"source_id": source["source_id"], "code": exc.code, "message": exc.message[:300]})
+                if exc.code in ("missing_api_key", "rate_limited", "provider_rejected"):
+                    break   # systemic: do not keep spending/attempting on the remaining sources
+                continue
+            spent += result.measured_text_cost_inr or 0.0
+            try:
+                accepted, rejected = ax.build_claims(payload=ax.parse_provider_text(result.text), source=source,
+                                                     limits=limits, known_claim_ids=known_ids)
+            except AiOutputError as exc:
+                failures.append({"source_id": source["source_id"], "code": "SCHEMA_INVALID", "message": str(exc)[:300]})
+                continue
+            results.append({
+                "source_id": source["source_id"], "normalized_sha256": source["normalized_sha256"],
+                "chars_sent": len(source["normalized_text"]), "claims": accepted, "rejected_claims": rejected,
+                "usage": {"input_tokens": result.input_tokens, "output_tokens": result.output_tokens,
+                          "tokens_available": result.tokens_available, "retries": result.retries,
+                          "measured_text_cost_inr": result.measured_text_cost_inr,
+                          "cost_is_measured": result.cost_is_measured, "pricing_source": result.pricing_source}})
+        if not results:
+            raise ScriptGenerationFailed("AI claim extraction produced no valid source result: "
+                                         + "; ".join(f"{f['source_id']}: {f['code']}" for f in failures[:5]))
+        body = {
+            "schema_version": ax.AI_EXTRACTION_SCHEMA, "job_id": job_id, "input_digest": digest_value,
+            "status": "COMPLETED" if not failures else "COMPLETED_WITH_FAILURES",
+            "provenance": {"analysis_uri": ref["uri"], "analysis_sha256": ref["sha256"], "model": model,
+                           "provider": getattr(provider, "name", "openai"), "prompt_version": ax.AI_PROMPT_VERSION,
+                           "extractor_version": ax.AI_EXTRACTOR_VERSION, "method": ax.AI_EXTRACTION_METHOD,
+                           "bounds": bounds, "provider_calls": calls,
+                           "response_format": "json_schema" if schema_kw else "unconstrained",
+                           "spent_inr": round(spent, 4), "max_cost_inr": max_cost_inr},
+            "review_status": "NOT_REVIEWED",
+            "notice": "AI-selected verbatim spans. Not evidence-approved, not human-reviewed, not proof of truth.",
+            "sources": results, "failures": failures, "created_at": _now(),
+        }
+        data = canonical(body)
+        stored_art = self.store.write_bytes(job_id, uri, data, "application/json")
+        self.store.write_bytes(job_id, f"jobs/{job_id}/research/ai_extraction/latest.json",
+                               canonical({"uri": stored_art.uri, "sha256": stored_art.sha256}), "application/json")
+        return {**body, "reused": False}
+
+    def latest_ai_extraction(self, job_id: str, owner_id: str) -> dict:
+        self._check_ownership(job_id, owner_id)
+        pointer_uri = f"jobs/{job_id}/research/ai_extraction/latest.json"
+        if not self.store.exists(job_id, pointer_uri):
+            raise ScriptNotFound("No AI claim extraction exists for this job")
+        pointer = json.loads(self.store.read_text(job_id, pointer_uri))
+        return self._read_json_artifact(job_id, pointer)
 
     # -- budget guard ---------------------------------------------------------
 
@@ -467,75 +661,80 @@ class ScriptService(EvidenceService):
         idempotency_key = self._validate_idempotency_key(idempotency_key)
         with closing(connect(self.database_file)) as connection:
             connection.execute("BEGIN IMMEDIATE")
-            self._check_ownership_locked(connection, job_id, owner_id)
-            replay = connection.execute(
-                "SELECT * FROM script_review_history WHERE job_id=? AND language=? AND version=? "
-                "AND reviewer_id=? AND idempotency_key=?",
-                (job_id, language, version, owner_id, idempotency_key),
-            ).fetchone()
-            row = connection.execute(
-                "SELECT * FROM script_revisions WHERE job_id=? AND language=? AND version=?",
-                (job_id, language, version),
-            ).fetchone()
-            if row is None:
-                raise ScriptNotFound("Unknown script revision for this job/language")
-            if replay is not None:
-                return dict(row)
-            if row["revision_sha256"] != revision_sha256:
-                raise ScriptStaleRevision("revision_sha256 does not match the current revision; reload before approving")
-            if row["status"] == "APPROVED":
-                raise ScriptStaleRevision("This revision is already approved")
-            if row["status"] == "SUPERSEDED":
-                raise ScriptStaleRevision("A superseded revision cannot be approved; generate a new one")
-            body = self._read_json_artifact(job_id, dict(row))
-            if not body["validation"]["passed"]:
-                raise ScriptValidationError("A revision that failed validation cannot be approved")
-            # Package freshness: an approved revision must still rest on a
-            # currently approved evidence package (a later evidence change
-            # must invalidate eligibility for approval, not just at generation).
-            # `package_sha256` on the revision is the digest of the DRAFT-shaped
-            # snapshot at generation time (see `_snapshot_current_approved`),
-            # so compare against today's DRAFT snapshot digest the same way.
-            current_draft = self._snapshot(connection, job_id, owner_id)
-            if not current_draft["ready"] or digest(current_draft) != body["package_sha256"]:
-                raise ScriptStaleRevision("The evidence package has changed since this revision was generated; regenerate before approval")
-            ledger_record = connection.execute(
-                "SELECT 1 FROM evidence_packages WHERE job_id=? AND revision=?",
-                (job_id, body["package_sha256"]),
-            ).fetchone()
-            if not ledger_record:
-                raise ScriptStaleRevision("The evidence package is no longer currently approved; regenerate before approval")
-            now = _now()
-            connection.execute(
-                "UPDATE script_revisions SET status='APPROVED' WHERE job_id=? AND language=? AND version=?",
-                (job_id, language, version),
-            )
-            # Superseding earlier revisions of the same language keeps exactly
-            # one APPROVED revision per language at a time.
-            connection.execute(
-                "UPDATE script_revisions SET status='SUPERSEDED' WHERE job_id=? AND language=? AND version<>? AND status='APPROVED'",
-                (job_id, language, version),
-            )
-            connection.execute(
-                "INSERT INTO script_review_history VALUES(?,?,?,?,?,?,?,?,?)",
-                (str(uuid.uuid4()), job_id, language, version, "APPROVED", owner_id, note, now, idempotency_key),
-            )
-            body["status"] = "APPROVED"
-            body["approval"] = {"revision_sha256": revision_sha256, "version": version, "reviewer_id": owner_id,
-                                "note": note, "approved_at": now}
-            data = canonical(validate_revision(body))
-            sha = hashlib.sha256(data).hexdigest()
-            uri = f"jobs/{job_id}/scripts/{language}/{sha}-approved.json"
-            self.store.write_bytes(job_id, uri, data, "application/json")
-            connection.execute(
-                "UPDATE script_revisions SET uri=?, sha256=? WHERE job_id=? AND language=? AND version=?",
-                (uri, sha, job_id, language, version),
-            )
+            row = self._approve_locked(connection, job_id, owner_id, language, version,
+                                       revision_sha256, note, idempotency_key)
             connection.commit()
-            return dict(connection.execute(
-                "SELECT * FROM script_revisions WHERE job_id=? AND language=? AND version=?",
-                (job_id, language, version),
-            ).fetchone())
+            return row
+
+    def _approve_locked(self, connection, job_id, owner_id, language, version,
+                        revision_sha256, note, idempotency_key, *, automated=False):
+        """One approval boundary for automatic and legacy human decisions.
+
+        The caller holds BEGIN IMMEDIATE, so freshness, approval history and
+        supersession commit atomically with a newly generated revision.
+        """
+        self._check_ownership_locked(connection, job_id, owner_id)
+        actor = "AUTOMATED_VALIDATION" if automated else owner_id
+        replay = connection.execute(
+            "SELECT 1 FROM script_review_history WHERE job_id=? AND language=? AND version=? "
+            "AND reviewer_id=? AND idempotency_key=?",
+            (job_id, language, version, actor, idempotency_key),
+        ).fetchone()
+        row = connection.execute(
+            "SELECT * FROM script_revisions WHERE job_id=? AND language=? AND version=?",
+            (job_id, language, version),
+        ).fetchone()
+        if row is None:
+            raise ScriptNotFound("Unknown script revision for this job/language")
+        if replay is not None:
+            return dict(row)
+        if row["revision_sha256"] != revision_sha256:
+            raise ScriptStaleRevision("revision_sha256 does not match the current revision; reload before approving")
+        if row["status"] == "APPROVED":
+            raise ScriptStaleRevision("This revision is already approved")
+        if row["status"] == "SUPERSEDED":
+            raise ScriptStaleRevision("A superseded revision cannot be approved; generate a new one")
+        body = self._read_json_artifact(job_id, dict(row))
+        if not body["validation"]["passed"]:
+            raise ScriptValidationError("A revision that failed validation cannot be approved")
+        current_draft = self._snapshot(connection, job_id, owner_id)
+        if not current_draft["ready"] or digest(current_draft) != body["package_sha256"]:
+            raise ScriptStaleRevision("The evidence package has changed since this revision was generated; regenerate before approval")
+        ledger_record = connection.execute(
+            "SELECT 1 FROM evidence_packages WHERE job_id=? AND revision=?",
+            (job_id, body["package_sha256"]),
+        ).fetchone()
+        if not ledger_record:
+            raise ScriptStaleRevision("The evidence package is no longer currently approved; regenerate before approval")
+        stale_factcheck = factcheck_staleness(connection, job_id, language, version)
+        if stale_factcheck:
+            raise ScriptStaleRevision(stale_factcheck)
+        now = _now()
+        body["status"] = "APPROVED"
+        body["approval"] = {"revision_sha256": revision_sha256, "version": version, "reviewer_id": actor,
+                            "note": note, "approved_at": now,
+                            "approval_kind": "AUTOMATED_VALIDATION" if automated else "HUMAN",
+                            "policy_version": body["validation"]["validator_version"] if automated else None}
+        data = canonical(validate_revision(body))
+        sha = hashlib.sha256(data).hexdigest()
+        uri = f"jobs/{job_id}/scripts/{language}/{sha}-approved.json"
+        self.store.write_bytes(job_id, uri, data, "application/json")
+        connection.execute(
+            "UPDATE script_revisions SET status='APPROVED', uri=?, sha256=? WHERE job_id=? AND language=? AND version=?",
+            (uri, sha, job_id, language, version),
+        )
+        connection.execute(
+            "UPDATE script_revisions SET status='SUPERSEDED' WHERE job_id=? AND language=? AND version<>? AND status='APPROVED'",
+            (job_id, language, version),
+        )
+        connection.execute(
+            "INSERT INTO script_review_history VALUES(?,?,?,?,?,?,?,?,?)",
+            (str(uuid.uuid4()), job_id, language, version, "APPROVED", actor, note, now, idempotency_key),
+        )
+        return dict(connection.execute(
+            "SELECT * FROM script_revisions WHERE job_id=? AND language=? AND version=?",
+            (job_id, language, version),
+        ).fetchone())
 
     def _decide(self, job_id, owner_id, language, version, action, note, idempotency_key) -> dict:
         note = self._validate_note(note)
@@ -603,4 +802,7 @@ class ScriptService(EvidenceService):
             ).fetchone()
             if not current_draft["ready"] or digest(current_draft) != body["package_sha256"] or not ledger_record:
                 raise ScriptStaleRevision("The approved script's evidence package is no longer the current approval")
+            stale_factcheck = factcheck_staleness(connection, job_id, language, row["version"])
+            if stale_factcheck:
+                raise ScriptStaleRevision(stale_factcheck)
         return body

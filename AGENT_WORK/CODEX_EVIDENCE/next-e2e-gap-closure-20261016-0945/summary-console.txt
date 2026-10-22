@@ -1,0 +1,118 @@
+[
+  {
+    "suite": "backend-fresh",
+    "exit": 1,
+    "summary": [
+      "16 failed, 644 passed, 4 skipped, 1 warning in 1264.42s (0:21:04)"
+    ],
+    "skip_reasons": [
+      "SKIPPED [1] tests\\test_factcheck_engine.py:488: opt-in live RSS: set DEFENCE_STUDIO_LIVE_FACTCHECK=1",
+      "SKIPPED [1] tests\\test_formats_rm10.py:53: real Visual/Audio/Renderer modules not all running",
+      "SKIPPED [1] tests\\test_integration_live.py:32: set DEFENCE_STUDIO_LIVE_HTTP=1 to run the live HTTP check",
+      "SKIPPED [1] tests\\test_integration_live.py:45: set DEFENCE_STUDIO_LIVE_YOUTUBE=1 to run the live YouTube check"
+    ]
+  },
+  {
+    "suite": "backend-clean-final",
+    "exit": 0,
+    "summary": [
+      "660 passed, 5 skipped, 1 warning in 1464.51s (0:24:24)"
+    ],
+    "skip_reasons": [
+      "SKIPPED [1] tests\\test_factcheck_engine.py:488: opt-in live RSS: set DEFENCE_STUDIO_LIVE_FACTCHECK=1",
+      "SKIPPED [1] tests\\test_formats_rm10.py:53: real Visual/Audio/Renderer modules not all running",
+      "SKIPPED [1] tests\\test_integration_live.py:32: set DEFENCE_STUDIO_LIVE_HTTP=1 to run the live HTTP check",
+      "SKIPPED [1] tests\\test_integration_live.py:45: set DEFENCE_STUDIO_LIVE_YOUTUBE=1 to run the live YouTube check",
+      "SKIPPED [1] tests\\test_render_rm5.py:470: real Visual/Audio/Renderer modules not all running"
+    ]
+  },
+  {
+    "suite": "affected-clean-final",
+    "exit": 0,
+    "summary": [
+      "46 passed, 1 warning in 306.21s (0:05:06)"
+    ],
+    "skip_reasons": []
+  },
+  {
+    "suite": "export-final-tests",
+    "exit": 0,
+    "summary": [
+      "67 passed, 1 skipped, 1 warning in 837.52s (0:13:57)"
+    ],
+    "skip_reasons": []
+  },
+  {
+    "suite": "publishing-final-tests",
+    "exit": 0,
+    "summary": [
+      "23 passed, 1 warning in 570.04s (0:09:30)"
+    ],
+    "skip_reasons": []
+  },
+  {
+    "suite": "publisher-final-lifecycle",
+    "exit": 0,
+    "summary": [
+      "5 passed, 1 warning in 116.88s (0:01:56)"
+    ],
+    "skip_reasons": []
+  },
+  {
+    "suite": "publisher-cancel-final",
+    "exit": 0,
+    "summary": [
+      "1 passed, 1 warning in 29.71s"
+    ],
+    "skip_reasons": []
+  },
+  {
+    "suite": "audio-fresh",
+    "exit": 0,
+    "summary": [
+      "======================= 61 passed, 7 warnings in 24.07s ======================="
+    ],
+    "skip_reasons": []
+  },
+  {
+    "suite": "voice-fresh",
+    "exit": 0,
+    "summary": [
+      "62 passed, 1 warning in 40.42s"
+    ],
+    "skip_reasons": []
+  },
+  {
+    "suite": "visual-fresh",
+    "exit": 0,
+    "summary": [
+      "206 passed, 2 skipped in 63.06s (0:01:03)"
+    ],
+    "skip_reasons": [
+      "SKIPPED [1] tests\\test_provider_live_optin.py:34: paid provider tests are opt-in: set VVM_ENABLE_PAID_PROVIDER_TESTS=1 and OPENAI_API_KEY",
+      "SKIPPED [1] tests\\test_provider_live_optin.py:39: the billable generation additionally requires VVM_LIVE_GENERATE=1"
+    ]
+  },
+  {
+    "suite": "renderer-fresh",
+    "exit": 0,
+    "summary": [
+      "118 passed, 1 skipped in 251.73s (0:04:11)"
+    ],
+    "skip_reasons": [
+      "SKIPPED [1] tests\\test_package.py:99: symlinks not permitted on this system"
+    ]
+  },
+  {
+    "suite": "frontend-fresh",
+    "exit": 0,
+    "summary": [
+      "\u2139 tests 65",
+      "\u2139 pass 65",
+      "\u2139 fail 0",
+      "\u2139 skipped 0",
+      "\u2139 duration_ms 6613.8045"
+    ],
+    "skip_reasons": []
+  }
+]

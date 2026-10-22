@@ -4,8 +4,8 @@
 // than merely warning after the fact.
 import { escapeHtml as esc } from "../components/status-badge.js";
 import { textFieldHtml } from "../components/text-field.js";
-import { confirmDialog } from "../components/confirm-dialog.js";
 import { newIdempotencyKey } from "../api.js";
+import { singleFlight } from "../components/single-flight.js";
 
 const DEFAULT_CONFIG = {
   audience: "general public", tone: "neutral, measured", script_format: "narration",
@@ -17,8 +17,10 @@ export async function mountScript({ api, jobId, list, detail, filters, isCurrent
   list.innerHTML = '<p class="loading-state">Loading script revisions…</p>';
   detail.innerHTML = "";
   detail.classList.remove("detail-overlay");
-  filters.innerHTML = "<p>Approval of one language never approves the other. Generation requires an currently approved evidence package.</p>";
+  filters.innerHTML = "<p>Valid drafts are approved automatically after evidence and validation checks. Tamil and English are checked independently; no manual approval is required.</p>";
   let state = { language: "ta" };
+  const generateOnce = singleFlight();
+  let generationAttempt;
   const showError = (error) => { if (isCurrent()) list.innerHTML = `<p role="alert" class="error-state">${esc(error.message)}</p>`; };
 
   // Evidence readiness is checked proactively (not only discovered after a
@@ -34,7 +36,7 @@ export async function mountScript({ api, jobId, list, detail, filters, isCurrent
     const blockers = (evidence.package && evidence.package.blockers) || [];
     return `<div class="inline-blocked" role="alert">
       <strong>Evidence not ready for script generation.</strong>
-      <p>The evidence package must be human-approved on the Evidence tab before a script can be generated.</p>
+      <p>Evidence is approved automatically when its policy checks pass. Resolve the evidence requirements below, then reassess on the Evidence tab.</p>
       ${blockers.length ? `<ul>${blockers.slice(0, 5).map(b => `<li>${esc(typeof b === "string" ? b : JSON.stringify(b))}</li>`).join("")}</ul>` : ""}
     </div>`;
   };
@@ -68,7 +70,7 @@ export async function mountScript({ api, jobId, list, detail, filters, isCurrent
             ${textFieldHtml({ id: "gen-budget", label: "Max text-generation cost (INR)", value: String(DEFAULT_CONFIG.max_text_cost_inr) })}
             ${textFieldHtml({ id: "gen-terminology", label: "Preserve terms (comma-separated)", placeholder: "Rafale, AESA, DRDO" })}
             <button type="submit" id="gen-submit" ${evidenceReady ? "" : "disabled"}>Generate draft</button>
-            ${evidenceReady ? "" : '<p class="meta">Generation is disabled until the evidence package is approved.</p>'}
+            ${evidenceReady ? "" : '<p class="meta">Generation becomes available when the evidence checks pass.</p>'}
           </fieldset>
         </form>
         <div id="script-gen-status" role="status"></div>
@@ -88,7 +90,8 @@ export async function mountScript({ api, jobId, list, detail, filters, isCurrent
       form.addEventListener("submit", async (event) => {
         event.preventDefault();
         const submitBtn = list.querySelector("#gen-submit");
-        submitBtn.disabled = true;
+        if (!evidenceReady) return;
+        await generateOnce(submitBtn, async () => {
         statusEl.textContent = "Generating… this calls the configured text-generation provider and may take a moment.";
         try {
           const terms = list.querySelector("#gen-terminology").value.trim();
@@ -106,16 +109,22 @@ export async function mountScript({ api, jobId, list, detail, filters, isCurrent
             max_text_cost_inr: parseFloat(list.querySelector("#gen-budget").value),
             terminology,
           };
-          const revision = await api.generateScript(jobId, config, newIdempotencyKey());
+          const signature = JSON.stringify(config);
+          if (!generationAttempt || generationAttempt.signature !== signature) {
+            generationAttempt = { signature, key: newIdempotencyKey() };
+          }
+          const revision = await api.generateScript(jobId, config, generationAttempt.key);
+          generationAttempt = null; // Response acknowledged; next explicit attempt is new.
           if (!isCurrent()) return;
-          statusEl.textContent = `Draft generated: version ${revision.version}, status ${revision.status}.`;
+          state.selected = { language: revision.language, version: revision.version };
+          state.generationMessage = generationOutcome(revision);
           await render();
         } catch (error) {
           if (isCurrent()) statusEl.textContent = error.message;
-        } finally {
-          if (isCurrent()) submitBtn.disabled = false;
         }
+        });
       });
+      if (state.generationMessage) statusEl.textContent = state.generationMessage;
       if (state.selected) await openRevision(state.selected);
       else clearDetail();
     } catch (error) { if (isCurrent()) { list.innerHTML = ""; showError(error); } }
@@ -170,21 +179,6 @@ export async function mountScript({ api, jobId, list, detail, filters, isCurrent
         await openRevision({ language: revision.language, version: revision.version });
       } catch (error) { if (isCurrent()) statusEl.textContent = error.message; }
     });
-    const approveBtn = detail.querySelector("#approve-revision-btn");
-    if (approveBtn) approveBtn.addEventListener("click", async () => {
-      const note = detail.querySelector("#review-note").value.trim();
-      if (!note) { statusEl.textContent = "Enter an approval explanation."; return; }
-      if (!await confirmDialog({
-        title: "Approve script revision",
-        message: `Approve this exact ${revision.language === "ta" ? "Tamil" : "English"} revision (version ${revision.version})? This does not approve the other language.`,
-      })) return;
-      try {
-        const revisionSha = (await api.listScriptRevisions(jobId, revision.language)).revisions
-          .find(r => r.version === revision.version).revision_sha256;
-        await api.approveScriptRevision(jobId, revision.language, revision.version, revisionSha, note, newIdempotencyKey());
-        await openRevision({ language: revision.language, version: revision.version });
-      } catch (error) { if (isCurrent()) statusEl.textContent = error.message; }
-    });
     const exportBtn = detail.querySelector("#export-script-btn");
     if (exportBtn) exportBtn.addEventListener("click", async () => {
       try {
@@ -199,12 +193,23 @@ export async function mountScript({ api, jobId, list, detail, filters, isCurrent
   await render();
 }
 
+export function generationOutcome(revision) {
+  if (revision.status === "APPROVED" && revision.validation?.passed && revision.approval) {
+    return revision.approval.approval_kind === "AUTOMATED_VALIDATION"
+      ? `Draft saved and automatically approved: version ${revision.version}.`
+      : `Approved script saved: version ${revision.version}.`;
+  }
+  return revision.status === "AWAITING_REVIEW" && revision.validation?.passed
+    ? `Draft saved: version ${revision.version}. Generate a new revision to apply automatic approval.`
+    : `Generation failed validation (version ${revision.version}, ${revision.status}). Saved for inspection; this is not an accepted draft.`;
+}
+
 export function renderStalenessBannerHtml(staleness) {
   if (!staleness) return "";
   const stale = (staleness.revisions || []).filter(r => r.state === "STALE");
   if (!stale.length) return "";
   return `<div class="banner warn" role="status">${stale.length} script revision(s) no longer match the current approved
-    evidence (${esc(stale[0].reason)}). They cannot be approved or exported; regenerate after re-approving evidence.</div>`;
+    evidence (${esc(stale[0].reason)}). Reassess the evidence and generate a new revision before export.</div>`;
 }
 
 export function renderRepetitionHtml(report) {
@@ -244,7 +249,6 @@ function renderRevisionList(revisions, selected, stale = new Map()) {
 
 export function renderRevisionDetail(revision, history) {
   const canReview = revision.status === "AWAITING_REVIEW";
-  const canApprove = revision.status === "AWAITING_REVIEW" && revision.validation.passed;
   return `<h2>${esc(revision.title)}</h2>
     <p class="meta">${esc(revision.language)} · version ${revision.version} · status ${esc(revision.status)}</p>
     <p>${revision.word_count.words} words (estimated narration ${Math.round(revision.word_count.estimated_duration_seconds / 60 * 10) / 10} min at ${revision.word_count.words_per_minute} wpm -- an estimate, not an exact recording time)</p>
@@ -274,14 +278,15 @@ export function renderRevisionDetail(revision, history) {
         </details>
       </article>`).join("")}
     <h3>Closing</h3><p>${esc(revision.closing)}</p>
-    <h3>Review</h3>
-    ${textFieldHtml({ id: "review-note", label: "Review note / approval explanation", multiline: true, maxLength: 4000 })}
-    <button type="button" id="request-changes-btn" ${canReview ? "" : "disabled"}>Request changes</button>
-    <button type="button" id="approve-revision-btn" ${canApprove ? "" : "disabled"}>Approve this revision</button>
+    <h3>Approval</h3>
+    <p>Draft approval is automatic when validation and current evidence checks pass.</p>
+    ${canReview ? `<p>This older draft has not been automatically approved. Generate a new revision to apply the current checks.</p>
+      ${textFieldHtml({ id: "review-note", label: "Optional feedback", multiline: true, maxLength: 4000 })}
+      <button type="button" id="request-changes-btn">Request changes</button>` : ""}
     <button type="button" id="export-script-btn" ${revision.status === "APPROVED" ? "" : "disabled"}>Export approved script</button>
     <div id="revision-action-status" role="status"></div>
     <details><summary>Review history (${history.length})</summary>
       ${history.map(h => `<p>${esc(h.action)} · ${esc(h.occurred_at)} · ${esc(h.reviewer_id)}<br>${esc(h.note)}</p>`).join("") || "<p>No review actions yet.</p>"}
     </details>
-    ${revision.approval ? `<p class="meta">Approved by ${esc(revision.approval.reviewer_id)} at ${esc(revision.approval.approved_at)}</p>` : ""}`;
+    ${revision.approval ? `<p class="meta">${revision.approval.approval_kind === "AUTOMATED_VALIDATION" ? "Automatically approved after validation" : `Approved by ${esc(revision.approval.reviewer_id)}`} at ${esc(revision.approval.approved_at)}</p>` : ""}`;
 }

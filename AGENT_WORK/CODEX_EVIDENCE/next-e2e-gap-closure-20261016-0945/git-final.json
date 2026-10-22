@@ -1,0 +1,23 @@
+{
+  "ls_remote_exit": 0,
+  "head_matches_upstream": true,
+  "tracked_worktree_changes": [],
+  "status": [
+    "?? AGENT_WORK/CODEX_EVIDENCE/next-e2e-gap-closure-20261016-0945/claude-help.txt",
+    "?? AGENT_WORK/CODEX_EVIDENCE/next-e2e-gap-closure-20261016-0945/claude-publishing-review.stderr",
+    "?? AGENT_WORK/CODEX_EVIDENCE/next-e2e-gap-closure-20261016-0945/claude-review-request.txt",
+    "?? AGENT_WORK/CODEX_EVIDENCE/next-e2e-gap-closure-20261016-0945/claude-review.stderr",
+    "?? AGENT_WORK/CODEX_EVIDENCE/next-e2e-gap-closure-20261016-0945/fixture-e2e-before-final.json",
+    "?? AGENT_WORK/CODEX_EVIDENCE/next-e2e-gap-closure-20261016-0945/fixture-e2e-before-race-fix.json",
+    "?? AGENT_WORK/CODEX_EVIDENCE/next-e2e-gap-closure-20261016-0945/reviewed-stage-files.json",
+    "?? AGENT_WORK/CODEX_EVIDENCE/next-e2e-gap-closure-20261016-0945/source.patch",
+    "?? AGENT_WORK/CODEX_EVIDENCE/next-e2e-gap-closure-20261016-0945/summary-console.txt"
+  ],
+  "fetch_exit": 0,
+  "actual_remote_main": "4ab1bf6297f6788130a5c30d46ef62596f7d32f7",
+  "head": "4ab1bf6297f6788130a5c30d46ef62596f7d32f7",
+  "timestamp": "2026-10-16T10:36:03.6662857+05:30",
+  "push_exit": 0,
+  "commit_exit": 0,
+  "origin_main": "4ab1bf6297f6788130a5c30d46ef62596f7d32f7"
+}

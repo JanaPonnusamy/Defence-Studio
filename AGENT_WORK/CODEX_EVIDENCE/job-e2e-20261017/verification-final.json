@@ -1,0 +1,41 @@
+{
+  "job_id": "ff16816c-7af1-477a-b5f7-888ebd42f21a",
+  "checks": {
+    "review_gate_persisted_after_restart": true,
+    "research_stages_complete": true,
+    "downstream_stages_pending": true,
+    "two_real_sources_acquired": true,
+    "27_claims_no_hidden_duplicates": true,
+    "assessment_current": true,
+    "no_false_eta": true,
+    "no_human_reviews_added": true,
+    "independence_gate_enforced": true,
+    "script_generation_blocked_by_api": true,
+    "no_script_revision_created": true,
+    "invalid_bearer_rejected": true,
+    "proxied_anonymous_rejected": true,
+    "cross_owner_rejected": true,
+    "every_original_database_row_preserved": true,
+    "exactly_one_new_job": true,
+    "database_integrity": true,
+    "35_original_artifact_files_preserved": true,
+    "new_job_artifact_checksums_valid": true
+  },
+  "passed": 19,
+  "total": 19,
+  "original_row_changes": [],
+  "status": "AWAITING_REVIEW",
+  "claim_outcomes": {
+    "SUPPORTED": 17,
+    "INSUFFICIENT_EVIDENCE": 8,
+    "NEEDS_MORE_SOURCES": 2
+  },
+  "blockers": [
+    {
+      "action": "enable and acquire additional sources in config/source_policy.json that cover the topic",
+      "actual": 1,
+      "criterion": "min_accepted_sources",
+      "required": 2
+    }
+  ]
+}

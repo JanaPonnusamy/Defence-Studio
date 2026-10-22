@@ -1,0 +1,3264 @@
+{
+  "package": {
+    "schema_version": "defence-studio.evidence-package.v1",
+    "policy": "defence-studio.evidence-approval.strict.v1",
+    "job_id": "ff16816c-7af1-477a-b5f7-888ebd42f21a",
+    "topic": "India defence developments: INS Samarthak commissioning",
+    "language": "en",
+    "generated_from_timestamp": "2026-10-17T12:52:36.346303+00:00",
+    "artifacts": [
+      {
+        "artifact_type": "acquisition_manifest",
+        "uri": "jobs/ff16816c-7af1-477a-b5f7-888ebd42f21a/research/attempts/acbc350b-7bf6-428d-9583-5594b85ee9b6/acquisition_result.json",
+        "sha256": "1f40dd6cbb59760274820ad053c525cd549bc1432d4fa3af86daff110f834a22",
+        "schema_version": "defence-studio.acquisition-result.v1"
+      },
+      {
+        "artifact_type": "analysis_result",
+        "uri": "jobs/ff16816c-7af1-477a-b5f7-888ebd42f21a/research/analysis/6aafee2d6d0049489ac3cef592e09664e45d439b2c7c1bbc42355f4629a480d9.json",
+        "sha256": "c48015a7bc6a394c9b41f603feb1fe6fc2c1c2a802d1a161d47ac831837099c0",
+        "schema_version": "defence-studio.analysis-result.v1"
+      },
+      {
+        "artifact_type": "discovery_result",
+        "uri": "jobs/ff16816c-7af1-477a-b5f7-888ebd42f21a/research/attempts/f41a2e5a-045d-4594-a571-e7a2989224fa/discovery_result.json",
+        "sha256": "3fdcf09d896b7cd0e2552c168e84e0d6d72312fba87cd62cd953dd10474979c5",
+        "schema_version": "defence-studio.discovery-result.v2"
+      },
+      {
+        "artifact_type": "acquisition_request",
+        "uri": "jobs/ff16816c-7af1-477a-b5f7-888ebd42f21a/research/attempts/acbc350b-7bf6-428d-9583-5594b85ee9b6/automatic_acquisition_request.json",
+        "sha256": "73d2a0f5eaf4494f7f401b4347f107f85c62d7652e19b0cfe1bd6910fa432892",
+        "schema_version": "defence-studio.acquisition-request.v1"
+      }
+    ],
+    "discovery": {
+      "selected_candidate_ids": [
+        "12f889a1d38a791b79d8dafeb0e3bdf8c060ab92",
+        "26a9d035e38e459b0ac5a3df57aeaafaad658489"
+      ],
+      "candidates": [
+        {
+          "candidate_id": "12f889a1d38a791b79d8dafeb0e3bdf8c060ab92",
+          "canonical_url": "https://www.pib.gov.in/PressReleasePage.aspx?PRID=2324581&lang=1&reg=3",
+          "category": "INDIAN_DEFENCE",
+          "category_basis": "KEYWORD_RULE",
+          "declared_metadata": {
+            "language": "en",
+            "language_status": "COLLECTED",
+            "published_at": "2026-10-16",
+            "published_at_status": "COLLECTED",
+            "publisher": "www.pib.gov.in",
+            "publisher_status": "COLLECTED",
+            "title": "INDIAN NAVY COMMISSIONS INS SAMARTHAK, THE FIRST INDIGENOUS MULTI-PURPOSE VESSEL",
+            "title_status": "COLLECTED"
+          },
+          "discovered_at": "2026-10-17T09:55:18.550339+00:00",
+          "filter_flags": [],
+          "merged_from_providers": [],
+          "original_metadata": {
+            "declared_canonical_url": null,
+            "fetch_status": "REACHABLE",
+            "final_url": "https://www.pib.gov.in/PressReleasePage.aspx?PRID=2324581&lang=1&reg=3",
+            "http_status": 200,
+            "media_type": "text/html",
+            "publisher_declared": false,
+            "reachability_only": true,
+            "seed_url": "https://www.pib.gov.in/PressReleasePage.aspx?PRID=2324581&lang=1&reg=3",
+            "text_chars": 6435,
+            "text_sha256": "2e3824142642ceffff74ea6cfc6515488379cfbd1ce8d3caa832301d816f4668"
+          },
+          "provider": "manual_url",
+          "provider_rank": null,
+          "provider_version": "0.1.0",
+          "ranking": {
+            "explanation": [
+              "Title shares 2/6 topic token(s).",
+              "Published 1 day(s) ago.",
+              "Candidate language matches the requested language 'en'.",
+              "No source-type preference was set."
+            ],
+            "language_match_score": 1.0,
+            "recency_score": 0.9973,
+            "relevance_score": 0.3333,
+            "source_type_score": 1.0,
+            "total_score": 0.6661
+          },
+          "region_basis": "KEYWORD_RULE",
+          "regions": [
+            "INDIA"
+          ],
+          "requested_url": "https://www.pib.gov.in/PressReleasePage.aspx?PRID=2324581&lang=1&reg=3",
+          "retrieved_at": "2026-10-17T09:55:18.550339+00:00",
+          "snippet": "Press Release Page | Press Information Bureau Ministry of Defence INDIAN NAVY COMMISSIONS INS SAMARTHAK, THE FIRST INDIGENOUS MULTI-PURPOSE VESSEL Posted On: 16 OCT 2026 9:09PM by PIB Delhi Indian Naval Ship Samarthak, the first of class Multi-Purpose Vessels (MPVs) , was commissioned into the Indian Navy on 16 Oct 2026 . The ceremony was presided over by the Hon\u2019ble Vice President of India, Shri Chandrapuram Ponnusamy Radhakrishnan , in the presence of Adm Krishna Swaminathan, Chief of the Nava",
+          "source_class": "UNKNOWN",
+          "source_type": "web_page",
+          "warnings": []
+        },
+        {
+          "candidate_id": "26a9d035e38e459b0ac5a3df57aeaafaad658489",
+          "canonical_url": "https://www.pib.gov.in/PressReleasePage.aspx?PRID=2324319&lang=1&reg=3",
+          "category": "INDIAN_DEFENCE",
+          "category_basis": "KEYWORD_RULE",
+          "declared_metadata": {
+            "language": "en",
+            "language_status": "COLLECTED",
+            "published_at": "2026-10-16",
+            "published_at_status": "COLLECTED",
+            "publisher": "www.pib.gov.in",
+            "publisher_status": "COLLECTED",
+            "title": "Vice-President Shri C. P. Radhakrishnan Commissions Indian Navy\u2019s First Indigenous Multi-Purpose Vessel INS Samarthak at Karwar",
+            "title_status": "COLLECTED"
+          },
+          "discovered_at": "2026-10-17T09:55:18.550339+00:00",
+          "filter_flags": [],
+          "merged_from_providers": [],
+          "original_metadata": {
+            "declared_canonical_url": null,
+            "fetch_status": "REACHABLE",
+            "final_url": "https://www.pib.gov.in/PressReleasePage.aspx?PRID=2324319&lang=1&reg=3",
+            "http_status": 200,
+            "media_type": "text/html",
+            "publisher_declared": false,
+            "reachability_only": true,
+            "seed_url": "https://www.pib.gov.in/PressReleasePage.aspx?PRID=2324319&lang=1&reg=3",
+            "text_chars": 9497,
+            "text_sha256": "6d5ffd75a3300774b676fbf36064b8152403d0852bd79222b260e2f19c08d1f6"
+          },
+          "provider": "manual_url",
+          "provider_rank": null,
+          "provider_version": "0.1.0",
+          "ranking": {
+            "explanation": [
+              "Title shares 2/6 topic token(s).",
+              "Published 1 day(s) ago.",
+              "Candidate language matches the requested language 'en'.",
+              "No source-type preference was set."
+            ],
+            "language_match_score": 1.0,
+            "recency_score": 0.9973,
+            "relevance_score": 0.3333,
+            "source_type_score": 1.0,
+            "total_score": 0.6661
+          },
+          "region_basis": "KEYWORD_RULE",
+          "regions": [
+            "INDIA"
+          ],
+          "requested_url": "https://www.pib.gov.in/PressReleasePage.aspx?PRID=2324319&lang=1&reg=3",
+          "retrieved_at": "2026-10-17T09:55:18.550339+00:00",
+          "snippet": "Press Release Page | Press Information Bureau Vice President's Secretariat Vice-President Shri C. P. Radhakrishnan Commissions Indian Navy\u2019s First Indigenous Multi-Purpose Vessel INS Samarthak at Karwar INS Samarthak, with over 75 per cent indigenous content, reflects India\u2019s growing self-reliance in defence manufacturing: Vice-President \u201cIndian Navy Stands Ever-Vigilant and Combat-Ready to Safeguard India\u2019s Maritime Interests\u201d: Vice-President \u201cINS Samarthak Reflects the Growing Role of India\u2019s ",
+          "source_class": "UNKNOWN",
+          "source_type": "web_page",
+          "warnings": []
+        }
+      ],
+      "status": "COMPLETED",
+      "providers": [
+        {
+          "candidates_returned": 2,
+          "duration_ms": 936,
+          "filters_applied": [
+            "seed_urls"
+          ],
+          "filters_not_supported": [],
+          "http_attempts": 2,
+          "message": "Fetched 2 seed URL(s); HTTP 200 shows reachability only.",
+          "optional_dependency": false,
+          "provider": "manual_url",
+          "rate_limited": false,
+          "requires_credentials": false,
+          "status": "OK",
+          "truncated": false
+        }
+      ]
+    },
+    "sources": [
+      {
+        "acquisition_timestamp": "2026-10-17T09:55:20.582311+00:00",
+        "artifacts": [
+          {
+            "artifact_type": "source_content",
+            "bytes": 99774,
+            "media_type": "text/html",
+            "schema_version": "defence-studio.source-artifact.v1",
+            "sha256": "740d207e857969ed04f889a08e600aa498403b86bd1c0220e98061249a9908c2",
+            "uri": "jobs/ff16816c-7af1-477a-b5f7-888ebd42f21a/research/sources/12f889a1d38a791b79d8dafeb0e3bdf8c060ab92/content.html"
+          }
+        ],
+        "canonical_url": "https://www.pib.gov.in/PressReleasePage.aspx?PRID=2324581&lang=1&reg=3",
+        "declared_metadata": {
+          "language": "en",
+          "language_status": "COLLECTED",
+          "published_at": "2026-10-16",
+          "published_at_status": "COLLECTED",
+          "publisher": null,
+          "publisher_status": "UNAVAILABLE",
+          "title": "Press Release Page | Press Information Bureau",
+          "title_status": "COLLECTED"
+        },
+        "error": null,
+        "final_url": "https://www.pib.gov.in/PressReleasePage.aspx?PRID=2324581&lang=1&reg=3",
+        "method": "auto",
+        "original_metadata": {
+          "declared_media_type": "text/html",
+          "http_status": 200,
+          "response_headers": {
+            "content-type": "text/html; charset=utf-8",
+            "date": "Sat, 17 Oct 2026 09:55:17 GMT",
+            "etag": "XXXXXXXX"
+          }
+        },
+        "provenance": {
+          "acquired_at": "2026-10-17T09:55:20.582311+00:00",
+          "canonical_url": "https://www.pib.gov.in/PressReleasePage.aspx?PRID=2324581&lang=1&reg=3",
+          "final_url": "https://www.pib.gov.in/PressReleasePage.aspx?PRID=2324581&lang=1&reg=3",
+          "provider": "http_page",
+          "provider_version": "0.1.0",
+          "request_target_id": "12f889a1d38a791b79d8dafeb0e3bdf8c060ab92",
+          "requested_url": "https://www.pib.gov.in/PressReleasePage.aspx?PRID=2324581&lang=1&reg=3",
+          "source_component": "defence_studio.acquisition.providers.http_page@0.1.0"
+        },
+        "requested_url": "https://www.pib.gov.in/PressReleasePage.aspx?PRID=2324581&lang=1&reg=3",
+        "source_id": "12f889a1d38a791b79d8dafeb0e3bdf8c060ab92",
+        "source_type": "web_page",
+        "status": "ACQUIRED",
+        "target_id": "12f889a1d38a791b79d8dafeb0e3bdf8c060ab92",
+        "warnings": [],
+        "normalized": {
+          "canonical_url": "https://www.pib.gov.in/PressReleasePage.aspx?PRID=2324581&lang=1&reg=3",
+          "dates": {
+            "acquired_at": "2026-10-17T09:55:20.582311+00:00",
+            "published_at": "2026-10-16"
+          },
+          "declared_metadata": {
+            "language": "en",
+            "language_status": "COLLECTED",
+            "published_at": "2026-10-16",
+            "published_at_status": "COLLECTED",
+            "publisher": null,
+            "publisher_status": "UNAVAILABLE",
+            "title": "Press Release Page | Press Information Bureau",
+            "title_status": "COLLECTED"
+          },
+          "final_url": "https://www.pib.gov.in/PressReleasePage.aspx?PRID=2324581&lang=1&reg=3",
+          "language_detected": "en",
+          "media_type": "text/html",
+          "normalization_version": "defence-studio.normalizer.v3",
+          "normalized_char_count": 3232,
+          "normalized_sha256": "095476b29609295384682769988b0bf30aa18e4d017815b15f743d1a3b99dc8a",
+          "original_artifact": {
+            "artifact_type": "source_content",
+            "bytes": 99774,
+            "media_type": "text/html",
+            "sha256": "740d207e857969ed04f889a08e600aa498403b86bd1c0220e98061249a9908c2",
+            "uri": "jobs/ff16816c-7af1-477a-b5f7-888ebd42f21a/research/sources/12f889a1d38a791b79d8dafeb0e3bdf8c060ab92/content.html"
+          },
+          "original_sha256_verified": true,
+          "requested_url": "https://www.pib.gov.in/PressReleasePage.aspx?PRID=2324581&lang=1&reg=3",
+          "schema_version": "defence-studio.normalized-source.v1",
+          "source_id": "12f889a1d38a791b79d8dafeb0e3bdf8c060ab92",
+          "source_type": "web_page",
+          "status": "NORMALIZED",
+          "target_id": "12f889a1d38a791b79d8dafeb0e3bdf8c060ab92",
+          "warnings": []
+        },
+        "review": {
+          "origin": "AUTOMATED_POLICY",
+          "decision": "APPROVED_FOR_USE",
+          "policy_state": "AUTO_ACCEPTED",
+          "policy_version": "defence-studio.evidence-policy.v1",
+          "run_id": "ead139498bab5716",
+          "score": null,
+          "claim_class": null,
+          "independent_groups": null,
+          "reviewer_id": null,
+          "note": "allowlisted, acquired, integrity verified, topic-relevant",
+          "reviewed_artifact_sha256": "1f40dd6cbb59760274820ad053c525cd549bc1432d4fa3af86daff110f834a22",
+          "revision": 0
+        },
+        "is_stale": false
+      },
+      {
+        "acquisition_timestamp": "2026-10-17T09:55:20.901430+00:00",
+        "artifacts": [
+          {
+            "artifact_type": "source_content",
+            "bytes": 101371,
+            "media_type": "text/html",
+            "schema_version": "defence-studio.source-artifact.v1",
+            "sha256": "c3b6fda1af5cc3be03a3459dc904a2abeb989c7516a98696ea5804ba2ff18c4d",
+            "uri": "jobs/ff16816c-7af1-477a-b5f7-888ebd42f21a/research/sources/26a9d035e38e459b0ac5a3df57aeaafaad658489/content.html"
+          }
+        ],
+        "canonical_url": "https://www.pib.gov.in/PressReleasePage.aspx?PRID=2324319&lang=1&reg=3",
+        "declared_metadata": {
+          "language": "en",
+          "language_status": "COLLECTED",
+          "published_at": "2026-10-16",
+          "published_at_status": "COLLECTED",
+          "publisher": null,
+          "publisher_status": "UNAVAILABLE",
+          "title": "Press Release Page | Press Information Bureau",
+          "title_status": "COLLECTED"
+        },
+        "error": null,
+        "final_url": "https://www.pib.gov.in/PressReleasePage.aspx?PRID=2324319&lang=1&reg=3",
+        "method": "auto",
+        "original_metadata": {
+          "declared_media_type": "text/html",
+          "http_status": 200,
+          "response_headers": {
+            "content-length": "35845",
+            "content-type": "text/html; charset=utf-8",
+            "date": "Sat, 17 Oct 2026 09:55:18 GMT",
+            "etag": "XXXXXXXX"
+          }
+        },
+        "provenance": {
+          "acquired_at": "2026-10-17T09:55:20.901430+00:00",
+          "canonical_url": "https://www.pib.gov.in/PressReleasePage.aspx?PRID=2324319&lang=1&reg=3",
+          "final_url": "https://www.pib.gov.in/PressReleasePage.aspx?PRID=2324319&lang=1&reg=3",
+          "provider": "http_page",
+          "provider_version": "0.1.0",
+          "request_target_id": "26a9d035e38e459b0ac5a3df57aeaafaad658489",
+          "requested_url": "https://www.pib.gov.in/PressReleasePage.aspx?PRID=2324319&lang=1&reg=3",
+          "source_component": "defence_studio.acquisition.providers.http_page@0.1.0"
+        },
+        "requested_url": "https://www.pib.gov.in/PressReleasePage.aspx?PRID=2324319&lang=1&reg=3",
+        "source_id": "26a9d035e38e459b0ac5a3df57aeaafaad658489",
+        "source_type": "web_page",
+        "status": "ACQUIRED",
+        "target_id": "26a9d035e38e459b0ac5a3df57aeaafaad658489",
+        "warnings": [],
+        "normalized": {
+          "canonical_url": "https://www.pib.gov.in/PressReleasePage.aspx?PRID=2324319&lang=1&reg=3",
+          "dates": {
+            "acquired_at": "2026-10-17T09:55:20.901430+00:00",
+            "published_at": "2026-10-16"
+          },
+          "declared_metadata": {
+            "language": "en",
+            "language_status": "COLLECTED",
+            "published_at": "2026-10-16",
+            "published_at_status": "COLLECTED",
+            "publisher": null,
+            "publisher_status": "UNAVAILABLE",
+            "title": "Press Release Page | Press Information Bureau",
+            "title_status": "COLLECTED"
+          },
+          "final_url": "https://www.pib.gov.in/PressReleasePage.aspx?PRID=2324319&lang=1&reg=3",
+          "language_detected": "en",
+          "media_type": "text/html",
+          "normalization_version": "defence-studio.normalizer.v3",
+          "normalized_char_count": 4832,
+          "normalized_sha256": "d102bd6cdc3b7b6e16795338028bf838233d50b8a228879edb3855544f676ce2",
+          "original_artifact": {
+            "artifact_type": "source_content",
+            "bytes": 101371,
+            "media_type": "text/html",
+            "sha256": "c3b6fda1af5cc3be03a3459dc904a2abeb989c7516a98696ea5804ba2ff18c4d",
+            "uri": "jobs/ff16816c-7af1-477a-b5f7-888ebd42f21a/research/sources/26a9d035e38e459b0ac5a3df57aeaafaad658489/content.html"
+          },
+          "original_sha256_verified": true,
+          "requested_url": "https://www.pib.gov.in/PressReleasePage.aspx?PRID=2324319&lang=1&reg=3",
+          "schema_version": "defence-studio.normalized-source.v1",
+          "source_id": "26a9d035e38e459b0ac5a3df57aeaafaad658489",
+          "source_type": "web_page",
+          "status": "NORMALIZED",
+          "target_id": "26a9d035e38e459b0ac5a3df57aeaafaad658489",
+          "warnings": []
+        },
+        "review": {
+          "origin": "AUTOMATED_POLICY",
+          "decision": "APPROVED_FOR_USE",
+          "policy_state": "AUTO_ACCEPTED",
+          "policy_version": "defence-studio.evidence-policy.v1",
+          "run_id": "ead139498bab5716",
+          "score": null,
+          "claim_class": null,
+          "independent_groups": null,
+          "reviewer_id": null,
+          "note": "allowlisted, acquired, integrity verified, topic-relevant",
+          "reviewed_artifact_sha256": "1f40dd6cbb59760274820ad053c525cd549bc1432d4fa3af86daff110f834a22",
+          "revision": 0
+        },
+        "is_stale": false
+      }
+    ],
+    "claims": [
+      {
+        "acquisition_timestamp": "2026-10-17T09:55:20.582311+00:00",
+        "claim_id": "claim-111e2d36168e5818",
+        "claim_text": "INDIAN NAVY COMMISSIONS INS SAMARTHAK, THE FIRST INDIGENOUS MULTI-PURPOSE VESSEL",
+        "entities": {
+          "dates": [],
+          "designations": [],
+          "named": [
+            "INDIAN NAVY COMMISSIONS INS SAMARTHAK",
+            "THE FIRST INDIGENOUS MULTI",
+            "PURPOSE VESSEL"
+          ],
+          "quantities": []
+        },
+        "extraction_method": "deterministic-sentence-span",
+        "extractor_version": "defence-studio.claim-extractor.deterministic.v2",
+        "has_negation": false,
+        "is_explicit": true,
+        "normalized_language": "en",
+        "original_language": "en",
+        "passage": {
+          "artifact_uri": "jobs/ff16816c-7af1-477a-b5f7-888ebd42f21a/research/sources/12f889a1d38a791b79d8dafeb0e3bdf8c060ab92/content.html",
+          "end_offset": 101,
+          "kind": "TEXT_SPAN",
+          "source_id": "12f889a1d38a791b79d8dafeb0e3bdf8c060ab92",
+          "start_offset": 21,
+          "text": "INDIAN NAVY COMMISSIONS INS SAMARTHAK, THE FIRST INDIGENOUS MULTI-PURPOSE VESSEL",
+          "timestamp_end": null,
+          "timestamp_start": null
+        },
+        "qualifiers": [],
+        "source_id": "12f889a1d38a791b79d8dafeb0e3bdf8c060ab92",
+        "source_published_at": "2026-10-16",
+        "warnings": [],
+        "review": {
+          "origin": "AUTOMATED_POLICY",
+          "decision": "APPROVED_FOR_USE",
+          "policy_state": "AUTO_ACCEPTED",
+          "policy_version": "defence-studio.evidence-policy.v1",
+          "run_id": "ead139498bab5716",
+          "score": 90.0,
+          "claim_class": "DESCRIPTIVE",
+          "independent_groups": 1,
+          "reviewer_id": null,
+          "note": "substantive, topic-relevant, source usable, no uncertainty or dispute markers",
+          "reviewed_artifact_sha256": "c48015a7bc6a394c9b41f603feb1fe6fc2c1c2a802d1a161d47ac831837099c0",
+          "revision": 0
+        },
+        "is_stale": false
+      },
+      {
+        "acquisition_timestamp": "2026-10-17T09:55:20.582311+00:00",
+        "claim_id": "claim-a17c0f35c86fe2da",
+        "claim_text": "Indian Naval Ship Samarthak, the first of class Multi-Purpose Vessels (MPVs), was commissioned into the Indian Navy on 16 Oct 2026.",
+        "entities": {
+          "dates": [
+            "2026"
+          ],
+          "designations": [],
+          "named": [
+            "Indian Naval Ship Samarthak",
+            "Purpose Vessels",
+            "Indian Navy"
+          ],
+          "quantities": []
+        },
+        "extraction_method": "deterministic-sentence-span",
+        "extractor_version": "defence-studio.claim-extractor.deterministic.v2",
+        "has_negation": false,
+        "is_explicit": true,
+        "normalized_language": "en",
+        "original_language": "en",
+        "passage": {
+          "artifact_uri": "jobs/ff16816c-7af1-477a-b5f7-888ebd42f21a/research/sources/12f889a1d38a791b79d8dafeb0e3bdf8c060ab92/content.html",
+          "end_offset": 278,
+          "kind": "TEXT_SPAN",
+          "source_id": "12f889a1d38a791b79d8dafeb0e3bdf8c060ab92",
+          "start_offset": 147,
+          "text": "Indian Naval Ship Samarthak, the first of class Multi-Purpose Vessels (MPVs), was commissioned into the Indian Navy on 16 Oct 2026.",
+          "timestamp_end": null,
+          "timestamp_start": null
+        },
+        "qualifiers": [],
+        "source_id": "12f889a1d38a791b79d8dafeb0e3bdf8c060ab92",
+        "source_published_at": "2026-10-16",
+        "warnings": [],
+        "review": {
+          "origin": "AUTOMATED_POLICY",
+          "decision": "APPROVED_FOR_USE",
+          "policy_state": "AUTO_ACCEPTED",
+          "policy_version": "defence-studio.evidence-policy.v1",
+          "run_id": "ead139498bab5716",
+          "score": 90.0,
+          "claim_class": "DESCRIPTIVE",
+          "independent_groups": 1,
+          "reviewer_id": null,
+          "note": "substantive, topic-relevant, source usable, no uncertainty or dispute markers",
+          "reviewed_artifact_sha256": "c48015a7bc6a394c9b41f603feb1fe6fc2c1c2a802d1a161d47ac831837099c0",
+          "revision": 0
+        },
+        "is_stale": false
+      },
+      {
+        "acquisition_timestamp": "2026-10-17T09:55:20.582311+00:00",
+        "claim_id": "claim-ae309580752f618f",
+        "claim_text": "The ceremony was presided over by the Hon\u2019ble Vice President of India, Shri Chandrapuram Ponnusamy Radhakrishnan, in the presence of Adm Krishna Swaminathan, Chief of the Naval Staff.",
+        "entities": {
+          "dates": [],
+          "designations": [],
+          "named": [
+            "Vice President",
+            "Shri Chandrapuram Ponnusamy Radhakrishnan",
+            "Adm Krishna Swaminathan",
+            "Naval Staff"
+          ],
+          "quantities": []
+        },
+        "extraction_method": "deterministic-sentence-span",
+        "extractor_version": "defence-studio.claim-extractor.deterministic.v2",
+        "has_negation": false,
+        "is_explicit": true,
+        "normalized_language": "en",
+        "original_language": "en",
+        "passage": {
+          "artifact_uri": "jobs/ff16816c-7af1-477a-b5f7-888ebd42f21a/research/sources/12f889a1d38a791b79d8dafeb0e3bdf8c060ab92/content.html",
+          "end_offset": 462,
+          "kind": "TEXT_SPAN",
+          "source_id": "12f889a1d38a791b79d8dafeb0e3bdf8c060ab92",
+          "start_offset": 279,
+          "text": "The ceremony was presided over by the Hon\u2019ble Vice President of India, Shri Chandrapuram Ponnusamy Radhakrishnan, in the presence of Adm Krishna Swaminathan, Chief of the Naval Staff.",
+          "timestamp_end": null,
+          "timestamp_start": null
+        },
+        "qualifiers": [],
+        "source_id": "12f889a1d38a791b79d8dafeb0e3bdf8c060ab92",
+        "source_published_at": "2026-10-16",
+        "warnings": [],
+        "review": {
+          "origin": "AUTOMATED_POLICY",
+          "decision": "REJECTED",
+          "policy_state": "REJECTED",
+          "policy_version": "defence-studio.evidence-policy.v1",
+          "run_id": "ead139498bab5716",
+          "score": 75.0,
+          "claim_class": "DESCRIPTIVE",
+          "independent_groups": 1,
+          "reviewer_id": null,
+          "note": "no topic anchor term: not self-contained (refers to the topic only by pronoun or context), so it is not used as standalone evidence",
+          "reviewed_artifact_sha256": "c48015a7bc6a394c9b41f603feb1fe6fc2c1c2a802d1a161d47ac831837099c0",
+          "revision": 0
+        },
+        "is_stale": false
+      },
+      {
+        "acquisition_timestamp": "2026-10-17T09:55:20.582311+00:00",
+        "claim_id": "claim-641907e944019252",
+        "claim_text": "The Hon\u2019ble \u200bM\u200binister for Labour and Employment, Govt of Karnataka, along with senior naval and defence officials and dignitaries from the Ministry of Defence, also graced the occasion.",
+        "entities": {
+          "dates": [],
+          "designations": [],
+          "named": [
+            "The Hon"
+          ],
+          "quantities": []
+        },
+        "extraction_method": "deterministic-sentence-span",
+        "extractor_version": "defence-studio.claim-extractor.deterministic.v2",
+        "has_negation": false,
+        "is_explicit": true,
+        "normalized_language": "en",
+        "original_language": "en",
+        "passage": {
+          "artifact_uri": "jobs/ff16816c-7af1-477a-b5f7-888ebd42f21a/research/sources/12f889a1d38a791b79d8dafeb0e3bdf8c060ab92/content.html",
+          "end_offset": 649,
+          "kind": "TEXT_SPAN",
+          "source_id": "12f889a1d38a791b79d8dafeb0e3bdf8c060ab92",
+          "start_offset": 463,
+          "text": "The Hon\u2019ble \u200bM\u200binister for Labour and Employment, Govt of Karnataka, along with senior naval and defence officials and dignitaries from the Ministry of Defence, also graced the occasion.",
+          "timestamp_end": null,
+          "timestamp_start": null
+        },
+        "qualifiers": [],
+        "source_id": "12f889a1d38a791b79d8dafeb0e3bdf8c060ab92",
+        "source_published_at": "2026-10-16",
+        "warnings": [],
+        "review": {
+          "origin": "AUTOMATED_POLICY",
+          "decision": "REJECTED",
+          "policy_state": "REJECTED",
+          "policy_version": "defence-studio.evidence-policy.v1",
+          "run_id": "ead139498bab5716",
+          "score": 75.0,
+          "claim_class": "DESCRIPTIVE",
+          "independent_groups": 1,
+          "reviewer_id": null,
+          "note": "no topic anchor term: not self-contained (refers to the topic only by pronoun or context), so it is not used as standalone evidence",
+          "reviewed_artifact_sha256": "c48015a7bc6a394c9b41f603feb1fe6fc2c1c2a802d1a161d47ac831837099c0",
+          "revision": 0
+        },
+        "is_stale": false
+      },
+      {
+        "acquisition_timestamp": "2026-10-17T09:55:20.582311+00:00",
+        "claim_id": "claim-3038065ce75b3522",
+        "claim_text": "Key representatives of Larsen & Toubro Ltd (L&T) and OEMs associated with indigenous equipment were also present during the commissioning ceremony.",
+        "entities": {
+          "dates": [],
+          "designations": [],
+          "named": [
+            "Toubro Ltd"
+          ],
+          "quantities": []
+        },
+        "extraction_method": "deterministic-sentence-span",
+        "extractor_version": "defence-studio.claim-extractor.deterministic.v2",
+        "has_negation": false,
+        "is_explicit": true,
+        "normalized_language": "en",
+        "original_language": "en",
+        "passage": {
+          "artifact_uri": "jobs/ff16816c-7af1-477a-b5f7-888ebd42f21a/research/sources/12f889a1d38a791b79d8dafeb0e3bdf8c060ab92/content.html",
+          "end_offset": 797,
+          "kind": "TEXT_SPAN",
+          "source_id": "12f889a1d38a791b79d8dafeb0e3bdf8c060ab92",
+          "start_offset": 650,
+          "text": "Key representatives of Larsen & Toubro Ltd (L&T) and OEMs associated with indigenous equipment were also present during the commissioning ceremony.",
+          "timestamp_end": null,
+          "timestamp_start": null
+        },
+        "qualifiers": [],
+        "source_id": "12f889a1d38a791b79d8dafeb0e3bdf8c060ab92",
+        "source_published_at": "2026-10-16",
+        "warnings": [],
+        "review": {
+          "origin": "AUTOMATED_POLICY",
+          "decision": "APPROVED_FOR_USE",
+          "policy_state": "AUTO_ACCEPTED",
+          "policy_version": "defence-studio.evidence-policy.v1",
+          "run_id": "ead139498bab5716",
+          "score": 90.0,
+          "claim_class": "DESCRIPTIVE",
+          "independent_groups": 1,
+          "reviewer_id": null,
+          "note": "substantive, topic-relevant, source usable, no uncertainty or dispute markers",
+          "reviewed_artifact_sha256": "c48015a7bc6a394c9b41f603feb1fe6fc2c1c2a802d1a161d47ac831837099c0",
+          "revision": 0
+        },
+        "is_stale": false
+      },
+      {
+        "acquisition_timestamp": "2026-10-17T09:55:20.582311+00:00",
+        "claim_id": "claim-44d29a25afd98abe",
+        "claim_text": "Designed and constructed by L&T Shipyard, INS Samarthak marks a significant milestone in India\u2019s indigenous shipbuilding journey as the first major warship to be built by an Indian private shipyard.",
+        "entities": {
+          "dates": [],
+          "designations": [],
+          "named": [
+            "INS Samarthak"
+          ],
+          "quantities": []
+        },
+        "extraction_method": "deterministic-sentence-span",
+        "extractor_version": "defence-studio.claim-extractor.deterministic.v2",
+        "has_negation": false,
+        "is_explicit": true,
+        "normalized_language": "en",
+        "original_language": "en",
+        "passage": {
+          "artifact_uri": "jobs/ff16816c-7af1-477a-b5f7-888ebd42f21a/research/sources/12f889a1d38a791b79d8dafeb0e3bdf8c060ab92/content.html",
+          "end_offset": 997,
+          "kind": "TEXT_SPAN",
+          "source_id": "12f889a1d38a791b79d8dafeb0e3bdf8c060ab92",
+          "start_offset": 799,
+          "text": "Designed and constructed by L&T Shipyard, INS Samarthak marks a significant milestone in India\u2019s indigenous shipbuilding journey as the first major warship to be built by an Indian private shipyard.",
+          "timestamp_end": null,
+          "timestamp_start": null
+        },
+        "qualifiers": [],
+        "source_id": "12f889a1d38a791b79d8dafeb0e3bdf8c060ab92",
+        "source_published_at": "2026-10-16",
+        "warnings": [],
+        "review": {
+          "origin": "AUTOMATED_POLICY",
+          "decision": "APPROVED_FOR_USE",
+          "policy_state": "AUTO_ACCEPTED",
+          "policy_version": "defence-studio.evidence-policy.v1",
+          "run_id": "ead139498bab5716",
+          "score": 90.0,
+          "claim_class": "DESCRIPTIVE",
+          "independent_groups": 1,
+          "reviewer_id": null,
+          "note": "substantive, topic-relevant, source usable, no uncertainty or dispute markers",
+          "reviewed_artifact_sha256": "c48015a7bc6a394c9b41f603feb1fe6fc2c1c2a802d1a161d47ac831837099c0",
+          "revision": 0
+        },
+        "is_stale": false
+      },
+      {
+        "acquisition_timestamp": "2026-10-17T09:55:20.582311+00:00",
+        "claim_id": "claim-dba560a332ce5c0e",
+        "claim_text": "The commissioning is a powerful testament to the growing maturity and capability of the nation\u2019s private shipbuilding industry and reflects the deepening synergy between the Indian Navy and the Indian shipbuilding industry in advancing the national vision of Aatmanirbhar Bharat.",
+        "entities": {
+          "dates": [],
+          "designations": [],
+          "named": [
+            "Indian Navy",
+            "Aatmanirbhar Bharat"
+          ],
+          "quantities": []
+        },
+        "extraction_method": "deterministic-sentence-span",
+        "extractor_version": "defence-studio.claim-extractor.deterministic.v2",
+        "has_negation": false,
+        "is_explicit": true,
+        "normalized_language": "en",
+        "original_language": "en",
+        "passage": {
+          "artifact_uri": "jobs/ff16816c-7af1-477a-b5f7-888ebd42f21a/research/sources/12f889a1d38a791b79d8dafeb0e3bdf8c060ab92/content.html",
+          "end_offset": 1277,
+          "kind": "TEXT_SPAN",
+          "source_id": "12f889a1d38a791b79d8dafeb0e3bdf8c060ab92",
+          "start_offset": 998,
+          "text": "The commissioning is a powerful testament to the growing maturity and capability of the nation\u2019s private shipbuilding industry and reflects the deepening synergy between the Indian Navy and the Indian shipbuilding industry in advancing the national vision of Aatmanirbhar Bharat.",
+          "timestamp_end": null,
+          "timestamp_start": null
+        },
+        "qualifiers": [],
+        "source_id": "12f889a1d38a791b79d8dafeb0e3bdf8c060ab92",
+        "source_published_at": "2026-10-16",
+        "warnings": [],
+        "review": {
+          "origin": "AUTOMATED_POLICY",
+          "decision": "APPROVED_FOR_USE",
+          "policy_state": "AUTO_ACCEPTED",
+          "policy_version": "defence-studio.evidence-policy.v1",
+          "run_id": "ead139498bab5716",
+          "score": 90.0,
+          "claim_class": "DESCRIPTIVE",
+          "independent_groups": 1,
+          "reviewer_id": null,
+          "note": "substantive, topic-relevant, source usable, no uncertainty or dispute markers",
+          "reviewed_artifact_sha256": "c48015a7bc6a394c9b41f603feb1fe6fc2c1c2a802d1a161d47ac831837099c0",
+          "revision": 0
+        },
+        "is_stale": false
+      },
+      {
+        "acquisition_timestamp": "2026-10-17T09:55:20.582311+00:00",
+        "claim_id": "claim-b84efc9fe64b2778",
+        "claim_text": "Conceived as a versatile platform for trials and evaluation, INS Samarthak embodies the enhanced technological and operational capabilities of the Indian Navy in the 21st century.",
+        "entities": {
+          "dates": [],
+          "designations": [],
+          "named": [
+            "INS Samarthak",
+            "Indian Navy"
+          ],
+          "quantities": []
+        },
+        "extraction_method": "deterministic-sentence-span",
+        "extractor_version": "defence-studio.claim-extractor.deterministic.v2",
+        "has_negation": false,
+        "is_explicit": true,
+        "normalized_language": "en",
+        "original_language": "en",
+        "passage": {
+          "artifact_uri": "jobs/ff16816c-7af1-477a-b5f7-888ebd42f21a/research/sources/12f889a1d38a791b79d8dafeb0e3bdf8c060ab92/content.html",
+          "end_offset": 1458,
+          "kind": "TEXT_SPAN",
+          "source_id": "12f889a1d38a791b79d8dafeb0e3bdf8c060ab92",
+          "start_offset": 1279,
+          "text": "Conceived as a versatile platform for trials and evaluation, INS Samarthak embodies the enhanced technological and operational capabilities of the Indian Navy in the 21st century.",
+          "timestamp_end": null,
+          "timestamp_start": null
+        },
+        "qualifiers": [],
+        "source_id": "12f889a1d38a791b79d8dafeb0e3bdf8c060ab92",
+        "source_published_at": "2026-10-16",
+        "warnings": [],
+        "review": {
+          "origin": "AUTOMATED_POLICY",
+          "decision": "NEEDS_MORE_EVIDENCE",
+          "policy_state": "NEEDS_REVIEW",
+          "policy_version": "defence-studio.evidence-policy.v1",
+          "run_id": "ead139498bab5716",
+          "score": 90.0,
+          "claim_class": "OPERATIONAL",
+          "independent_groups": 1,
+          "reviewer_id": null,
+          "note": "OPERATIONAL claim: 1 independent source group(s), policy requires 2 or explicit attribution",
+          "reviewed_artifact_sha256": "c48015a7bc6a394c9b41f603feb1fe6fc2c1c2a802d1a161d47ac831837099c0",
+          "revision": 0
+        },
+        "is_stale": false
+      },
+      {
+        "acquisition_timestamp": "2026-10-17T09:55:20.582311+00:00",
+        "claim_id": "claim-f0cae0ab9e71855c",
+        "claim_text": "Aptly named Samarthak, meaning \u2018The Proponent\u2019, the ship represents the spirit of a dependable enabler, capable of supporting multiple missions and has been designed with inherent versatility and adaptability, enabling it to undertake diverse range of operational and developmental tasks.",
+        "entities": {
+          "dates": [],
+          "designations": [],
+          "named": [
+            "The Proponent"
+          ],
+          "quantities": []
+        },
+        "extraction_method": "deterministic-sentence-span",
+        "extractor_version": "defence-studio.claim-extractor.deterministic.v2",
+        "has_negation": false,
+        "is_explicit": true,
+        "normalized_language": "en",
+        "original_language": "en",
+        "passage": {
+          "artifact_uri": "jobs/ff16816c-7af1-477a-b5f7-888ebd42f21a/research/sources/12f889a1d38a791b79d8dafeb0e3bdf8c060ab92/content.html",
+          "end_offset": 2049,
+          "kind": "TEXT_SPAN",
+          "source_id": "12f889a1d38a791b79d8dafeb0e3bdf8c060ab92",
+          "start_offset": 1761,
+          "text": "Aptly named Samarthak, meaning \u2018The Proponent\u2019, the ship represents the spirit of a dependable enabler, capable of supporting multiple missions and has been designed with inherent versatility and adaptability, enabling it to undertake diverse range of operational and developmental tasks.",
+          "timestamp_end": null,
+          "timestamp_start": null
+        },
+        "qualifiers": [],
+        "source_id": "12f889a1d38a791b79d8dafeb0e3bdf8c060ab92",
+        "source_published_at": "2026-10-16",
+        "warnings": [],
+        "review": {
+          "origin": "AUTOMATED_POLICY",
+          "decision": "NEEDS_MORE_EVIDENCE",
+          "policy_state": "NEEDS_REVIEW",
+          "policy_version": "defence-studio.evidence-policy.v1",
+          "run_id": "ead139498bab5716",
+          "score": 90.0,
+          "claim_class": "OPERATIONAL",
+          "independent_groups": 1,
+          "reviewer_id": null,
+          "note": "OPERATIONAL claim: 1 independent source group(s), policy requires 2 or explicit attribution",
+          "reviewed_artifact_sha256": "c48015a7bc6a394c9b41f603feb1fe6fc2c1c2a802d1a161d47ac831837099c0",
+          "revision": 0
+        },
+        "is_stale": false
+      },
+      {
+        "acquisition_timestamp": "2026-10-17T09:55:20.582311+00:00",
+        "claim_id": "claim-c517136c102939d9",
+        "claim_text": "True to its name, INS Samarthak is capable of undertaking maritime surveillance and reconnaissance, offshore patrolling, and Humanitarian Assistance and Disaster Relief operations, as required.",
+        "entities": {
+          "dates": [],
+          "designations": [],
+          "named": [
+            "INS Samarthak",
+            "Humanitarian Assistance",
+            "Disaster Relief"
+          ],
+          "quantities": []
+        },
+        "extraction_method": "deterministic-sentence-span",
+        "extractor_version": "defence-studio.claim-extractor.deterministic.v2",
+        "has_negation": false,
+        "is_explicit": true,
+        "normalized_language": "en",
+        "original_language": "en",
+        "passage": {
+          "artifact_uri": "jobs/ff16816c-7af1-477a-b5f7-888ebd42f21a/research/sources/12f889a1d38a791b79d8dafeb0e3bdf8c060ab92/content.html",
+          "end_offset": 2243,
+          "kind": "TEXT_SPAN",
+          "source_id": "12f889a1d38a791b79d8dafeb0e3bdf8c060ab92",
+          "start_offset": 2050,
+          "text": "True to its name, INS Samarthak is capable of undertaking maritime surveillance and reconnaissance, offshore patrolling, and Humanitarian Assistance and Disaster Relief operations, as required.",
+          "timestamp_end": null,
+          "timestamp_start": null
+        },
+        "qualifiers": [],
+        "source_id": "12f889a1d38a791b79d8dafeb0e3bdf8c060ab92",
+        "source_published_at": "2026-10-16",
+        "warnings": [],
+        "review": {
+          "origin": "AUTOMATED_POLICY",
+          "decision": "APPROVED_FOR_USE",
+          "policy_state": "AUTO_ACCEPTED",
+          "policy_version": "defence-studio.evidence-policy.v1",
+          "run_id": "ead139498bab5716",
+          "score": 90.0,
+          "claim_class": "DESCRIPTIVE",
+          "independent_groups": 1,
+          "reviewer_id": null,
+          "note": "substantive, topic-relevant, source usable, no uncertainty or dispute markers",
+          "reviewed_artifact_sha256": "c48015a7bc6a394c9b41f603feb1fe6fc2c1c2a802d1a161d47ac831837099c0",
+          "revision": 0
+        },
+        "is_stale": false
+      },
+      {
+        "acquisition_timestamp": "2026-10-17T09:55:20.582311+00:00",
+        "claim_id": "claim-be989869c9d5ce51",
+        "claim_text": "The commissioning of INS Samarthak reinforces the nation\u2019s commitment to maritime security, regional stability and cooperative engagement across the Indian Ocean Region.",
+        "entities": {
+          "dates": [],
+          "designations": [],
+          "named": [
+            "INS Samarthak",
+            "Indian Ocean Region"
+          ],
+          "quantities": []
+        },
+        "extraction_method": "deterministic-sentence-span",
+        "extractor_version": "defence-studio.claim-extractor.deterministic.v2",
+        "has_negation": false,
+        "is_explicit": true,
+        "normalized_language": "en",
+        "original_language": "en",
+        "passage": {
+          "artifact_uri": "jobs/ff16816c-7af1-477a-b5f7-888ebd42f21a/research/sources/12f889a1d38a791b79d8dafeb0e3bdf8c060ab92/content.html",
+          "end_offset": 2706,
+          "kind": "TEXT_SPAN",
+          "source_id": "12f889a1d38a791b79d8dafeb0e3bdf8c060ab92",
+          "start_offset": 2537,
+          "text": "The commissioning of INS Samarthak reinforces the nation\u2019s commitment to maritime security, regional stability and cooperative engagement across the Indian Ocean Region.",
+          "timestamp_end": null,
+          "timestamp_start": null
+        },
+        "qualifiers": [],
+        "source_id": "12f889a1d38a791b79d8dafeb0e3bdf8c060ab92",
+        "source_published_at": "2026-10-16",
+        "warnings": [],
+        "review": {
+          "origin": "AUTOMATED_POLICY",
+          "decision": "APPROVED_FOR_USE",
+          "policy_state": "AUTO_ACCEPTED",
+          "policy_version": "defence-studio.evidence-policy.v1",
+          "run_id": "ead139498bab5716",
+          "score": 90.0,
+          "claim_class": "DESCRIPTIVE",
+          "independent_groups": 1,
+          "reviewer_id": null,
+          "note": "substantive, topic-relevant, source usable, no uncertainty or dispute markers",
+          "reviewed_artifact_sha256": "c48015a7bc6a394c9b41f603feb1fe6fc2c1c2a802d1a161d47ac831837099c0",
+          "revision": 0
+        },
+        "is_stale": false
+      },
+      {
+        "acquisition_timestamp": "2026-10-17T09:55:20.582311+00:00",
+        "claim_id": "claim-1b175031d6f1acf6",
+        "claim_text": "The induction of INS Samarthak significantly strengthens India's ability for testing and training new sensors and weapons developed indigenously by domestic industry.",
+        "entities": {
+          "dates": [],
+          "designations": [],
+          "named": [
+            "INS Samarthak"
+          ],
+          "quantities": []
+        },
+        "extraction_method": "deterministic-sentence-span",
+        "extractor_version": "defence-studio.claim-extractor.deterministic.v2",
+        "has_negation": false,
+        "is_explicit": true,
+        "normalized_language": "en",
+        "original_language": "en",
+        "passage": {
+          "artifact_uri": "jobs/ff16816c-7af1-477a-b5f7-888ebd42f21a/research/sources/12f889a1d38a791b79d8dafeb0e3bdf8c060ab92/content.html",
+          "end_offset": 2991,
+          "kind": "TEXT_SPAN",
+          "source_id": "12f889a1d38a791b79d8dafeb0e3bdf8c060ab92",
+          "start_offset": 2825,
+          "text": "The induction of INS Samarthak significantly strengthens India's ability for testing and training new sensors and weapons developed indigenously by domestic industry.",
+          "timestamp_end": null,
+          "timestamp_start": null
+        },
+        "qualifiers": [],
+        "source_id": "12f889a1d38a791b79d8dafeb0e3bdf8c060ab92",
+        "source_published_at": "2026-10-16",
+        "warnings": [],
+        "review": {
+          "origin": "AUTOMATED_POLICY",
+          "decision": "APPROVED_FOR_USE",
+          "policy_state": "AUTO_ACCEPTED",
+          "policy_version": "defence-studio.evidence-policy.v1",
+          "run_id": "ead139498bab5716",
+          "score": 90.0,
+          "claim_class": "DESCRIPTIVE",
+          "independent_groups": 1,
+          "reviewer_id": null,
+          "note": "substantive, topic-relevant, source usable, no uncertainty or dispute markers",
+          "reviewed_artifact_sha256": "c48015a7bc6a394c9b41f603feb1fe6fc2c1c2a802d1a161d47ac831837099c0",
+          "revision": 0
+        },
+        "is_stale": false
+      },
+      {
+        "acquisition_timestamp": "2026-10-17T09:55:20.901430+00:00",
+        "claim_id": "claim-b0e3dbfe4e98fc16",
+        "claim_text": "Vice-President Shri C. P. Radhakrishnan Commissions Indian Navy\u2019s First Indigenous Multi-Purpose Vessel INS Samarthak at Karwar",
+        "entities": {
+          "dates": [],
+          "designations": [],
+          "named": [
+            "President Shri C. P. Radhakrishnan Commissions Indian Navy",
+            "First Indigenous Multi",
+            "Purpose Vessel INS Samarthak"
+          ],
+          "quantities": []
+        },
+        "extraction_method": "deterministic-sentence-span",
+        "extractor_version": "defence-studio.claim-extractor.deterministic.v2",
+        "has_negation": false,
+        "is_explicit": true,
+        "normalized_language": "en",
+        "original_language": "en",
+        "passage": {
+          "artifact_uri": "jobs/ff16816c-7af1-477a-b5f7-888ebd42f21a/research/sources/26a9d035e38e459b0ac5a3df57aeaafaad658489/content.html",
+          "end_offset": 157,
+          "kind": "TEXT_SPAN",
+          "source_id": "26a9d035e38e459b0ac5a3df57aeaafaad658489",
+          "start_offset": 30,
+          "text": "Vice-President Shri C. P. Radhakrishnan Commissions Indian Navy\u2019s First Indigenous Multi-Purpose Vessel INS Samarthak at Karwar",
+          "timestamp_end": null,
+          "timestamp_start": null
+        },
+        "qualifiers": [],
+        "source_id": "26a9d035e38e459b0ac5a3df57aeaafaad658489",
+        "source_published_at": "2026-10-16",
+        "warnings": [],
+        "review": {
+          "origin": "AUTOMATED_POLICY",
+          "decision": "APPROVED_FOR_USE",
+          "policy_state": "AUTO_ACCEPTED",
+          "policy_version": "defence-studio.evidence-policy.v1",
+          "run_id": "ead139498bab5716",
+          "score": 90.0,
+          "claim_class": "DESCRIPTIVE",
+          "independent_groups": 1,
+          "reviewer_id": null,
+          "note": "substantive, topic-relevant, source usable, no uncertainty or dispute markers",
+          "reviewed_artifact_sha256": "c48015a7bc6a394c9b41f603feb1fe6fc2c1c2a802d1a161d47ac831837099c0",
+          "revision": 0
+        },
+        "is_stale": false
+      },
+      {
+        "acquisition_timestamp": "2026-10-17T09:55:20.901430+00:00",
+        "claim_id": "claim-f753e8a93f0fe2ec",
+        "claim_text": "INS Samarthak, with over 75 per cent indigenous content, reflects India\u2019s growing self-reliance in defence manufacturing: Vice-President",
+        "entities": {
+          "dates": [],
+          "designations": [],
+          "named": [
+            "INS Samarthak"
+          ],
+          "quantities": []
+        },
+        "extraction_method": "deterministic-sentence-span",
+        "extractor_version": "defence-studio.claim-extractor.deterministic.v2",
+        "has_negation": false,
+        "is_explicit": true,
+        "normalized_language": "en",
+        "original_language": "en",
+        "passage": {
+          "artifact_uri": "jobs/ff16816c-7af1-477a-b5f7-888ebd42f21a/research/sources/26a9d035e38e459b0ac5a3df57aeaafaad658489/content.html",
+          "end_offset": 295,
+          "kind": "TEXT_SPAN",
+          "source_id": "26a9d035e38e459b0ac5a3df57aeaafaad658489",
+          "start_offset": 159,
+          "text": "INS Samarthak, with over 75 per cent indigenous content, reflects India\u2019s growing self-reliance in defence manufacturing: Vice-President",
+          "timestamp_end": null,
+          "timestamp_start": null
+        },
+        "qualifiers": [],
+        "source_id": "26a9d035e38e459b0ac5a3df57aeaafaad658489",
+        "source_published_at": "2026-10-16",
+        "warnings": [],
+        "review": {
+          "origin": "AUTOMATED_POLICY",
+          "decision": "APPROVED_FOR_USE",
+          "policy_state": "AUTO_ACCEPTED",
+          "policy_version": "defence-studio.evidence-policy.v1",
+          "run_id": "ead139498bab5716",
+          "score": 90.0,
+          "claim_class": "DESCRIPTIVE",
+          "independent_groups": 1,
+          "reviewer_id": null,
+          "note": "substantive, topic-relevant, source usable, no uncertainty or dispute markers",
+          "reviewed_artifact_sha256": "c48015a7bc6a394c9b41f603feb1fe6fc2c1c2a802d1a161d47ac831837099c0",
+          "revision": 0
+        },
+        "is_stale": false
+      },
+      {
+        "acquisition_timestamp": "2026-10-17T09:55:20.901430+00:00",
+        "claim_id": "claim-e50a06a0999ea8c9",
+        "claim_text": "\u201cIndian Navy Stands Ever-Vigilant and Combat-Ready to Safeguard India\u2019s Maritime Interests\u201d: Vice-President",
+        "entities": {
+          "dates": [],
+          "designations": [],
+          "named": [
+            "Indian Navy Stands Ever",
+            "Safeguard India",
+            "Maritime Interests"
+          ],
+          "quantities": []
+        },
+        "extraction_method": "deterministic-sentence-span",
+        "extractor_version": "defence-studio.claim-extractor.deterministic.v2",
+        "has_negation": false,
+        "is_explicit": true,
+        "normalized_language": "en",
+        "original_language": "en",
+        "passage": {
+          "artifact_uri": "jobs/ff16816c-7af1-477a-b5f7-888ebd42f21a/research/sources/26a9d035e38e459b0ac5a3df57aeaafaad658489/content.html",
+          "end_offset": 404,
+          "kind": "TEXT_SPAN",
+          "source_id": "26a9d035e38e459b0ac5a3df57aeaafaad658489",
+          "start_offset": 297,
+          "text": "\u201cIndian Navy Stands Ever-Vigilant and Combat-Ready to Safeguard India\u2019s Maritime Interests\u201d: Vice-President",
+          "timestamp_end": null,
+          "timestamp_start": null
+        },
+        "qualifiers": [],
+        "source_id": "26a9d035e38e459b0ac5a3df57aeaafaad658489",
+        "source_published_at": "2026-10-16",
+        "warnings": [],
+        "review": {
+          "origin": "AUTOMATED_POLICY",
+          "decision": "REJECTED",
+          "policy_state": "REJECTED",
+          "policy_version": "defence-studio.evidence-policy.v1",
+          "run_id": "ead139498bab5716",
+          "score": 75.0,
+          "claim_class": "DESCRIPTIVE",
+          "independent_groups": 1,
+          "reviewer_id": null,
+          "note": "no topic anchor term: not self-contained (refers to the topic only by pronoun or context), so it is not used as standalone evidence",
+          "reviewed_artifact_sha256": "c48015a7bc6a394c9b41f603feb1fe6fc2c1c2a802d1a161d47ac831837099c0",
+          "revision": 0
+        },
+        "is_stale": false
+      },
+      {
+        "acquisition_timestamp": "2026-10-17T09:55:20.901430+00:00",
+        "claim_id": "claim-824db06b64a36e5a",
+        "claim_text": "\u201cINS Samarthak Reflects the Growing Role of India\u2019s Private Shipbuilding Industry\u201d: Vice-President",
+        "entities": {
+          "dates": [],
+          "designations": [],
+          "named": [
+            "INS Samarthak Reflects",
+            "Growing Role",
+            "Private Shipbuilding Industry"
+          ],
+          "quantities": []
+        },
+        "extraction_method": "deterministic-sentence-span",
+        "extractor_version": "defence-studio.claim-extractor.deterministic.v2",
+        "has_negation": false,
+        "is_explicit": true,
+        "normalized_language": "en",
+        "original_language": "en",
+        "passage": {
+          "artifact_uri": "jobs/ff16816c-7af1-477a-b5f7-888ebd42f21a/research/sources/26a9d035e38e459b0ac5a3df57aeaafaad658489/content.html",
+          "end_offset": 504,
+          "kind": "TEXT_SPAN",
+          "source_id": "26a9d035e38e459b0ac5a3df57aeaafaad658489",
+          "start_offset": 406,
+          "text": "\u201cINS Samarthak Reflects the Growing Role of India\u2019s Private Shipbuilding Industry\u201d: Vice-President",
+          "timestamp_end": null,
+          "timestamp_start": null
+        },
+        "qualifiers": [],
+        "source_id": "26a9d035e38e459b0ac5a3df57aeaafaad658489",
+        "source_published_at": "2026-10-16",
+        "warnings": [],
+        "review": {
+          "origin": "AUTOMATED_POLICY",
+          "decision": "APPROVED_FOR_USE",
+          "policy_state": "AUTO_ACCEPTED",
+          "policy_version": "defence-studio.evidence-policy.v1",
+          "run_id": "ead139498bab5716",
+          "score": 90.0,
+          "claim_class": "DESCRIPTIVE",
+          "independent_groups": 1,
+          "reviewer_id": null,
+          "note": "substantive, topic-relevant, source usable, no uncertainty or dispute markers",
+          "reviewed_artifact_sha256": "c48015a7bc6a394c9b41f603feb1fe6fc2c1c2a802d1a161d47ac831837099c0",
+          "revision": 0
+        },
+        "is_stale": false
+      },
+      {
+        "acquisition_timestamp": "2026-10-17T09:55:20.901430+00:00",
+        "claim_id": "claim-71dc38bfc0ad1d72",
+        "claim_text": "\u201cKarwar Symbolises Both India\u2019s Glorious Maritime Heritage and Its Maritime Future\u201d: Vice-President",
+        "entities": {
+          "dates": [],
+          "designations": [],
+          "named": [
+            "Karwar Symbolises Both India",
+            "Glorious Maritime Heritage",
+            "Its Maritime Future"
+          ],
+          "quantities": []
+        },
+        "extraction_method": "deterministic-sentence-span",
+        "extractor_version": "defence-studio.claim-extractor.deterministic.v2",
+        "has_negation": false,
+        "is_explicit": true,
+        "normalized_language": "en",
+        "original_language": "en",
+        "passage": {
+          "artifact_uri": "jobs/ff16816c-7af1-477a-b5f7-888ebd42f21a/research/sources/26a9d035e38e459b0ac5a3df57aeaafaad658489/content.html",
+          "end_offset": 605,
+          "kind": "TEXT_SPAN",
+          "source_id": "26a9d035e38e459b0ac5a3df57aeaafaad658489",
+          "start_offset": 506,
+          "text": "\u201cKarwar Symbolises Both India\u2019s Glorious Maritime Heritage and Its Maritime Future\u201d: Vice-President",
+          "timestamp_end": null,
+          "timestamp_start": null
+        },
+        "qualifiers": [],
+        "source_id": "26a9d035e38e459b0ac5a3df57aeaafaad658489",
+        "source_published_at": "2026-10-16",
+        "warnings": [],
+        "review": {
+          "origin": "AUTOMATED_POLICY",
+          "decision": "REJECTED",
+          "policy_state": "REJECTED",
+          "policy_version": "defence-studio.evidence-policy.v1",
+          "run_id": "ead139498bab5716",
+          "score": 75.0,
+          "claim_class": "DESCRIPTIVE",
+          "independent_groups": 1,
+          "reviewer_id": null,
+          "note": "no topic anchor term: not self-contained (refers to the topic only by pronoun or context), so it is not used as standalone evidence",
+          "reviewed_artifact_sha256": "c48015a7bc6a394c9b41f603feb1fe6fc2c1c2a802d1a161d47ac831837099c0",
+          "revision": 0
+        },
+        "is_stale": false
+      },
+      {
+        "acquisition_timestamp": "2026-10-17T09:55:20.901430+00:00",
+        "claim_id": "claim-66580f8654497d93",
+        "claim_text": "The Vice-President of India, Shri C. P. Radhakrishnan, today commissioned INS Samarthak, the Indian Navy\u2019s first indigenous Multi-Purpose Vessel, at Karwar, Karnataka.",
+        "entities": {
+          "dates": [],
+          "designations": [],
+          "named": [
+            "The Vice",
+            "Shri C. P. Radhakrishnan",
+            "INS Samarthak",
+            "Indian Navy",
+            "Purpose Vessel"
+          ],
+          "quantities": []
+        },
+        "extraction_method": "deterministic-sentence-span",
+        "extractor_version": "defence-studio.claim-extractor.deterministic.v2",
+        "has_negation": false,
+        "is_explicit": true,
+        "normalized_language": "en",
+        "original_language": "en",
+        "passage": {
+          "artifact_uri": "jobs/ff16816c-7af1-477a-b5f7-888ebd42f21a/research/sources/26a9d035e38e459b0ac5a3df57aeaafaad658489/content.html",
+          "end_offset": 818,
+          "kind": "TEXT_SPAN",
+          "source_id": "26a9d035e38e459b0ac5a3df57aeaafaad658489",
+          "start_offset": 651,
+          "text": "The Vice-President of India, Shri C. P. Radhakrishnan, today commissioned INS Samarthak, the Indian Navy\u2019s first indigenous Multi-Purpose Vessel, at Karwar, Karnataka.",
+          "timestamp_end": null,
+          "timestamp_start": null
+        },
+        "qualifiers": [],
+        "source_id": "26a9d035e38e459b0ac5a3df57aeaafaad658489",
+        "source_published_at": "2026-10-16",
+        "warnings": [],
+        "review": {
+          "origin": "AUTOMATED_POLICY",
+          "decision": "APPROVED_FOR_USE",
+          "policy_state": "AUTO_ACCEPTED",
+          "policy_version": "defence-studio.evidence-policy.v1",
+          "run_id": "ead139498bab5716",
+          "score": 90.0,
+          "claim_class": "DESCRIPTIVE",
+          "independent_groups": 1,
+          "reviewer_id": null,
+          "note": "substantive, topic-relevant, source usable, no uncertainty or dispute markers",
+          "reviewed_artifact_sha256": "c48015a7bc6a394c9b41f603feb1fe6fc2c1c2a802d1a161d47ac831837099c0",
+          "revision": 0
+        },
+        "is_stale": false
+      },
+      {
+        "acquisition_timestamp": "2026-10-17T09:55:20.901430+00:00",
+        "claim_id": "claim-6a5ae50900eb551e",
+        "claim_text": "Vice-President Shri C. P. Radhakrishnan today commissioned INS Samarthak, the Indian Navy\u2019s first indigenous Multi-Purpose Vessel, at Karwar, Karnataka.",
+        "entities": {
+          "dates": [],
+          "designations": [],
+          "named": [
+            "President Shri C. P. Radhakrishnan",
+            "INS Samarthak",
+            "Indian Navy",
+            "Purpose Vessel"
+          ],
+          "quantities": []
+        },
+        "extraction_method": "deterministic-sentence-span",
+        "extractor_version": "defence-studio.claim-extractor.deterministic.v2",
+        "has_negation": false,
+        "is_explicit": true,
+        "normalized_language": "en",
+        "original_language": "en",
+        "passage": {
+          "artifact_uri": "jobs/ff16816c-7af1-477a-b5f7-888ebd42f21a/research/sources/26a9d035e38e459b0ac5a3df57aeaafaad658489/content.html",
+          "end_offset": 1149,
+          "kind": "TEXT_SPAN",
+          "source_id": "26a9d035e38e459b0ac5a3df57aeaafaad658489",
+          "start_offset": 997,
+          "text": "Vice-President Shri C. P. Radhakrishnan today commissioned INS Samarthak, the Indian Navy\u2019s first indigenous Multi-Purpose Vessel, at Karwar, Karnataka.",
+          "timestamp_end": null,
+          "timestamp_start": null
+        },
+        "qualifiers": [],
+        "source_id": "26a9d035e38e459b0ac5a3df57aeaafaad658489",
+        "source_published_at": "2026-10-16",
+        "warnings": [],
+        "review": {
+          "origin": "AUTOMATED_POLICY",
+          "decision": "APPROVED_FOR_USE",
+          "policy_state": "AUTO_ACCEPTED",
+          "policy_version": "defence-studio.evidence-policy.v1",
+          "run_id": "ead139498bab5716",
+          "score": 90.0,
+          "claim_class": "DESCRIPTIVE",
+          "independent_groups": 1,
+          "reviewer_id": null,
+          "note": "substantive, topic-relevant, source usable, no uncertainty or dispute markers",
+          "reviewed_artifact_sha256": "c48015a7bc6a394c9b41f603feb1fe6fc2c1c2a802d1a161d47ac831837099c0",
+          "revision": 0
+        },
+        "is_stale": false
+      },
+      {
+        "acquisition_timestamp": "2026-10-17T09:55:20.901430+00:00",
+        "claim_id": "claim-4934f59c0c701dc4",
+        "claim_text": "With over 75% indigenous content, INS Samarthak reflects India\u2019s growing self-reliance in defence manufacturing and will support trials of next-generation weapons, sensors and unmanned systems.",
+        "entities": {
+          "dates": [],
+          "designations": [],
+          "named": [
+            "INS Samarthak"
+          ],
+          "quantities": []
+        },
+        "extraction_method": "deterministic-sentence-span",
+        "extractor_version": "defence-studio.claim-extractor.deterministic.v2",
+        "has_negation": false,
+        "is_explicit": true,
+        "normalized_language": "en",
+        "original_language": "en",
+        "passage": {
+          "artifact_uri": "jobs/ff16816c-7af1-477a-b5f7-888ebd42f21a/research/sources/26a9d035e38e459b0ac5a3df57aeaafaad658489/content.html",
+          "end_offset": 1344,
+          "kind": "TEXT_SPAN",
+          "source_id": "26a9d035e38e459b0ac5a3df57aeaafaad658489",
+          "start_offset": 1151,
+          "text": "With over 75% indigenous content, INS Samarthak reflects India\u2019s growing self-reliance in defence manufacturing and will support trials of next-generation weapons, sensors and unmanned systems.",
+          "timestamp_end": null,
+          "timestamp_start": null
+        },
+        "qualifiers": [],
+        "source_id": "26a9d035e38e459b0ac5a3df57aeaafaad658489",
+        "source_published_at": "2026-10-16",
+        "warnings": [],
+        "review": {
+          "origin": "AUTOMATED_POLICY",
+          "decision": "APPROVED_FOR_USE",
+          "policy_state": "AUTO_ACCEPTED",
+          "policy_version": "defence-studio.evidence-policy.v1",
+          "run_id": "ead139498bab5716",
+          "score": 90.0,
+          "claim_class": "DESCRIPTIVE",
+          "independent_groups": 1,
+          "reviewer_id": null,
+          "note": "substantive, topic-relevant, source usable, no uncertainty or dispute markers",
+          "reviewed_artifact_sha256": "c48015a7bc6a394c9b41f603feb1fe6fc2c1c2a802d1a161d47ac831837099c0",
+          "revision": 0
+        },
+        "is_stale": false
+      },
+      {
+        "acquisition_timestamp": "2026-10-17T09:55:20.901430+00:00",
+        "claim_id": "claim-8737780747cf021e",
+        "claim_text": "Addressing the gathering, the Vice-President said that INS Samarthak, with more than 75 per cent indigenous content, reflects the growing strength of India\u2019s industrial, technological and shipbuilding capabilities.",
+        "entities": {
+          "dates": [],
+          "designations": [],
+          "named": [
+            "INS Samarthak"
+          ],
+          "quantities": []
+        },
+        "extraction_method": "deterministic-sentence-span",
+        "extractor_version": "defence-studio.claim-extractor.deterministic.v2",
+        "has_negation": false,
+        "is_explicit": true,
+        "normalized_language": "en",
+        "original_language": "en",
+        "passage": {
+          "artifact_uri": "jobs/ff16816c-7af1-477a-b5f7-888ebd42f21a/research/sources/26a9d035e38e459b0ac5a3df57aeaafaad658489/content.html",
+          "end_offset": 1714,
+          "kind": "TEXT_SPAN",
+          "source_id": "26a9d035e38e459b0ac5a3df57aeaafaad658489",
+          "start_offset": 1500,
+          "text": "Addressing the gathering, the Vice-President said that INS Samarthak, with more than 75 per cent indigenous content, reflects the growing strength of India\u2019s industrial, technological and shipbuilding capabilities.",
+          "timestamp_end": null,
+          "timestamp_start": null
+        },
+        "qualifiers": [],
+        "source_id": "26a9d035e38e459b0ac5a3df57aeaafaad658489",
+        "source_published_at": "2026-10-16",
+        "warnings": [],
+        "review": {
+          "origin": "AUTOMATED_POLICY",
+          "decision": "APPROVED_FOR_USE",
+          "policy_state": "AUTO_ACCEPTED",
+          "policy_version": "defence-studio.evidence-policy.v1",
+          "run_id": "ead139498bab5716",
+          "score": 90.0,
+          "claim_class": "DESCRIPTIVE",
+          "independent_groups": 1,
+          "reviewer_id": null,
+          "note": "substantive, topic-relevant, source usable, no uncertainty or dispute markers",
+          "reviewed_artifact_sha256": "c48015a7bc6a394c9b41f603feb1fe6fc2c1c2a802d1a161d47ac831837099c0",
+          "revision": 0
+        },
+        "is_stale": false
+      },
+      {
+        "acquisition_timestamp": "2026-10-17T09:55:20.901430+00:00",
+        "claim_id": "claim-68a2321422174c42",
+        "claim_text": "He observed that self-reliance in defence is no longer merely an aspiration but an emerging reality, contributing to India\u2019s strategic autonomy and the vision of a Viksit and Aatmanirbhar Bharat articulated by Prime Minister Shri Narendra Modi.",
+        "entities": {
+          "dates": [],
+          "designations": [],
+          "named": [
+            "Aatmanirbhar Bharat",
+            "Prime Minister Shri Narendra Modi"
+          ],
+          "quantities": []
+        },
+        "extraction_method": "deterministic-sentence-span",
+        "extractor_version": "defence-studio.claim-extractor.deterministic.v2",
+        "has_negation": true,
+        "is_explicit": true,
+        "normalized_language": "en",
+        "original_language": "en",
+        "passage": {
+          "artifact_uri": "jobs/ff16816c-7af1-477a-b5f7-888ebd42f21a/research/sources/26a9d035e38e459b0ac5a3df57aeaafaad658489/content.html",
+          "end_offset": 1959,
+          "kind": "TEXT_SPAN",
+          "source_id": "26a9d035e38e459b0ac5a3df57aeaafaad658489",
+          "start_offset": 1715,
+          "text": "He observed that self-reliance in defence is no longer merely an aspiration but an emerging reality, contributing to India\u2019s strategic autonomy and the vision of a Viksit and Aatmanirbhar Bharat articulated by Prime Minister Shri Narendra Modi.",
+          "timestamp_end": null,
+          "timestamp_start": null
+        },
+        "qualifiers": [],
+        "source_id": "26a9d035e38e459b0ac5a3df57aeaafaad658489",
+        "source_published_at": "2026-10-16",
+        "warnings": [
+          "Statement contains a negation; preserve polarity in review."
+        ],
+        "review": {
+          "origin": "AUTOMATED_POLICY",
+          "decision": "REJECTED",
+          "policy_state": "REJECTED",
+          "policy_version": "defence-studio.evidence-policy.v1",
+          "run_id": "ead139498bab5716",
+          "score": 75.0,
+          "claim_class": "DESCRIPTIVE",
+          "independent_groups": 1,
+          "reviewer_id": null,
+          "note": "no topic anchor term: not self-contained (refers to the topic only by pronoun or context), so it is not used as standalone evidence",
+          "reviewed_artifact_sha256": "c48015a7bc6a394c9b41f603feb1fe6fc2c1c2a802d1a161d47ac831837099c0",
+          "revision": 0
+        },
+        "is_stale": false
+      },
+      {
+        "acquisition_timestamp": "2026-10-17T09:55:20.901430+00:00",
+        "claim_id": "claim-f0a46d903bb8af57",
+        "claim_text": "Highlighting India\u2019s rich maritime heritage, Shri C. P. Radhakrishnan recalled the naval traditions of Chhatrapati Shivaji Maharaj and the Chola dynasty, which extended India\u2019s maritime influence across the Indian Ocean and Southeast Asia.",
+        "entities": {
+          "dates": [],
+          "designations": [],
+          "named": [
+            "Highlighting India",
+            "Shri C. P. Radhakrishnan",
+            "Chhatrapati Shivaji Maharaj",
+            "Indian Ocean",
+            "Southeast Asia"
+          ],
+          "quantities": []
+        },
+        "extraction_method": "deterministic-sentence-span",
+        "extractor_version": "defence-studio.claim-extractor.deterministic.v2",
+        "has_negation": false,
+        "is_explicit": true,
+        "normalized_language": "en",
+        "original_language": "en",
+        "passage": {
+          "artifact_uri": "jobs/ff16816c-7af1-477a-b5f7-888ebd42f21a/research/sources/26a9d035e38e459b0ac5a3df57aeaafaad658489/content.html",
+          "end_offset": 2200,
+          "kind": "TEXT_SPAN",
+          "source_id": "26a9d035e38e459b0ac5a3df57aeaafaad658489",
+          "start_offset": 1961,
+          "text": "Highlighting India\u2019s rich maritime heritage, Shri C. P. Radhakrishnan recalled the naval traditions of Chhatrapati Shivaji Maharaj and the Chola dynasty, which extended India\u2019s maritime influence across the Indian Ocean and Southeast Asia.",
+          "timestamp_end": null,
+          "timestamp_start": null
+        },
+        "qualifiers": [],
+        "source_id": "26a9d035e38e459b0ac5a3df57aeaafaad658489",
+        "source_published_at": "2026-10-16",
+        "warnings": [],
+        "review": {
+          "origin": "AUTOMATED_POLICY",
+          "decision": "REJECTED",
+          "policy_state": "REJECTED",
+          "policy_version": "defence-studio.evidence-policy.v1",
+          "run_id": "ead139498bab5716",
+          "score": 75.0,
+          "claim_class": "DESCRIPTIVE",
+          "independent_groups": 1,
+          "reviewer_id": null,
+          "note": "no topic anchor term: not self-contained (refers to the topic only by pronoun or context), so it is not used as standalone evidence",
+          "reviewed_artifact_sha256": "c48015a7bc6a394c9b41f603feb1fe6fc2c1c2a802d1a161d47ac831837099c0",
+          "revision": 0
+        },
+        "is_stale": false
+      },
+      {
+        "acquisition_timestamp": "2026-10-17T09:55:20.901430+00:00",
+        "claim_id": "claim-f320408b586cba3f",
+        "claim_text": "Highlighting the significance of INS Samarthak, the Vice-President said that the vessel will serve as a versatile platform for trials and evaluation of next-generation weapons, sensors and emerging technologies.",
+        "entities": {
+          "dates": [],
+          "designations": [],
+          "named": [
+            "INS Samarthak"
+          ],
+          "quantities": []
+        },
+        "extraction_method": "deterministic-sentence-span",
+        "extractor_version": "defence-studio.claim-extractor.deterministic.v2",
+        "has_negation": false,
+        "is_explicit": true,
+        "normalized_language": "en",
+        "original_language": "en",
+        "passage": {
+          "artifact_uri": "jobs/ff16816c-7af1-477a-b5f7-888ebd42f21a/research/sources/26a9d035e38e459b0ac5a3df57aeaafaad658489/content.html",
+          "end_offset": 2787,
+          "kind": "TEXT_SPAN",
+          "source_id": "26a9d035e38e459b0ac5a3df57aeaafaad658489",
+          "start_offset": 2576,
+          "text": "Highlighting the significance of INS Samarthak, the Vice-President said that the vessel will serve as a versatile platform for trials and evaluation of next-generation weapons, sensors and emerging technologies.",
+          "timestamp_end": null,
+          "timestamp_start": null
+        },
+        "qualifiers": [],
+        "source_id": "26a9d035e38e459b0ac5a3df57aeaafaad658489",
+        "source_published_at": "2026-10-16",
+        "warnings": [],
+        "review": {
+          "origin": "AUTOMATED_POLICY",
+          "decision": "APPROVED_FOR_USE",
+          "policy_state": "AUTO_ACCEPTED",
+          "policy_version": "defence-studio.evidence-policy.v1",
+          "run_id": "ead139498bab5716",
+          "score": 90.0,
+          "claim_class": "DESCRIPTIVE",
+          "independent_groups": 1,
+          "reviewer_id": null,
+          "note": "substantive, topic-relevant, source usable, no uncertainty or dispute markers",
+          "reviewed_artifact_sha256": "c48015a7bc6a394c9b41f603feb1fe6fc2c1c2a802d1a161d47ac831837099c0",
+          "revision": 0
+        },
+        "is_stale": false
+      },
+      {
+        "acquisition_timestamp": "2026-10-17T09:55:20.901430+00:00",
+        "claim_id": "claim-4767d2d26611ed44",
+        "claim_text": "Referring to Karwar\u2019s strategic importance, Shri C. P. Radhakrishnan said that its deep natural harbour and proximity to the Arabian Sea make it a vital component of India\u2019s maritime security architecture.",
+        "entities": {
+          "dates": [],
+          "designations": [],
+          "named": [
+            "Shri C. P. Radhakrishnan",
+            "Arabian Sea"
+          ],
+          "quantities": []
+        },
+        "extraction_method": "deterministic-sentence-span",
+        "extractor_version": "defence-studio.claim-extractor.deterministic.v2",
+        "has_negation": false,
+        "is_explicit": true,
+        "normalized_language": "en",
+        "original_language": "en",
+        "passage": {
+          "artifact_uri": "jobs/ff16816c-7af1-477a-b5f7-888ebd42f21a/research/sources/26a9d035e38e459b0ac5a3df57aeaafaad658489/content.html",
+          "end_offset": 3395,
+          "kind": "TEXT_SPAN",
+          "source_id": "26a9d035e38e459b0ac5a3df57aeaafaad658489",
+          "start_offset": 3190,
+          "text": "Referring to Karwar\u2019s strategic importance, Shri C. P. Radhakrishnan said that its deep natural harbour and proximity to the Arabian Sea make it a vital component of India\u2019s maritime security architecture.",
+          "timestamp_end": null,
+          "timestamp_start": null
+        },
+        "qualifiers": [],
+        "source_id": "26a9d035e38e459b0ac5a3df57aeaafaad658489",
+        "source_published_at": "2026-10-16",
+        "warnings": [],
+        "review": {
+          "origin": "AUTOMATED_POLICY",
+          "decision": "REJECTED",
+          "policy_state": "REJECTED",
+          "policy_version": "defence-studio.evidence-policy.v1",
+          "run_id": "ead139498bab5716",
+          "score": 75.0,
+          "claim_class": "DESCRIPTIVE",
+          "independent_groups": 1,
+          "reviewer_id": null,
+          "note": "no topic anchor term: not self-contained (refers to the topic only by pronoun or context), so it is not used as standalone evidence",
+          "reviewed_artifact_sha256": "c48015a7bc6a394c9b41f603feb1fe6fc2c1c2a802d1a161d47ac831837099c0",
+          "revision": 0
+        },
+        "is_stale": false
+      },
+      {
+        "acquisition_timestamp": "2026-10-17T09:55:20.901430+00:00",
+        "claim_id": "claim-1ddb6ee7cf576f5c",
+        "claim_text": "The Vice-President also underscored the growing partnership between the Indian Navy, defence public sector undertakings, private shipyards, DRDO, academia, MSMEs and start-ups in strengthening India\u2019s defence manufacturing ecosystem.",
+        "entities": {
+          "dates": [],
+          "designations": [],
+          "named": [
+            "The Vice",
+            "Indian Navy",
+            "DRDO"
+          ],
+          "quantities": []
+        },
+        "extraction_method": "deterministic-sentence-span",
+        "extractor_version": "defence-studio.claim-extractor.deterministic.v2",
+        "has_negation": false,
+        "is_explicit": true,
+        "normalized_language": "en",
+        "original_language": "en",
+        "passage": {
+          "artifact_uri": "jobs/ff16816c-7af1-477a-b5f7-888ebd42f21a/research/sources/26a9d035e38e459b0ac5a3df57aeaafaad658489/content.html",
+          "end_offset": 3865,
+          "kind": "TEXT_SPAN",
+          "source_id": "26a9d035e38e459b0ac5a3df57aeaafaad658489",
+          "start_offset": 3632,
+          "text": "The Vice-President also underscored the growing partnership between the Indian Navy, defence public sector undertakings, private shipyards, DRDO, academia, MSMEs and start-ups in strengthening India\u2019s defence manufacturing ecosystem.",
+          "timestamp_end": null,
+          "timestamp_start": null
+        },
+        "qualifiers": [],
+        "source_id": "26a9d035e38e459b0ac5a3df57aeaafaad658489",
+        "source_published_at": "2026-10-16",
+        "warnings": [],
+        "review": {
+          "origin": "AUTOMATED_POLICY",
+          "decision": "REJECTED",
+          "policy_state": "REJECTED",
+          "policy_version": "defence-studio.evidence-policy.v1",
+          "run_id": "ead139498bab5716",
+          "score": 75.0,
+          "claim_class": "DESCRIPTIVE",
+          "independent_groups": 1,
+          "reviewer_id": null,
+          "note": "no topic anchor term: not self-contained (refers to the topic only by pronoun or context), so it is not used as standalone evidence",
+          "reviewed_artifact_sha256": "c48015a7bc6a394c9b41f603feb1fe6fc2c1c2a802d1a161d47ac831837099c0",
+          "revision": 0
+        },
+        "is_stale": false
+      },
+      {
+        "acquisition_timestamp": "2026-10-17T09:55:20.901430+00:00",
+        "claim_id": "claim-b14ad3fdbc9f70d9",
+        "claim_text": "Admiral Krishna Swaminathan, Chief of the Naval Staff; Vice-Admiral Sanjay Vatsayan, Flag Officer Commanding-in-Chief; Vice-Admiral Sanjay Sadhu, Controller Warship Production and Acquisition; Rear Admiral Vikram Menon, Flag Officer (Karnataka); retired Rear Admiral G. K. Harish, Head of Shipbuilding, L&T; Commander Sushil Kumar Singh, Commanding Officer of INS Samarthak; senior officers of the Indian Navy and Ministry of Defence, and other distinguished guests were present on the occasion.",
+        "entities": {
+          "dates": [],
+          "designations": [],
+          "named": [
+            "Admiral Krishna Swaminathan",
+            "Naval Staff",
+            "Admiral Sanjay Vatsayan",
+            "Flag Officer Commanding",
+            "Admiral Sanjay Sadhu",
+            "Controller Warship Production",
+            "Rear Admiral Vikram Menon",
+            "Flag Officer",
+            "Rear Admiral G. K. Harish",
+            "Commander Sushil Kumar Singh",
+            "Commanding Officer",
+            "INS Samarthak",
+            "Indian Navy"
+          ],
+          "quantities": []
+        },
+        "extraction_method": "deterministic-sentence-span",
+        "extractor_version": "defence-studio.claim-extractor.deterministic.v2",
+        "has_negation": false,
+        "is_explicit": true,
+        "normalized_language": "en",
+        "original_language": "en",
+        "passage": {
+          "artifact_uri": "jobs/ff16816c-7af1-477a-b5f7-888ebd42f21a/research/sources/26a9d035e38e459b0ac5a3df57aeaafaad658489/content.html",
+          "end_offset": 4632,
+          "kind": "TEXT_SPAN",
+          "source_id": "26a9d035e38e459b0ac5a3df57aeaafaad658489",
+          "start_offset": 4137,
+          "text": "Admiral Krishna Swaminathan, Chief of the Naval Staff; Vice-Admiral Sanjay Vatsayan, Flag Officer Commanding-in-Chief; Vice-Admiral Sanjay Sadhu, Controller Warship Production and Acquisition; Rear Admiral Vikram Menon, Flag Officer (Karnataka); retired Rear Admiral G. K. Harish, Head of Shipbuilding, L&T; Commander Sushil Kumar Singh, Commanding Officer of INS Samarthak; senior officers of the Indian Navy and Ministry of Defence, and other distinguished guests were present on the occasion.",
+          "timestamp_end": null,
+          "timestamp_start": null
+        },
+        "qualifiers": [],
+        "source_id": "26a9d035e38e459b0ac5a3df57aeaafaad658489",
+        "source_published_at": "2026-10-16",
+        "warnings": [],
+        "review": {
+          "origin": "AUTOMATED_POLICY",
+          "decision": "APPROVED_FOR_USE",
+          "policy_state": "AUTO_ACCEPTED",
+          "policy_version": "defence-studio.evidence-policy.v1",
+          "run_id": "ead139498bab5716",
+          "score": 90.0,
+          "claim_class": "DESCRIPTIVE",
+          "independent_groups": 1,
+          "reviewer_id": null,
+          "note": "substantive, topic-relevant, source usable, no uncertainty or dispute markers",
+          "reviewed_artifact_sha256": "c48015a7bc6a394c9b41f603feb1fe6fc2c1c2a802d1a161d47ac831837099c0",
+          "revision": 0
+        },
+        "is_stale": false
+      }
+    ],
+    "duplicate_groups": [],
+    "claim_groups": [],
+    "conflicts": [],
+    "processing": {
+      "status": "COMPLETED",
+      "warnings": [],
+      "failures": []
+    },
+    "audit": {
+      "source": [],
+      "claim": []
+    },
+    "timeline": [
+      {
+        "kind": "ACQUISITION",
+        "date": {
+          "original": "2026-10-17T09:55:20.582311+00:00",
+          "utc": "2026-10-17T09:55:20.582311+00:00",
+          "precision": "TIMESTAMP",
+          "timezone": "UTC"
+        },
+        "source_id": "12f889a1d38a791b79d8dafeb0e3bdf8c060ab92",
+        "claim_id": null,
+        "language": "en",
+        "passage": null,
+        "original_url": "https://www.pib.gov.in/PressReleasePage.aspx?PRID=2324581&lang=1&reg=3"
+      },
+      {
+        "kind": "ACQUISITION",
+        "date": {
+          "original": "2026-10-17T09:55:20.901430+00:00",
+          "utc": "2026-10-17T09:55:20.901430+00:00",
+          "precision": "TIMESTAMP",
+          "timezone": "UTC"
+        },
+        "source_id": "26a9d035e38e459b0ac5a3df57aeaafaad658489",
+        "claim_id": null,
+        "language": "en",
+        "passage": null,
+        "original_url": "https://www.pib.gov.in/PressReleasePage.aspx?PRID=2324319&lang=1&reg=3"
+      },
+      {
+        "kind": "ANALYSIS",
+        "date": {
+          "original": "2026-10-17T12:52:36.346303+00:00",
+          "utc": "2026-10-17T12:52:36.346303+00:00",
+          "precision": "TIMESTAMP",
+          "timezone": "UTC"
+        },
+        "source_id": "12f889a1d38a791b79d8dafeb0e3bdf8c060ab92",
+        "claim_id": "claim-111e2d36168e5818",
+        "language": "en",
+        "passage": {
+          "artifact_uri": "jobs/ff16816c-7af1-477a-b5f7-888ebd42f21a/research/sources/12f889a1d38a791b79d8dafeb0e3bdf8c060ab92/content.html",
+          "end_offset": 101,
+          "kind": "TEXT_SPAN",
+          "source_id": "12f889a1d38a791b79d8dafeb0e3bdf8c060ab92",
+          "start_offset": 21,
+          "text": "INDIAN NAVY COMMISSIONS INS SAMARTHAK, THE FIRST INDIGENOUS MULTI-PURPOSE VESSEL",
+          "timestamp_end": null,
+          "timestamp_start": null
+        },
+        "original_url": "https://www.pib.gov.in/PressReleasePage.aspx?PRID=2324581&lang=1&reg=3"
+      },
+      {
+        "kind": "ANALYSIS",
+        "date": {
+          "original": "2026-10-17T12:52:36.346303+00:00",
+          "utc": "2026-10-17T12:52:36.346303+00:00",
+          "precision": "TIMESTAMP",
+          "timezone": "UTC"
+        },
+        "source_id": "12f889a1d38a791b79d8dafeb0e3bdf8c060ab92",
+        "claim_id": "claim-1b175031d6f1acf6",
+        "language": "en",
+        "passage": {
+          "artifact_uri": "jobs/ff16816c-7af1-477a-b5f7-888ebd42f21a/research/sources/12f889a1d38a791b79d8dafeb0e3bdf8c060ab92/content.html",
+          "end_offset": 2991,
+          "kind": "TEXT_SPAN",
+          "source_id": "12f889a1d38a791b79d8dafeb0e3bdf8c060ab92",
+          "start_offset": 2825,
+          "text": "The induction of INS Samarthak significantly strengthens India's ability for testing and training new sensors and weapons developed indigenously by domestic industry.",
+          "timestamp_end": null,
+          "timestamp_start": null
+        },
+        "original_url": "https://www.pib.gov.in/PressReleasePage.aspx?PRID=2324581&lang=1&reg=3"
+      },
+      {
+        "kind": "ANALYSIS",
+        "date": {
+          "original": "2026-10-17T12:52:36.346303+00:00",
+          "utc": "2026-10-17T12:52:36.346303+00:00",
+          "precision": "TIMESTAMP",
+          "timezone": "UTC"
+        },
+        "source_id": "12f889a1d38a791b79d8dafeb0e3bdf8c060ab92",
+        "claim_id": "claim-3038065ce75b3522",
+        "language": "en",
+        "passage": {
+          "artifact_uri": "jobs/ff16816c-7af1-477a-b5f7-888ebd42f21a/research/sources/12f889a1d38a791b79d8dafeb0e3bdf8c060ab92/content.html",
+          "end_offset": 797,
+          "kind": "TEXT_SPAN",
+          "source_id": "12f889a1d38a791b79d8dafeb0e3bdf8c060ab92",
+          "start_offset": 650,
+          "text": "Key representatives of Larsen & Toubro Ltd (L&T) and OEMs associated with indigenous equipment were also present during the commissioning ceremony.",
+          "timestamp_end": null,
+          "timestamp_start": null
+        },
+        "original_url": "https://www.pib.gov.in/PressReleasePage.aspx?PRID=2324581&lang=1&reg=3"
+      },
+      {
+        "kind": "ANALYSIS",
+        "date": {
+          "original": "2026-10-17T12:52:36.346303+00:00",
+          "utc": "2026-10-17T12:52:36.346303+00:00",
+          "precision": "TIMESTAMP",
+          "timezone": "UTC"
+        },
+        "source_id": "12f889a1d38a791b79d8dafeb0e3bdf8c060ab92",
+        "claim_id": "claim-44d29a25afd98abe",
+        "language": "en",
+        "passage": {
+          "artifact_uri": "jobs/ff16816c-7af1-477a-b5f7-888ebd42f21a/research/sources/12f889a1d38a791b79d8dafeb0e3bdf8c060ab92/content.html",
+          "end_offset": 997,
+          "kind": "TEXT_SPAN",
+          "source_id": "12f889a1d38a791b79d8dafeb0e3bdf8c060ab92",
+          "start_offset": 799,
+          "text": "Designed and constructed by L&T Shipyard, INS Samarthak marks a significant milestone in India\u2019s indigenous shipbuilding journey as the first major warship to be built by an Indian private shipyard.",
+          "timestamp_end": null,
+          "timestamp_start": null
+        },
+        "original_url": "https://www.pib.gov.in/PressReleasePage.aspx?PRID=2324581&lang=1&reg=3"
+      },
+      {
+        "kind": "ANALYSIS",
+        "date": {
+          "original": "2026-10-17T12:52:36.346303+00:00",
+          "utc": "2026-10-17T12:52:36.346303+00:00",
+          "precision": "TIMESTAMP",
+          "timezone": "UTC"
+        },
+        "source_id": "12f889a1d38a791b79d8dafeb0e3bdf8c060ab92",
+        "claim_id": "claim-641907e944019252",
+        "language": "en",
+        "passage": {
+          "artifact_uri": "jobs/ff16816c-7af1-477a-b5f7-888ebd42f21a/research/sources/12f889a1d38a791b79d8dafeb0e3bdf8c060ab92/content.html",
+          "end_offset": 649,
+          "kind": "TEXT_SPAN",
+          "source_id": "12f889a1d38a791b79d8dafeb0e3bdf8c060ab92",
+          "start_offset": 463,
+          "text": "The Hon\u2019ble \u200bM\u200binister for Labour and Employment, Govt of Karnataka, along with senior naval and defence officials and dignitaries from the Ministry of Defence, also graced the occasion.",
+          "timestamp_end": null,
+          "timestamp_start": null
+        },
+        "original_url": "https://www.pib.gov.in/PressReleasePage.aspx?PRID=2324581&lang=1&reg=3"
+      },
+      {
+        "kind": "ANALYSIS",
+        "date": {
+          "original": "2026-10-17T12:52:36.346303+00:00",
+          "utc": "2026-10-17T12:52:36.346303+00:00",
+          "precision": "TIMESTAMP",
+          "timezone": "UTC"
+        },
+        "source_id": "12f889a1d38a791b79d8dafeb0e3bdf8c060ab92",
+        "claim_id": "claim-a17c0f35c86fe2da",
+        "language": "en",
+        "passage": {
+          "artifact_uri": "jobs/ff16816c-7af1-477a-b5f7-888ebd42f21a/research/sources/12f889a1d38a791b79d8dafeb0e3bdf8c060ab92/content.html",
+          "end_offset": 278,
+          "kind": "TEXT_SPAN",
+          "source_id": "12f889a1d38a791b79d8dafeb0e3bdf8c060ab92",
+          "start_offset": 147,
+          "text": "Indian Naval Ship Samarthak, the first of class Multi-Purpose Vessels (MPVs), was commissioned into the Indian Navy on 16 Oct 2026.",
+          "timestamp_end": null,
+          "timestamp_start": null
+        },
+        "original_url": "https://www.pib.gov.in/PressReleasePage.aspx?PRID=2324581&lang=1&reg=3"
+      },
+      {
+        "kind": "ANALYSIS",
+        "date": {
+          "original": "2026-10-17T12:52:36.346303+00:00",
+          "utc": "2026-10-17T12:52:36.346303+00:00",
+          "precision": "TIMESTAMP",
+          "timezone": "UTC"
+        },
+        "source_id": "12f889a1d38a791b79d8dafeb0e3bdf8c060ab92",
+        "claim_id": "claim-ae309580752f618f",
+        "language": "en",
+        "passage": {
+          "artifact_uri": "jobs/ff16816c-7af1-477a-b5f7-888ebd42f21a/research/sources/12f889a1d38a791b79d8dafeb0e3bdf8c060ab92/content.html",
+          "end_offset": 462,
+          "kind": "TEXT_SPAN",
+          "source_id": "12f889a1d38a791b79d8dafeb0e3bdf8c060ab92",
+          "start_offset": 279,
+          "text": "The ceremony was presided over by the Hon\u2019ble Vice President of India, Shri Chandrapuram Ponnusamy Radhakrishnan, in the presence of Adm Krishna Swaminathan, Chief of the Naval Staff.",
+          "timestamp_end": null,
+          "timestamp_start": null
+        },
+        "original_url": "https://www.pib.gov.in/PressReleasePage.aspx?PRID=2324581&lang=1&reg=3"
+      },
+      {
+        "kind": "ANALYSIS",
+        "date": {
+          "original": "2026-10-17T12:52:36.346303+00:00",
+          "utc": "2026-10-17T12:52:36.346303+00:00",
+          "precision": "TIMESTAMP",
+          "timezone": "UTC"
+        },
+        "source_id": "12f889a1d38a791b79d8dafeb0e3bdf8c060ab92",
+        "claim_id": "claim-b84efc9fe64b2778",
+        "language": "en",
+        "passage": {
+          "artifact_uri": "jobs/ff16816c-7af1-477a-b5f7-888ebd42f21a/research/sources/12f889a1d38a791b79d8dafeb0e3bdf8c060ab92/content.html",
+          "end_offset": 1458,
+          "kind": "TEXT_SPAN",
+          "source_id": "12f889a1d38a791b79d8dafeb0e3bdf8c060ab92",
+          "start_offset": 1279,
+          "text": "Conceived as a versatile platform for trials and evaluation, INS Samarthak embodies the enhanced technological and operational capabilities of the Indian Navy in the 21st century.",
+          "timestamp_end": null,
+          "timestamp_start": null
+        },
+        "original_url": "https://www.pib.gov.in/PressReleasePage.aspx?PRID=2324581&lang=1&reg=3"
+      },
+      {
+        "kind": "ANALYSIS",
+        "date": {
+          "original": "2026-10-17T12:52:36.346303+00:00",
+          "utc": "2026-10-17T12:52:36.346303+00:00",
+          "precision": "TIMESTAMP",
+          "timezone": "UTC"
+        },
+        "source_id": "12f889a1d38a791b79d8dafeb0e3bdf8c060ab92",
+        "claim_id": "claim-be989869c9d5ce51",
+        "language": "en",
+        "passage": {
+          "artifact_uri": "jobs/ff16816c-7af1-477a-b5f7-888ebd42f21a/research/sources/12f889a1d38a791b79d8dafeb0e3bdf8c060ab92/content.html",
+          "end_offset": 2706,
+          "kind": "TEXT_SPAN",
+          "source_id": "12f889a1d38a791b79d8dafeb0e3bdf8c060ab92",
+          "start_offset": 2537,
+          "text": "The commissioning of INS Samarthak reinforces the nation\u2019s commitment to maritime security, regional stability and cooperative engagement across the Indian Ocean Region.",
+          "timestamp_end": null,
+          "timestamp_start": null
+        },
+        "original_url": "https://www.pib.gov.in/PressReleasePage.aspx?PRID=2324581&lang=1&reg=3"
+      },
+      {
+        "kind": "ANALYSIS",
+        "date": {
+          "original": "2026-10-17T12:52:36.346303+00:00",
+          "utc": "2026-10-17T12:52:36.346303+00:00",
+          "precision": "TIMESTAMP",
+          "timezone": "UTC"
+        },
+        "source_id": "12f889a1d38a791b79d8dafeb0e3bdf8c060ab92",
+        "claim_id": "claim-c517136c102939d9",
+        "language": "en",
+        "passage": {
+          "artifact_uri": "jobs/ff16816c-7af1-477a-b5f7-888ebd42f21a/research/sources/12f889a1d38a791b79d8dafeb0e3bdf8c060ab92/content.html",
+          "end_offset": 2243,
+          "kind": "TEXT_SPAN",
+          "source_id": "12f889a1d38a791b79d8dafeb0e3bdf8c060ab92",
+          "start_offset": 2050,
+          "text": "True to its name, INS Samarthak is capable of undertaking maritime surveillance and reconnaissance, offshore patrolling, and Humanitarian Assistance and Disaster Relief operations, as required.",
+          "timestamp_end": null,
+          "timestamp_start": null
+        },
+        "original_url": "https://www.pib.gov.in/PressReleasePage.aspx?PRID=2324581&lang=1&reg=3"
+      },
+      {
+        "kind": "ANALYSIS",
+        "date": {
+          "original": "2026-10-17T12:52:36.346303+00:00",
+          "utc": "2026-10-17T12:52:36.346303+00:00",
+          "precision": "TIMESTAMP",
+          "timezone": "UTC"
+        },
+        "source_id": "12f889a1d38a791b79d8dafeb0e3bdf8c060ab92",
+        "claim_id": "claim-dba560a332ce5c0e",
+        "language": "en",
+        "passage": {
+          "artifact_uri": "jobs/ff16816c-7af1-477a-b5f7-888ebd42f21a/research/sources/12f889a1d38a791b79d8dafeb0e3bdf8c060ab92/content.html",
+          "end_offset": 1277,
+          "kind": "TEXT_SPAN",
+          "source_id": "12f889a1d38a791b79d8dafeb0e3bdf8c060ab92",
+          "start_offset": 998,
+          "text": "The commissioning is a powerful testament to the growing maturity and capability of the nation\u2019s private shipbuilding industry and reflects the deepening synergy between the Indian Navy and the Indian shipbuilding industry in advancing the national vision of Aatmanirbhar Bharat.",
+          "timestamp_end": null,
+          "timestamp_start": null
+        },
+        "original_url": "https://www.pib.gov.in/PressReleasePage.aspx?PRID=2324581&lang=1&reg=3"
+      },
+      {
+        "kind": "ANALYSIS",
+        "date": {
+          "original": "2026-10-17T12:52:36.346303+00:00",
+          "utc": "2026-10-17T12:52:36.346303+00:00",
+          "precision": "TIMESTAMP",
+          "timezone": "UTC"
+        },
+        "source_id": "12f889a1d38a791b79d8dafeb0e3bdf8c060ab92",
+        "claim_id": "claim-f0cae0ab9e71855c",
+        "language": "en",
+        "passage": {
+          "artifact_uri": "jobs/ff16816c-7af1-477a-b5f7-888ebd42f21a/research/sources/12f889a1d38a791b79d8dafeb0e3bdf8c060ab92/content.html",
+          "end_offset": 2049,
+          "kind": "TEXT_SPAN",
+          "source_id": "12f889a1d38a791b79d8dafeb0e3bdf8c060ab92",
+          "start_offset": 1761,
+          "text": "Aptly named Samarthak, meaning \u2018The Proponent\u2019, the ship represents the spirit of a dependable enabler, capable of supporting multiple missions and has been designed with inherent versatility and adaptability, enabling it to undertake diverse range of operational and developmental tasks.",
+          "timestamp_end": null,
+          "timestamp_start": null
+        },
+        "original_url": "https://www.pib.gov.in/PressReleasePage.aspx?PRID=2324581&lang=1&reg=3"
+      },
+      {
+        "kind": "ANALYSIS",
+        "date": {
+          "original": "2026-10-17T12:52:36.346303+00:00",
+          "utc": "2026-10-17T12:52:36.346303+00:00",
+          "precision": "TIMESTAMP",
+          "timezone": "UTC"
+        },
+        "source_id": "26a9d035e38e459b0ac5a3df57aeaafaad658489",
+        "claim_id": "claim-1ddb6ee7cf576f5c",
+        "language": "en",
+        "passage": {
+          "artifact_uri": "jobs/ff16816c-7af1-477a-b5f7-888ebd42f21a/research/sources/26a9d035e38e459b0ac5a3df57aeaafaad658489/content.html",
+          "end_offset": 3865,
+          "kind": "TEXT_SPAN",
+          "source_id": "26a9d035e38e459b0ac5a3df57aeaafaad658489",
+          "start_offset": 3632,
+          "text": "The Vice-President also underscored the growing partnership between the Indian Navy, defence public sector undertakings, private shipyards, DRDO, academia, MSMEs and start-ups in strengthening India\u2019s defence manufacturing ecosystem.",
+          "timestamp_end": null,
+          "timestamp_start": null
+        },
+        "original_url": "https://www.pib.gov.in/PressReleasePage.aspx?PRID=2324319&lang=1&reg=3"
+      },
+      {
+        "kind": "ANALYSIS",
+        "date": {
+          "original": "2026-10-17T12:52:36.346303+00:00",
+          "utc": "2026-10-17T12:52:36.346303+00:00",
+          "precision": "TIMESTAMP",
+          "timezone": "UTC"
+        },
+        "source_id": "26a9d035e38e459b0ac5a3df57aeaafaad658489",
+        "claim_id": "claim-4767d2d26611ed44",
+        "language": "en",
+        "passage": {
+          "artifact_uri": "jobs/ff16816c-7af1-477a-b5f7-888ebd42f21a/research/sources/26a9d035e38e459b0ac5a3df57aeaafaad658489/content.html",
+          "end_offset": 3395,
+          "kind": "TEXT_SPAN",
+          "source_id": "26a9d035e38e459b0ac5a3df57aeaafaad658489",
+          "start_offset": 3190,
+          "text": "Referring to Karwar\u2019s strategic importance, Shri C. P. Radhakrishnan said that its deep natural harbour and proximity to the Arabian Sea make it a vital component of India\u2019s maritime security architecture.",
+          "timestamp_end": null,
+          "timestamp_start": null
+        },
+        "original_url": "https://www.pib.gov.in/PressReleasePage.aspx?PRID=2324319&lang=1&reg=3"
+      },
+      {
+        "kind": "ANALYSIS",
+        "date": {
+          "original": "2026-10-17T12:52:36.346303+00:00",
+          "utc": "2026-10-17T12:52:36.346303+00:00",
+          "precision": "TIMESTAMP",
+          "timezone": "UTC"
+        },
+        "source_id": "26a9d035e38e459b0ac5a3df57aeaafaad658489",
+        "claim_id": "claim-4934f59c0c701dc4",
+        "language": "en",
+        "passage": {
+          "artifact_uri": "jobs/ff16816c-7af1-477a-b5f7-888ebd42f21a/research/sources/26a9d035e38e459b0ac5a3df57aeaafaad658489/content.html",
+          "end_offset": 1344,
+          "kind": "TEXT_SPAN",
+          "source_id": "26a9d035e38e459b0ac5a3df57aeaafaad658489",
+          "start_offset": 1151,
+          "text": "With over 75% indigenous content, INS Samarthak reflects India\u2019s growing self-reliance in defence manufacturing and will support trials of next-generation weapons, sensors and unmanned systems.",
+          "timestamp_end": null,
+          "timestamp_start": null
+        },
+        "original_url": "https://www.pib.gov.in/PressReleasePage.aspx?PRID=2324319&lang=1&reg=3"
+      },
+      {
+        "kind": "ANALYSIS",
+        "date": {
+          "original": "2026-10-17T12:52:36.346303+00:00",
+          "utc": "2026-10-17T12:52:36.346303+00:00",
+          "precision": "TIMESTAMP",
+          "timezone": "UTC"
+        },
+        "source_id": "26a9d035e38e459b0ac5a3df57aeaafaad658489",
+        "claim_id": "claim-66580f8654497d93",
+        "language": "en",
+        "passage": {
+          "artifact_uri": "jobs/ff16816c-7af1-477a-b5f7-888ebd42f21a/research/sources/26a9d035e38e459b0ac5a3df57aeaafaad658489/content.html",
+          "end_offset": 818,
+          "kind": "TEXT_SPAN",
+          "source_id": "26a9d035e38e459b0ac5a3df57aeaafaad658489",
+          "start_offset": 651,
+          "text": "The Vice-President of India, Shri C. P. Radhakrishnan, today commissioned INS Samarthak, the Indian Navy\u2019s first indigenous Multi-Purpose Vessel, at Karwar, Karnataka.",
+          "timestamp_end": null,
+          "timestamp_start": null
+        },
+        "original_url": "https://www.pib.gov.in/PressReleasePage.aspx?PRID=2324319&lang=1&reg=3"
+      },
+      {
+        "kind": "ANALYSIS",
+        "date": {
+          "original": "2026-10-17T12:52:36.346303+00:00",
+          "utc": "2026-10-17T12:52:36.346303+00:00",
+          "precision": "TIMESTAMP",
+          "timezone": "UTC"
+        },
+        "source_id": "26a9d035e38e459b0ac5a3df57aeaafaad658489",
+        "claim_id": "claim-68a2321422174c42",
+        "language": "en",
+        "passage": {
+          "artifact_uri": "jobs/ff16816c-7af1-477a-b5f7-888ebd42f21a/research/sources/26a9d035e38e459b0ac5a3df57aeaafaad658489/content.html",
+          "end_offset": 1959,
+          "kind": "TEXT_SPAN",
+          "source_id": "26a9d035e38e459b0ac5a3df57aeaafaad658489",
+          "start_offset": 1715,
+          "text": "He observed that self-reliance in defence is no longer merely an aspiration but an emerging reality, contributing to India\u2019s strategic autonomy and the vision of a Viksit and Aatmanirbhar Bharat articulated by Prime Minister Shri Narendra Modi.",
+          "timestamp_end": null,
+          "timestamp_start": null
+        },
+        "original_url": "https://www.pib.gov.in/PressReleasePage.aspx?PRID=2324319&lang=1&reg=3"
+      },
+      {
+        "kind": "ANALYSIS",
+        "date": {
+          "original": "2026-10-17T12:52:36.346303+00:00",
+          "utc": "2026-10-17T12:52:36.346303+00:00",
+          "precision": "TIMESTAMP",
+          "timezone": "UTC"
+        },
+        "source_id": "26a9d035e38e459b0ac5a3df57aeaafaad658489",
+        "claim_id": "claim-6a5ae50900eb551e",
+        "language": "en",
+        "passage": {
+          "artifact_uri": "jobs/ff16816c-7af1-477a-b5f7-888ebd42f21a/research/sources/26a9d035e38e459b0ac5a3df57aeaafaad658489/content.html",
+          "end_offset": 1149,
+          "kind": "TEXT_SPAN",
+          "source_id": "26a9d035e38e459b0ac5a3df57aeaafaad658489",
+          "start_offset": 997,
+          "text": "Vice-President Shri C. P. Radhakrishnan today commissioned INS Samarthak, the Indian Navy\u2019s first indigenous Multi-Purpose Vessel, at Karwar, Karnataka.",
+          "timestamp_end": null,
+          "timestamp_start": null
+        },
+        "original_url": "https://www.pib.gov.in/PressReleasePage.aspx?PRID=2324319&lang=1&reg=3"
+      },
+      {
+        "kind": "ANALYSIS",
+        "date": {
+          "original": "2026-10-17T12:52:36.346303+00:00",
+          "utc": "2026-10-17T12:52:36.346303+00:00",
+          "precision": "TIMESTAMP",
+          "timezone": "UTC"
+        },
+        "source_id": "26a9d035e38e459b0ac5a3df57aeaafaad658489",
+        "claim_id": "claim-71dc38bfc0ad1d72",
+        "language": "en",
+        "passage": {
+          "artifact_uri": "jobs/ff16816c-7af1-477a-b5f7-888ebd42f21a/research/sources/26a9d035e38e459b0ac5a3df57aeaafaad658489/content.html",
+          "end_offset": 605,
+          "kind": "TEXT_SPAN",
+          "source_id": "26a9d035e38e459b0ac5a3df57aeaafaad658489",
+          "start_offset": 506,
+          "text": "\u201cKarwar Symbolises Both India\u2019s Glorious Maritime Heritage and Its Maritime Future\u201d: Vice-President",
+          "timestamp_end": null,
+          "timestamp_start": null
+        },
+        "original_url": "https://www.pib.gov.in/PressReleasePage.aspx?PRID=2324319&lang=1&reg=3"
+      },
+      {
+        "kind": "ANALYSIS",
+        "date": {
+          "original": "2026-10-17T12:52:36.346303+00:00",
+          "utc": "2026-10-17T12:52:36.346303+00:00",
+          "precision": "TIMESTAMP",
+          "timezone": "UTC"
+        },
+        "source_id": "26a9d035e38e459b0ac5a3df57aeaafaad658489",
+        "claim_id": "claim-824db06b64a36e5a",
+        "language": "en",
+        "passage": {
+          "artifact_uri": "jobs/ff16816c-7af1-477a-b5f7-888ebd42f21a/research/sources/26a9d035e38e459b0ac5a3df57aeaafaad658489/content.html",
+          "end_offset": 504,
+          "kind": "TEXT_SPAN",
+          "source_id": "26a9d035e38e459b0ac5a3df57aeaafaad658489",
+          "start_offset": 406,
+          "text": "\u201cINS Samarthak Reflects the Growing Role of India\u2019s Private Shipbuilding Industry\u201d: Vice-President",
+          "timestamp_end": null,
+          "timestamp_start": null
+        },
+        "original_url": "https://www.pib.gov.in/PressReleasePage.aspx?PRID=2324319&lang=1&reg=3"
+      },
+      {
+        "kind": "ANALYSIS",
+        "date": {
+          "original": "2026-10-17T12:52:36.346303+00:00",
+          "utc": "2026-10-17T12:52:36.346303+00:00",
+          "precision": "TIMESTAMP",
+          "timezone": "UTC"
+        },
+        "source_id": "26a9d035e38e459b0ac5a3df57aeaafaad658489",
+        "claim_id": "claim-8737780747cf021e",
+        "language": "en",
+        "passage": {
+          "artifact_uri": "jobs/ff16816c-7af1-477a-b5f7-888ebd42f21a/research/sources/26a9d035e38e459b0ac5a3df57aeaafaad658489/content.html",
+          "end_offset": 1714,
+          "kind": "TEXT_SPAN",
+          "source_id": "26a9d035e38e459b0ac5a3df57aeaafaad658489",
+          "start_offset": 1500,
+          "text": "Addressing the gathering, the Vice-President said that INS Samarthak, with more than 75 per cent indigenous content, reflects the growing strength of India\u2019s industrial, technological and shipbuilding capabilities.",
+          "timestamp_end": null,
+          "timestamp_start": null
+        },
+        "original_url": "https://www.pib.gov.in/PressReleasePage.aspx?PRID=2324319&lang=1&reg=3"
+      },
+      {
+        "kind": "ANALYSIS",
+        "date": {
+          "original": "2026-10-17T12:52:36.346303+00:00",
+          "utc": "2026-10-17T12:52:36.346303+00:00",
+          "precision": "TIMESTAMP",
+          "timezone": "UTC"
+        },
+        "source_id": "26a9d035e38e459b0ac5a3df57aeaafaad658489",
+        "claim_id": "claim-b0e3dbfe4e98fc16",
+        "language": "en",
+        "passage": {
+          "artifact_uri": "jobs/ff16816c-7af1-477a-b5f7-888ebd42f21a/research/sources/26a9d035e38e459b0ac5a3df57aeaafaad658489/content.html",
+          "end_offset": 157,
+          "kind": "TEXT_SPAN",
+          "source_id": "26a9d035e38e459b0ac5a3df57aeaafaad658489",
+          "start_offset": 30,
+          "text": "Vice-President Shri C. P. Radhakrishnan Commissions Indian Navy\u2019s First Indigenous Multi-Purpose Vessel INS Samarthak at Karwar",
+          "timestamp_end": null,
+          "timestamp_start": null
+        },
+        "original_url": "https://www.pib.gov.in/PressReleasePage.aspx?PRID=2324319&lang=1&reg=3"
+      },
+      {
+        "kind": "ANALYSIS",
+        "date": {
+          "original": "2026-10-17T12:52:36.346303+00:00",
+          "utc": "2026-10-17T12:52:36.346303+00:00",
+          "precision": "TIMESTAMP",
+          "timezone": "UTC"
+        },
+        "source_id": "26a9d035e38e459b0ac5a3df57aeaafaad658489",
+        "claim_id": "claim-b14ad3fdbc9f70d9",
+        "language": "en",
+        "passage": {
+          "artifact_uri": "jobs/ff16816c-7af1-477a-b5f7-888ebd42f21a/research/sources/26a9d035e38e459b0ac5a3df57aeaafaad658489/content.html",
+          "end_offset": 4632,
+          "kind": "TEXT_SPAN",
+          "source_id": "26a9d035e38e459b0ac5a3df57aeaafaad658489",
+          "start_offset": 4137,
+          "text": "Admiral Krishna Swaminathan, Chief of the Naval Staff; Vice-Admiral Sanjay Vatsayan, Flag Officer Commanding-in-Chief; Vice-Admiral Sanjay Sadhu, Controller Warship Production and Acquisition; Rear Admiral Vikram Menon, Flag Officer (Karnataka); retired Rear Admiral G. K. Harish, Head of Shipbuilding, L&T; Commander Sushil Kumar Singh, Commanding Officer of INS Samarthak; senior officers of the Indian Navy and Ministry of Defence, and other distinguished guests were present on the occasion.",
+          "timestamp_end": null,
+          "timestamp_start": null
+        },
+        "original_url": "https://www.pib.gov.in/PressReleasePage.aspx?PRID=2324319&lang=1&reg=3"
+      },
+      {
+        "kind": "ANALYSIS",
+        "date": {
+          "original": "2026-10-17T12:52:36.346303+00:00",
+          "utc": "2026-10-17T12:52:36.346303+00:00",
+          "precision": "TIMESTAMP",
+          "timezone": "UTC"
+        },
+        "source_id": "26a9d035e38e459b0ac5a3df57aeaafaad658489",
+        "claim_id": "claim-e50a06a0999ea8c9",
+        "language": "en",
+        "passage": {
+          "artifact_uri": "jobs/ff16816c-7af1-477a-b5f7-888ebd42f21a/research/sources/26a9d035e38e459b0ac5a3df57aeaafaad658489/content.html",
+          "end_offset": 404,
+          "kind": "TEXT_SPAN",
+          "source_id": "26a9d035e38e459b0ac5a3df57aeaafaad658489",
+          "start_offset": 297,
+          "text": "\u201cIndian Navy Stands Ever-Vigilant and Combat-Ready to Safeguard India\u2019s Maritime Interests\u201d: Vice-President",
+          "timestamp_end": null,
+          "timestamp_start": null
+        },
+        "original_url": "https://www.pib.gov.in/PressReleasePage.aspx?PRID=2324319&lang=1&reg=3"
+      },
+      {
+        "kind": "ANALYSIS",
+        "date": {
+          "original": "2026-10-17T12:52:36.346303+00:00",
+          "utc": "2026-10-17T12:52:36.346303+00:00",
+          "precision": "TIMESTAMP",
+          "timezone": "UTC"
+        },
+        "source_id": "26a9d035e38e459b0ac5a3df57aeaafaad658489",
+        "claim_id": "claim-f0a46d903bb8af57",
+        "language": "en",
+        "passage": {
+          "artifact_uri": "jobs/ff16816c-7af1-477a-b5f7-888ebd42f21a/research/sources/26a9d035e38e459b0ac5a3df57aeaafaad658489/content.html",
+          "end_offset": 2200,
+          "kind": "TEXT_SPAN",
+          "source_id": "26a9d035e38e459b0ac5a3df57aeaafaad658489",
+          "start_offset": 1961,
+          "text": "Highlighting India\u2019s rich maritime heritage, Shri C. P. Radhakrishnan recalled the naval traditions of Chhatrapati Shivaji Maharaj and the Chola dynasty, which extended India\u2019s maritime influence across the Indian Ocean and Southeast Asia.",
+          "timestamp_end": null,
+          "timestamp_start": null
+        },
+        "original_url": "https://www.pib.gov.in/PressReleasePage.aspx?PRID=2324319&lang=1&reg=3"
+      },
+      {
+        "kind": "ANALYSIS",
+        "date": {
+          "original": "2026-10-17T12:52:36.346303+00:00",
+          "utc": "2026-10-17T12:52:36.346303+00:00",
+          "precision": "TIMESTAMP",
+          "timezone": "UTC"
+        },
+        "source_id": "26a9d035e38e459b0ac5a3df57aeaafaad658489",
+        "claim_id": "claim-f320408b586cba3f",
+        "language": "en",
+        "passage": {
+          "artifact_uri": "jobs/ff16816c-7af1-477a-b5f7-888ebd42f21a/research/sources/26a9d035e38e459b0ac5a3df57aeaafaad658489/content.html",
+          "end_offset": 2787,
+          "kind": "TEXT_SPAN",
+          "source_id": "26a9d035e38e459b0ac5a3df57aeaafaad658489",
+          "start_offset": 2576,
+          "text": "Highlighting the significance of INS Samarthak, the Vice-President said that the vessel will serve as a versatile platform for trials and evaluation of next-generation weapons, sensors and emerging technologies.",
+          "timestamp_end": null,
+          "timestamp_start": null
+        },
+        "original_url": "https://www.pib.gov.in/PressReleasePage.aspx?PRID=2324319&lang=1&reg=3"
+      },
+      {
+        "kind": "ANALYSIS",
+        "date": {
+          "original": "2026-10-17T12:52:36.346303+00:00",
+          "utc": "2026-10-17T12:52:36.346303+00:00",
+          "precision": "TIMESTAMP",
+          "timezone": "UTC"
+        },
+        "source_id": "26a9d035e38e459b0ac5a3df57aeaafaad658489",
+        "claim_id": "claim-f753e8a93f0fe2ec",
+        "language": "en",
+        "passage": {
+          "artifact_uri": "jobs/ff16816c-7af1-477a-b5f7-888ebd42f21a/research/sources/26a9d035e38e459b0ac5a3df57aeaafaad658489/content.html",
+          "end_offset": 295,
+          "kind": "TEXT_SPAN",
+          "source_id": "26a9d035e38e459b0ac5a3df57aeaafaad658489",
+          "start_offset": 159,
+          "text": "INS Samarthak, with over 75 per cent indigenous content, reflects India\u2019s growing self-reliance in defence manufacturing: Vice-President",
+          "timestamp_end": null,
+          "timestamp_start": null
+        },
+        "original_url": "https://www.pib.gov.in/PressReleasePage.aspx?PRID=2324319&lang=1&reg=3"
+      },
+      {
+        "kind": "CLAIM_PUBLICATION",
+        "date": {
+          "original": "2026-10-16",
+          "utc": null,
+          "precision": "DATE_ONLY",
+          "timezone": null
+        },
+        "source_id": "12f889a1d38a791b79d8dafeb0e3bdf8c060ab92",
+        "claim_id": "claim-111e2d36168e5818",
+        "language": "en",
+        "passage": {
+          "artifact_uri": "jobs/ff16816c-7af1-477a-b5f7-888ebd42f21a/research/sources/12f889a1d38a791b79d8dafeb0e3bdf8c060ab92/content.html",
+          "end_offset": 101,
+          "kind": "TEXT_SPAN",
+          "source_id": "12f889a1d38a791b79d8dafeb0e3bdf8c060ab92",
+          "start_offset": 21,
+          "text": "INDIAN NAVY COMMISSIONS INS SAMARTHAK, THE FIRST INDIGENOUS MULTI-PURPOSE VESSEL",
+          "timestamp_end": null,
+          "timestamp_start": null
+        },
+        "original_url": "https://www.pib.gov.in/PressReleasePage.aspx?PRID=2324581&lang=1&reg=3"
+      },
+      {
+        "kind": "CLAIM_PUBLICATION",
+        "date": {
+          "original": "2026-10-16",
+          "utc": null,
+          "precision": "DATE_ONLY",
+          "timezone": null
+        },
+        "source_id": "12f889a1d38a791b79d8dafeb0e3bdf8c060ab92",
+        "claim_id": "claim-1b175031d6f1acf6",
+        "language": "en",
+        "passage": {
+          "artifact_uri": "jobs/ff16816c-7af1-477a-b5f7-888ebd42f21a/research/sources/12f889a1d38a791b79d8dafeb0e3bdf8c060ab92/content.html",
+          "end_offset": 2991,
+          "kind": "TEXT_SPAN",
+          "source_id": "12f889a1d38a791b79d8dafeb0e3bdf8c060ab92",
+          "start_offset": 2825,
+          "text": "The induction of INS Samarthak significantly strengthens India's ability for testing and training new sensors and weapons developed indigenously by domestic industry.",
+          "timestamp_end": null,
+          "timestamp_start": null
+        },
+        "original_url": "https://www.pib.gov.in/PressReleasePage.aspx?PRID=2324581&lang=1&reg=3"
+      },
+      {
+        "kind": "CLAIM_PUBLICATION",
+        "date": {
+          "original": "2026-10-16",
+          "utc": null,
+          "precision": "DATE_ONLY",
+          "timezone": null
+        },
+        "source_id": "12f889a1d38a791b79d8dafeb0e3bdf8c060ab92",
+        "claim_id": "claim-3038065ce75b3522",
+        "language": "en",
+        "passage": {
+          "artifact_uri": "jobs/ff16816c-7af1-477a-b5f7-888ebd42f21a/research/sources/12f889a1d38a791b79d8dafeb0e3bdf8c060ab92/content.html",
+          "end_offset": 797,
+          "kind": "TEXT_SPAN",
+          "source_id": "12f889a1d38a791b79d8dafeb0e3bdf8c060ab92",
+          "start_offset": 650,
+          "text": "Key representatives of Larsen & Toubro Ltd (L&T) and OEMs associated with indigenous equipment were also present during the commissioning ceremony.",
+          "timestamp_end": null,
+          "timestamp_start": null
+        },
+        "original_url": "https://www.pib.gov.in/PressReleasePage.aspx?PRID=2324581&lang=1&reg=3"
+      },
+      {
+        "kind": "CLAIM_PUBLICATION",
+        "date": {
+          "original": "2026-10-16",
+          "utc": null,
+          "precision": "DATE_ONLY",
+          "timezone": null
+        },
+        "source_id": "12f889a1d38a791b79d8dafeb0e3bdf8c060ab92",
+        "claim_id": "claim-44d29a25afd98abe",
+        "language": "en",
+        "passage": {
+          "artifact_uri": "jobs/ff16816c-7af1-477a-b5f7-888ebd42f21a/research/sources/12f889a1d38a791b79d8dafeb0e3bdf8c060ab92/content.html",
+          "end_offset": 997,
+          "kind": "TEXT_SPAN",
+          "source_id": "12f889a1d38a791b79d8dafeb0e3bdf8c060ab92",
+          "start_offset": 799,
+          "text": "Designed and constructed by L&T Shipyard, INS Samarthak marks a significant milestone in India\u2019s indigenous shipbuilding journey as the first major warship to be built by an Indian private shipyard.",
+          "timestamp_end": null,
+          "timestamp_start": null
+        },
+        "original_url": "https://www.pib.gov.in/PressReleasePage.aspx?PRID=2324581&lang=1&reg=3"
+      },
+      {
+        "kind": "CLAIM_PUBLICATION",
+        "date": {
+          "original": "2026-10-16",
+          "utc": null,
+          "precision": "DATE_ONLY",
+          "timezone": null
+        },
+        "source_id": "12f889a1d38a791b79d8dafeb0e3bdf8c060ab92",
+        "claim_id": "claim-641907e944019252",
+        "language": "en",
+        "passage": {
+          "artifact_uri": "jobs/ff16816c-7af1-477a-b5f7-888ebd42f21a/research/sources/12f889a1d38a791b79d8dafeb0e3bdf8c060ab92/content.html",
+          "end_offset": 649,
+          "kind": "TEXT_SPAN",
+          "source_id": "12f889a1d38a791b79d8dafeb0e3bdf8c060ab92",
+          "start_offset": 463,
+          "text": "The Hon\u2019ble \u200bM\u200binister for Labour and Employment, Govt of Karnataka, along with senior naval and defence officials and dignitaries from the Ministry of Defence, also graced the occasion.",
+          "timestamp_end": null,
+          "timestamp_start": null
+        },
+        "original_url": "https://www.pib.gov.in/PressReleasePage.aspx?PRID=2324581&lang=1&reg=3"
+      },
+      {
+        "kind": "CLAIM_PUBLICATION",
+        "date": {
+          "original": "2026-10-16",
+          "utc": null,
+          "precision": "DATE_ONLY",
+          "timezone": null
+        },
+        "source_id": "12f889a1d38a791b79d8dafeb0e3bdf8c060ab92",
+        "claim_id": "claim-a17c0f35c86fe2da",
+        "language": "en",
+        "passage": {
+          "artifact_uri": "jobs/ff16816c-7af1-477a-b5f7-888ebd42f21a/research/sources/12f889a1d38a791b79d8dafeb0e3bdf8c060ab92/content.html",
+          "end_offset": 278,
+          "kind": "TEXT_SPAN",
+          "source_id": "12f889a1d38a791b79d8dafeb0e3bdf8c060ab92",
+          "start_offset": 147,
+          "text": "Indian Naval Ship Samarthak, the first of class Multi-Purpose Vessels (MPVs), was commissioned into the Indian Navy on 16 Oct 2026.",
+          "timestamp_end": null,
+          "timestamp_start": null
+        },
+        "original_url": "https://www.pib.gov.in/PressReleasePage.aspx?PRID=2324581&lang=1&reg=3"
+      },
+      {
+        "kind": "CLAIM_PUBLICATION",
+        "date": {
+          "original": "2026-10-16",
+          "utc": null,
+          "precision": "DATE_ONLY",
+          "timezone": null
+        },
+        "source_id": "12f889a1d38a791b79d8dafeb0e3bdf8c060ab92",
+        "claim_id": "claim-ae309580752f618f",
+        "language": "en",
+        "passage": {
+          "artifact_uri": "jobs/ff16816c-7af1-477a-b5f7-888ebd42f21a/research/sources/12f889a1d38a791b79d8dafeb0e3bdf8c060ab92/content.html",
+          "end_offset": 462,
+          "kind": "TEXT_SPAN",
+          "source_id": "12f889a1d38a791b79d8dafeb0e3bdf8c060ab92",
+          "start_offset": 279,
+          "text": "The ceremony was presided over by the Hon\u2019ble Vice President of India, Shri Chandrapuram Ponnusamy Radhakrishnan, in the presence of Adm Krishna Swaminathan, Chief of the Naval Staff.",
+          "timestamp_end": null,
+          "timestamp_start": null
+        },
+        "original_url": "https://www.pib.gov.in/PressReleasePage.aspx?PRID=2324581&lang=1&reg=3"
+      },
+      {
+        "kind": "CLAIM_PUBLICATION",
+        "date": {
+          "original": "2026-10-16",
+          "utc": null,
+          "precision": "DATE_ONLY",
+          "timezone": null
+        },
+        "source_id": "12f889a1d38a791b79d8dafeb0e3bdf8c060ab92",
+        "claim_id": "claim-b84efc9fe64b2778",
+        "language": "en",
+        "passage": {
+          "artifact_uri": "jobs/ff16816c-7af1-477a-b5f7-888ebd42f21a/research/sources/12f889a1d38a791b79d8dafeb0e3bdf8c060ab92/content.html",
+          "end_offset": 1458,
+          "kind": "TEXT_SPAN",
+          "source_id": "12f889a1d38a791b79d8dafeb0e3bdf8c060ab92",
+          "start_offset": 1279,
+          "text": "Conceived as a versatile platform for trials and evaluation, INS Samarthak embodies the enhanced technological and operational capabilities of the Indian Navy in the 21st century.",
+          "timestamp_end": null,
+          "timestamp_start": null
+        },
+        "original_url": "https://www.pib.gov.in/PressReleasePage.aspx?PRID=2324581&lang=1&reg=3"
+      },
+      {
+        "kind": "CLAIM_PUBLICATION",
+        "date": {
+          "original": "2026-10-16",
+          "utc": null,
+          "precision": "DATE_ONLY",
+          "timezone": null
+        },
+        "source_id": "12f889a1d38a791b79d8dafeb0e3bdf8c060ab92",
+        "claim_id": "claim-be989869c9d5ce51",
+        "language": "en",
+        "passage": {
+          "artifact_uri": "jobs/ff16816c-7af1-477a-b5f7-888ebd42f21a/research/sources/12f889a1d38a791b79d8dafeb0e3bdf8c060ab92/content.html",
+          "end_offset": 2706,
+          "kind": "TEXT_SPAN",
+          "source_id": "12f889a1d38a791b79d8dafeb0e3bdf8c060ab92",
+          "start_offset": 2537,
+          "text": "The commissioning of INS Samarthak reinforces the nation\u2019s commitment to maritime security, regional stability and cooperative engagement across the Indian Ocean Region.",
+          "timestamp_end": null,
+          "timestamp_start": null
+        },
+        "original_url": "https://www.pib.gov.in/PressReleasePage.aspx?PRID=2324581&lang=1&reg=3"
+      },
+      {
+        "kind": "CLAIM_PUBLICATION",
+        "date": {
+          "original": "2026-10-16",
+          "utc": null,
+          "precision": "DATE_ONLY",
+          "timezone": null
+        },
+        "source_id": "12f889a1d38a791b79d8dafeb0e3bdf8c060ab92",
+        "claim_id": "claim-c517136c102939d9",
+        "language": "en",
+        "passage": {
+          "artifact_uri": "jobs/ff16816c-7af1-477a-b5f7-888ebd42f21a/research/sources/12f889a1d38a791b79d8dafeb0e3bdf8c060ab92/content.html",
+          "end_offset": 2243,
+          "kind": "TEXT_SPAN",
+          "source_id": "12f889a1d38a791b79d8dafeb0e3bdf8c060ab92",
+          "start_offset": 2050,
+          "text": "True to its name, INS Samarthak is capable of undertaking maritime surveillance and reconnaissance, offshore patrolling, and Humanitarian Assistance and Disaster Relief operations, as required.",
+          "timestamp_end": null,
+          "timestamp_start": null
+        },
+        "original_url": "https://www.pib.gov.in/PressReleasePage.aspx?PRID=2324581&lang=1&reg=3"
+      },
+      {
+        "kind": "CLAIM_PUBLICATION",
+        "date": {
+          "original": "2026-10-16",
+          "utc": null,
+          "precision": "DATE_ONLY",
+          "timezone": null
+        },
+        "source_id": "12f889a1d38a791b79d8dafeb0e3bdf8c060ab92",
+        "claim_id": "claim-dba560a332ce5c0e",
+        "language": "en",
+        "passage": {
+          "artifact_uri": "jobs/ff16816c-7af1-477a-b5f7-888ebd42f21a/research/sources/12f889a1d38a791b79d8dafeb0e3bdf8c060ab92/content.html",
+          "end_offset": 1277,
+          "kind": "TEXT_SPAN",
+          "source_id": "12f889a1d38a791b79d8dafeb0e3bdf8c060ab92",
+          "start_offset": 998,
+          "text": "The commissioning is a powerful testament to the growing maturity and capability of the nation\u2019s private shipbuilding industry and reflects the deepening synergy between the Indian Navy and the Indian shipbuilding industry in advancing the national vision of Aatmanirbhar Bharat.",
+          "timestamp_end": null,
+          "timestamp_start": null
+        },
+        "original_url": "https://www.pib.gov.in/PressReleasePage.aspx?PRID=2324581&lang=1&reg=3"
+      },
+      {
+        "kind": "CLAIM_PUBLICATION",
+        "date": {
+          "original": "2026-10-16",
+          "utc": null,
+          "precision": "DATE_ONLY",
+          "timezone": null
+        },
+        "source_id": "12f889a1d38a791b79d8dafeb0e3bdf8c060ab92",
+        "claim_id": "claim-f0cae0ab9e71855c",
+        "language": "en",
+        "passage": {
+          "artifact_uri": "jobs/ff16816c-7af1-477a-b5f7-888ebd42f21a/research/sources/12f889a1d38a791b79d8dafeb0e3bdf8c060ab92/content.html",
+          "end_offset": 2049,
+          "kind": "TEXT_SPAN",
+          "source_id": "12f889a1d38a791b79d8dafeb0e3bdf8c060ab92",
+          "start_offset": 1761,
+          "text": "Aptly named Samarthak, meaning \u2018The Proponent\u2019, the ship represents the spirit of a dependable enabler, capable of supporting multiple missions and has been designed with inherent versatility and adaptability, enabling it to undertake diverse range of operational and developmental tasks.",
+          "timestamp_end": null,
+          "timestamp_start": null
+        },
+        "original_url": "https://www.pib.gov.in/PressReleasePage.aspx?PRID=2324581&lang=1&reg=3"
+      },
+      {
+        "kind": "CLAIM_PUBLICATION",
+        "date": {
+          "original": "2026-10-16",
+          "utc": null,
+          "precision": "DATE_ONLY",
+          "timezone": null
+        },
+        "source_id": "26a9d035e38e459b0ac5a3df57aeaafaad658489",
+        "claim_id": "claim-1ddb6ee7cf576f5c",
+        "language": "en",
+        "passage": {
+          "artifact_uri": "jobs/ff16816c-7af1-477a-b5f7-888ebd42f21a/research/sources/26a9d035e38e459b0ac5a3df57aeaafaad658489/content.html",
+          "end_offset": 3865,
+          "kind": "TEXT_SPAN",
+          "source_id": "26a9d035e38e459b0ac5a3df57aeaafaad658489",
+          "start_offset": 3632,
+          "text": "The Vice-President also underscored the growing partnership between the Indian Navy, defence public sector undertakings, private shipyards, DRDO, academia, MSMEs and start-ups in strengthening India\u2019s defence manufacturing ecosystem.",
+          "timestamp_end": null,
+          "timestamp_start": null
+        },
+        "original_url": "https://www.pib.gov.in/PressReleasePage.aspx?PRID=2324319&lang=1&reg=3"
+      },
+      {
+        "kind": "CLAIM_PUBLICATION",
+        "date": {
+          "original": "2026-10-16",
+          "utc": null,
+          "precision": "DATE_ONLY",
+          "timezone": null
+        },
+        "source_id": "26a9d035e38e459b0ac5a3df57aeaafaad658489",
+        "claim_id": "claim-4767d2d26611ed44",
+        "language": "en",
+        "passage": {
+          "artifact_uri": "jobs/ff16816c-7af1-477a-b5f7-888ebd42f21a/research/sources/26a9d035e38e459b0ac5a3df57aeaafaad658489/content.html",
+          "end_offset": 3395,
+          "kind": "TEXT_SPAN",
+          "source_id": "26a9d035e38e459b0ac5a3df57aeaafaad658489",
+          "start_offset": 3190,
+          "text": "Referring to Karwar\u2019s strategic importance, Shri C. P. Radhakrishnan said that its deep natural harbour and proximity to the Arabian Sea make it a vital component of India\u2019s maritime security architecture.",
+          "timestamp_end": null,
+          "timestamp_start": null
+        },
+        "original_url": "https://www.pib.gov.in/PressReleasePage.aspx?PRID=2324319&lang=1&reg=3"
+      },
+      {
+        "kind": "CLAIM_PUBLICATION",
+        "date": {
+          "original": "2026-10-16",
+          "utc": null,
+          "precision": "DATE_ONLY",
+          "timezone": null
+        },
+        "source_id": "26a9d035e38e459b0ac5a3df57aeaafaad658489",
+        "claim_id": "claim-4934f59c0c701dc4",
+        "language": "en",
+        "passage": {
+          "artifact_uri": "jobs/ff16816c-7af1-477a-b5f7-888ebd42f21a/research/sources/26a9d035e38e459b0ac5a3df57aeaafaad658489/content.html",
+          "end_offset": 1344,
+          "kind": "TEXT_SPAN",
+          "source_id": "26a9d035e38e459b0ac5a3df57aeaafaad658489",
+          "start_offset": 1151,
+          "text": "With over 75% indigenous content, INS Samarthak reflects India\u2019s growing self-reliance in defence manufacturing and will support trials of next-generation weapons, sensors and unmanned systems.",
+          "timestamp_end": null,
+          "timestamp_start": null
+        },
+        "original_url": "https://www.pib.gov.in/PressReleasePage.aspx?PRID=2324319&lang=1&reg=3"
+      },
+      {
+        "kind": "CLAIM_PUBLICATION",
+        "date": {
+          "original": "2026-10-16",
+          "utc": null,
+          "precision": "DATE_ONLY",
+          "timezone": null
+        },
+        "source_id": "26a9d035e38e459b0ac5a3df57aeaafaad658489",
+        "claim_id": "claim-66580f8654497d93",
+        "language": "en",
+        "passage": {
+          "artifact_uri": "jobs/ff16816c-7af1-477a-b5f7-888ebd42f21a/research/sources/26a9d035e38e459b0ac5a3df57aeaafaad658489/content.html",
+          "end_offset": 818,
+          "kind": "TEXT_SPAN",
+          "source_id": "26a9d035e38e459b0ac5a3df57aeaafaad658489",
+          "start_offset": 651,
+          "text": "The Vice-President of India, Shri C. P. Radhakrishnan, today commissioned INS Samarthak, the Indian Navy\u2019s first indigenous Multi-Purpose Vessel, at Karwar, Karnataka.",
+          "timestamp_end": null,
+          "timestamp_start": null
+        },
+        "original_url": "https://www.pib.gov.in/PressReleasePage.aspx?PRID=2324319&lang=1&reg=3"
+      },
+      {
+        "kind": "CLAIM_PUBLICATION",
+        "date": {
+          "original": "2026-10-16",
+          "utc": null,
+          "precision": "DATE_ONLY",
+          "timezone": null
+        },
+        "source_id": "26a9d035e38e459b0ac5a3df57aeaafaad658489",
+        "claim_id": "claim-68a2321422174c42",
+        "language": "en",
+        "passage": {
+          "artifact_uri": "jobs/ff16816c-7af1-477a-b5f7-888ebd42f21a/research/sources/26a9d035e38e459b0ac5a3df57aeaafaad658489/content.html",
+          "end_offset": 1959,
+          "kind": "TEXT_SPAN",
+          "source_id": "26a9d035e38e459b0ac5a3df57aeaafaad658489",
+          "start_offset": 1715,
+          "text": "He observed that self-reliance in defence is no longer merely an aspiration but an emerging reality, contributing to India\u2019s strategic autonomy and the vision of a Viksit and Aatmanirbhar Bharat articulated by Prime Minister Shri Narendra Modi.",
+          "timestamp_end": null,
+          "timestamp_start": null
+        },
+        "original_url": "https://www.pib.gov.in/PressReleasePage.aspx?PRID=2324319&lang=1&reg=3"
+      },
+      {
+        "kind": "CLAIM_PUBLICATION",
+        "date": {
+          "original": "2026-10-16",
+          "utc": null,
+          "precision": "DATE_ONLY",
+          "timezone": null
+        },
+        "source_id": "26a9d035e38e459b0ac5a3df57aeaafaad658489",
+        "claim_id": "claim-6a5ae50900eb551e",
+        "language": "en",
+        "passage": {
+          "artifact_uri": "jobs/ff16816c-7af1-477a-b5f7-888ebd42f21a/research/sources/26a9d035e38e459b0ac5a3df57aeaafaad658489/content.html",
+          "end_offset": 1149,
+          "kind": "TEXT_SPAN",
+          "source_id": "26a9d035e38e459b0ac5a3df57aeaafaad658489",
+          "start_offset": 997,
+          "text": "Vice-President Shri C. P. Radhakrishnan today commissioned INS Samarthak, the Indian Navy\u2019s first indigenous Multi-Purpose Vessel, at Karwar, Karnataka.",
+          "timestamp_end": null,
+          "timestamp_start": null
+        },
+        "original_url": "https://www.pib.gov.in/PressReleasePage.aspx?PRID=2324319&lang=1&reg=3"
+      },
+      {
+        "kind": "CLAIM_PUBLICATION",
+        "date": {
+          "original": "2026-10-16",
+          "utc": null,
+          "precision": "DATE_ONLY",
+          "timezone": null
+        },
+        "source_id": "26a9d035e38e459b0ac5a3df57aeaafaad658489",
+        "claim_id": "claim-71dc38bfc0ad1d72",
+        "language": "en",
+        "passage": {
+          "artifact_uri": "jobs/ff16816c-7af1-477a-b5f7-888ebd42f21a/research/sources/26a9d035e38e459b0ac5a3df57aeaafaad658489/content.html",
+          "end_offset": 605,
+          "kind": "TEXT_SPAN",
+          "source_id": "26a9d035e38e459b0ac5a3df57aeaafaad658489",
+          "start_offset": 506,
+          "text": "\u201cKarwar Symbolises Both India\u2019s Glorious Maritime Heritage and Its Maritime Future\u201d: Vice-President",
+          "timestamp_end": null,
+          "timestamp_start": null
+        },
+        "original_url": "https://www.pib.gov.in/PressReleasePage.aspx?PRID=2324319&lang=1&reg=3"
+      },
+      {
+        "kind": "CLAIM_PUBLICATION",
+        "date": {
+          "original": "2026-10-16",
+          "utc": null,
+          "precision": "DATE_ONLY",
+          "timezone": null
+        },
+        "source_id": "26a9d035e38e459b0ac5a3df57aeaafaad658489",
+        "claim_id": "claim-824db06b64a36e5a",
+        "language": "en",
+        "passage": {
+          "artifact_uri": "jobs/ff16816c-7af1-477a-b5f7-888ebd42f21a/research/sources/26a9d035e38e459b0ac5a3df57aeaafaad658489/content.html",
+          "end_offset": 504,
+          "kind": "TEXT_SPAN",
+          "source_id": "26a9d035e38e459b0ac5a3df57aeaafaad658489",
+          "start_offset": 406,
+          "text": "\u201cINS Samarthak Reflects the Growing Role of India\u2019s Private Shipbuilding Industry\u201d: Vice-President",
+          "timestamp_end": null,
+          "timestamp_start": null
+        },
+        "original_url": "https://www.pib.gov.in/PressReleasePage.aspx?PRID=2324319&lang=1&reg=3"
+      },
+      {
+        "kind": "CLAIM_PUBLICATION",
+        "date": {
+          "original": "2026-10-16",
+          "utc": null,
+          "precision": "DATE_ONLY",
+          "timezone": null
+        },
+        "source_id": "26a9d035e38e459b0ac5a3df57aeaafaad658489",
+        "claim_id": "claim-8737780747cf021e",
+        "language": "en",
+        "passage": {
+          "artifact_uri": "jobs/ff16816c-7af1-477a-b5f7-888ebd42f21a/research/sources/26a9d035e38e459b0ac5a3df57aeaafaad658489/content.html",
+          "end_offset": 1714,
+          "kind": "TEXT_SPAN",
+          "source_id": "26a9d035e38e459b0ac5a3df57aeaafaad658489",
+          "start_offset": 1500,
+          "text": "Addressing the gathering, the Vice-President said that INS Samarthak, with more than 75 per cent indigenous content, reflects the growing strength of India\u2019s industrial, technological and shipbuilding capabilities.",
+          "timestamp_end": null,
+          "timestamp_start": null
+        },
+        "original_url": "https://www.pib.gov.in/PressReleasePage.aspx?PRID=2324319&lang=1&reg=3"
+      },
+      {
+        "kind": "CLAIM_PUBLICATION",
+        "date": {
+          "original": "2026-10-16",
+          "utc": null,
+          "precision": "DATE_ONLY",
+          "timezone": null
+        },
+        "source_id": "26a9d035e38e459b0ac5a3df57aeaafaad658489",
+        "claim_id": "claim-b0e3dbfe4e98fc16",
+        "language": "en",
+        "passage": {
+          "artifact_uri": "jobs/ff16816c-7af1-477a-b5f7-888ebd42f21a/research/sources/26a9d035e38e459b0ac5a3df57aeaafaad658489/content.html",
+          "end_offset": 157,
+          "kind": "TEXT_SPAN",
+          "source_id": "26a9d035e38e459b0ac5a3df57aeaafaad658489",
+          "start_offset": 30,
+          "text": "Vice-President Shri C. P. Radhakrishnan Commissions Indian Navy\u2019s First Indigenous Multi-Purpose Vessel INS Samarthak at Karwar",
+          "timestamp_end": null,
+          "timestamp_start": null
+        },
+        "original_url": "https://www.pib.gov.in/PressReleasePage.aspx?PRID=2324319&lang=1&reg=3"
+      },
+      {
+        "kind": "CLAIM_PUBLICATION",
+        "date": {
+          "original": "2026-10-16",
+          "utc": null,
+          "precision": "DATE_ONLY",
+          "timezone": null
+        },
+        "source_id": "26a9d035e38e459b0ac5a3df57aeaafaad658489",
+        "claim_id": "claim-b14ad3fdbc9f70d9",
+        "language": "en",
+        "passage": {
+          "artifact_uri": "jobs/ff16816c-7af1-477a-b5f7-888ebd42f21a/research/sources/26a9d035e38e459b0ac5a3df57aeaafaad658489/content.html",
+          "end_offset": 4632,
+          "kind": "TEXT_SPAN",
+          "source_id": "26a9d035e38e459b0ac5a3df57aeaafaad658489",
+          "start_offset": 4137,
+          "text": "Admiral Krishna Swaminathan, Chief of the Naval Staff; Vice-Admiral Sanjay Vatsayan, Flag Officer Commanding-in-Chief; Vice-Admiral Sanjay Sadhu, Controller Warship Production and Acquisition; Rear Admiral Vikram Menon, Flag Officer (Karnataka); retired Rear Admiral G. K. Harish, Head of Shipbuilding, L&T; Commander Sushil Kumar Singh, Commanding Officer of INS Samarthak; senior officers of the Indian Navy and Ministry of Defence, and other distinguished guests were present on the occasion.",
+          "timestamp_end": null,
+          "timestamp_start": null
+        },
+        "original_url": "https://www.pib.gov.in/PressReleasePage.aspx?PRID=2324319&lang=1&reg=3"
+      },
+      {
+        "kind": "CLAIM_PUBLICATION",
+        "date": {
+          "original": "2026-10-16",
+          "utc": null,
+          "precision": "DATE_ONLY",
+          "timezone": null
+        },
+        "source_id": "26a9d035e38e459b0ac5a3df57aeaafaad658489",
+        "claim_id": "claim-e50a06a0999ea8c9",
+        "language": "en",
+        "passage": {
+          "artifact_uri": "jobs/ff16816c-7af1-477a-b5f7-888ebd42f21a/research/sources/26a9d035e38e459b0ac5a3df57aeaafaad658489/content.html",
+          "end_offset": 404,
+          "kind": "TEXT_SPAN",
+          "source_id": "26a9d035e38e459b0ac5a3df57aeaafaad658489",
+          "start_offset": 297,
+          "text": "\u201cIndian Navy Stands Ever-Vigilant and Combat-Ready to Safeguard India\u2019s Maritime Interests\u201d: Vice-President",
+          "timestamp_end": null,
+          "timestamp_start": null
+        },
+        "original_url": "https://www.pib.gov.in/PressReleasePage.aspx?PRID=2324319&lang=1&reg=3"
+      },
+      {
+        "kind": "CLAIM_PUBLICATION",
+        "date": {
+          "original": "2026-10-16",
+          "utc": null,
+          "precision": "DATE_ONLY",
+          "timezone": null
+        },
+        "source_id": "26a9d035e38e459b0ac5a3df57aeaafaad658489",
+        "claim_id": "claim-f0a46d903bb8af57",
+        "language": "en",
+        "passage": {
+          "artifact_uri": "jobs/ff16816c-7af1-477a-b5f7-888ebd42f21a/research/sources/26a9d035e38e459b0ac5a3df57aeaafaad658489/content.html",
+          "end_offset": 2200,
+          "kind": "TEXT_SPAN",
+          "source_id": "26a9d035e38e459b0ac5a3df57aeaafaad658489",
+          "start_offset": 1961,
+          "text": "Highlighting India\u2019s rich maritime heritage, Shri C. P. Radhakrishnan recalled the naval traditions of Chhatrapati Shivaji Maharaj and the Chola dynasty, which extended India\u2019s maritime influence across the Indian Ocean and Southeast Asia.",
+          "timestamp_end": null,
+          "timestamp_start": null
+        },
+        "original_url": "https://www.pib.gov.in/PressReleasePage.aspx?PRID=2324319&lang=1&reg=3"
+      },
+      {
+        "kind": "CLAIM_PUBLICATION",
+        "date": {
+          "original": "2026-10-16",
+          "utc": null,
+          "precision": "DATE_ONLY",
+          "timezone": null
+        },
+        "source_id": "26a9d035e38e459b0ac5a3df57aeaafaad658489",
+        "claim_id": "claim-f320408b586cba3f",
+        "language": "en",
+        "passage": {
+          "artifact_uri": "jobs/ff16816c-7af1-477a-b5f7-888ebd42f21a/research/sources/26a9d035e38e459b0ac5a3df57aeaafaad658489/content.html",
+          "end_offset": 2787,
+          "kind": "TEXT_SPAN",
+          "source_id": "26a9d035e38e459b0ac5a3df57aeaafaad658489",
+          "start_offset": 2576,
+          "text": "Highlighting the significance of INS Samarthak, the Vice-President said that the vessel will serve as a versatile platform for trials and evaluation of next-generation weapons, sensors and emerging technologies.",
+          "timestamp_end": null,
+          "timestamp_start": null
+        },
+        "original_url": "https://www.pib.gov.in/PressReleasePage.aspx?PRID=2324319&lang=1&reg=3"
+      },
+      {
+        "kind": "CLAIM_PUBLICATION",
+        "date": {
+          "original": "2026-10-16",
+          "utc": null,
+          "precision": "DATE_ONLY",
+          "timezone": null
+        },
+        "source_id": "26a9d035e38e459b0ac5a3df57aeaafaad658489",
+        "claim_id": "claim-f753e8a93f0fe2ec",
+        "language": "en",
+        "passage": {
+          "artifact_uri": "jobs/ff16816c-7af1-477a-b5f7-888ebd42f21a/research/sources/26a9d035e38e459b0ac5a3df57aeaafaad658489/content.html",
+          "end_offset": 295,
+          "kind": "TEXT_SPAN",
+          "source_id": "26a9d035e38e459b0ac5a3df57aeaafaad658489",
+          "start_offset": 159,
+          "text": "INS Samarthak, with over 75 per cent indigenous content, reflects India\u2019s growing self-reliance in defence manufacturing: Vice-President",
+          "timestamp_end": null,
+          "timestamp_start": null
+        },
+        "original_url": "https://www.pib.gov.in/PressReleasePage.aspx?PRID=2324319&lang=1&reg=3"
+      },
+      {
+        "kind": "PUBLICATION",
+        "date": {
+          "original": "2026-10-16",
+          "utc": null,
+          "precision": "DATE_ONLY",
+          "timezone": null
+        },
+        "source_id": "12f889a1d38a791b79d8dafeb0e3bdf8c060ab92",
+        "claim_id": null,
+        "language": "en",
+        "passage": null,
+        "original_url": "https://www.pib.gov.in/PressReleasePage.aspx?PRID=2324581&lang=1&reg=3"
+      },
+      {
+        "kind": "PUBLICATION",
+        "date": {
+          "original": "2026-10-16",
+          "utc": null,
+          "precision": "DATE_ONLY",
+          "timezone": null
+        },
+        "source_id": "26a9d035e38e459b0ac5a3df57aeaafaad658489",
+        "claim_id": null,
+        "language": "en",
+        "passage": null,
+        "original_url": "https://www.pib.gov.in/PressReleasePage.aspx?PRID=2324319&lang=1&reg=3"
+      }
+    ],
+    "limitations": [
+      "Source 12f889a1d38a791b79d8dafeb0e3bdf8c060ab92: publisher unknown",
+      "Source 26a9d035e38e459b0ac5a3df57aeaafaad658489: publisher unknown",
+      "Source support and human approval do not establish historical truth.",
+      "Duplicate groups and textual similarity are not independent corroboration."
+    ],
+    "blockers": [
+      "Automated policy: insufficient supporting sources after human exceptions",
+      "Automated policy: min_accepted_sources required 2 got 1; enable and acquire additional sources in config/source_policy.json that cover the topic"
+    ],
+    "eligible_claim_ids": [
+      "claim-111e2d36168e5818",
+      "claim-1b175031d6f1acf6",
+      "claim-3038065ce75b3522",
+      "claim-44d29a25afd98abe",
+      "claim-4934f59c0c701dc4",
+      "claim-66580f8654497d93",
+      "claim-6a5ae50900eb551e",
+      "claim-824db06b64a36e5a",
+      "claim-8737780747cf021e",
+      "claim-a17c0f35c86fe2da",
+      "claim-b0e3dbfe4e98fc16",
+      "claim-b14ad3fdbc9f70d9",
+      "claim-be989869c9d5ce51",
+      "claim-c517136c102939d9",
+      "claim-dba560a332ce5c0e",
+      "claim-f320408b586cba3f",
+      "claim-f753e8a93f0fe2ec"
+    ],
+    "ready": false,
+    "status": "DRAFT",
+    "approval": null,
+    "automated_decisions": {
+      "policy_version": "defence-studio.evidence-policy.v1",
+      "run_id": "ead139498bab5716",
+      "acquisition_sha256": "1f40dd6cbb59760274820ad053c525cd549bc1432d4fa3af86daff110f834a22",
+      "analysis_sha256": "c48015a7bc6a394c9b41f603feb1fe6fc2c1c2a802d1a161d47ac831837099c0",
+      "claims": {
+        "claim-111e2d36168e5818": {
+          "state": "AUTO_ACCEPTED",
+          "score": 90.0,
+          "claim_class": "DESCRIPTIVE",
+          "independent_groups": 1
+        },
+        "claim-a17c0f35c86fe2da": {
+          "state": "AUTO_ACCEPTED",
+          "score": 90.0,
+          "claim_class": "DESCRIPTIVE",
+          "independent_groups": 1
+        },
+        "claim-ae309580752f618f": {
+          "state": "REJECTED",
+          "score": 75.0,
+          "claim_class": "DESCRIPTIVE",
+          "independent_groups": 1
+        },
+        "claim-641907e944019252": {
+          "state": "REJECTED",
+          "score": 75.0,
+          "claim_class": "DESCRIPTIVE",
+          "independent_groups": 1
+        },
+        "claim-3038065ce75b3522": {
+          "state": "AUTO_ACCEPTED",
+          "score": 90.0,
+          "claim_class": "DESCRIPTIVE",
+          "independent_groups": 1
+        },
+        "claim-44d29a25afd98abe": {
+          "state": "AUTO_ACCEPTED",
+          "score": 90.0,
+          "claim_class": "DESCRIPTIVE",
+          "independent_groups": 1
+        },
+        "claim-dba560a332ce5c0e": {
+          "state": "AUTO_ACCEPTED",
+          "score": 90.0,
+          "claim_class": "DESCRIPTIVE",
+          "independent_groups": 1
+        },
+        "claim-b84efc9fe64b2778": {
+          "state": "NEEDS_REVIEW",
+          "score": 90.0,
+          "claim_class": "OPERATIONAL",
+          "independent_groups": 1
+        },
+        "claim-f0cae0ab9e71855c": {
+          "state": "NEEDS_REVIEW",
+          "score": 90.0,
+          "claim_class": "OPERATIONAL",
+          "independent_groups": 1
+        },
+        "claim-c517136c102939d9": {
+          "state": "AUTO_ACCEPTED",
+          "score": 90.0,
+          "claim_class": "DESCRIPTIVE",
+          "independent_groups": 1
+        },
+        "claim-be989869c9d5ce51": {
+          "state": "AUTO_ACCEPTED",
+          "score": 90.0,
+          "claim_class": "DESCRIPTIVE",
+          "independent_groups": 1
+        },
+        "claim-1b175031d6f1acf6": {
+          "state": "AUTO_ACCEPTED",
+          "score": 90.0,
+          "claim_class": "DESCRIPTIVE",
+          "independent_groups": 1
+        },
+        "claim-b0e3dbfe4e98fc16": {
+          "state": "AUTO_ACCEPTED",
+          "score": 90.0,
+          "claim_class": "DESCRIPTIVE",
+          "independent_groups": 1
+        },
+        "claim-f753e8a93f0fe2ec": {
+          "state": "AUTO_ACCEPTED",
+          "score": 90.0,
+          "claim_class": "DESCRIPTIVE",
+          "independent_groups": 1
+        },
+        "claim-e50a06a0999ea8c9": {
+          "state": "REJECTED",
+          "score": 75.0,
+          "claim_class": "DESCRIPTIVE",
+          "independent_groups": 1
+        },
+        "claim-824db06b64a36e5a": {
+          "state": "AUTO_ACCEPTED",
+          "score": 90.0,
+          "claim_class": "DESCRIPTIVE",
+          "independent_groups": 1
+        },
+        "claim-71dc38bfc0ad1d72": {
+          "state": "REJECTED",
+          "score": 75.0,
+          "claim_class": "DESCRIPTIVE",
+          "independent_groups": 1
+        },
+        "claim-66580f8654497d93": {
+          "state": "AUTO_ACCEPTED",
+          "score": 90.0,
+          "claim_class": "DESCRIPTIVE",
+          "independent_groups": 1
+        },
+        "claim-6a5ae50900eb551e": {
+          "state": "AUTO_ACCEPTED",
+          "score": 90.0,
+          "claim_class": "DESCRIPTIVE",
+          "independent_groups": 1
+        },
+        "claim-4934f59c0c701dc4": {
+          "state": "AUTO_ACCEPTED",
+          "score": 90.0,
+          "claim_class": "DESCRIPTIVE",
+          "independent_groups": 1
+        },
+        "claim-8737780747cf021e": {
+          "state": "AUTO_ACCEPTED",
+          "score": 90.0,
+          "claim_class": "DESCRIPTIVE",
+          "independent_groups": 1
+        },
+        "claim-68a2321422174c42": {
+          "state": "REJECTED",
+          "score": 75.0,
+          "claim_class": "DESCRIPTIVE",
+          "independent_groups": 1
+        },
+        "claim-f0a46d903bb8af57": {
+          "state": "REJECTED",
+          "score": 75.0,
+          "claim_class": "DESCRIPTIVE",
+          "independent_groups": 1
+        },
+        "claim-f320408b586cba3f": {
+          "state": "AUTO_ACCEPTED",
+          "score": 90.0,
+          "claim_class": "DESCRIPTIVE",
+          "independent_groups": 1
+        },
+        "claim-4767d2d26611ed44": {
+          "state": "REJECTED",
+          "score": 75.0,
+          "claim_class": "DESCRIPTIVE",
+          "independent_groups": 1
+        },
+        "claim-1ddb6ee7cf576f5c": {
+          "state": "REJECTED",
+          "score": 75.0,
+          "claim_class": "DESCRIPTIVE",
+          "independent_groups": 1
+        },
+        "claim-b14ad3fdbc9f70d9": {
+          "state": "AUTO_ACCEPTED",
+          "score": 90.0,
+          "claim_class": "DESCRIPTIVE",
+          "independent_groups": 1
+        }
+      },
+      "sources": {
+        "12f889a1d38a791b79d8dafeb0e3bdf8c060ab92": {
+          "state": "AUTO_ACCEPTED"
+        },
+        "26a9d035e38e459b0ac5a3df57aeaafaad658489": {
+          "state": "AUTO_ACCEPTED"
+        }
+      }
+    }
+  },
+  "revision": "bc46f2465ff4b1bf032b19965d44c9fdd3f4c7b859a525714b7ed0e6bece81f2",
+  "approvals": [],
+  "current_approval": null
+}

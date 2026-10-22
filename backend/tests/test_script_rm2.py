@@ -143,7 +143,7 @@ def test_offline_provider_generates_attributed_script_end_to_end(approved, monke
     assert revision["usage"]["provider"] == "offline-extractive"
     assert revision["usage"]["measured_text_cost_inr"] == 0.0
     assert revision["sections"][0]["statement_kind"] == "ATTRIBUTED_CLAIM"
-    assert revision["status"] in ("AWAITING_REVIEW", "VALIDATION_FAILED")
+    assert revision["status"] in ("APPROVED", "VALIDATION_FAILED")
     assert not any(i["code"] == "FACT_NOT_CORROBORATED" for i in revision["validation"]["issues"])
 
 

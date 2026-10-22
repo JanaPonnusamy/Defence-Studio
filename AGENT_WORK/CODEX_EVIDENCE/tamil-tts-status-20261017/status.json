@@ -1,0 +1,174 @@
+{
+  "voices": {
+    "voices": [
+      {
+        "voice_id": "DEFENCE_ERA_FEMALE_001",
+        "display_name": "Defence Era female narrator (owned/licensed)",
+        "kind": "NOT_PROVISIONED",
+        "adapter": null,
+        "ready": false,
+        "languages": [],
+        "natural_speech": false,
+        "tamil_verified": false,
+        "license": null,
+        "reason": "No owned/licensed Tamil narrator model has been provisioned or verified."
+      },
+      {
+        "voice_id": "OS_SAPI_MICROSOFT_HAZEL_DESKTOP",
+        "display_name": "Microsoft Hazel Desktop (Windows OS voice)",
+        "kind": "OS_VOICE",
+        "adapter": "windows-sapi",
+        "ready": true,
+        "languages": [
+          "en-GB"
+        ],
+        "natural_speech": true,
+        "tamil_verified": false,
+        "supported_controls": [
+          "tempo",
+          "energy"
+        ],
+        "unsupported_controls": [
+          "pitch_variation",
+          "emphasis(partial: rate/volume only)"
+        ],
+        "license": {
+          "license_id": "OS-SAPI-OS_SAPI_MICROSOFT_HAZEL_DESKTOP",
+          "speaker_license_ref": "Windows OS-bundled voice; redistribution/commercial/YouTube terms NOT verified",
+          "training_allowed": false,
+          "commercial_use_allowed": false,
+          "youtube_use_allowed": false,
+          "valid_from": "2020-01-01",
+          "valid_until": null,
+          "terms_hash": null
+        },
+        "reason": ""
+      },
+      {
+        "voice_id": "OS_SAPI_MICROSOFT_ZIRA_DESKTOP",
+        "display_name": "Microsoft Zira Desktop (Windows OS voice)",
+        "kind": "OS_VOICE",
+        "adapter": "windows-sapi",
+        "ready": true,
+        "languages": [
+          "en-US"
+        ],
+        "natural_speech": true,
+        "tamil_verified": false,
+        "supported_controls": [
+          "tempo",
+          "energy"
+        ],
+        "unsupported_controls": [
+          "pitch_variation",
+          "emphasis(partial: rate/volume only)"
+        ],
+        "license": {
+          "license_id": "OS-SAPI-OS_SAPI_MICROSOFT_ZIRA_DESKTOP",
+          "speaker_license_ref": "Windows OS-bundled voice; redistribution/commercial/YouTube terms NOT verified",
+          "training_allowed": false,
+          "commercial_use_allowed": false,
+          "youtube_use_allowed": false,
+          "valid_from": "2020-01-01",
+          "valid_until": null,
+          "terms_hash": null
+        },
+        "reason": ""
+      }
+    ],
+    "aligner": {
+      "name": "defence-align (CTC forced aligner)",
+      "available": false,
+      "languages_verified": [],
+      "license_note": "MMS-FA bundled model is CC-BY-NC 4.0 (non-commercial); not approved for production.",
+      "reason": "torchaudio present but model bundle and Tamil accuracy not verified"
+    },
+    "limitations": [
+      "Tamil speech synthesis is not verified for any listed voice.",
+      "Word timings are proportional estimates unless a forced aligner has run.",
+      "Emotion labels are heuristic inferences."
+    ],
+    "direction_ranges": {
+      "tempo": [
+        0.5,
+        2.0
+      ],
+      "pitch_variation": [
+        0,
+        1
+      ],
+      "energy": [
+        0,
+        1
+      ],
+      "emotion.intensity": [
+        0,
+        1
+      ],
+      "emphasis.strength": [
+        0,
+        1
+      ],
+      "pause.duration_ms": [
+        0,
+        5000
+      ]
+    }
+  },
+  "voice_jobs": {
+    "jobs": []
+  },
+  "voice_profiles": {
+    "profiles": []
+  },
+  "credentials": {
+    "credentials": [
+      {
+        "provider": "openai",
+        "configured": true,
+        "source": "server_environment",
+        "updated_at": null
+      }
+    ]
+  },
+  "scripts": {
+    "job_id": "ff16816c-7af1-477a-b5f7-888ebd42f21a",
+    "revisions": []
+  },
+  "openai_inspections_en": {
+    "job_id": "ff16816c-7af1-477a-b5f7-888ebd42f21a",
+    "language": "en",
+    "records": []
+  },
+  "openai_inspections_ta": {
+    "job_id": "ff16816c-7af1-477a-b5f7-888ebd42f21a",
+    "language": "ta",
+    "records": []
+  },
+  "existing_tamil_samples": [
+    {
+      "path": "E:\\Jana Soft\\DefenceStudio\\AGENT_WORK\\indic-parler-trial\\output\\tamil_female_sample.wav",
+      "bytes": 901164,
+      "sha256": "0f5a09e15b3366fc983df60b8da48c0f7ae7325ad6f3fe60257203059aa9ba0b",
+      "duration_seconds": 10.217,
+      "sample_rate": 44100,
+      "channels": 1
+    },
+    {
+      "path": "E:\\Jana Soft\\DefenceStudio\\AGENT_WORK\\indic-parler-trial\\output\\tamil_female_sample_news_desc.wav",
+      "bytes": 935980,
+      "sha256": "4e3f07f3a15fb5d67d07c6cd2dd2457e521ebeb690072c7e0c64b61ea97ad4d5",
+      "duration_seconds": 10.612,
+      "sample_rate": 44100,
+      "channels": 1
+    },
+    {
+      "path": "E:\\Jana Soft\\DefenceStudio\\AGENT_WORK\\indic-parler-trial\\output\\tamil_female_youth_trial.wav",
+      "bytes": 861228,
+      "sha256": "c3c355f37583efc427a4497046464e5476453420379a3cb0e25eeeca1b41746d",
+      "duration_seconds": 9.764,
+      "sample_rate": 44100,
+      "channels": 1
+    }
+  ]
+}

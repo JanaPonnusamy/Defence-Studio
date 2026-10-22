@@ -54,7 +54,7 @@ def build_acquisition_handler(store: ArtifactStore, registry=None, guard: UrlGua
             targets, note = _targets_from_discovery(store, context)
             if not targets:
                 result = _empty_result(context.job_id, note)
-                return [_store_manifest(store, context.job_id, result)]
+                return [_store_manifest(store, context.job_id, result, context.claim_id)]
             payload = {
                 "schema_version": ACQUISITION_REQUEST_SCHEMA,
                 "job_id": context.job_id,
@@ -63,7 +63,7 @@ def build_acquisition_handler(store: ArtifactStore, registry=None, guard: UrlGua
             }
             derived = _store_json(
                 store, context.job_id,
-                f"jobs/{context.job_id}/research/automatic_acquisition_request.json",
+                f"jobs/{context.job_id}/research/attempts/{context.claim_id}/automatic_acquisition_request.json",
                 payload, ACQUISITION_REQUEST_ARTIFACT_TYPE, ACQUISITION_REQUEST_SCHEMA,
             )
         else:
@@ -83,7 +83,7 @@ def build_acquisition_handler(store: ArtifactStore, registry=None, guard: UrlGua
         outputs = []
         if derived is not None:
             outputs.append(derived)
-        outputs.append(_store_manifest(store, context.job_id, result))
+        outputs.append(_store_manifest(store, context.job_id, result, context.claim_id))
         return outputs
 
     return handle
@@ -183,10 +183,10 @@ def _empty_result(job_id: str, note: str) -> AcquisitionResultV1:
     )
 
 
-def _store_manifest(store: ArtifactStore, job_id: str, result: AcquisitionResultV1) -> dict:
+def _store_manifest(store: ArtifactStore, job_id: str, result: AcquisitionResultV1, claim_id: str) -> dict:
     return _store_json(
         store, job_id,
-        f"jobs/{job_id}/{ACQUISITION_MANIFEST_URI_SUFFIX}",
+        f"jobs/{job_id}/research/attempts/{claim_id}/acquisition_result.json",
         result_to_dict(result),
         ACQUISITION_MANIFEST_ARTIFACT_TYPE,
         ACQUISITION_RESULT_SCHEMA,

@@ -1,0 +1,286 @@
+{
+  "job_id": "ff16816c-7af1-477a-b5f7-888ebd42f21a",
+  "acquisition_artifact_sha256": "1f40dd6cbb59760274820ad053c525cd549bc1432d4fa3af86daff110f834a22",
+  "acquisition_artifact_uri": "jobs/ff16816c-7af1-477a-b5f7-888ebd42f21a/research/attempts/acbc350b-7bf6-428d-9583-5594b85ee9b6/acquisition_result.json",
+  "sources": [
+    {
+      "acquisition_timestamp": "2026-10-17T09:55:20.582311+00:00",
+      "artifacts": [
+        {
+          "artifact_type": "source_content",
+          "bytes": 99774,
+          "media_type": "text/html",
+          "schema_version": "defence-studio.source-artifact.v1",
+          "sha256": "740d207e857969ed04f889a08e600aa498403b86bd1c0220e98061249a9908c2",
+          "uri": "jobs/ff16816c-7af1-477a-b5f7-888ebd42f21a/research/sources/12f889a1d38a791b79d8dafeb0e3bdf8c060ab92/content.html"
+        }
+      ],
+      "canonical_url": "https://www.pib.gov.in/PressReleasePage.aspx?PRID=2324581&lang=1&reg=3",
+      "declared_metadata": {
+        "language": "en",
+        "language_status": "COLLECTED",
+        "published_at": "2026-10-16",
+        "published_at_status": "COLLECTED",
+        "publisher": null,
+        "publisher_status": "UNAVAILABLE",
+        "title": "Press Release Page | Press Information Bureau",
+        "title_status": "COLLECTED"
+      },
+      "error": null,
+      "final_url": "https://www.pib.gov.in/PressReleasePage.aspx?PRID=2324581&lang=1&reg=3",
+      "method": "auto",
+      "original_metadata": {
+        "declared_media_type": "text/html",
+        "http_status": 200,
+        "response_headers": {
+          "content-type": "text/html; charset=utf-8",
+          "date": "Sat, 17 Oct 2026 09:55:17 GMT",
+          "etag": "XXXXXXXX"
+        }
+      },
+      "provenance": {
+        "acquired_at": "2026-10-17T09:55:20.582311+00:00",
+        "canonical_url": "https://www.pib.gov.in/PressReleasePage.aspx?PRID=2324581&lang=1&reg=3",
+        "final_url": "https://www.pib.gov.in/PressReleasePage.aspx?PRID=2324581&lang=1&reg=3",
+        "provider": "http_page",
+        "provider_version": "0.1.0",
+        "request_target_id": "12f889a1d38a791b79d8dafeb0e3bdf8c060ab92",
+        "requested_url": "https://www.pib.gov.in/PressReleasePage.aspx?PRID=2324581&lang=1&reg=3",
+        "source_component": "defence_studio.acquisition.providers.http_page@0.1.0"
+      },
+      "requested_url": "https://www.pib.gov.in/PressReleasePage.aspx?PRID=2324581&lang=1&reg=3",
+      "source_id": "12f889a1d38a791b79d8dafeb0e3bdf8c060ab92",
+      "source_type": "web_page",
+      "status": "ACQUIRED",
+      "target_id": "12f889a1d38a791b79d8dafeb0e3bdf8c060ab92",
+      "warnings": [],
+      "assessment": {
+        "outcome": "SUPPORTED",
+        "policy_state": "AUTO_ACCEPTED",
+        "reasons": [
+          "allowlisted, acquired, integrity verified, topic-relevant"
+        ],
+        "evidence": {
+          "assessment_basis": "Deterministic policy support and integrity checks; not verification of factual truth",
+          "assessment_outcome": "SUPPORTED",
+          "assessor_version": "deterministic-evidence-policy.v2",
+          "canonical_url": "https://www.pib.gov.in/PressReleasePage.aspx?PRID=2324581&lang=1&reg=3",
+          "category": "GOVERNMENT_OFFICIAL",
+          "configuration_sha256": "52bd4b6574746d8ff9a3b39c60ecb909aa64913ba6fdd0d50a8fd60101f5df41",
+          "default_configuration": true,
+          "independence_group": "gov-india",
+          "policy_criteria_failed": [
+            {
+              "action": "enable and acquire additional sources in config/source_policy.json that cover the topic",
+              "actual": 1,
+              "criterion": "min_accepted_sources",
+              "required": 2
+            }
+          ],
+          "readiness_policy": {
+            "_rationale": "Defaults chosen so a ~9-minute explainer (about 1,300 words, 7 required topics) has coverage across at least two independently owned sources; quantitative figures need two independent source groups. These are NOT taken from the core design (which sets no number) and are an owner policy decision.",
+            "min_accepted_claims": 8,
+            "min_accepted_sources": 2,
+            "require_source_publisher": true,
+            "required_source_categories_any": [
+              "RESEARCH_INSTITUTION",
+              "GOVERNMENT_OFFICIAL",
+              "OFFICIAL_TECHNICAL",
+              "INDEPENDENT_REPORTING"
+            ]
+          },
+          "registry_sha256": "61b1439b6ea3eb9733c7f8998992134fd9c669e411addb73a2ab0f98ca0d5ad8",
+          "sha256": "740d207e857969ed04f889a08e600aa498403b86bd1c0220e98061249a9908c2"
+        },
+        "run_id": "a9e940b782024e21",
+        "policy_version": "defence-studio.evidence-policy.v1",
+        "assessor_version": "deterministic-evidence-policy.v2",
+        "analysis_sha256": "fe867809a7f397a45efc25bb64f2f7525bced593e022c3d08a254211b38b2cbd",
+        "created_at": "2026-10-17T09:55:21.901535+00:00"
+      },
+      "normalized": {
+        "canonical_url": "https://www.pib.gov.in/PressReleasePage.aspx?PRID=2324581&lang=1&reg=3",
+        "dates": {
+          "acquired_at": "2026-10-17T09:55:20.582311+00:00",
+          "published_at": "2026-10-16"
+        },
+        "declared_metadata": {
+          "language": "en",
+          "language_status": "COLLECTED",
+          "published_at": "2026-10-16",
+          "published_at_status": "COLLECTED",
+          "publisher": null,
+          "publisher_status": "UNAVAILABLE",
+          "title": "Press Release Page | Press Information Bureau",
+          "title_status": "COLLECTED"
+        },
+        "final_url": "https://www.pib.gov.in/PressReleasePage.aspx?PRID=2324581&lang=1&reg=3",
+        "language_detected": "en",
+        "media_type": "text/html",
+        "normalization_version": "defence-studio.normalizer.v2",
+        "normalized_char_count": 12264,
+        "normalized_sha256": "721e0a935f0ae1dc358ad2962064f35f84f1e60b89d37e3935bfbdbdd123bb9d",
+        "normalized_text": "Press Release Page | Press Information Bureau\n\nMinistry of Defence\n\nINDIAN NAVY COMMISSIONS INS SAMARTHAK, THE FIRST INDIGENOUS MULTI-PURPOSE VESSEL\n\nPosted On:\n16 OCT 2026 9:09PM by PIB Delhi\n\nIndian Naval Ship Samarthak, the first of class Multi-Purpose Vessels (MPVs) , was commissioned into the Indian Navy on 16 Oct 2026 . The ceremony was presided over by the Hon\u2019ble Vice President of India, Shri Chandrapuram Ponnusamy Radhakrishnan , in the presence of Adm Krishna Swaminathan, Chief of the Naval Staff. The Hon\u2019ble \u200bM\u200binister for Labour and Employment, Govt of Karnataka, along with senior naval and defence officials and dignitaries from the Ministry of Defence, also graced the occasion. Key representatives of Larsen & Toubro Ltd (L&T) and OEMs associated with indigenous equipment were also present during the commissioning ceremony.\n\nDesigned and constructed by L&T Shipyard, INS Samarthak marks a significant milestone in India\u2019s indigenous shipbuilding journey as the first major warship to be built by an Indian private shipyard. The commissioning is a powerful testament to the growing maturity and capability of the nation\u2019s private shipbuilding industry and reflects the deepening synergy between the Indian Navy and the Indian shipbuilding industry in advancing the national vision of Aatmanirbhar Bharat .\n\nConceived as a versatile platform for trials and evaluation, INS Samarthak embodies the enhanced technological and operational capabilities of the Indian Navy in the 21 st century. With over 75% indigenous content , the Ship incorporates extensive modular construction and pre-outfitting, significantly optimising the build process and construction timelines. The project has also contributed to employment generation, capability development and plough back into the Indian economy.\n\nAptly named Samarthak , meaning \u2018The Proponent \u2019 , the ship represents the spirit of a dependable enabler, capable of supporting multiple missions and has been designed with inherent versatility and adaptability, enabling it to undertake diverse range of operational and developmental tasks. True to its name, INS Samarthak is capable of undertaking maritime surveillance and reconnaissance, offshore patrolling, and Humanitarian Assistance and Disaster Relief operations, as required.\n\nAddressing the gathering, the Chief Guest underscored the strategic significance of indigenously built naval platforms in strengthening the country\u2019s maritime capabilities and enhancing the Indian Navy\u2019s ability to undertake an increasingly wide spectrum of operational and testing missions. The commissioning of INS Samarthak reinforces the nation\u2019s commitment to maritime security, regional stability and cooperative engagement across the Indian Ocean Region. The ship epitomises India\u2019s sustained pursuit of a self-reliant and resilient domestic defence industrial ecosystem.\n\nThe induction of INS Samarthak significantly strengthens India's ability for testing and training new sensors and weapons developed indigenously by domestic industry. The ship\u2019s versatility is an advantage in an unpredictable maritime environment, given the rise of non-traditional maritime threats.\n\n***\n\nVM/SPS\n\n(Release ID: 2324581)\nVisitor Counter : 897\n\nRead this release in:\n\nUrdu\n\n,\n\n\u0939\u093f\u0928\u094d\u0926\u0940\n\n,\n\nTamil\n\nShare\n\nMinistry of Defence\n\nINDIAN NAVY COMMISSIONS INS SAMARTHAK, THE FIRST INDIGENOUS MULTI-PURPOSE VESSEL\n\nPosted On:\n16 OCT 2026 9:09PM by PIB Delhi\n\nIndian Naval Ship Samarthak, the first of class Multi-Purpose Vessels (MPVs) , was commissioned into the Indian Navy on 16 Oct 2026 . The ceremony was presided over by the Hon\u2019ble Vice President of India, Shri Chandrapuram Ponnusamy Radhakrishnan , in the presence of Adm Krishna Swaminathan, Chief of the Naval Staff. The Hon\u2019ble \u200bM\u200binister for Labour and Employment, Govt of Karnataka, along with senior naval and defence officials and dignitaries from the Ministry of Defence, also graced the occasion. Key representatives of Larsen & Toubro Ltd (L&T) and OEMs associated with indigenous equipment were also present during the commissioning ceremony.\n\nDesigned and constructed by L&T Shipyard, INS Samarthak marks a significant milestone in India\u2019s indigenous shipbuilding journey as the first major warship to be built by an Indian private shipyard. The commissioning is a powerful testament to the growing maturity and capability of the nation\u2019s private shipbuilding industry and reflects the deepening synergy between the Indian Navy and the Indian shipbuilding industry in advancing the national vision of Aatmanirbhar Bharat .\n\nConceived as a versatile platform for trials and evaluation, INS Samarthak embodies the enhanced technological and operational capabilities of the Indian Navy in the 21 st century. With over 75% indigenous content , the Ship incorporates extensive modular construction and pre-outfitting, significantly optimising the build process and construction timelines. The project has also contributed to employment generation, capability development and plough back into the Indian economy.\n\nAptly named Samarthak , meaning \u2018The Proponent \u2019 , the ship represents the spirit of a dependable enabler, capable of supporting multiple missions and has been designed with inherent versatility and adaptability, enabling it to undertake diverse range of operational and developmental tasks. True to its name, INS Samarthak is capable of undertaking maritime surveillance and reconnaissance, offshore patrolling, and Humanitarian Assistance and Disaster Relief operations, as required.\n\nAddressing the gathering, the Chief Guest underscored the strategic significance of indigenously built naval platforms in strengthening the country\u2019s maritime capabilities and enhancing the Indian Navy\u2019s ability to undertake an increasingly wide spectrum of operational and testing missions. The commissioning of INS Samarthak reinforces the nation\u2019s commitment to maritime security, regional stability and cooperative engagement across the Indian Ocean Region. The ship epitomises India\u2019s sustained pursuit of a self-reliant and resilient domestic defence industrial ecosystem.\n\nThe induction of INS Samarthak significantly strengthens India's ability for testing and training new sensors and weapons developed indigenously by domestic industry. The ship\u2019s versatility is an advantage in an unpredictable maritime environment, given the rise of non-traditional maritime threats.\n\n***\n\nVM/SPS\n\n(Release ID: 2324581)\n\n<span style=\"font-family:Times New Roman,Times,serif\"><span style=\"font-size:16px\"><span style=\"color:black\">Indian Naval Ship Samarthak, <strong>the first of class Multi-Purpose Vessels (MPVs)</strong>, was commissioned into the Indian Navy on <strong>16 Oct 2026</strong>. The ceremony was presided over by the <strong>Hon&rsquo;ble Vice President of India, Shri Chandrapuram Ponnusamy Radhakrishnan</strong>, in the presence of Adm Krishna Swaminathan, Chief of the Naval Staff. The Hon&rsquo;ble \u200bM\u200binister for Labour and Employment, Govt of Karnataka, along with senior naval and defence officials and dignitaries from the Ministry of Defence, also graced the occasion. Key representatives of Larsen &amp; Toubro Ltd (L&amp;T) and OEMs associated with indigenous equipment were also present during the commissioning ceremony.</span></span></span></p>\n\n<p style=\"text-align:justify\"><span style=\"font-family:Times New Roman,Times,serif\"><span style=\"font-size:16px\"><strong><span style=\"color:black\">Designed and constructed by L&amp;T Shipyard,</span></strong><span style=\"color:black\"> INS Samarthak marks a significant milestone in India&rsquo;s indigenous shipbuilding journey as <strong>the first major warship to be built by an Indian private shipyard.</strong> The commissioning is a powerful testament to the growing maturity and capability of the nation&rsquo;s private shipbuilding industry and reflects the deepening synergy between the Indian Navy and the Indian shipbuilding industry in advancing the national vision of <strong><em>Aatmanirbhar Bharat</em><em>.</em></strong> </span></span></span></p>\n\n<p style=\"text-align:justify\"><span style=\"font-family:Times New Roman,Times,serif\"><span style=\"font-size:16px\"><span style=\"color:black\">Conceived as a versatile platform for trials and evaluation, INS Samarthak embodies the enhanced technological and operational capabilities of the Indian Navy in the 21st century. <strong>With over 75% indigenous content</strong>, the Ship incorporates extensive modular construction and pre-outfitting, significantly optimising the build process and construction timelines. The project has also contributed to employment generation, capability development and plough back into the Indian economy.</span></span></span></p>\n\n<p style=\"text-align:justify\"><span style=\"font-family:Times New Roman,Times,serif\"><span style=\"font-size:16px\"><span style=\"color:black\">Aptly named<strong> </strong><em>Samarthak</em>, meaning <strong>&lsquo;The Proponent<em>&rsquo;</em></strong>, the ship represents the spirit of a dependable enabler, capable of supporting multiple missions and has been designed with inherent versatility and adaptability, enabling it to undertake diverse range of operational and developmental tasks. True to its name, INS Samarthak is capable of undertaking maritime surveillance and reconnaissance, offshore patrolling, and Humanitarian Assistance and Disaster Relief operations, as required. </span></span></span></p>\n\n<p style=\"text-align:justify\"><span style=\"font-family:Times New Roman,Times,serif\"><span style=\"font-size:16px\"><span style=\"color:black\">Addressing the gathering, the Chief Guest underscored the strategic significance of indigenously built naval platforms in strengthening the country&rsquo;s maritime capabilities and enhancing the Indian Navy&rsquo;s ability to undertake an increasingly wide spectrum of operational and testing missions. The commissioning of INS Samarthak reinforces the nation&rsquo;s commitment to maritime security, regional stability and cooperative engagement across the Indian Ocean Region. The ship epitomises India&rsquo;s sustained pursuit of a self-reliant and resilient domestic defence industrial ecosystem. </span></span></span></p>\n\n<p style=\"text-align:justify\"><span style=\"font-family:Times New Roman,Times,serif\"><span style=\"font-size:16px\"><span style=\"color:black\">The induction of INS Samarthak significantly strengthens India&#39;s ability for <strong>testing and training new sensors and weapons developed indigenously by domestic industry.</strong> The ship&rsquo;s versatility is an advantage in an unpredictable maritime environment, given the rise of non-traditional maritime threats.</span></span></span></p>\n\n<p style=\"text-align:center\"><span style=\"font-family:Times New Roman,Times,serif\"><span style=\"font-size:16px\"><span style=\"color:black\"><img alt=\"\" src=\"https://static.pib.gov.in/WriteReadData/userfiles/image/2026/oct/Pic(1)_20261016211031_5ee387.jpeg\" style=\"height:400px; width:600px\" /></span></span></span></p>\n\n<p style=\"text-align:center\"><span style=\"font-family:Times New Roman,Times,serif\"><span style=\"font-size:16px\"><span style=\"color:black\"><img alt=\"\" src=\"https://static.pib.gov.in/WriteReadData/userfiles/image/2026/oct/Pic(2)_20261016211044_849642.jpeg\" style=\"height:400px; width:600px\" /></span></span></span></p>\n\n<p style=\"text-align:center\"><span style=\"font-family:Times New Roman,Times,serif\"><span style=\"font-size:16px\"><span style=\"color:black\"><img alt=\"\" src=\"https://static.pib.gov.in/WriteReadData/userfiles/image/2026/oct/Pic(3)_20261016211056_cadf1e.jpeg\" style=\"height:400px; width:600px\" /></span></span></span></p>\n\n<p style=\"text-align:center\"><span style=\"font-family:Times New Roman,Times,serif\"><span style=\"font-size:16px\"><span style=\"color:black\"><img alt=\"\" src=\"https://static.pib.gov.in/WriteReadData/userfiles/image/2026/oct/Pic(4)_20261016211107_9ee32e.jpeg\" style=\"height:400px; width:600px\" /></span></span></span></p>\n\n<p style=\"text-align:center\"><span style=\"font-family:Times New Roman,Times,serif\"><span style=\"font-size:16px\">***</span></span></p>\n\n<p><span style=\"font-family:Times New Roman,Times,serif\"><span style=\"font-size:16px\"><strong>VM/SPS</strong></span></span></p>\n\" />",
+        "original_artifact": {
+          "artifact_type": "source_content",
+          "bytes": 99774,
+          "media_type": "text/html",
+          "sha256": "740d207e857969ed04f889a08e600aa498403b86bd1c0220e98061249a9908c2",
+          "uri": "jobs/ff16816c-7af1-477a-b5f7-888ebd42f21a/research/sources/12f889a1d38a791b79d8dafeb0e3bdf8c060ab92/content.html"
+        },
+        "original_sha256_verified": true,
+        "requested_url": "https://www.pib.gov.in/PressReleasePage.aspx?PRID=2324581&lang=1&reg=3",
+        "schema_version": "defence-studio.normalized-source.v1",
+        "source_id": "12f889a1d38a791b79d8dafeb0e3bdf8c060ab92",
+        "source_type": "web_page",
+        "status": "NORMALIZED",
+        "target_id": "12f889a1d38a791b79d8dafeb0e3bdf8c060ab92",
+        "warnings": []
+      },
+      "duplicate_groups": [],
+      "review": null,
+      "review_status": "PENDING",
+      "is_stale": false
+    },
+    {
+      "acquisition_timestamp": "2026-10-17T09:55:20.901430+00:00",
+      "artifacts": [
+        {
+          "artifact_type": "source_content",
+          "bytes": 101371,
+          "media_type": "text/html",
+          "schema_version": "defence-studio.source-artifact.v1",
+          "sha256": "c3b6fda1af5cc3be03a3459dc904a2abeb989c7516a98696ea5804ba2ff18c4d",
+          "uri": "jobs/ff16816c-7af1-477a-b5f7-888ebd42f21a/research/sources/26a9d035e38e459b0ac5a3df57aeaafaad658489/content.html"
+        }
+      ],
+      "canonical_url": "https://www.pib.gov.in/PressReleasePage.aspx?PRID=2324319&lang=1&reg=3",
+      "declared_metadata": {
+        "language": "en",
+        "language_status": "COLLECTED",
+        "published_at": "2026-10-16",
+        "published_at_status": "COLLECTED",
+        "publisher": null,
+        "publisher_status": "UNAVAILABLE",
+        "title": "Press Release Page | Press Information Bureau",
+        "title_status": "COLLECTED"
+      },
+      "error": null,
+      "final_url": "https://www.pib.gov.in/PressReleasePage.aspx?PRID=2324319&lang=1&reg=3",
+      "method": "auto",
+      "original_metadata": {
+        "declared_media_type": "text/html",
+        "http_status": 200,
+        "response_headers": {
+          "content-length": "35845",
+          "content-type": "text/html; charset=utf-8",
+          "date": "Sat, 17 Oct 2026 09:55:18 GMT",
+          "etag": "XXXXXXXX"
+        }
+      },
+      "provenance": {
+        "acquired_at": "2026-10-17T09:55:20.901430+00:00",
+        "canonical_url": "https://www.pib.gov.in/PressReleasePage.aspx?PRID=2324319&lang=1&reg=3",
+        "final_url": "https://www.pib.gov.in/PressReleasePage.aspx?PRID=2324319&lang=1&reg=3",
+        "provider": "http_page",
+        "provider_version": "0.1.0",
+        "request_target_id": "26a9d035e38e459b0ac5a3df57aeaafaad658489",
+        "requested_url": "https://www.pib.gov.in/PressReleasePage.aspx?PRID=2324319&lang=1&reg=3",
+        "source_component": "defence_studio.acquisition.providers.http_page@0.1.0"
+      },
+      "requested_url": "https://www.pib.gov.in/PressReleasePage.aspx?PRID=2324319&lang=1&reg=3",
+      "source_id": "26a9d035e38e459b0ac5a3df57aeaafaad658489",
+      "source_type": "web_page",
+      "status": "ACQUIRED",
+      "target_id": "26a9d035e38e459b0ac5a3df57aeaafaad658489",
+      "warnings": [],
+      "assessment": {
+        "outcome": "SUPPORTED",
+        "policy_state": "AUTO_ACCEPTED",
+        "reasons": [
+          "allowlisted, acquired, integrity verified, topic-relevant"
+        ],
+        "evidence": {
+          "assessment_basis": "Deterministic policy support and integrity checks; not verification of factual truth",
+          "assessment_outcome": "SUPPORTED",
+          "assessor_version": "deterministic-evidence-policy.v2",
+          "canonical_url": "https://www.pib.gov.in/PressReleasePage.aspx?PRID=2324319&lang=1&reg=3",
+          "category": "GOVERNMENT_OFFICIAL",
+          "configuration_sha256": "52bd4b6574746d8ff9a3b39c60ecb909aa64913ba6fdd0d50a8fd60101f5df41",
+          "default_configuration": true,
+          "independence_group": "gov-india",
+          "policy_criteria_failed": [
+            {
+              "action": "enable and acquire additional sources in config/source_policy.json that cover the topic",
+              "actual": 1,
+              "criterion": "min_accepted_sources",
+              "required": 2
+            }
+          ],
+          "readiness_policy": {
+            "_rationale": "Defaults chosen so a ~9-minute explainer (about 1,300 words, 7 required topics) has coverage across at least two independently owned sources; quantitative figures need two independent source groups. These are NOT taken from the core design (which sets no number) and are an owner policy decision.",
+            "min_accepted_claims": 8,
+            "min_accepted_sources": 2,
+            "require_source_publisher": true,
+            "required_source_categories_any": [
+              "RESEARCH_INSTITUTION",
+              "GOVERNMENT_OFFICIAL",
+              "OFFICIAL_TECHNICAL",
+              "INDEPENDENT_REPORTING"
+            ]
+          },
+          "registry_sha256": "61b1439b6ea3eb9733c7f8998992134fd9c669e411addb73a2ab0f98ca0d5ad8",
+          "sha256": "c3b6fda1af5cc3be03a3459dc904a2abeb989c7516a98696ea5804ba2ff18c4d"
+        },
+        "run_id": "a9e940b782024e21",
+        "policy_version": "defence-studio.evidence-policy.v1",
+        "assessor_version": "deterministic-evidence-policy.v2",
+        "analysis_sha256": "fe867809a7f397a45efc25bb64f2f7525bced593e022c3d08a254211b38b2cbd",
+        "created_at": "2026-10-17T09:55:21.901535+00:00"
+      },
+      "normalized": {
+        "canonical_url": "https://www.pib.gov.in/PressReleasePage.aspx?PRID=2324319&lang=1&reg=3",
+        "dates": {
+          "acquired_at": "2026-10-17T09:55:20.901430+00:00",
+          "published_at": "2026-10-16"
+        },
+        "declared_metadata": {
+          "language": "en",
+          "language_status": "COLLECTED",
+          "published_at": "2026-10-16",
+          "published_at_status": "COLLECTED",
+          "publisher": null,
+          "publisher_status": "UNAVAILABLE",
+          "title": "Press Release Page | Press Information Bureau",
+          "title_status": "COLLECTED"
+        },
+        "final_url": "https://www.pib.gov.in/PressReleasePage.aspx?PRID=2324319&lang=1&reg=3",
+        "language_detected": "en",
+        "media_type": "text/html",
+        "normalization_version": "defence-studio.normalizer.v2",
+        "normalized_char_count": 14864,
+        "normalized_sha256": "8d83d5ddbbeb014dc9cd36118c84a59b497f84f12a3de002bd3f6a609a5b31d7",
+        "normalized_text": "Press Release Page | Press Information Bureau\n\nVice President's Secretariat\n\nVice-President Shri C. P. Radhakrishnan Commissions Indian Navy\u2019s First Indigenous Multi-Purpose Vessel INS Samarthak at Karwar\n\nINS Samarthak, with over 75 per cent indigenous content, reflects India\u2019s growing self-reliance in defence manufacturing: Vice-President\n\n\u201cIndian Navy Stands Ever-Vigilant and Combat-Ready to Safeguard India\u2019s Maritime Interests\u201d: Vice-President\n\n\u201cINS Samarthak Reflects the Growing Role of India\u2019s Private Shipbuilding Industry\u201d: Vice-President\n\n\u201cKarwar Symbolises Both India\u2019s Glorious Maritime Heritage and Its Maritime Future\u201d: Vice-President\n\nPosted On:\n16 OCT 2026 3:08PM by PIB Delhi\n\nThe Vice-President of India, Shri C. P. Radhakrishnan, today commissioned INS Samarthak, the Indian Navy\u2019s first indigenous Multi-Purpose Vessel, at Karwar, Karnataka. The commissioning marks a significant milestone in India\u2019s journey towards self-reliance in defence manufacturing and the development of advanced indigenous naval capabilities.\n\nVice-President Shri C. P. Radhakrishnan today commissioned INS Samarthak, the Indian Navy\u2019s first indigenous Multi-Purpose Vessel, at Karwar, Karnataka.\n\nWith over 75% indigenous content, INS Samarthak reflects India\u2019s growing self-reliance in defence manufacturing and will support trials of next-generation weapons, sensors and unmanned systems.\n\nA significant milestone towards a stronger, technologically advanced and Aatmanirbhar Indian Navy.\n\u2014 Vice-President of India (@VPIndia) October 16, 2026\n\nAddressing the gathering, the Vice-President said that INS Samarthak, with more than 75 per cent indigenous content, reflects the growing strength of India\u2019s industrial, technological and shipbuilding capabilities. He observed that self-reliance in defence is no longer merely an aspiration but an emerging reality, contributing to India\u2019s strategic autonomy and the vision of a Viksit and Aatmanirbhar Bharat articulated by Prime Minister Shri Narendra Modi.\n\nHighlighting India\u2019s rich maritime heritage, Shri C. P. Radhakrishnan recalled the naval traditions of Chhatrapati Shivaji Maharaj and the Chola dynasty, which extended India\u2019s maritime influence across the Indian Ocean and Southeast Asia.\n\nThe Vice-President commended the Indian Navy for its distinguished service in safeguarding national sovereignty and maritime interests. He also appreciated its role as a first responder and a preferred security partner in the Indian Ocean Region, including anti-piracy operations, the evacuation of Indian citizens and humanitarian assistance and disaster relief missions.\n\nHighlighting the significance of INS Samarthak, the Vice-President said that the vessel will serve as a versatile platform for trials and evaluation of next-generation weapons, sensors and emerging technologies. Its capabilities will also support maritime surveillance and reconnaissance, offshore patrolling, launch and recovery of targets, operations involving unmanned systems, and humanitarian assistance and disaster relief. He observed that such a platform would enable the Navy to adapt more rapidly to emerging technological developments and translate indigenous innovation into operational capabilities.\n\nReferring to Karwar\u2019s strategic importance, Shri C. P. Radhakrishnan said that its deep natural harbour and proximity to the Arabian Sea make it a vital component of India\u2019s maritime security architecture. He highlighted the ongoing development of modern naval infrastructure under Project Seabird, which is enhancing the Navy\u2019s capacity to base and sustain ships and submarines while generating wider economic opportunities for the region.\n\nThe Vice-President also underscored the growing partnership between the Indian Navy, defence public sector undertakings, private shipyards, DRDO, academia, MSMEs and start-ups in strengthening India\u2019s defence manufacturing ecosystem. Appreciating Larsen & Toubro (L&T) for its contribution to the project, he acknowledged the efforts of naval designers, production authorities, shipyard professionals, engineers, technicians, suppliers and ancillary industries in building indigenous naval capabilities.\n\nAdmiral Krishna Swaminathan, Chief of the Naval Staff; Vice-Admiral Sanjay Vatsayan, Flag Officer Commanding-in-Chief; Vice-Admiral Sanjay Sadhu, Controller Warship Production and Acquisition; Rear Admiral Vikram Menon, Flag Officer (Karnataka); retired Rear Admiral G. K. Harish, Head of Shipbuilding, L&T; Commander Sushil Kumar Singh, Commanding Officer of INS Samarthak; senior officers of the Indian Navy and Ministry of Defence, and other distinguished guests were present on the occasion.\n\n***\n\nPR/ASM/VMJ\n\n(Release ID: 2324319)\nVisitor Counter : 1297\n\nRead this release in:\n\nUrdu\n\n,\n\n\u0939\u093f\u0928\u094d\u0926\u0940\n\n,\n\nMarathi\n\n,\n\nBengali\n\n,\n\nAssamese\n\n,\n\nGujarati\n\n,\n\nTamil\n\n,\n\nTelugu\n\n,\n\nKannada\n\n,\n\nMalayalam\n\nShare\n\nVice President's Secretariat\n\nVice-President Shri C. P. Radhakrishnan Commissions Indian Navy\u2019s First Indigenous Multi-Purpose Vessel INS Samarthak at Karwar\n\nINS Samarthak, with over 75 per cent indigenous content, reflects India\u2019s growing self-reliance in defence manufacturing: Vice-President\n\n\u201cIndian Navy Stands Ever-Vigilant and Combat-Ready to Safeguard India\u2019s Maritime Interests\u201d: Vice-President\n\n\u201cINS Samarthak Reflects the Growing Role of India\u2019s Private Shipbuilding Industry\u201d: Vice-President\n\n\u201cKarwar Symbolises Both India\u2019s Glorious Maritime Heritage and Its Maritime Future\u201d: Vice-President\n\nPosted On:\n16 OCT 2026 3:08PM by PIB Delhi\n\nThe Vice-President of India, Shri C. P. Radhakrishnan, today commissioned INS Samarthak, the Indian Navy\u2019s first indigenous Multi-Purpose Vessel, at Karwar, Karnataka. The commissioning marks a significant milestone in India\u2019s journey towards self-reliance in defence manufacturing and the development of advanced indigenous naval capabilities.\n\nVice-President Shri C. P. Radhakrishnan today commissioned INS Samarthak, the Indian Navy\u2019s first indigenous Multi-Purpose Vessel, at Karwar, Karnataka.\n\nWith over 75% indigenous content, INS Samarthak reflects India\u2019s growing self-reliance in defence manufacturing and will support trials of next-generation weapons, sensors and unmanned systems.\n\nA significant milestone towards a stronger, technologically advanced and Aatmanirbhar Indian Navy.\n\u2014 Vice-President of India (@VPIndia) October 16, 2026\n\nAddressing the gathering, the Vice-President said that INS Samarthak, with more than 75 per cent indigenous content, reflects the growing strength of India\u2019s industrial, technological and shipbuilding capabilities. He observed that self-reliance in defence is no longer merely an aspiration but an emerging reality, contributing to India\u2019s strategic autonomy and the vision of a Viksit and Aatmanirbhar Bharat articulated by Prime Minister Shri Narendra Modi.\n\nHighlighting India\u2019s rich maritime heritage, Shri C. P. Radhakrishnan recalled the naval traditions of Chhatrapati Shivaji Maharaj and the Chola dynasty, which extended India\u2019s maritime influence across the Indian Ocean and Southeast Asia.\n\nThe Vice-President commended the Indian Navy for its distinguished service in safeguarding national sovereignty and maritime interests. He also appreciated its role as a first responder and a preferred security partner in the Indian Ocean Region, including anti-piracy operations, the evacuation of Indian citizens and humanitarian assistance and disaster relief missions.\n\nHighlighting the significance of INS Samarthak, the Vice-President said that the vessel will serve as a versatile platform for trials and evaluation of next-generation weapons, sensors and emerging technologies. Its capabilities will also support maritime surveillance and reconnaissance, offshore patrolling, launch and recovery of targets, operations involving unmanned systems, and humanitarian assistance and disaster relief. He observed that such a platform would enable the Navy to adapt more rapidly to emerging technological developments and translate indigenous innovation into operational capabilities.\n\nReferring to Karwar\u2019s strategic importance, Shri C. P. Radhakrishnan said that its deep natural harbour and proximity to the Arabian Sea make it a vital component of India\u2019s maritime security architecture. He highlighted the ongoing development of modern naval infrastructure under Project Seabird, which is enhancing the Navy\u2019s capacity to base and sustain ships and submarines while generating wider economic opportunities for the region.\n\nThe Vice-President also underscored the growing partnership between the Indian Navy, defence public sector undertakings, private shipyards, DRDO, academia, MSMEs and start-ups in strengthening India\u2019s defence manufacturing ecosystem. Appreciating Larsen & Toubro (L&T) for its contribution to the project, he acknowledged the efforts of naval designers, production authorities, shipyard professionals, engineers, technicians, suppliers and ancillary industries in building indigenous naval capabilities.\n\nAdmiral Krishna Swaminathan, Chief of the Naval Staff; Vice-Admiral Sanjay Vatsayan, Flag Officer Commanding-in-Chief; Vice-Admiral Sanjay Sadhu, Controller Warship Production and Acquisition; Rear Admiral Vikram Menon, Flag Officer (Karnataka); retired Rear Admiral G. K. Harish, Head of Shipbuilding, L&T; Commander Sushil Kumar Singh, Commanding Officer of INS Samarthak; senior officers of the Indian Navy and Ministry of Defence, and other distinguished guests were present on the occasion.\n\n***\n\nPR/ASM/VMJ\n\n(Release ID: 2324319)\n\nINS Samarthak, with over 75 per cent indigenous content, reflects India\u2019s growing self-reliance in defence manufacturing: Vice-President<br/><br/>\u201cIndian Navy Stands Ever-Vigilant and Combat-Ready to Safeguard India\u2019s Maritime Interests\u201d: Vice-President<br/><br/>\u201cINS Samarthak Reflects the Growing Role of India\u2019s Private Shipbuilding Industry\u201d: Vice-President<br/><br/>\u201cKarwar Symbolises Both India\u2019s Glorious Maritime Heritage and Its Maritime Future\u201d: Vice-President\" />\n<span style=\"font-family:Times New Roman,Times,serif\"><span style=\"font-size:16px\">The Vice-President of India, Shri C. P. Radhakrishnan, today commissioned INS Samarthak, the Indian Navy&rsquo;s first indigenous Multi-Purpose Vessel, at Karwar, Karnataka. The commissioning marks a significant milestone in India&rsquo;s journey towards self-reliance in defence manufacturing and the development of advanced indigenous naval capabilities.</span></span></p>\n\n<p style=\"text-align:justify\">&nbsp;</p>\n\n<p lang=\"en\" dir=\"ltr\">Vice-President Shri C. P. Radhakrishnan today commissioned INS Samarthak, the Indian Navy\u2019s first indigenous Multi-Purpose Vessel, at Karwar, Karnataka.\n\nWith over 75% indigenous content, INS Samarthak reflects India\u2019s growing self-reliance in defence manufacturing and will support trials of next-generation weapons, sensors and unmanned systems.\n\nA significant milestone towards a stronger, technologically advanced and Aatmanirbhar Indian Navy.</p>&mdash; Vice-President of India (@VPIndia) <a href=\"https://x.com/VPIndia/status/2111023215699165597?ref_src=twsrc%5Etfw\">October 16, 2026</a>\n\n<p style=\"text-align:justify\"><br />\n<span style=\"font-family:Times New Roman,Times,serif\"><span style=\"font-size:16px\">Addressing the gathering, the Vice-President said that INS Samarthak, with more than 75 per cent indigenous content, reflects the growing strength of India&rsquo;s industrial, technological and shipbuilding capabilities. He observed that self-reliance in defence is no longer merely an aspiration but an emerging reality, contributing to India&rsquo;s strategic autonomy and the vision of a Viksit and Aatmanirbhar Bharat articulated by Prime Minister Shri Narendra Modi.<br />\n<br />\nHighlighting India&rsquo;s rich maritime heritage, Shri C. P. Radhakrishnan recalled the naval traditions of Chhatrapati Shivaji Maharaj and the Chola dynasty, which extended India&rsquo;s maritime influence across the Indian Ocean and Southeast Asia.<br />\n<br />\nThe Vice-President commended the Indian Navy for its distinguished service in safeguarding national sovereignty and maritime interests. He also appreciated its role as a first responder and a preferred security partner in the Indian Ocean Region, including anti-piracy operations, the evacuation of Indian citizens and humanitarian assistance and disaster relief missions.<br />\n<br />\nHighlighting the significance of INS Samarthak, the Vice-President said that the vessel will serve as a versatile platform for trials and evaluation of next-generation weapons, sensors and emerging technologies. Its capabilities will also support maritime surveillance and reconnaissance, offshore patrolling, launch and recovery of targets, operations involving unmanned systems, and humanitarian assistance and disaster relief. He observed that such a platform would enable the Navy to adapt more rapidly to emerging technological developments and translate indigenous innovation into operational capabilities.<br />\n<br />\nReferring to Karwar&rsquo;s strategic importance, Shri C. P. Radhakrishnan said that its deep natural harbour and proximity to the Arabian Sea make it a vital component of India&rsquo;s maritime security architecture. He highlighted the ongoing development of modern naval infrastructure under Project Seabird, which is enhancing the Navy&rsquo;s capacity to base and sustain ships and submarines while generating wider economic opportunities for the region.<br />\n<br />\nThe Vice-President also underscored the growing partnership between the Indian Navy, defence public sector undertakings, private shipyards, DRDO, academia, MSMEs and start-ups in strengthening India&rsquo;s defence manufacturing ecosystem. Appreciating Larsen &amp; Toubro (L&amp;T) for its contribution to the project, he acknowledged the efforts of naval designers, production authorities, shipyard professionals, engineers, technicians, suppliers and ancillary industries in building indigenous naval capabilities.<br />\n<br />\nAdmiral Krishna Swaminathan, Chief of the Naval Staff; Vice-Admiral Sanjay Vatsayan, Flag Officer Commanding-in-Chief; Vice-Admiral Sanjay Sadhu, Controller Warship Production and Acquisition; Rear Admiral Vikram Menon, Flag Officer (Karnataka); retired Rear Admiral G. K. Harish, Head of Shipbuilding, L&amp;T; Commander Sushil Kumar Singh, Commanding Officer of INS Samarthak; senior officers of the Indian Navy and Ministry of Defence, and other distinguished guests were present on the occasion.</span></span></p>\n\n<p style=\"text-align:center\"><span style=\"font-family:Times New Roman,Times,serif\"><span style=\"font-size:16px\">***</span></span></p>\n\n<p style=\"text-align:justify\"><span style=\"font-family:Times New Roman,Times,serif\"><span style=\"font-size:16px\"><strong>PR/ASM/VMJ&nbsp;</strong></span></span></p>\n\" />",
+        "original_artifact": {
+          "artifact_type": "source_content",
+          "bytes": 101371,
+          "media_type": "text/html",
+          "sha256": "c3b6fda1af5cc3be03a3459dc904a2abeb989c7516a98696ea5804ba2ff18c4d",
+          "uri": "jobs/ff16816c-7af1-477a-b5f7-888ebd42f21a/research/sources/26a9d035e38e459b0ac5a3df57aeaafaad658489/content.html"
+        },
+        "original_sha256_verified": true,
+        "requested_url": "https://www.pib.gov.in/PressReleasePage.aspx?PRID=2324319&lang=1&reg=3",
+        "schema_version": "defence-studio.normalized-source.v1",
+        "source_id": "26a9d035e38e459b0ac5a3df57aeaafaad658489",
+        "source_type": "web_page",
+        "status": "NORMALIZED",
+        "target_id": "26a9d035e38e459b0ac5a3df57aeaafaad658489",
+        "warnings": []
+      },
+      "duplicate_groups": [],
+      "review": null,
+      "review_status": "PENDING",
+      "is_stale": false
+    }
+  ]
+}

@@ -1,3 +1,4 @@
+import asyncio
 import os
 import uuid
 import threading
@@ -86,6 +87,13 @@ class ScriptApprovalRequestBody(BaseModel):
     model_config = ConfigDict(extra="forbid", strict=True)
     revision_sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
     note: str = Field(min_length=1, max_length=4000)
+
+
+class AiExtractionBody(BaseModel):
+    model_config = ConfigDict(extra="forbid", strict=True)
+    model: str = Field(min_length=1, max_length=200)
+    max_cost_inr: float = Field(gt=0, le=1000)
+    max_sources: int = Field(default=5, ge=1, le=10)
 
 
 class SceneReviseBody(BaseModel):
@@ -190,9 +198,22 @@ def create_app(
                         pass
             threading.Thread(target=_tick, daemon=True, name="yt-scheduler").start()
         try:
+            if os.environ.get("DEFENCE_STUDIO_RESEARCH_WORKER") == "1":
+                from defence_studio.research_worker import build_research_worker
+                research_worker = build_research_worker(db_path, store_root)
+                research_thread = threading.Thread(
+                    target=research_worker.run_forever, name="research-worker", daemon=True)
+                _app.state.research_worker = research_worker
+                _app.state.research_worker_thread = research_thread
+                research_thread.start()
             yield
         finally:
             stop.set()
+            if getattr(_app.state, "research_worker", None):
+                _app.state.research_worker.shutdown()
+                # Stop claiming immediately, then allow the in-flight stage to
+                # commit while its lease heartbeat is still alive.
+                await asyncio.to_thread(_app.state.research_worker_thread.join)
             if getattr(_app.state, "voice_worker", None):
                 _app.state.voice_worker.shutdown()
 
@@ -411,6 +432,12 @@ def create_app(
     def rerun_discovery(job_id: str, owner_id: str = Depends(require_owner)):
         return discovery.rerun(job_id, owner_id)
 
+    @app.post("/api/jobs/{job_id}/discovery/retry-empty", status_code=202)
+    def retry_empty_discovery(job_id: str, body: DiscoveryRequestBody,
+                              idempotency_key: str = Header(alias="Idempotency-Key"),
+                              owner_id: str = Depends(require_owner)):
+        return discovery.retry_empty(job_id, owner_id, idempotency_key, body.model_dump())
+
     @app.get("/api/jobs/{job_id}/discovery/candidates/{candidate_id}")
     def get_discovery_candidate(job_id: str, candidate_id: str, owner_id: str = Depends(require_owner)):
         return discovery.get_candidate(job_id, owner_id, candidate_id)
@@ -531,6 +558,16 @@ def create_app(
         owner_id: str = Depends(require_owner),
     ):
         return scripts.revision_history(job_id, owner_id, language, version)
+
+    # Explicit, paid, owner-only. Separate artifact; never feeds evidence review or approval.
+    @app.post("/api/jobs/{job_id}/research/ai-extraction", status_code=201)
+    def run_ai_extraction(job_id: str, body: AiExtractionBody, owner_id: str = Depends(require_owner)):
+        return scripts.extract_claims_ai(job_id, owner_id, model=body.model, max_cost_inr=body.max_cost_inr,
+                                         max_sources=body.max_sources)
+
+    @app.get("/api/jobs/{job_id}/research/ai-extraction")
+    def get_ai_extraction(job_id: str, owner_id: str = Depends(require_owner)):
+        return scripts.latest_ai_extraction(job_id, owner_id)
 
     @app.post("/api/jobs/{job_id}/script/generate", status_code=201)
     def generate_script(

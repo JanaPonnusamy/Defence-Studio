@@ -1,0 +1,56 @@
+{
+  "claim_reviews": "23e80a05c35ed05061eb9ddae41d91a7714a25324d51e73df9de16534a6bb914",
+  "source_reviews": "1d8df6d20f7507c4543b7f12be73f298f9cca622f5d61c25e3b10066494dd7d2",
+  "claim_review_history": "8b30b217cb1429d21c046b5edf850ab94c653af012b7956159581cba719b7e0d",
+  "source_review_history": "fe90467426f719015e042e24b8a45c127b6757f34056276a054223bbf4a73d2a",
+  "evidence_packages": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+  "other_jobs": {
+    "workflow_jobs": "b13ce4801094ec6b55dd94f30ec8eeaea7860ef3e01f0f86de4485c304af8b65",
+    "workflow_stages": "1f228f7d9f1f956c734dc0c2db28616f31985bacb83449f8d4acbbf955c91fb4",
+    "workflow_transitions": "36f3abf1281f9b7a374eb703c1c03a8ae22afc729eaf7d2ecbc8015e5f0c99ea",
+    "workflow_artifacts": "ff4a50e684935b9d42ccf14275a685f75b899c3827118b79dbf98611c4ec1bfb",
+    "worker_claims": "317925d88678a2a6908f8449f0c14b56bff8ab2f8b5a1f0474ad66ca96b1e11c"
+  },
+  "artifacts": [
+    {
+      "uri": "jobs/dfe0b173-d9ff-458b-99b6-7b4ad3cccb8e/discovery/7e24b28d5e08e0db1a58dc6d06ac4964930af2bc1ece66462c6abb120c113e3c.json",
+      "sha256": "7e24b28d5e08e0db1a58dc6d06ac4964930af2bc1ece66462c6abb120c113e3c"
+    },
+    {
+      "uri": "jobs/dfe0b173-d9ff-458b-99b6-7b4ad3cccb8e/research/retries/e24f2230ca43e248c33a69eb1735ff353f2ad70eda2ff752c983c8b00af3d3f8.json",
+      "sha256": "9befb26295e92523d7e77f942ad1f3bb7846d7063d075bae12b2028aaffdb3d4"
+    },
+    {
+      "uri": "jobs/dfe0b173-d9ff-458b-99b6-7b4ad3cccb8e/discovery/c5395c2feda6388e5651121d1f88340fe1355e031d64d85d900582e7bf7021c0.json",
+      "sha256": "c5395c2feda6388e5651121d1f88340fe1355e031d64d85d900582e7bf7021c0"
+    },
+    {
+      "uri": "jobs/dfe0b173-d9ff-458b-99b6-7b4ad3cccb8e/research/analysis/d9f9c645122c7873b88204a650f7bbd4042e655c9f658211ae614f44577289ff.json",
+      "sha256": "f4711bd718585c2d6e7ae01c5a159499fe2b3b17f401c23fa6e4aac7c3a7c123"
+    },
+    {
+      "uri": "jobs/dfe0b173-d9ff-458b-99b6-7b4ad3cccb8e/research/analysis/b6850826d88d6f2f286b23a0d983fb056bfa305a575f8163153ddd02bd10fa51.json",
+      "sha256": "d7566bf1274563bf88d93270e95a985a3d7250b87896353e4bddc196bd5c225d"
+    },
+    {
+      "uri": "jobs/dfe0b173-d9ff-458b-99b6-7b4ad3cccb8e/research/discovery_result.json",
+      "sha256": "519de714982812e94472403ff1f7a6cc9effb824850a100f2f14f1f795b29da0"
+    },
+    {
+      "uri": "jobs/dfe0b173-d9ff-458b-99b6-7b4ad3cccb8e/research/attempts/e7dd8248-67a8-424f-8fe9-3f3e2402c35c/discovery_result.json",
+      "sha256": "6f89f9886d7b990a5f6a104ea389ad59f7a6efeaa5e7cdd8472f765ee538f255"
+    },
+    {
+      "uri": "jobs/dfe0b173-d9ff-458b-99b6-7b4ad3cccb8e/research/acquisition_result.json",
+      "sha256": "ec3123c532e6ad9d038b1566f684063480e7385230b38e1684d9a57cfe92b754"
+    },
+    {
+      "uri": "jobs/dfe0b173-d9ff-458b-99b6-7b4ad3cccb8e/research/attempts/7fd7f84d-3fb7-4af2-85a8-55a4fb905d05/automatic_acquisition_request.json",
+      "sha256": "421949ef1006490dbe412967ca30bb8fca61ad332f6978ef16aec59ad9e9df9c"
+    },
+    {
+      "uri": "jobs/dfe0b173-d9ff-458b-99b6-7b4ad3cccb8e/research/attempts/7fd7f84d-3fb7-4af2-85a8-55a4fb905d05/acquisition_result.json",
+      "sha256": "3cb1de1ad89d26f09a1b6bdc6dc10527dbde0a3bea20455d4935d09c3574efa5"
+    }
+  ]
+}

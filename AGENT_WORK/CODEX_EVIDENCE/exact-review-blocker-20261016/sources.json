@@ -1,0 +1,103 @@
+{
+  "job_id": "dfe0b173-d9ff-458b-99b6-7b4ad3cccb8e",
+  "acquisition_artifact_sha256": "3cb1de1ad89d26f09a1b6bdc6dc10527dbde0a3bea20455d4935d09c3574efa5",
+  "acquisition_artifact_uri": "jobs/dfe0b173-d9ff-458b-99b6-7b4ad3cccb8e/research/attempts/7fd7f84d-3fb7-4af2-85a8-55a4fb905d05/acquisition_result.json",
+  "sources": [
+    {
+      "acquisition_timestamp": "2026-10-16T13:46:19.140121+00:00",
+      "artifacts": [
+        {
+          "artifact_type": "source_content",
+          "bytes": 83911,
+          "media_type": "text/html",
+          "schema_version": "defence-studio.source-artifact.v1",
+          "sha256": "1142626b48c40df6d50bc0ecfbbeb8983631fd5bc5dfe3568c7212f3bc842b6d",
+          "uri": "jobs/dfe0b173-d9ff-458b-99b6-7b4ad3cccb8e/research/sources/3e9c744833869a0bb3ab9752e712d50f6a73cb1e/content.html"
+        }
+      ],
+      "canonical_url": "https://www.pib.gov.in/PressReleaseIframePage.aspx?PRID=2323814&lang=2&reg=48",
+      "declared_metadata": {
+        "language": "hi",
+        "language_status": "COLLECTED",
+        "published_at": "2026-10-15",
+        "published_at_status": "COLLECTED",
+        "publisher": null,
+        "publisher_status": "UNAVAILABLE",
+        "title": "Press Release:Press Information Bureau",
+        "title_status": "COLLECTED"
+      },
+      "error": null,
+      "final_url": "https://www.pib.gov.in/PressReleaseIframePage.aspx?PRID=2323814&lang=2&reg=48",
+      "method": "auto",
+      "original_metadata": {
+        "declared_media_type": "text/html",
+        "http_status": 200,
+        "response_headers": {
+          "content-length": "30672",
+          "content-type": "text/html; charset=utf-8",
+          "date": "Fri, 16 Oct 2026 13:46:19 GMT",
+          "etag": "XXXXXXXX"
+        }
+      },
+      "provenance": {
+        "acquired_at": "2026-10-16T13:46:19.140121+00:00",
+        "canonical_url": "https://www.pib.gov.in/PressReleaseIframePage.aspx?PRID=2323814&lang=2&reg=48",
+        "final_url": "https://www.pib.gov.in/PressReleaseIframePage.aspx?PRID=2323814&lang=2&reg=48",
+        "provider": "http_page",
+        "provider_version": "0.1.0",
+        "request_target_id": "3e9c744833869a0bb3ab9752e712d50f6a73cb1e",
+        "requested_url": "https://www.pib.gov.in/PressReleaseIframePage.aspx?PRID=2323814&lang=2&reg=48",
+        "source_component": "defence_studio.acquisition.providers.http_page@0.1.0"
+      },
+      "requested_url": "https://www.pib.gov.in/PressReleaseIframePage.aspx?PRID=2323814&lang=2&reg=48",
+      "source_id": "3e9c744833869a0bb3ab9752e712d50f6a73cb1e",
+      "source_type": "web_page",
+      "status": "ACQUIRED",
+      "target_id": "3e9c744833869a0bb3ab9752e712d50f6a73cb1e",
+      "warnings": [],
+      "normalized": {
+        "canonical_url": "https://www.pib.gov.in/PressReleaseIframePage.aspx?PRID=2323814&lang=2&reg=48",
+        "dates": {
+          "acquired_at": "2026-10-16T13:46:19.140121+00:00",
+          "published_at": "2026-10-15"
+        },
+        "declared_metadata": {
+          "language": "hi",
+          "language_status": "COLLECTED",
+          "published_at": "2026-10-15",
+          "published_at_status": "COLLECTED",
+          "publisher": null,
+          "publisher_status": "UNAVAILABLE",
+          "title": "Press Release:Press Information Bureau",
+          "title_status": "COLLECTED"
+        },
+        "final_url": "https://www.pib.gov.in/PressReleaseIframePage.aspx?PRID=2323814&lang=2&reg=48",
+        "language_detected": "en",
+        "media_type": "text/html",
+        "normalization_version": "defence-studio.normalizer.v2",
+        "normalized_char_count": 6367,
+        "normalized_sha256": "c7495776d123fe388ce37c093bc95591ee9ff23d41aa308f753b09408cd4cf4d",
+        "normalized_text": "Press Release:Press Information Bureau\n\nMinistry of Defence\n\nMoD inks Rs 4,106 crore contracts for GSAT-7C communication satellite and Varunastra Heavy Weight Torpedoes\n\n\u092a\u094d\u0930\u0935\u093f\u0937\u094d\u091f\u093f \u0924\u093f\u0925\u093f:\n15 OCT 2026 3:22PM by PIB Delhi\n\nThe Ministry of Defence has signed contracts worth a total of approximately Rs 4,106 crore for the acquisition of a dedicated communication satellite capability, GSAT-7C for the Indian Air Force, and Varunastra Heavy Weight Torpedoes for the Indian Navy.\n\nThe contract for GSAT-7C, valued at Rs 2,563 crore, was inked with New Space India Limited, Bengaluru. This indigenously designed, developed & manufactured satellite will enhance the secure, resilient & seamless communication capabilities for the assets of the Indian Air Force, thereby strengthening operational effectiveness.\n\nThe contract for Varunastra was signed with Bharat Dynamics Limited, Hyderabad worth Rs 1,543 crore. Varunastra is an indigenous ship-launched anti-submarine torpedo developed by the Naval Science and Technological Laboratory. Equipped with advanced maneuvering capabilities, it is capable of engaging enemy submarines at long ranges, thereby enhancing the anti-submarine warfare capability of the Indian Navy.\n\nThe contracts were signed in the presence of Additional Secretary and Director General (Acquisition), Department of Defence Shri A Anbarasu in New Delhi on October 15, 2026. Both contracts mark a significant step towards advancing the development of domestic defence manufacturing capabilities while promoting self-reliance in critical technologies in line with the Government\u2019s \u2018Aatmanirbhar Bharat\u2019 and \u2018Make-in-India\u2019 vision.\n\nSR/Sa vvy\n\n(\u0930\u093f\u0932\u0940\u091c\u093c \u0906\u0908\u0921\u0940: 2323814)\n\u0906\u0917\u0902\u0924\u0941\u0915 \u092a\u091f\u0932 : 2791\n\n\u0907\u0938 \u0935\u093f\u091c\u094d\u091e\u092a\u094d\u0924\u093f \u0915\u094b \u0907\u0928 \u092d\u093e\u0937\u093e\u0913\u0902 \u092e\u0947\u0902 \u092a\u0922\u093c\u0947\u0902:\n\nUrdu\n\n,\n\n\u0939\u093f\u0928\u094d\u0926\u0940\n\n,\n\nAssamese\n\n,\n\nGujarati\n\n,\n\nTamil\n\n,\n\nTelugu\n\nMinistry of Defence\n\nMoD inks Rs 4,106 crore contracts for GSAT-7C communication satellite and Varunastra Heavy Weight Torpedoes\n\n\u092a\u094d\u0930\u0935\u093f\u0937\u094d\u091f\u093f \u0924\u093f\u0925\u093f:\n15 OCT 2026 3:22PM by PIB Delhi\n\nThe Ministry of Defence has signed contracts worth a total of approximately Rs 4,106 crore for the acquisition of a dedicated communication satellite capability, GSAT-7C for the Indian Air Force, and Varunastra Heavy Weight Torpedoes for the Indian Navy.\n\nThe contract for GSAT-7C, valued at Rs 2,563 crore, was inked with New Space India Limited, Bengaluru. This indigenously designed, developed & manufactured satellite will enhance the secure, resilient & seamless communication capabilities for the assets of the Indian Air Force, thereby strengthening operational effectiveness.\n\nThe contract for Varunastra was signed with Bharat Dynamics Limited, Hyderabad worth Rs 1,543 crore. Varunastra is an indigenous ship-launched anti-submarine torpedo developed by the Naval Science and Technological Laboratory. Equipped with advanced maneuvering capabilities, it is capable of engaging enemy submarines at long ranges, thereby enhancing the anti-submarine warfare capability of the Indian Navy.\n\nThe contracts were signed in the presence of Additional Secretary and Director General (Acquisition), Department of Defence Shri A Anbarasu in New Delhi on October 15, 2026. Both contracts mark a significant step towards advancing the development of domestic defence manufacturing capabilities while promoting self-reliance in critical technologies in line with the Government\u2019s \u2018Aatmanirbhar Bharat\u2019 and \u2018Make-in-India\u2019 vision.\n\nSR/Sa vvy\n\n(\u0930\u093f\u0932\u0940\u091c\u093c \u0906\u0908\u0921\u0940: 2323814)\n\n<span style=\"font-family:&quot;Times New Roman&quot;,Times,serif; font-size:16px\">The Ministry of Defence has signed contracts worth a total of approximately Rs 4,106 crore for the acquisition of a dedicated communication satellite capability, GSAT-7C for the Indian Air Force, and Varunastra Heavy Weight Torpedoes for the Indian Navy.</span></p>\n\n<p style=\"margin-left:0cm; margin-right:0cm; text-align:justify\"><span style=\"font-family:Times New Roman,Times,serif\"><span style=\"font-size:16px\">The contract for GSAT-7C, valued at Rs 2,563 crore, was inked with New Space India Limited, Bengaluru. This indigenously designed, developed &amp; manufactured satellite will enhance the secure, resilient &amp; seamless communication capabilities for the assets of the Indian Air Force, thereby strengthening operational effectiveness. </span></span></p>\n\n<p style=\"margin-left:0cm; margin-right:0cm; text-align:center\"><span style=\"font-family:Times New Roman,Times,serif\"><span style=\"font-size:16px\"><img src=\"https://static.pib.gov.in/WriteReadData/userfiles/image/2026/oct/image001_20261015152313_41eb16.jpg\" style=\"height:239px; width:631px\" /></span></span></p>\n\n<p style=\"margin-left:0cm; margin-right:0cm; text-align:justify\"><span style=\"font-family:Times New Roman,Times,serif\"><span style=\"font-size:16px\">The contract for Varunastra was signed with Bharat Dynamics Limited, Hyderabad worth Rs 1,543 crore. Varunastra is an indigenous ship-launched anti-submarine torpedo developed by the Naval Science and Technological Laboratory. Equipped with advanced maneuvering capabilities, it is capable of engaging enemy submarines at long ranges, thereby enhancing the anti-submarine warfare capability of the Indian Navy.</span></span></p>\n\n<p style=\"margin-left:0cm; margin-right:0cm; text-align:center\"><span style=\"font-family:Times New Roman,Times,serif\"><span style=\"font-size:16px\"><img src=\"https://static.pib.gov.in/WriteReadData/userfiles/image/2026/oct/image002_20261015152319_91e500.jpg\" style=\"height:250px; width:641px\" /></span></span></p>\n\n<p style=\"margin-left:0cm; margin-right:0cm; text-align:justify\"><span style=\"font-family:Times New Roman,Times,serif\"><span style=\"font-size:16px\">The contracts were signed in the presence of Additional Secretary and Director General (Acquisition), Department of Defence Shri A Anbarasu in New Delhi on October 15, 2026. Both contracts mark a significant step towards advancing the development of domestic defence manufacturing capabilities while promoting self-reliance in critical technologies in line with the Government&rsquo;s &lsquo;Aatmanirbhar Bharat&rsquo; and &lsquo;Make-in-India&rsquo; vision.</span></span></p>\n\n<p style=\"text-align:justify\"><strong><span style=\"font-family:Times New Roman,Times,serif\"><span style=\"font-size:16px\"><span style=\"background-color:white\"><span style=\"color:#222222\">SR/Sa</span></span>vvy</span></span></strong></p>\n\" />",
+        "original_artifact": {
+          "artifact_type": "source_content",
+          "bytes": 83911,
+          "media_type": "text/html",
+          "sha256": "1142626b48c40df6d50bc0ecfbbeb8983631fd5bc5dfe3568c7212f3bc842b6d",
+          "uri": "jobs/dfe0b173-d9ff-458b-99b6-7b4ad3cccb8e/research/sources/3e9c744833869a0bb3ab9752e712d50f6a73cb1e/content.html"
+        },
+        "original_sha256_verified": true,
+        "requested_url": "https://www.pib.gov.in/PressReleaseIframePage.aspx?PRID=2323814&lang=2&reg=48",
+        "schema_version": "defence-studio.normalized-source.v1",
+        "source_id": "3e9c744833869a0bb3ab9752e712d50f6a73cb1e",
+        "source_type": "web_page",
+        "status": "NORMALIZED",
+        "target_id": "3e9c744833869a0bb3ab9752e712d50f6a73cb1e",
+        "warnings": []
+      },
+      "duplicate_groups": [],
+      "review": null,
+      "review_status": "PENDING",
+      "is_stale": false
+    }
+  ]
+}

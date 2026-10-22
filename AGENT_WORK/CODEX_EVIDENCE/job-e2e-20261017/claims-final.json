@@ -1,0 +1,2518 @@
+{
+  "job_id": "ff16816c-7af1-477a-b5f7-888ebd42f21a",
+  "analysis_artifact_sha256": "c48015a7bc6a394c9b41f603feb1fe6fc2c1c2a802d1a161d47ac831837099c0",
+  "analysis_artifact_uri": "jobs/ff16816c-7af1-477a-b5f7-888ebd42f21a/research/analysis/6aafee2d6d0049489ac3cef592e09664e45d439b2c7c1bbc42355f4629a480d9.json",
+  "duplicate_groups": [],
+  "claim_groups": [],
+  "conflicts": [],
+  "claims": [
+    {
+      "acquisition_timestamp": "2026-10-17T09:55:20.582311+00:00",
+      "claim_id": "claim-111e2d36168e5818",
+      "claim_text": "INDIAN NAVY COMMISSIONS INS SAMARTHAK, THE FIRST INDIGENOUS MULTI-PURPOSE VESSEL",
+      "entities": {
+        "dates": [],
+        "designations": [],
+        "named": [
+          "INDIAN NAVY COMMISSIONS INS SAMARTHAK",
+          "THE FIRST INDIGENOUS MULTI",
+          "PURPOSE VESSEL"
+        ],
+        "quantities": []
+      },
+      "extraction_method": "deterministic-sentence-span",
+      "extractor_version": "defence-studio.claim-extractor.deterministic.v2",
+      "has_negation": false,
+      "is_explicit": true,
+      "normalized_language": "en",
+      "original_language": "en",
+      "passage": {
+        "artifact_uri": "jobs/ff16816c-7af1-477a-b5f7-888ebd42f21a/research/sources/12f889a1d38a791b79d8dafeb0e3bdf8c060ab92/content.html",
+        "end_offset": 101,
+        "kind": "TEXT_SPAN",
+        "source_id": "12f889a1d38a791b79d8dafeb0e3bdf8c060ab92",
+        "start_offset": 21,
+        "text": "INDIAN NAVY COMMISSIONS INS SAMARTHAK, THE FIRST INDIGENOUS MULTI-PURPOSE VESSEL",
+        "timestamp_end": null,
+        "timestamp_start": null
+      },
+      "qualifiers": [],
+      "source_id": "12f889a1d38a791b79d8dafeb0e3bdf8c060ab92",
+      "source_published_at": "2026-10-16",
+      "warnings": [],
+      "assessment": {
+        "outcome": "SUPPORTED",
+        "policy_state": "AUTO_ACCEPTED",
+        "reasons": [
+          "substantive, topic-relevant, source usable, no uncertainty or dispute markers"
+        ],
+        "evidence": {
+          "assessment_basis": "Deterministic policy support and integrity checks; not verification of factual truth",
+          "assessment_outcome": "SUPPORTED",
+          "assessor_version": "deterministic-evidence-policy.v2",
+          "configuration_sha256": "52bd4b6574746d8ff9a3b39c60ecb909aa64913ba6fdd0d50a8fd60101f5df41",
+          "contradicting": [],
+          "default_configuration": true,
+          "passage": {
+            "end": 101,
+            "start": 21
+          },
+          "policy_criteria_failed": [
+            {
+              "action": "enable and acquire additional sources in config/source_policy.json that cover the topic",
+              "actual": 1,
+              "criterion": "min_accepted_sources",
+              "required": 2
+            }
+          ],
+          "readiness_policy": {
+            "_rationale": "Defaults chosen so a ~9-minute explainer (about 1,300 words, 7 required topics) has coverage across at least two independently owned sources; quantitative figures need two independent source groups. These are NOT taken from the core design (which sets no number) and are an owner policy decision.",
+            "min_accepted_claims": 8,
+            "min_accepted_sources": 2,
+            "require_source_publisher": true,
+            "required_source_categories_any": [
+              "RESEARCH_INSTITUTION",
+              "GOVERNMENT_OFFICIAL",
+              "OFFICIAL_TECHNICAL",
+              "INDEPENDENT_REPORTING"
+            ]
+          },
+          "registry_sha256": "61b1439b6ea3eb9733c7f8998992134fd9c669e411addb73a2ab0f98ca0d5ad8",
+          "source_id": "12f889a1d38a791b79d8dafeb0e3bdf8c060ab92",
+          "supporting": [
+            {
+              "end": 101,
+              "source_id": "12f889a1d38a791b79d8dafeb0e3bdf8c060ab92",
+              "start": 21
+            }
+          ]
+        },
+        "run_id": "ead139498bab5716",
+        "policy_version": "defence-studio.evidence-policy.v1",
+        "assessor_version": "deterministic-evidence-policy.v2",
+        "analysis_sha256": "c48015a7bc6a394c9b41f603feb1fe6fc2c1c2a802d1a161d47ac831837099c0",
+        "created_at": "2026-10-17T12:52:36.495201+00:00"
+      },
+      "has_conflict": false,
+      "review": null,
+      "review_status": "PENDING",
+      "is_stale": false,
+      "evidence_class": "unverified"
+    },
+    {
+      "acquisition_timestamp": "2026-10-17T09:55:20.582311+00:00",
+      "claim_id": "claim-a17c0f35c86fe2da",
+      "claim_text": "Indian Naval Ship Samarthak, the first of class Multi-Purpose Vessels (MPVs), was commissioned into the Indian Navy on 16 Oct 2026.",
+      "entities": {
+        "dates": [
+          "2026"
+        ],
+        "designations": [],
+        "named": [
+          "Indian Naval Ship Samarthak",
+          "Purpose Vessels",
+          "Indian Navy"
+        ],
+        "quantities": []
+      },
+      "extraction_method": "deterministic-sentence-span",
+      "extractor_version": "defence-studio.claim-extractor.deterministic.v2",
+      "has_negation": false,
+      "is_explicit": true,
+      "normalized_language": "en",
+      "original_language": "en",
+      "passage": {
+        "artifact_uri": "jobs/ff16816c-7af1-477a-b5f7-888ebd42f21a/research/sources/12f889a1d38a791b79d8dafeb0e3bdf8c060ab92/content.html",
+        "end_offset": 278,
+        "kind": "TEXT_SPAN",
+        "source_id": "12f889a1d38a791b79d8dafeb0e3bdf8c060ab92",
+        "start_offset": 147,
+        "text": "Indian Naval Ship Samarthak, the first of class Multi-Purpose Vessels (MPVs), was commissioned into the Indian Navy on 16 Oct 2026.",
+        "timestamp_end": null,
+        "timestamp_start": null
+      },
+      "qualifiers": [],
+      "source_id": "12f889a1d38a791b79d8dafeb0e3bdf8c060ab92",
+      "source_published_at": "2026-10-16",
+      "warnings": [],
+      "assessment": {
+        "outcome": "SUPPORTED",
+        "policy_state": "AUTO_ACCEPTED",
+        "reasons": [
+          "substantive, topic-relevant, source usable, no uncertainty or dispute markers"
+        ],
+        "evidence": {
+          "assessment_basis": "Deterministic policy support and integrity checks; not verification of factual truth",
+          "assessment_outcome": "SUPPORTED",
+          "assessor_version": "deterministic-evidence-policy.v2",
+          "configuration_sha256": "52bd4b6574746d8ff9a3b39c60ecb909aa64913ba6fdd0d50a8fd60101f5df41",
+          "contradicting": [],
+          "default_configuration": true,
+          "passage": {
+            "end": 278,
+            "start": 147
+          },
+          "policy_criteria_failed": [
+            {
+              "action": "enable and acquire additional sources in config/source_policy.json that cover the topic",
+              "actual": 1,
+              "criterion": "min_accepted_sources",
+              "required": 2
+            }
+          ],
+          "readiness_policy": {
+            "_rationale": "Defaults chosen so a ~9-minute explainer (about 1,300 words, 7 required topics) has coverage across at least two independently owned sources; quantitative figures need two independent source groups. These are NOT taken from the core design (which sets no number) and are an owner policy decision.",
+            "min_accepted_claims": 8,
+            "min_accepted_sources": 2,
+            "require_source_publisher": true,
+            "required_source_categories_any": [
+              "RESEARCH_INSTITUTION",
+              "GOVERNMENT_OFFICIAL",
+              "OFFICIAL_TECHNICAL",
+              "INDEPENDENT_REPORTING"
+            ]
+          },
+          "registry_sha256": "61b1439b6ea3eb9733c7f8998992134fd9c669e411addb73a2ab0f98ca0d5ad8",
+          "source_id": "12f889a1d38a791b79d8dafeb0e3bdf8c060ab92",
+          "supporting": [
+            {
+              "end": 278,
+              "source_id": "12f889a1d38a791b79d8dafeb0e3bdf8c060ab92",
+              "start": 147
+            }
+          ]
+        },
+        "run_id": "ead139498bab5716",
+        "policy_version": "defence-studio.evidence-policy.v1",
+        "assessor_version": "deterministic-evidence-policy.v2",
+        "analysis_sha256": "c48015a7bc6a394c9b41f603feb1fe6fc2c1c2a802d1a161d47ac831837099c0",
+        "created_at": "2026-10-17T12:52:36.495201+00:00"
+      },
+      "has_conflict": false,
+      "review": null,
+      "review_status": "PENDING",
+      "is_stale": false,
+      "evidence_class": "unverified"
+    },
+    {
+      "acquisition_timestamp": "2026-10-17T09:55:20.582311+00:00",
+      "claim_id": "claim-ae309580752f618f",
+      "claim_text": "The ceremony was presided over by the Hon\u2019ble Vice President of India, Shri Chandrapuram Ponnusamy Radhakrishnan, in the presence of Adm Krishna Swaminathan, Chief of the Naval Staff.",
+      "entities": {
+        "dates": [],
+        "designations": [],
+        "named": [
+          "Vice President",
+          "Shri Chandrapuram Ponnusamy Radhakrishnan",
+          "Adm Krishna Swaminathan",
+          "Naval Staff"
+        ],
+        "quantities": []
+      },
+      "extraction_method": "deterministic-sentence-span",
+      "extractor_version": "defence-studio.claim-extractor.deterministic.v2",
+      "has_negation": false,
+      "is_explicit": true,
+      "normalized_language": "en",
+      "original_language": "en",
+      "passage": {
+        "artifact_uri": "jobs/ff16816c-7af1-477a-b5f7-888ebd42f21a/research/sources/12f889a1d38a791b79d8dafeb0e3bdf8c060ab92/content.html",
+        "end_offset": 462,
+        "kind": "TEXT_SPAN",
+        "source_id": "12f889a1d38a791b79d8dafeb0e3bdf8c060ab92",
+        "start_offset": 279,
+        "text": "The ceremony was presided over by the Hon\u2019ble Vice President of India, Shri Chandrapuram Ponnusamy Radhakrishnan, in the presence of Adm Krishna Swaminathan, Chief of the Naval Staff.",
+        "timestamp_end": null,
+        "timestamp_start": null
+      },
+      "qualifiers": [],
+      "source_id": "12f889a1d38a791b79d8dafeb0e3bdf8c060ab92",
+      "source_published_at": "2026-10-16",
+      "warnings": [],
+      "assessment": {
+        "outcome": "INSUFFICIENT_EVIDENCE",
+        "policy_state": "REJECTED",
+        "reasons": [
+          "no topic anchor term: not self-contained (refers to the topic only by pronoun or context), so it is not used as standalone evidence"
+        ],
+        "evidence": {
+          "assessment_basis": "Deterministic policy support and integrity checks; not verification of factual truth",
+          "assessment_outcome": "INSUFFICIENT_EVIDENCE",
+          "assessor_version": "deterministic-evidence-policy.v2",
+          "configuration_sha256": "52bd4b6574746d8ff9a3b39c60ecb909aa64913ba6fdd0d50a8fd60101f5df41",
+          "contradicting": [],
+          "default_configuration": true,
+          "passage": {
+            "end": 462,
+            "start": 279
+          },
+          "policy_criteria_failed": [
+            {
+              "action": "enable and acquire additional sources in config/source_policy.json that cover the topic",
+              "actual": 1,
+              "criterion": "min_accepted_sources",
+              "required": 2
+            }
+          ],
+          "readiness_policy": {
+            "_rationale": "Defaults chosen so a ~9-minute explainer (about 1,300 words, 7 required topics) has coverage across at least two independently owned sources; quantitative figures need two independent source groups. These are NOT taken from the core design (which sets no number) and are an owner policy decision.",
+            "min_accepted_claims": 8,
+            "min_accepted_sources": 2,
+            "require_source_publisher": true,
+            "required_source_categories_any": [
+              "RESEARCH_INSTITUTION",
+              "GOVERNMENT_OFFICIAL",
+              "OFFICIAL_TECHNICAL",
+              "INDEPENDENT_REPORTING"
+            ]
+          },
+          "registry_sha256": "61b1439b6ea3eb9733c7f8998992134fd9c669e411addb73a2ab0f98ca0d5ad8",
+          "source_id": "12f889a1d38a791b79d8dafeb0e3bdf8c060ab92",
+          "supporting": [
+            {
+              "end": 462,
+              "source_id": "12f889a1d38a791b79d8dafeb0e3bdf8c060ab92",
+              "start": 279
+            }
+          ]
+        },
+        "run_id": "ead139498bab5716",
+        "policy_version": "defence-studio.evidence-policy.v1",
+        "assessor_version": "deterministic-evidence-policy.v2",
+        "analysis_sha256": "c48015a7bc6a394c9b41f603feb1fe6fc2c1c2a802d1a161d47ac831837099c0",
+        "created_at": "2026-10-17T12:52:36.495201+00:00"
+      },
+      "has_conflict": false,
+      "review": null,
+      "review_status": "PENDING",
+      "is_stale": false,
+      "evidence_class": "unverified"
+    },
+    {
+      "acquisition_timestamp": "2026-10-17T09:55:20.582311+00:00",
+      "claim_id": "claim-641907e944019252",
+      "claim_text": "The Hon\u2019ble \u200bM\u200binister for Labour and Employment, Govt of Karnataka, along with senior naval and defence officials and dignitaries from the Ministry of Defence, also graced the occasion.",
+      "entities": {
+        "dates": [],
+        "designations": [],
+        "named": [
+          "The Hon"
+        ],
+        "quantities": []
+      },
+      "extraction_method": "deterministic-sentence-span",
+      "extractor_version": "defence-studio.claim-extractor.deterministic.v2",
+      "has_negation": false,
+      "is_explicit": true,
+      "normalized_language": "en",
+      "original_language": "en",
+      "passage": {
+        "artifact_uri": "jobs/ff16816c-7af1-477a-b5f7-888ebd42f21a/research/sources/12f889a1d38a791b79d8dafeb0e3bdf8c060ab92/content.html",
+        "end_offset": 649,
+        "kind": "TEXT_SPAN",
+        "source_id": "12f889a1d38a791b79d8dafeb0e3bdf8c060ab92",
+        "start_offset": 463,
+        "text": "The Hon\u2019ble \u200bM\u200binister for Labour and Employment, Govt of Karnataka, along with senior naval and defence officials and dignitaries from the Ministry of Defence, also graced the occasion.",
+        "timestamp_end": null,
+        "timestamp_start": null
+      },
+      "qualifiers": [],
+      "source_id": "12f889a1d38a791b79d8dafeb0e3bdf8c060ab92",
+      "source_published_at": "2026-10-16",
+      "warnings": [],
+      "assessment": {
+        "outcome": "INSUFFICIENT_EVIDENCE",
+        "policy_state": "REJECTED",
+        "reasons": [
+          "no topic anchor term: not self-contained (refers to the topic only by pronoun or context), so it is not used as standalone evidence"
+        ],
+        "evidence": {
+          "assessment_basis": "Deterministic policy support and integrity checks; not verification of factual truth",
+          "assessment_outcome": "INSUFFICIENT_EVIDENCE",
+          "assessor_version": "deterministic-evidence-policy.v2",
+          "configuration_sha256": "52bd4b6574746d8ff9a3b39c60ecb909aa64913ba6fdd0d50a8fd60101f5df41",
+          "contradicting": [],
+          "default_configuration": true,
+          "passage": {
+            "end": 649,
+            "start": 463
+          },
+          "policy_criteria_failed": [
+            {
+              "action": "enable and acquire additional sources in config/source_policy.json that cover the topic",
+              "actual": 1,
+              "criterion": "min_accepted_sources",
+              "required": 2
+            }
+          ],
+          "readiness_policy": {
+            "_rationale": "Defaults chosen so a ~9-minute explainer (about 1,300 words, 7 required topics) has coverage across at least two independently owned sources; quantitative figures need two independent source groups. These are NOT taken from the core design (which sets no number) and are an owner policy decision.",
+            "min_accepted_claims": 8,
+            "min_accepted_sources": 2,
+            "require_source_publisher": true,
+            "required_source_categories_any": [
+              "RESEARCH_INSTITUTION",
+              "GOVERNMENT_OFFICIAL",
+              "OFFICIAL_TECHNICAL",
+              "INDEPENDENT_REPORTING"
+            ]
+          },
+          "registry_sha256": "61b1439b6ea3eb9733c7f8998992134fd9c669e411addb73a2ab0f98ca0d5ad8",
+          "source_id": "12f889a1d38a791b79d8dafeb0e3bdf8c060ab92",
+          "supporting": [
+            {
+              "end": 649,
+              "source_id": "12f889a1d38a791b79d8dafeb0e3bdf8c060ab92",
+              "start": 463
+            }
+          ]
+        },
+        "run_id": "ead139498bab5716",
+        "policy_version": "defence-studio.evidence-policy.v1",
+        "assessor_version": "deterministic-evidence-policy.v2",
+        "analysis_sha256": "c48015a7bc6a394c9b41f603feb1fe6fc2c1c2a802d1a161d47ac831837099c0",
+        "created_at": "2026-10-17T12:52:36.495201+00:00"
+      },
+      "has_conflict": false,
+      "review": null,
+      "review_status": "PENDING",
+      "is_stale": false,
+      "evidence_class": "unverified"
+    },
+    {
+      "acquisition_timestamp": "2026-10-17T09:55:20.582311+00:00",
+      "claim_id": "claim-3038065ce75b3522",
+      "claim_text": "Key representatives of Larsen & Toubro Ltd (L&T) and OEMs associated with indigenous equipment were also present during the commissioning ceremony.",
+      "entities": {
+        "dates": [],
+        "designations": [],
+        "named": [
+          "Toubro Ltd"
+        ],
+        "quantities": []
+      },
+      "extraction_method": "deterministic-sentence-span",
+      "extractor_version": "defence-studio.claim-extractor.deterministic.v2",
+      "has_negation": false,
+      "is_explicit": true,
+      "normalized_language": "en",
+      "original_language": "en",
+      "passage": {
+        "artifact_uri": "jobs/ff16816c-7af1-477a-b5f7-888ebd42f21a/research/sources/12f889a1d38a791b79d8dafeb0e3bdf8c060ab92/content.html",
+        "end_offset": 797,
+        "kind": "TEXT_SPAN",
+        "source_id": "12f889a1d38a791b79d8dafeb0e3bdf8c060ab92",
+        "start_offset": 650,
+        "text": "Key representatives of Larsen & Toubro Ltd (L&T) and OEMs associated with indigenous equipment were also present during the commissioning ceremony.",
+        "timestamp_end": null,
+        "timestamp_start": null
+      },
+      "qualifiers": [],
+      "source_id": "12f889a1d38a791b79d8dafeb0e3bdf8c060ab92",
+      "source_published_at": "2026-10-16",
+      "warnings": [],
+      "assessment": {
+        "outcome": "SUPPORTED",
+        "policy_state": "AUTO_ACCEPTED",
+        "reasons": [
+          "substantive, topic-relevant, source usable, no uncertainty or dispute markers"
+        ],
+        "evidence": {
+          "assessment_basis": "Deterministic policy support and integrity checks; not verification of factual truth",
+          "assessment_outcome": "SUPPORTED",
+          "assessor_version": "deterministic-evidence-policy.v2",
+          "configuration_sha256": "52bd4b6574746d8ff9a3b39c60ecb909aa64913ba6fdd0d50a8fd60101f5df41",
+          "contradicting": [],
+          "default_configuration": true,
+          "passage": {
+            "end": 797,
+            "start": 650
+          },
+          "policy_criteria_failed": [
+            {
+              "action": "enable and acquire additional sources in config/source_policy.json that cover the topic",
+              "actual": 1,
+              "criterion": "min_accepted_sources",
+              "required": 2
+            }
+          ],
+          "readiness_policy": {
+            "_rationale": "Defaults chosen so a ~9-minute explainer (about 1,300 words, 7 required topics) has coverage across at least two independently owned sources; quantitative figures need two independent source groups. These are NOT taken from the core design (which sets no number) and are an owner policy decision.",
+            "min_accepted_claims": 8,
+            "min_accepted_sources": 2,
+            "require_source_publisher": true,
+            "required_source_categories_any": [
+              "RESEARCH_INSTITUTION",
+              "GOVERNMENT_OFFICIAL",
+              "OFFICIAL_TECHNICAL",
+              "INDEPENDENT_REPORTING"
+            ]
+          },
+          "registry_sha256": "61b1439b6ea3eb9733c7f8998992134fd9c669e411addb73a2ab0f98ca0d5ad8",
+          "source_id": "12f889a1d38a791b79d8dafeb0e3bdf8c060ab92",
+          "supporting": [
+            {
+              "end": 797,
+              "source_id": "12f889a1d38a791b79d8dafeb0e3bdf8c060ab92",
+              "start": 650
+            }
+          ]
+        },
+        "run_id": "ead139498bab5716",
+        "policy_version": "defence-studio.evidence-policy.v1",
+        "assessor_version": "deterministic-evidence-policy.v2",
+        "analysis_sha256": "c48015a7bc6a394c9b41f603feb1fe6fc2c1c2a802d1a161d47ac831837099c0",
+        "created_at": "2026-10-17T12:52:36.495201+00:00"
+      },
+      "has_conflict": false,
+      "review": null,
+      "review_status": "PENDING",
+      "is_stale": false,
+      "evidence_class": "unverified"
+    },
+    {
+      "acquisition_timestamp": "2026-10-17T09:55:20.582311+00:00",
+      "claim_id": "claim-44d29a25afd98abe",
+      "claim_text": "Designed and constructed by L&T Shipyard, INS Samarthak marks a significant milestone in India\u2019s indigenous shipbuilding journey as the first major warship to be built by an Indian private shipyard.",
+      "entities": {
+        "dates": [],
+        "designations": [],
+        "named": [
+          "INS Samarthak"
+        ],
+        "quantities": []
+      },
+      "extraction_method": "deterministic-sentence-span",
+      "extractor_version": "defence-studio.claim-extractor.deterministic.v2",
+      "has_negation": false,
+      "is_explicit": true,
+      "normalized_language": "en",
+      "original_language": "en",
+      "passage": {
+        "artifact_uri": "jobs/ff16816c-7af1-477a-b5f7-888ebd42f21a/research/sources/12f889a1d38a791b79d8dafeb0e3bdf8c060ab92/content.html",
+        "end_offset": 997,
+        "kind": "TEXT_SPAN",
+        "source_id": "12f889a1d38a791b79d8dafeb0e3bdf8c060ab92",
+        "start_offset": 799,
+        "text": "Designed and constructed by L&T Shipyard, INS Samarthak marks a significant milestone in India\u2019s indigenous shipbuilding journey as the first major warship to be built by an Indian private shipyard.",
+        "timestamp_end": null,
+        "timestamp_start": null
+      },
+      "qualifiers": [],
+      "source_id": "12f889a1d38a791b79d8dafeb0e3bdf8c060ab92",
+      "source_published_at": "2026-10-16",
+      "warnings": [],
+      "assessment": {
+        "outcome": "SUPPORTED",
+        "policy_state": "AUTO_ACCEPTED",
+        "reasons": [
+          "substantive, topic-relevant, source usable, no uncertainty or dispute markers"
+        ],
+        "evidence": {
+          "assessment_basis": "Deterministic policy support and integrity checks; not verification of factual truth",
+          "assessment_outcome": "SUPPORTED",
+          "assessor_version": "deterministic-evidence-policy.v2",
+          "configuration_sha256": "52bd4b6574746d8ff9a3b39c60ecb909aa64913ba6fdd0d50a8fd60101f5df41",
+          "contradicting": [],
+          "default_configuration": true,
+          "passage": {
+            "end": 997,
+            "start": 799
+          },
+          "policy_criteria_failed": [
+            {
+              "action": "enable and acquire additional sources in config/source_policy.json that cover the topic",
+              "actual": 1,
+              "criterion": "min_accepted_sources",
+              "required": 2
+            }
+          ],
+          "readiness_policy": {
+            "_rationale": "Defaults chosen so a ~9-minute explainer (about 1,300 words, 7 required topics) has coverage across at least two independently owned sources; quantitative figures need two independent source groups. These are NOT taken from the core design (which sets no number) and are an owner policy decision.",
+            "min_accepted_claims": 8,
+            "min_accepted_sources": 2,
+            "require_source_publisher": true,
+            "required_source_categories_any": [
+              "RESEARCH_INSTITUTION",
+              "GOVERNMENT_OFFICIAL",
+              "OFFICIAL_TECHNICAL",
+              "INDEPENDENT_REPORTING"
+            ]
+          },
+          "registry_sha256": "61b1439b6ea3eb9733c7f8998992134fd9c669e411addb73a2ab0f98ca0d5ad8",
+          "source_id": "12f889a1d38a791b79d8dafeb0e3bdf8c060ab92",
+          "supporting": [
+            {
+              "end": 997,
+              "source_id": "12f889a1d38a791b79d8dafeb0e3bdf8c060ab92",
+              "start": 799
+            }
+          ]
+        },
+        "run_id": "ead139498bab5716",
+        "policy_version": "defence-studio.evidence-policy.v1",
+        "assessor_version": "deterministic-evidence-policy.v2",
+        "analysis_sha256": "c48015a7bc6a394c9b41f603feb1fe6fc2c1c2a802d1a161d47ac831837099c0",
+        "created_at": "2026-10-17T12:52:36.495201+00:00"
+      },
+      "has_conflict": false,
+      "review": null,
+      "review_status": "PENDING",
+      "is_stale": false,
+      "evidence_class": "unverified"
+    },
+    {
+      "acquisition_timestamp": "2026-10-17T09:55:20.582311+00:00",
+      "claim_id": "claim-dba560a332ce5c0e",
+      "claim_text": "The commissioning is a powerful testament to the growing maturity and capability of the nation\u2019s private shipbuilding industry and reflects the deepening synergy between the Indian Navy and the Indian shipbuilding industry in advancing the national vision of Aatmanirbhar Bharat.",
+      "entities": {
+        "dates": [],
+        "designations": [],
+        "named": [
+          "Indian Navy",
+          "Aatmanirbhar Bharat"
+        ],
+        "quantities": []
+      },
+      "extraction_method": "deterministic-sentence-span",
+      "extractor_version": "defence-studio.claim-extractor.deterministic.v2",
+      "has_negation": false,
+      "is_explicit": true,
+      "normalized_language": "en",
+      "original_language": "en",
+      "passage": {
+        "artifact_uri": "jobs/ff16816c-7af1-477a-b5f7-888ebd42f21a/research/sources/12f889a1d38a791b79d8dafeb0e3bdf8c060ab92/content.html",
+        "end_offset": 1277,
+        "kind": "TEXT_SPAN",
+        "source_id": "12f889a1d38a791b79d8dafeb0e3bdf8c060ab92",
+        "start_offset": 998,
+        "text": "The commissioning is a powerful testament to the growing maturity and capability of the nation\u2019s private shipbuilding industry and reflects the deepening synergy between the Indian Navy and the Indian shipbuilding industry in advancing the national vision of Aatmanirbhar Bharat.",
+        "timestamp_end": null,
+        "timestamp_start": null
+      },
+      "qualifiers": [],
+      "source_id": "12f889a1d38a791b79d8dafeb0e3bdf8c060ab92",
+      "source_published_at": "2026-10-16",
+      "warnings": [],
+      "assessment": {
+        "outcome": "SUPPORTED",
+        "policy_state": "AUTO_ACCEPTED",
+        "reasons": [
+          "substantive, topic-relevant, source usable, no uncertainty or dispute markers"
+        ],
+        "evidence": {
+          "assessment_basis": "Deterministic policy support and integrity checks; not verification of factual truth",
+          "assessment_outcome": "SUPPORTED",
+          "assessor_version": "deterministic-evidence-policy.v2",
+          "configuration_sha256": "52bd4b6574746d8ff9a3b39c60ecb909aa64913ba6fdd0d50a8fd60101f5df41",
+          "contradicting": [],
+          "default_configuration": true,
+          "passage": {
+            "end": 1277,
+            "start": 998
+          },
+          "policy_criteria_failed": [
+            {
+              "action": "enable and acquire additional sources in config/source_policy.json that cover the topic",
+              "actual": 1,
+              "criterion": "min_accepted_sources",
+              "required": 2
+            }
+          ],
+          "readiness_policy": {
+            "_rationale": "Defaults chosen so a ~9-minute explainer (about 1,300 words, 7 required topics) has coverage across at least two independently owned sources; quantitative figures need two independent source groups. These are NOT taken from the core design (which sets no number) and are an owner policy decision.",
+            "min_accepted_claims": 8,
+            "min_accepted_sources": 2,
+            "require_source_publisher": true,
+            "required_source_categories_any": [
+              "RESEARCH_INSTITUTION",
+              "GOVERNMENT_OFFICIAL",
+              "OFFICIAL_TECHNICAL",
+              "INDEPENDENT_REPORTING"
+            ]
+          },
+          "registry_sha256": "61b1439b6ea3eb9733c7f8998992134fd9c669e411addb73a2ab0f98ca0d5ad8",
+          "source_id": "12f889a1d38a791b79d8dafeb0e3bdf8c060ab92",
+          "supporting": [
+            {
+              "end": 1277,
+              "source_id": "12f889a1d38a791b79d8dafeb0e3bdf8c060ab92",
+              "start": 998
+            }
+          ]
+        },
+        "run_id": "ead139498bab5716",
+        "policy_version": "defence-studio.evidence-policy.v1",
+        "assessor_version": "deterministic-evidence-policy.v2",
+        "analysis_sha256": "c48015a7bc6a394c9b41f603feb1fe6fc2c1c2a802d1a161d47ac831837099c0",
+        "created_at": "2026-10-17T12:52:36.495201+00:00"
+      },
+      "has_conflict": false,
+      "review": null,
+      "review_status": "PENDING",
+      "is_stale": false,
+      "evidence_class": "unverified"
+    },
+    {
+      "acquisition_timestamp": "2026-10-17T09:55:20.582311+00:00",
+      "claim_id": "claim-b84efc9fe64b2778",
+      "claim_text": "Conceived as a versatile platform for trials and evaluation, INS Samarthak embodies the enhanced technological and operational capabilities of the Indian Navy in the 21st century.",
+      "entities": {
+        "dates": [],
+        "designations": [],
+        "named": [
+          "INS Samarthak",
+          "Indian Navy"
+        ],
+        "quantities": []
+      },
+      "extraction_method": "deterministic-sentence-span",
+      "extractor_version": "defence-studio.claim-extractor.deterministic.v2",
+      "has_negation": false,
+      "is_explicit": true,
+      "normalized_language": "en",
+      "original_language": "en",
+      "passage": {
+        "artifact_uri": "jobs/ff16816c-7af1-477a-b5f7-888ebd42f21a/research/sources/12f889a1d38a791b79d8dafeb0e3bdf8c060ab92/content.html",
+        "end_offset": 1458,
+        "kind": "TEXT_SPAN",
+        "source_id": "12f889a1d38a791b79d8dafeb0e3bdf8c060ab92",
+        "start_offset": 1279,
+        "text": "Conceived as a versatile platform for trials and evaluation, INS Samarthak embodies the enhanced technological and operational capabilities of the Indian Navy in the 21st century.",
+        "timestamp_end": null,
+        "timestamp_start": null
+      },
+      "qualifiers": [],
+      "source_id": "12f889a1d38a791b79d8dafeb0e3bdf8c060ab92",
+      "source_published_at": "2026-10-16",
+      "warnings": [],
+      "assessment": {
+        "outcome": "NEEDS_MORE_SOURCES",
+        "policy_state": "NEEDS_REVIEW",
+        "reasons": [
+          "OPERATIONAL claim: 1 independent source group(s), policy requires 2 or explicit attribution"
+        ],
+        "evidence": {
+          "assessment_basis": "Deterministic policy support and integrity checks; not verification of factual truth",
+          "assessment_outcome": "NEEDS_MORE_SOURCES",
+          "assessor_version": "deterministic-evidence-policy.v2",
+          "configuration_sha256": "52bd4b6574746d8ff9a3b39c60ecb909aa64913ba6fdd0d50a8fd60101f5df41",
+          "contradicting": [],
+          "default_configuration": true,
+          "passage": {
+            "end": 1458,
+            "start": 1279
+          },
+          "policy_criteria_failed": [
+            {
+              "action": "enable and acquire additional sources in config/source_policy.json that cover the topic",
+              "actual": 1,
+              "criterion": "min_accepted_sources",
+              "required": 2
+            }
+          ],
+          "readiness_policy": {
+            "_rationale": "Defaults chosen so a ~9-minute explainer (about 1,300 words, 7 required topics) has coverage across at least two independently owned sources; quantitative figures need two independent source groups. These are NOT taken from the core design (which sets no number) and are an owner policy decision.",
+            "min_accepted_claims": 8,
+            "min_accepted_sources": 2,
+            "require_source_publisher": true,
+            "required_source_categories_any": [
+              "RESEARCH_INSTITUTION",
+              "GOVERNMENT_OFFICIAL",
+              "OFFICIAL_TECHNICAL",
+              "INDEPENDENT_REPORTING"
+            ]
+          },
+          "registry_sha256": "61b1439b6ea3eb9733c7f8998992134fd9c669e411addb73a2ab0f98ca0d5ad8",
+          "source_id": "12f889a1d38a791b79d8dafeb0e3bdf8c060ab92",
+          "supporting": [
+            {
+              "end": 1458,
+              "source_id": "12f889a1d38a791b79d8dafeb0e3bdf8c060ab92",
+              "start": 1279
+            }
+          ]
+        },
+        "run_id": "ead139498bab5716",
+        "policy_version": "defence-studio.evidence-policy.v1",
+        "assessor_version": "deterministic-evidence-policy.v2",
+        "analysis_sha256": "c48015a7bc6a394c9b41f603feb1fe6fc2c1c2a802d1a161d47ac831837099c0",
+        "created_at": "2026-10-17T12:52:36.495201+00:00"
+      },
+      "has_conflict": false,
+      "review": null,
+      "review_status": "PENDING",
+      "is_stale": false,
+      "evidence_class": "unverified"
+    },
+    {
+      "acquisition_timestamp": "2026-10-17T09:55:20.582311+00:00",
+      "claim_id": "claim-f0cae0ab9e71855c",
+      "claim_text": "Aptly named Samarthak, meaning \u2018The Proponent\u2019, the ship represents the spirit of a dependable enabler, capable of supporting multiple missions and has been designed with inherent versatility and adaptability, enabling it to undertake diverse range of operational and developmental tasks.",
+      "entities": {
+        "dates": [],
+        "designations": [],
+        "named": [
+          "The Proponent"
+        ],
+        "quantities": []
+      },
+      "extraction_method": "deterministic-sentence-span",
+      "extractor_version": "defence-studio.claim-extractor.deterministic.v2",
+      "has_negation": false,
+      "is_explicit": true,
+      "normalized_language": "en",
+      "original_language": "en",
+      "passage": {
+        "artifact_uri": "jobs/ff16816c-7af1-477a-b5f7-888ebd42f21a/research/sources/12f889a1d38a791b79d8dafeb0e3bdf8c060ab92/content.html",
+        "end_offset": 2049,
+        "kind": "TEXT_SPAN",
+        "source_id": "12f889a1d38a791b79d8dafeb0e3bdf8c060ab92",
+        "start_offset": 1761,
+        "text": "Aptly named Samarthak, meaning \u2018The Proponent\u2019, the ship represents the spirit of a dependable enabler, capable of supporting multiple missions and has been designed with inherent versatility and adaptability, enabling it to undertake diverse range of operational and developmental tasks.",
+        "timestamp_end": null,
+        "timestamp_start": null
+      },
+      "qualifiers": [],
+      "source_id": "12f889a1d38a791b79d8dafeb0e3bdf8c060ab92",
+      "source_published_at": "2026-10-16",
+      "warnings": [],
+      "assessment": {
+        "outcome": "NEEDS_MORE_SOURCES",
+        "policy_state": "NEEDS_REVIEW",
+        "reasons": [
+          "OPERATIONAL claim: 1 independent source group(s), policy requires 2 or explicit attribution"
+        ],
+        "evidence": {
+          "assessment_basis": "Deterministic policy support and integrity checks; not verification of factual truth",
+          "assessment_outcome": "NEEDS_MORE_SOURCES",
+          "assessor_version": "deterministic-evidence-policy.v2",
+          "configuration_sha256": "52bd4b6574746d8ff9a3b39c60ecb909aa64913ba6fdd0d50a8fd60101f5df41",
+          "contradicting": [],
+          "default_configuration": true,
+          "passage": {
+            "end": 2049,
+            "start": 1761
+          },
+          "policy_criteria_failed": [
+            {
+              "action": "enable and acquire additional sources in config/source_policy.json that cover the topic",
+              "actual": 1,
+              "criterion": "min_accepted_sources",
+              "required": 2
+            }
+          ],
+          "readiness_policy": {
+            "_rationale": "Defaults chosen so a ~9-minute explainer (about 1,300 words, 7 required topics) has coverage across at least two independently owned sources; quantitative figures need two independent source groups. These are NOT taken from the core design (which sets no number) and are an owner policy decision.",
+            "min_accepted_claims": 8,
+            "min_accepted_sources": 2,
+            "require_source_publisher": true,
+            "required_source_categories_any": [
+              "RESEARCH_INSTITUTION",
+              "GOVERNMENT_OFFICIAL",
+              "OFFICIAL_TECHNICAL",
+              "INDEPENDENT_REPORTING"
+            ]
+          },
+          "registry_sha256": "61b1439b6ea3eb9733c7f8998992134fd9c669e411addb73a2ab0f98ca0d5ad8",
+          "source_id": "12f889a1d38a791b79d8dafeb0e3bdf8c060ab92",
+          "supporting": [
+            {
+              "end": 2049,
+              "source_id": "12f889a1d38a791b79d8dafeb0e3bdf8c060ab92",
+              "start": 1761
+            }
+          ]
+        },
+        "run_id": "ead139498bab5716",
+        "policy_version": "defence-studio.evidence-policy.v1",
+        "assessor_version": "deterministic-evidence-policy.v2",
+        "analysis_sha256": "c48015a7bc6a394c9b41f603feb1fe6fc2c1c2a802d1a161d47ac831837099c0",
+        "created_at": "2026-10-17T12:52:36.495201+00:00"
+      },
+      "has_conflict": false,
+      "review": null,
+      "review_status": "PENDING",
+      "is_stale": false,
+      "evidence_class": "unverified"
+    },
+    {
+      "acquisition_timestamp": "2026-10-17T09:55:20.582311+00:00",
+      "claim_id": "claim-c517136c102939d9",
+      "claim_text": "True to its name, INS Samarthak is capable of undertaking maritime surveillance and reconnaissance, offshore patrolling, and Humanitarian Assistance and Disaster Relief operations, as required.",
+      "entities": {
+        "dates": [],
+        "designations": [],
+        "named": [
+          "INS Samarthak",
+          "Humanitarian Assistance",
+          "Disaster Relief"
+        ],
+        "quantities": []
+      },
+      "extraction_method": "deterministic-sentence-span",
+      "extractor_version": "defence-studio.claim-extractor.deterministic.v2",
+      "has_negation": false,
+      "is_explicit": true,
+      "normalized_language": "en",
+      "original_language": "en",
+      "passage": {
+        "artifact_uri": "jobs/ff16816c-7af1-477a-b5f7-888ebd42f21a/research/sources/12f889a1d38a791b79d8dafeb0e3bdf8c060ab92/content.html",
+        "end_offset": 2243,
+        "kind": "TEXT_SPAN",
+        "source_id": "12f889a1d38a791b79d8dafeb0e3bdf8c060ab92",
+        "start_offset": 2050,
+        "text": "True to its name, INS Samarthak is capable of undertaking maritime surveillance and reconnaissance, offshore patrolling, and Humanitarian Assistance and Disaster Relief operations, as required.",
+        "timestamp_end": null,
+        "timestamp_start": null
+      },
+      "qualifiers": [],
+      "source_id": "12f889a1d38a791b79d8dafeb0e3bdf8c060ab92",
+      "source_published_at": "2026-10-16",
+      "warnings": [],
+      "assessment": {
+        "outcome": "SUPPORTED",
+        "policy_state": "AUTO_ACCEPTED",
+        "reasons": [
+          "substantive, topic-relevant, source usable, no uncertainty or dispute markers"
+        ],
+        "evidence": {
+          "assessment_basis": "Deterministic policy support and integrity checks; not verification of factual truth",
+          "assessment_outcome": "SUPPORTED",
+          "assessor_version": "deterministic-evidence-policy.v2",
+          "configuration_sha256": "52bd4b6574746d8ff9a3b39c60ecb909aa64913ba6fdd0d50a8fd60101f5df41",
+          "contradicting": [],
+          "default_configuration": true,
+          "passage": {
+            "end": 2243,
+            "start": 2050
+          },
+          "policy_criteria_failed": [
+            {
+              "action": "enable and acquire additional sources in config/source_policy.json that cover the topic",
+              "actual": 1,
+              "criterion": "min_accepted_sources",
+              "required": 2
+            }
+          ],
+          "readiness_policy": {
+            "_rationale": "Defaults chosen so a ~9-minute explainer (about 1,300 words, 7 required topics) has coverage across at least two independently owned sources; quantitative figures need two independent source groups. These are NOT taken from the core design (which sets no number) and are an owner policy decision.",
+            "min_accepted_claims": 8,
+            "min_accepted_sources": 2,
+            "require_source_publisher": true,
+            "required_source_categories_any": [
+              "RESEARCH_INSTITUTION",
+              "GOVERNMENT_OFFICIAL",
+              "OFFICIAL_TECHNICAL",
+              "INDEPENDENT_REPORTING"
+            ]
+          },
+          "registry_sha256": "61b1439b6ea3eb9733c7f8998992134fd9c669e411addb73a2ab0f98ca0d5ad8",
+          "source_id": "12f889a1d38a791b79d8dafeb0e3bdf8c060ab92",
+          "supporting": [
+            {
+              "end": 2243,
+              "source_id": "12f889a1d38a791b79d8dafeb0e3bdf8c060ab92",
+              "start": 2050
+            }
+          ]
+        },
+        "run_id": "ead139498bab5716",
+        "policy_version": "defence-studio.evidence-policy.v1",
+        "assessor_version": "deterministic-evidence-policy.v2",
+        "analysis_sha256": "c48015a7bc6a394c9b41f603feb1fe6fc2c1c2a802d1a161d47ac831837099c0",
+        "created_at": "2026-10-17T12:52:36.495201+00:00"
+      },
+      "has_conflict": false,
+      "review": null,
+      "review_status": "PENDING",
+      "is_stale": false,
+      "evidence_class": "unverified"
+    },
+    {
+      "acquisition_timestamp": "2026-10-17T09:55:20.582311+00:00",
+      "claim_id": "claim-be989869c9d5ce51",
+      "claim_text": "The commissioning of INS Samarthak reinforces the nation\u2019s commitment to maritime security, regional stability and cooperative engagement across the Indian Ocean Region.",
+      "entities": {
+        "dates": [],
+        "designations": [],
+        "named": [
+          "INS Samarthak",
+          "Indian Ocean Region"
+        ],
+        "quantities": []
+      },
+      "extraction_method": "deterministic-sentence-span",
+      "extractor_version": "defence-studio.claim-extractor.deterministic.v2",
+      "has_negation": false,
+      "is_explicit": true,
+      "normalized_language": "en",
+      "original_language": "en",
+      "passage": {
+        "artifact_uri": "jobs/ff16816c-7af1-477a-b5f7-888ebd42f21a/research/sources/12f889a1d38a791b79d8dafeb0e3bdf8c060ab92/content.html",
+        "end_offset": 2706,
+        "kind": "TEXT_SPAN",
+        "source_id": "12f889a1d38a791b79d8dafeb0e3bdf8c060ab92",
+        "start_offset": 2537,
+        "text": "The commissioning of INS Samarthak reinforces the nation\u2019s commitment to maritime security, regional stability and cooperative engagement across the Indian Ocean Region.",
+        "timestamp_end": null,
+        "timestamp_start": null
+      },
+      "qualifiers": [],
+      "source_id": "12f889a1d38a791b79d8dafeb0e3bdf8c060ab92",
+      "source_published_at": "2026-10-16",
+      "warnings": [],
+      "assessment": {
+        "outcome": "SUPPORTED",
+        "policy_state": "AUTO_ACCEPTED",
+        "reasons": [
+          "substantive, topic-relevant, source usable, no uncertainty or dispute markers"
+        ],
+        "evidence": {
+          "assessment_basis": "Deterministic policy support and integrity checks; not verification of factual truth",
+          "assessment_outcome": "SUPPORTED",
+          "assessor_version": "deterministic-evidence-policy.v2",
+          "configuration_sha256": "52bd4b6574746d8ff9a3b39c60ecb909aa64913ba6fdd0d50a8fd60101f5df41",
+          "contradicting": [],
+          "default_configuration": true,
+          "passage": {
+            "end": 2706,
+            "start": 2537
+          },
+          "policy_criteria_failed": [
+            {
+              "action": "enable and acquire additional sources in config/source_policy.json that cover the topic",
+              "actual": 1,
+              "criterion": "min_accepted_sources",
+              "required": 2
+            }
+          ],
+          "readiness_policy": {
+            "_rationale": "Defaults chosen so a ~9-minute explainer (about 1,300 words, 7 required topics) has coverage across at least two independently owned sources; quantitative figures need two independent source groups. These are NOT taken from the core design (which sets no number) and are an owner policy decision.",
+            "min_accepted_claims": 8,
+            "min_accepted_sources": 2,
+            "require_source_publisher": true,
+            "required_source_categories_any": [
+              "RESEARCH_INSTITUTION",
+              "GOVERNMENT_OFFICIAL",
+              "OFFICIAL_TECHNICAL",
+              "INDEPENDENT_REPORTING"
+            ]
+          },
+          "registry_sha256": "61b1439b6ea3eb9733c7f8998992134fd9c669e411addb73a2ab0f98ca0d5ad8",
+          "source_id": "12f889a1d38a791b79d8dafeb0e3bdf8c060ab92",
+          "supporting": [
+            {
+              "end": 2706,
+              "source_id": "12f889a1d38a791b79d8dafeb0e3bdf8c060ab92",
+              "start": 2537
+            }
+          ]
+        },
+        "run_id": "ead139498bab5716",
+        "policy_version": "defence-studio.evidence-policy.v1",
+        "assessor_version": "deterministic-evidence-policy.v2",
+        "analysis_sha256": "c48015a7bc6a394c9b41f603feb1fe6fc2c1c2a802d1a161d47ac831837099c0",
+        "created_at": "2026-10-17T12:52:36.495201+00:00"
+      },
+      "has_conflict": false,
+      "review": null,
+      "review_status": "PENDING",
+      "is_stale": false,
+      "evidence_class": "unverified"
+    },
+    {
+      "acquisition_timestamp": "2026-10-17T09:55:20.582311+00:00",
+      "claim_id": "claim-1b175031d6f1acf6",
+      "claim_text": "The induction of INS Samarthak significantly strengthens India's ability for testing and training new sensors and weapons developed indigenously by domestic industry.",
+      "entities": {
+        "dates": [],
+        "designations": [],
+        "named": [
+          "INS Samarthak"
+        ],
+        "quantities": []
+      },
+      "extraction_method": "deterministic-sentence-span",
+      "extractor_version": "defence-studio.claim-extractor.deterministic.v2",
+      "has_negation": false,
+      "is_explicit": true,
+      "normalized_language": "en",
+      "original_language": "en",
+      "passage": {
+        "artifact_uri": "jobs/ff16816c-7af1-477a-b5f7-888ebd42f21a/research/sources/12f889a1d38a791b79d8dafeb0e3bdf8c060ab92/content.html",
+        "end_offset": 2991,
+        "kind": "TEXT_SPAN",
+        "source_id": "12f889a1d38a791b79d8dafeb0e3bdf8c060ab92",
+        "start_offset": 2825,
+        "text": "The induction of INS Samarthak significantly strengthens India's ability for testing and training new sensors and weapons developed indigenously by domestic industry.",
+        "timestamp_end": null,
+        "timestamp_start": null
+      },
+      "qualifiers": [],
+      "source_id": "12f889a1d38a791b79d8dafeb0e3bdf8c060ab92",
+      "source_published_at": "2026-10-16",
+      "warnings": [],
+      "assessment": {
+        "outcome": "SUPPORTED",
+        "policy_state": "AUTO_ACCEPTED",
+        "reasons": [
+          "substantive, topic-relevant, source usable, no uncertainty or dispute markers"
+        ],
+        "evidence": {
+          "assessment_basis": "Deterministic policy support and integrity checks; not verification of factual truth",
+          "assessment_outcome": "SUPPORTED",
+          "assessor_version": "deterministic-evidence-policy.v2",
+          "configuration_sha256": "52bd4b6574746d8ff9a3b39c60ecb909aa64913ba6fdd0d50a8fd60101f5df41",
+          "contradicting": [],
+          "default_configuration": true,
+          "passage": {
+            "end": 2991,
+            "start": 2825
+          },
+          "policy_criteria_failed": [
+            {
+              "action": "enable and acquire additional sources in config/source_policy.json that cover the topic",
+              "actual": 1,
+              "criterion": "min_accepted_sources",
+              "required": 2
+            }
+          ],
+          "readiness_policy": {
+            "_rationale": "Defaults chosen so a ~9-minute explainer (about 1,300 words, 7 required topics) has coverage across at least two independently owned sources; quantitative figures need two independent source groups. These are NOT taken from the core design (which sets no number) and are an owner policy decision.",
+            "min_accepted_claims": 8,
+            "min_accepted_sources": 2,
+            "require_source_publisher": true,
+            "required_source_categories_any": [
+              "RESEARCH_INSTITUTION",
+              "GOVERNMENT_OFFICIAL",
+              "OFFICIAL_TECHNICAL",
+              "INDEPENDENT_REPORTING"
+            ]
+          },
+          "registry_sha256": "61b1439b6ea3eb9733c7f8998992134fd9c669e411addb73a2ab0f98ca0d5ad8",
+          "source_id": "12f889a1d38a791b79d8dafeb0e3bdf8c060ab92",
+          "supporting": [
+            {
+              "end": 2991,
+              "source_id": "12f889a1d38a791b79d8dafeb0e3bdf8c060ab92",
+              "start": 2825
+            }
+          ]
+        },
+        "run_id": "ead139498bab5716",
+        "policy_version": "defence-studio.evidence-policy.v1",
+        "assessor_version": "deterministic-evidence-policy.v2",
+        "analysis_sha256": "c48015a7bc6a394c9b41f603feb1fe6fc2c1c2a802d1a161d47ac831837099c0",
+        "created_at": "2026-10-17T12:52:36.495201+00:00"
+      },
+      "has_conflict": false,
+      "review": null,
+      "review_status": "PENDING",
+      "is_stale": false,
+      "evidence_class": "unverified"
+    },
+    {
+      "acquisition_timestamp": "2026-10-17T09:55:20.901430+00:00",
+      "claim_id": "claim-b0e3dbfe4e98fc16",
+      "claim_text": "Vice-President Shri C. P. Radhakrishnan Commissions Indian Navy\u2019s First Indigenous Multi-Purpose Vessel INS Samarthak at Karwar",
+      "entities": {
+        "dates": [],
+        "designations": [],
+        "named": [
+          "President Shri C. P. Radhakrishnan Commissions Indian Navy",
+          "First Indigenous Multi",
+          "Purpose Vessel INS Samarthak"
+        ],
+        "quantities": []
+      },
+      "extraction_method": "deterministic-sentence-span",
+      "extractor_version": "defence-studio.claim-extractor.deterministic.v2",
+      "has_negation": false,
+      "is_explicit": true,
+      "normalized_language": "en",
+      "original_language": "en",
+      "passage": {
+        "artifact_uri": "jobs/ff16816c-7af1-477a-b5f7-888ebd42f21a/research/sources/26a9d035e38e459b0ac5a3df57aeaafaad658489/content.html",
+        "end_offset": 157,
+        "kind": "TEXT_SPAN",
+        "source_id": "26a9d035e38e459b0ac5a3df57aeaafaad658489",
+        "start_offset": 30,
+        "text": "Vice-President Shri C. P. Radhakrishnan Commissions Indian Navy\u2019s First Indigenous Multi-Purpose Vessel INS Samarthak at Karwar",
+        "timestamp_end": null,
+        "timestamp_start": null
+      },
+      "qualifiers": [],
+      "source_id": "26a9d035e38e459b0ac5a3df57aeaafaad658489",
+      "source_published_at": "2026-10-16",
+      "warnings": [],
+      "assessment": {
+        "outcome": "SUPPORTED",
+        "policy_state": "AUTO_ACCEPTED",
+        "reasons": [
+          "substantive, topic-relevant, source usable, no uncertainty or dispute markers"
+        ],
+        "evidence": {
+          "assessment_basis": "Deterministic policy support and integrity checks; not verification of factual truth",
+          "assessment_outcome": "SUPPORTED",
+          "assessor_version": "deterministic-evidence-policy.v2",
+          "configuration_sha256": "52bd4b6574746d8ff9a3b39c60ecb909aa64913ba6fdd0d50a8fd60101f5df41",
+          "contradicting": [],
+          "default_configuration": true,
+          "passage": {
+            "end": 157,
+            "start": 30
+          },
+          "policy_criteria_failed": [
+            {
+              "action": "enable and acquire additional sources in config/source_policy.json that cover the topic",
+              "actual": 1,
+              "criterion": "min_accepted_sources",
+              "required": 2
+            }
+          ],
+          "readiness_policy": {
+            "_rationale": "Defaults chosen so a ~9-minute explainer (about 1,300 words, 7 required topics) has coverage across at least two independently owned sources; quantitative figures need two independent source groups. These are NOT taken from the core design (which sets no number) and are an owner policy decision.",
+            "min_accepted_claims": 8,
+            "min_accepted_sources": 2,
+            "require_source_publisher": true,
+            "required_source_categories_any": [
+              "RESEARCH_INSTITUTION",
+              "GOVERNMENT_OFFICIAL",
+              "OFFICIAL_TECHNICAL",
+              "INDEPENDENT_REPORTING"
+            ]
+          },
+          "registry_sha256": "61b1439b6ea3eb9733c7f8998992134fd9c669e411addb73a2ab0f98ca0d5ad8",
+          "source_id": "26a9d035e38e459b0ac5a3df57aeaafaad658489",
+          "supporting": [
+            {
+              "end": 157,
+              "source_id": "26a9d035e38e459b0ac5a3df57aeaafaad658489",
+              "start": 30
+            }
+          ]
+        },
+        "run_id": "ead139498bab5716",
+        "policy_version": "defence-studio.evidence-policy.v1",
+        "assessor_version": "deterministic-evidence-policy.v2",
+        "analysis_sha256": "c48015a7bc6a394c9b41f603feb1fe6fc2c1c2a802d1a161d47ac831837099c0",
+        "created_at": "2026-10-17T12:52:36.495201+00:00"
+      },
+      "has_conflict": false,
+      "review": null,
+      "review_status": "PENDING",
+      "is_stale": false,
+      "evidence_class": "unverified"
+    },
+    {
+      "acquisition_timestamp": "2026-10-17T09:55:20.901430+00:00",
+      "claim_id": "claim-f753e8a93f0fe2ec",
+      "claim_text": "INS Samarthak, with over 75 per cent indigenous content, reflects India\u2019s growing self-reliance in defence manufacturing: Vice-President",
+      "entities": {
+        "dates": [],
+        "designations": [],
+        "named": [
+          "INS Samarthak"
+        ],
+        "quantities": []
+      },
+      "extraction_method": "deterministic-sentence-span",
+      "extractor_version": "defence-studio.claim-extractor.deterministic.v2",
+      "has_negation": false,
+      "is_explicit": true,
+      "normalized_language": "en",
+      "original_language": "en",
+      "passage": {
+        "artifact_uri": "jobs/ff16816c-7af1-477a-b5f7-888ebd42f21a/research/sources/26a9d035e38e459b0ac5a3df57aeaafaad658489/content.html",
+        "end_offset": 295,
+        "kind": "TEXT_SPAN",
+        "source_id": "26a9d035e38e459b0ac5a3df57aeaafaad658489",
+        "start_offset": 159,
+        "text": "INS Samarthak, with over 75 per cent indigenous content, reflects India\u2019s growing self-reliance in defence manufacturing: Vice-President",
+        "timestamp_end": null,
+        "timestamp_start": null
+      },
+      "qualifiers": [],
+      "source_id": "26a9d035e38e459b0ac5a3df57aeaafaad658489",
+      "source_published_at": "2026-10-16",
+      "warnings": [],
+      "assessment": {
+        "outcome": "SUPPORTED",
+        "policy_state": "AUTO_ACCEPTED",
+        "reasons": [
+          "substantive, topic-relevant, source usable, no uncertainty or dispute markers"
+        ],
+        "evidence": {
+          "assessment_basis": "Deterministic policy support and integrity checks; not verification of factual truth",
+          "assessment_outcome": "SUPPORTED",
+          "assessor_version": "deterministic-evidence-policy.v2",
+          "configuration_sha256": "52bd4b6574746d8ff9a3b39c60ecb909aa64913ba6fdd0d50a8fd60101f5df41",
+          "contradicting": [],
+          "default_configuration": true,
+          "passage": {
+            "end": 295,
+            "start": 159
+          },
+          "policy_criteria_failed": [
+            {
+              "action": "enable and acquire additional sources in config/source_policy.json that cover the topic",
+              "actual": 1,
+              "criterion": "min_accepted_sources",
+              "required": 2
+            }
+          ],
+          "readiness_policy": {
+            "_rationale": "Defaults chosen so a ~9-minute explainer (about 1,300 words, 7 required topics) has coverage across at least two independently owned sources; quantitative figures need two independent source groups. These are NOT taken from the core design (which sets no number) and are an owner policy decision.",
+            "min_accepted_claims": 8,
+            "min_accepted_sources": 2,
+            "require_source_publisher": true,
+            "required_source_categories_any": [
+              "RESEARCH_INSTITUTION",
+              "GOVERNMENT_OFFICIAL",
+              "OFFICIAL_TECHNICAL",
+              "INDEPENDENT_REPORTING"
+            ]
+          },
+          "registry_sha256": "61b1439b6ea3eb9733c7f8998992134fd9c669e411addb73a2ab0f98ca0d5ad8",
+          "source_id": "26a9d035e38e459b0ac5a3df57aeaafaad658489",
+          "supporting": [
+            {
+              "end": 295,
+              "source_id": "26a9d035e38e459b0ac5a3df57aeaafaad658489",
+              "start": 159
+            }
+          ]
+        },
+        "run_id": "ead139498bab5716",
+        "policy_version": "defence-studio.evidence-policy.v1",
+        "assessor_version": "deterministic-evidence-policy.v2",
+        "analysis_sha256": "c48015a7bc6a394c9b41f603feb1fe6fc2c1c2a802d1a161d47ac831837099c0",
+        "created_at": "2026-10-17T12:52:36.495201+00:00"
+      },
+      "has_conflict": false,
+      "review": null,
+      "review_status": "PENDING",
+      "is_stale": false,
+      "evidence_class": "unverified"
+    },
+    {
+      "acquisition_timestamp": "2026-10-17T09:55:20.901430+00:00",
+      "claim_id": "claim-e50a06a0999ea8c9",
+      "claim_text": "\u201cIndian Navy Stands Ever-Vigilant and Combat-Ready to Safeguard India\u2019s Maritime Interests\u201d: Vice-President",
+      "entities": {
+        "dates": [],
+        "designations": [],
+        "named": [
+          "Indian Navy Stands Ever",
+          "Safeguard India",
+          "Maritime Interests"
+        ],
+        "quantities": []
+      },
+      "extraction_method": "deterministic-sentence-span",
+      "extractor_version": "defence-studio.claim-extractor.deterministic.v2",
+      "has_negation": false,
+      "is_explicit": true,
+      "normalized_language": "en",
+      "original_language": "en",
+      "passage": {
+        "artifact_uri": "jobs/ff16816c-7af1-477a-b5f7-888ebd42f21a/research/sources/26a9d035e38e459b0ac5a3df57aeaafaad658489/content.html",
+        "end_offset": 404,
+        "kind": "TEXT_SPAN",
+        "source_id": "26a9d035e38e459b0ac5a3df57aeaafaad658489",
+        "start_offset": 297,
+        "text": "\u201cIndian Navy Stands Ever-Vigilant and Combat-Ready to Safeguard India\u2019s Maritime Interests\u201d: Vice-President",
+        "timestamp_end": null,
+        "timestamp_start": null
+      },
+      "qualifiers": [],
+      "source_id": "26a9d035e38e459b0ac5a3df57aeaafaad658489",
+      "source_published_at": "2026-10-16",
+      "warnings": [],
+      "assessment": {
+        "outcome": "INSUFFICIENT_EVIDENCE",
+        "policy_state": "REJECTED",
+        "reasons": [
+          "no topic anchor term: not self-contained (refers to the topic only by pronoun or context), so it is not used as standalone evidence"
+        ],
+        "evidence": {
+          "assessment_basis": "Deterministic policy support and integrity checks; not verification of factual truth",
+          "assessment_outcome": "INSUFFICIENT_EVIDENCE",
+          "assessor_version": "deterministic-evidence-policy.v2",
+          "configuration_sha256": "52bd4b6574746d8ff9a3b39c60ecb909aa64913ba6fdd0d50a8fd60101f5df41",
+          "contradicting": [],
+          "default_configuration": true,
+          "passage": {
+            "end": 404,
+            "start": 297
+          },
+          "policy_criteria_failed": [
+            {
+              "action": "enable and acquire additional sources in config/source_policy.json that cover the topic",
+              "actual": 1,
+              "criterion": "min_accepted_sources",
+              "required": 2
+            }
+          ],
+          "readiness_policy": {
+            "_rationale": "Defaults chosen so a ~9-minute explainer (about 1,300 words, 7 required topics) has coverage across at least two independently owned sources; quantitative figures need two independent source groups. These are NOT taken from the core design (which sets no number) and are an owner policy decision.",
+            "min_accepted_claims": 8,
+            "min_accepted_sources": 2,
+            "require_source_publisher": true,
+            "required_source_categories_any": [
+              "RESEARCH_INSTITUTION",
+              "GOVERNMENT_OFFICIAL",
+              "OFFICIAL_TECHNICAL",
+              "INDEPENDENT_REPORTING"
+            ]
+          },
+          "registry_sha256": "61b1439b6ea3eb9733c7f8998992134fd9c669e411addb73a2ab0f98ca0d5ad8",
+          "source_id": "26a9d035e38e459b0ac5a3df57aeaafaad658489",
+          "supporting": [
+            {
+              "end": 404,
+              "source_id": "26a9d035e38e459b0ac5a3df57aeaafaad658489",
+              "start": 297
+            }
+          ]
+        },
+        "run_id": "ead139498bab5716",
+        "policy_version": "defence-studio.evidence-policy.v1",
+        "assessor_version": "deterministic-evidence-policy.v2",
+        "analysis_sha256": "c48015a7bc6a394c9b41f603feb1fe6fc2c1c2a802d1a161d47ac831837099c0",
+        "created_at": "2026-10-17T12:52:36.495201+00:00"
+      },
+      "has_conflict": false,
+      "review": null,
+      "review_status": "PENDING",
+      "is_stale": false,
+      "evidence_class": "unverified"
+    },
+    {
+      "acquisition_timestamp": "2026-10-17T09:55:20.901430+00:00",
+      "claim_id": "claim-824db06b64a36e5a",
+      "claim_text": "\u201cINS Samarthak Reflects the Growing Role of India\u2019s Private Shipbuilding Industry\u201d: Vice-President",
+      "entities": {
+        "dates": [],
+        "designations": [],
+        "named": [
+          "INS Samarthak Reflects",
+          "Growing Role",
+          "Private Shipbuilding Industry"
+        ],
+        "quantities": []
+      },
+      "extraction_method": "deterministic-sentence-span",
+      "extractor_version": "defence-studio.claim-extractor.deterministic.v2",
+      "has_negation": false,
+      "is_explicit": true,
+      "normalized_language": "en",
+      "original_language": "en",
+      "passage": {
+        "artifact_uri": "jobs/ff16816c-7af1-477a-b5f7-888ebd42f21a/research/sources/26a9d035e38e459b0ac5a3df57aeaafaad658489/content.html",
+        "end_offset": 504,
+        "kind": "TEXT_SPAN",
+        "source_id": "26a9d035e38e459b0ac5a3df57aeaafaad658489",
+        "start_offset": 406,
+        "text": "\u201cINS Samarthak Reflects the Growing Role of India\u2019s Private Shipbuilding Industry\u201d: Vice-President",
+        "timestamp_end": null,
+        "timestamp_start": null
+      },
+      "qualifiers": [],
+      "source_id": "26a9d035e38e459b0ac5a3df57aeaafaad658489",
+      "source_published_at": "2026-10-16",
+      "warnings": [],
+      "assessment": {
+        "outcome": "SUPPORTED",
+        "policy_state": "AUTO_ACCEPTED",
+        "reasons": [
+          "substantive, topic-relevant, source usable, no uncertainty or dispute markers"
+        ],
+        "evidence": {
+          "assessment_basis": "Deterministic policy support and integrity checks; not verification of factual truth",
+          "assessment_outcome": "SUPPORTED",
+          "assessor_version": "deterministic-evidence-policy.v2",
+          "configuration_sha256": "52bd4b6574746d8ff9a3b39c60ecb909aa64913ba6fdd0d50a8fd60101f5df41",
+          "contradicting": [],
+          "default_configuration": true,
+          "passage": {
+            "end": 504,
+            "start": 406
+          },
+          "policy_criteria_failed": [
+            {
+              "action": "enable and acquire additional sources in config/source_policy.json that cover the topic",
+              "actual": 1,
+              "criterion": "min_accepted_sources",
+              "required": 2
+            }
+          ],
+          "readiness_policy": {
+            "_rationale": "Defaults chosen so a ~9-minute explainer (about 1,300 words, 7 required topics) has coverage across at least two independently owned sources; quantitative figures need two independent source groups. These are NOT taken from the core design (which sets no number) and are an owner policy decision.",
+            "min_accepted_claims": 8,
+            "min_accepted_sources": 2,
+            "require_source_publisher": true,
+            "required_source_categories_any": [
+              "RESEARCH_INSTITUTION",
+              "GOVERNMENT_OFFICIAL",
+              "OFFICIAL_TECHNICAL",
+              "INDEPENDENT_REPORTING"
+            ]
+          },
+          "registry_sha256": "61b1439b6ea3eb9733c7f8998992134fd9c669e411addb73a2ab0f98ca0d5ad8",
+          "source_id": "26a9d035e38e459b0ac5a3df57aeaafaad658489",
+          "supporting": [
+            {
+              "end": 504,
+              "source_id": "26a9d035e38e459b0ac5a3df57aeaafaad658489",
+              "start": 406
+            }
+          ]
+        },
+        "run_id": "ead139498bab5716",
+        "policy_version": "defence-studio.evidence-policy.v1",
+        "assessor_version": "deterministic-evidence-policy.v2",
+        "analysis_sha256": "c48015a7bc6a394c9b41f603feb1fe6fc2c1c2a802d1a161d47ac831837099c0",
+        "created_at": "2026-10-17T12:52:36.495201+00:00"
+      },
+      "has_conflict": false,
+      "review": null,
+      "review_status": "PENDING",
+      "is_stale": false,
+      "evidence_class": "unverified"
+    },
+    {
+      "acquisition_timestamp": "2026-10-17T09:55:20.901430+00:00",
+      "claim_id": "claim-71dc38bfc0ad1d72",
+      "claim_text": "\u201cKarwar Symbolises Both India\u2019s Glorious Maritime Heritage and Its Maritime Future\u201d: Vice-President",
+      "entities": {
+        "dates": [],
+        "designations": [],
+        "named": [
+          "Karwar Symbolises Both India",
+          "Glorious Maritime Heritage",
+          "Its Maritime Future"
+        ],
+        "quantities": []
+      },
+      "extraction_method": "deterministic-sentence-span",
+      "extractor_version": "defence-studio.claim-extractor.deterministic.v2",
+      "has_negation": false,
+      "is_explicit": true,
+      "normalized_language": "en",
+      "original_language": "en",
+      "passage": {
+        "artifact_uri": "jobs/ff16816c-7af1-477a-b5f7-888ebd42f21a/research/sources/26a9d035e38e459b0ac5a3df57aeaafaad658489/content.html",
+        "end_offset": 605,
+        "kind": "TEXT_SPAN",
+        "source_id": "26a9d035e38e459b0ac5a3df57aeaafaad658489",
+        "start_offset": 506,
+        "text": "\u201cKarwar Symbolises Both India\u2019s Glorious Maritime Heritage and Its Maritime Future\u201d: Vice-President",
+        "timestamp_end": null,
+        "timestamp_start": null
+      },
+      "qualifiers": [],
+      "source_id": "26a9d035e38e459b0ac5a3df57aeaafaad658489",
+      "source_published_at": "2026-10-16",
+      "warnings": [],
+      "assessment": {
+        "outcome": "INSUFFICIENT_EVIDENCE",
+        "policy_state": "REJECTED",
+        "reasons": [
+          "no topic anchor term: not self-contained (refers to the topic only by pronoun or context), so it is not used as standalone evidence"
+        ],
+        "evidence": {
+          "assessment_basis": "Deterministic policy support and integrity checks; not verification of factual truth",
+          "assessment_outcome": "INSUFFICIENT_EVIDENCE",
+          "assessor_version": "deterministic-evidence-policy.v2",
+          "configuration_sha256": "52bd4b6574746d8ff9a3b39c60ecb909aa64913ba6fdd0d50a8fd60101f5df41",
+          "contradicting": [],
+          "default_configuration": true,
+          "passage": {
+            "end": 605,
+            "start": 506
+          },
+          "policy_criteria_failed": [
+            {
+              "action": "enable and acquire additional sources in config/source_policy.json that cover the topic",
+              "actual": 1,
+              "criterion": "min_accepted_sources",
+              "required": 2
+            }
+          ],
+          "readiness_policy": {
+            "_rationale": "Defaults chosen so a ~9-minute explainer (about 1,300 words, 7 required topics) has coverage across at least two independently owned sources; quantitative figures need two independent source groups. These are NOT taken from the core design (which sets no number) and are an owner policy decision.",
+            "min_accepted_claims": 8,
+            "min_accepted_sources": 2,
+            "require_source_publisher": true,
+            "required_source_categories_any": [
+              "RESEARCH_INSTITUTION",
+              "GOVERNMENT_OFFICIAL",
+              "OFFICIAL_TECHNICAL",
+              "INDEPENDENT_REPORTING"
+            ]
+          },
+          "registry_sha256": "61b1439b6ea3eb9733c7f8998992134fd9c669e411addb73a2ab0f98ca0d5ad8",
+          "source_id": "26a9d035e38e459b0ac5a3df57aeaafaad658489",
+          "supporting": [
+            {
+              "end": 605,
+              "source_id": "26a9d035e38e459b0ac5a3df57aeaafaad658489",
+              "start": 506
+            }
+          ]
+        },
+        "run_id": "ead139498bab5716",
+        "policy_version": "defence-studio.evidence-policy.v1",
+        "assessor_version": "deterministic-evidence-policy.v2",
+        "analysis_sha256": "c48015a7bc6a394c9b41f603feb1fe6fc2c1c2a802d1a161d47ac831837099c0",
+        "created_at": "2026-10-17T12:52:36.495201+00:00"
+      },
+      "has_conflict": false,
+      "review": null,
+      "review_status": "PENDING",
+      "is_stale": false,
+      "evidence_class": "unverified"
+    },
+    {
+      "acquisition_timestamp": "2026-10-17T09:55:20.901430+00:00",
+      "claim_id": "claim-66580f8654497d93",
+      "claim_text": "The Vice-President of India, Shri C. P. Radhakrishnan, today commissioned INS Samarthak, the Indian Navy\u2019s first indigenous Multi-Purpose Vessel, at Karwar, Karnataka.",
+      "entities": {
+        "dates": [],
+        "designations": [],
+        "named": [
+          "The Vice",
+          "Shri C. P. Radhakrishnan",
+          "INS Samarthak",
+          "Indian Navy",
+          "Purpose Vessel"
+        ],
+        "quantities": []
+      },
+      "extraction_method": "deterministic-sentence-span",
+      "extractor_version": "defence-studio.claim-extractor.deterministic.v2",
+      "has_negation": false,
+      "is_explicit": true,
+      "normalized_language": "en",
+      "original_language": "en",
+      "passage": {
+        "artifact_uri": "jobs/ff16816c-7af1-477a-b5f7-888ebd42f21a/research/sources/26a9d035e38e459b0ac5a3df57aeaafaad658489/content.html",
+        "end_offset": 818,
+        "kind": "TEXT_SPAN",
+        "source_id": "26a9d035e38e459b0ac5a3df57aeaafaad658489",
+        "start_offset": 651,
+        "text": "The Vice-President of India, Shri C. P. Radhakrishnan, today commissioned INS Samarthak, the Indian Navy\u2019s first indigenous Multi-Purpose Vessel, at Karwar, Karnataka.",
+        "timestamp_end": null,
+        "timestamp_start": null
+      },
+      "qualifiers": [],
+      "source_id": "26a9d035e38e459b0ac5a3df57aeaafaad658489",
+      "source_published_at": "2026-10-16",
+      "warnings": [],
+      "assessment": {
+        "outcome": "SUPPORTED",
+        "policy_state": "AUTO_ACCEPTED",
+        "reasons": [
+          "substantive, topic-relevant, source usable, no uncertainty or dispute markers"
+        ],
+        "evidence": {
+          "assessment_basis": "Deterministic policy support and integrity checks; not verification of factual truth",
+          "assessment_outcome": "SUPPORTED",
+          "assessor_version": "deterministic-evidence-policy.v2",
+          "configuration_sha256": "52bd4b6574746d8ff9a3b39c60ecb909aa64913ba6fdd0d50a8fd60101f5df41",
+          "contradicting": [],
+          "default_configuration": true,
+          "passage": {
+            "end": 818,
+            "start": 651
+          },
+          "policy_criteria_failed": [
+            {
+              "action": "enable and acquire additional sources in config/source_policy.json that cover the topic",
+              "actual": 1,
+              "criterion": "min_accepted_sources",
+              "required": 2
+            }
+          ],
+          "readiness_policy": {
+            "_rationale": "Defaults chosen so a ~9-minute explainer (about 1,300 words, 7 required topics) has coverage across at least two independently owned sources; quantitative figures need two independent source groups. These are NOT taken from the core design (which sets no number) and are an owner policy decision.",
+            "min_accepted_claims": 8,
+            "min_accepted_sources": 2,
+            "require_source_publisher": true,
+            "required_source_categories_any": [
+              "RESEARCH_INSTITUTION",
+              "GOVERNMENT_OFFICIAL",
+              "OFFICIAL_TECHNICAL",
+              "INDEPENDENT_REPORTING"
+            ]
+          },
+          "registry_sha256": "61b1439b6ea3eb9733c7f8998992134fd9c669e411addb73a2ab0f98ca0d5ad8",
+          "source_id": "26a9d035e38e459b0ac5a3df57aeaafaad658489",
+          "supporting": [
+            {
+              "end": 818,
+              "source_id": "26a9d035e38e459b0ac5a3df57aeaafaad658489",
+              "start": 651
+            }
+          ]
+        },
+        "run_id": "ead139498bab5716",
+        "policy_version": "defence-studio.evidence-policy.v1",
+        "assessor_version": "deterministic-evidence-policy.v2",
+        "analysis_sha256": "c48015a7bc6a394c9b41f603feb1fe6fc2c1c2a802d1a161d47ac831837099c0",
+        "created_at": "2026-10-17T12:52:36.495201+00:00"
+      },
+      "has_conflict": false,
+      "review": null,
+      "review_status": "PENDING",
+      "is_stale": false,
+      "evidence_class": "unverified"
+    },
+    {
+      "acquisition_timestamp": "2026-10-17T09:55:20.901430+00:00",
+      "claim_id": "claim-6a5ae50900eb551e",
+      "claim_text": "Vice-President Shri C. P. Radhakrishnan today commissioned INS Samarthak, the Indian Navy\u2019s first indigenous Multi-Purpose Vessel, at Karwar, Karnataka.",
+      "entities": {
+        "dates": [],
+        "designations": [],
+        "named": [
+          "President Shri C. P. Radhakrishnan",
+          "INS Samarthak",
+          "Indian Navy",
+          "Purpose Vessel"
+        ],
+        "quantities": []
+      },
+      "extraction_method": "deterministic-sentence-span",
+      "extractor_version": "defence-studio.claim-extractor.deterministic.v2",
+      "has_negation": false,
+      "is_explicit": true,
+      "normalized_language": "en",
+      "original_language": "en",
+      "passage": {
+        "artifact_uri": "jobs/ff16816c-7af1-477a-b5f7-888ebd42f21a/research/sources/26a9d035e38e459b0ac5a3df57aeaafaad658489/content.html",
+        "end_offset": 1149,
+        "kind": "TEXT_SPAN",
+        "source_id": "26a9d035e38e459b0ac5a3df57aeaafaad658489",
+        "start_offset": 997,
+        "text": "Vice-President Shri C. P. Radhakrishnan today commissioned INS Samarthak, the Indian Navy\u2019s first indigenous Multi-Purpose Vessel, at Karwar, Karnataka.",
+        "timestamp_end": null,
+        "timestamp_start": null
+      },
+      "qualifiers": [],
+      "source_id": "26a9d035e38e459b0ac5a3df57aeaafaad658489",
+      "source_published_at": "2026-10-16",
+      "warnings": [],
+      "assessment": {
+        "outcome": "SUPPORTED",
+        "policy_state": "AUTO_ACCEPTED",
+        "reasons": [
+          "substantive, topic-relevant, source usable, no uncertainty or dispute markers"
+        ],
+        "evidence": {
+          "assessment_basis": "Deterministic policy support and integrity checks; not verification of factual truth",
+          "assessment_outcome": "SUPPORTED",
+          "assessor_version": "deterministic-evidence-policy.v2",
+          "configuration_sha256": "52bd4b6574746d8ff9a3b39c60ecb909aa64913ba6fdd0d50a8fd60101f5df41",
+          "contradicting": [],
+          "default_configuration": true,
+          "passage": {
+            "end": 1149,
+            "start": 997
+          },
+          "policy_criteria_failed": [
+            {
+              "action": "enable and acquire additional sources in config/source_policy.json that cover the topic",
+              "actual": 1,
+              "criterion": "min_accepted_sources",
+              "required": 2
+            }
+          ],
+          "readiness_policy": {
+            "_rationale": "Defaults chosen so a ~9-minute explainer (about 1,300 words, 7 required topics) has coverage across at least two independently owned sources; quantitative figures need two independent source groups. These are NOT taken from the core design (which sets no number) and are an owner policy decision.",
+            "min_accepted_claims": 8,
+            "min_accepted_sources": 2,
+            "require_source_publisher": true,
+            "required_source_categories_any": [
+              "RESEARCH_INSTITUTION",
+              "GOVERNMENT_OFFICIAL",
+              "OFFICIAL_TECHNICAL",
+              "INDEPENDENT_REPORTING"
+            ]
+          },
+          "registry_sha256": "61b1439b6ea3eb9733c7f8998992134fd9c669e411addb73a2ab0f98ca0d5ad8",
+          "source_id": "26a9d035e38e459b0ac5a3df57aeaafaad658489",
+          "supporting": [
+            {
+              "end": 1149,
+              "source_id": "26a9d035e38e459b0ac5a3df57aeaafaad658489",
+              "start": 997
+            }
+          ]
+        },
+        "run_id": "ead139498bab5716",
+        "policy_version": "defence-studio.evidence-policy.v1",
+        "assessor_version": "deterministic-evidence-policy.v2",
+        "analysis_sha256": "c48015a7bc6a394c9b41f603feb1fe6fc2c1c2a802d1a161d47ac831837099c0",
+        "created_at": "2026-10-17T12:52:36.495201+00:00"
+      },
+      "has_conflict": false,
+      "review": null,
+      "review_status": "PENDING",
+      "is_stale": false,
+      "evidence_class": "unverified"
+    },
+    {
+      "acquisition_timestamp": "2026-10-17T09:55:20.901430+00:00",
+      "claim_id": "claim-4934f59c0c701dc4",
+      "claim_text": "With over 75% indigenous content, INS Samarthak reflects India\u2019s growing self-reliance in defence manufacturing and will support trials of next-generation weapons, sensors and unmanned systems.",
+      "entities": {
+        "dates": [],
+        "designations": [],
+        "named": [
+          "INS Samarthak"
+        ],
+        "quantities": []
+      },
+      "extraction_method": "deterministic-sentence-span",
+      "extractor_version": "defence-studio.claim-extractor.deterministic.v2",
+      "has_negation": false,
+      "is_explicit": true,
+      "normalized_language": "en",
+      "original_language": "en",
+      "passage": {
+        "artifact_uri": "jobs/ff16816c-7af1-477a-b5f7-888ebd42f21a/research/sources/26a9d035e38e459b0ac5a3df57aeaafaad658489/content.html",
+        "end_offset": 1344,
+        "kind": "TEXT_SPAN",
+        "source_id": "26a9d035e38e459b0ac5a3df57aeaafaad658489",
+        "start_offset": 1151,
+        "text": "With over 75% indigenous content, INS Samarthak reflects India\u2019s growing self-reliance in defence manufacturing and will support trials of next-generation weapons, sensors and unmanned systems.",
+        "timestamp_end": null,
+        "timestamp_start": null
+      },
+      "qualifiers": [],
+      "source_id": "26a9d035e38e459b0ac5a3df57aeaafaad658489",
+      "source_published_at": "2026-10-16",
+      "warnings": [],
+      "assessment": {
+        "outcome": "SUPPORTED",
+        "policy_state": "AUTO_ACCEPTED",
+        "reasons": [
+          "substantive, topic-relevant, source usable, no uncertainty or dispute markers"
+        ],
+        "evidence": {
+          "assessment_basis": "Deterministic policy support and integrity checks; not verification of factual truth",
+          "assessment_outcome": "SUPPORTED",
+          "assessor_version": "deterministic-evidence-policy.v2",
+          "configuration_sha256": "52bd4b6574746d8ff9a3b39c60ecb909aa64913ba6fdd0d50a8fd60101f5df41",
+          "contradicting": [],
+          "default_configuration": true,
+          "passage": {
+            "end": 1344,
+            "start": 1151
+          },
+          "policy_criteria_failed": [
+            {
+              "action": "enable and acquire additional sources in config/source_policy.json that cover the topic",
+              "actual": 1,
+              "criterion": "min_accepted_sources",
+              "required": 2
+            }
+          ],
+          "readiness_policy": {
+            "_rationale": "Defaults chosen so a ~9-minute explainer (about 1,300 words, 7 required topics) has coverage across at least two independently owned sources; quantitative figures need two independent source groups. These are NOT taken from the core design (which sets no number) and are an owner policy decision.",
+            "min_accepted_claims": 8,
+            "min_accepted_sources": 2,
+            "require_source_publisher": true,
+            "required_source_categories_any": [
+              "RESEARCH_INSTITUTION",
+              "GOVERNMENT_OFFICIAL",
+              "OFFICIAL_TECHNICAL",
+              "INDEPENDENT_REPORTING"
+            ]
+          },
+          "registry_sha256": "61b1439b6ea3eb9733c7f8998992134fd9c669e411addb73a2ab0f98ca0d5ad8",
+          "source_id": "26a9d035e38e459b0ac5a3df57aeaafaad658489",
+          "supporting": [
+            {
+              "end": 1344,
+              "source_id": "26a9d035e38e459b0ac5a3df57aeaafaad658489",
+              "start": 1151
+            }
+          ]
+        },
+        "run_id": "ead139498bab5716",
+        "policy_version": "defence-studio.evidence-policy.v1",
+        "assessor_version": "deterministic-evidence-policy.v2",
+        "analysis_sha256": "c48015a7bc6a394c9b41f603feb1fe6fc2c1c2a802d1a161d47ac831837099c0",
+        "created_at": "2026-10-17T12:52:36.495201+00:00"
+      },
+      "has_conflict": false,
+      "review": null,
+      "review_status": "PENDING",
+      "is_stale": false,
+      "evidence_class": "unverified"
+    },
+    {
+      "acquisition_timestamp": "2026-10-17T09:55:20.901430+00:00",
+      "claim_id": "claim-8737780747cf021e",
+      "claim_text": "Addressing the gathering, the Vice-President said that INS Samarthak, with more than 75 per cent indigenous content, reflects the growing strength of India\u2019s industrial, technological and shipbuilding capabilities.",
+      "entities": {
+        "dates": [],
+        "designations": [],
+        "named": [
+          "INS Samarthak"
+        ],
+        "quantities": []
+      },
+      "extraction_method": "deterministic-sentence-span",
+      "extractor_version": "defence-studio.claim-extractor.deterministic.v2",
+      "has_negation": false,
+      "is_explicit": true,
+      "normalized_language": "en",
+      "original_language": "en",
+      "passage": {
+        "artifact_uri": "jobs/ff16816c-7af1-477a-b5f7-888ebd42f21a/research/sources/26a9d035e38e459b0ac5a3df57aeaafaad658489/content.html",
+        "end_offset": 1714,
+        "kind": "TEXT_SPAN",
+        "source_id": "26a9d035e38e459b0ac5a3df57aeaafaad658489",
+        "start_offset": 1500,
+        "text": "Addressing the gathering, the Vice-President said that INS Samarthak, with more than 75 per cent indigenous content, reflects the growing strength of India\u2019s industrial, technological and shipbuilding capabilities.",
+        "timestamp_end": null,
+        "timestamp_start": null
+      },
+      "qualifiers": [],
+      "source_id": "26a9d035e38e459b0ac5a3df57aeaafaad658489",
+      "source_published_at": "2026-10-16",
+      "warnings": [],
+      "assessment": {
+        "outcome": "SUPPORTED",
+        "policy_state": "AUTO_ACCEPTED",
+        "reasons": [
+          "substantive, topic-relevant, source usable, no uncertainty or dispute markers"
+        ],
+        "evidence": {
+          "assessment_basis": "Deterministic policy support and integrity checks; not verification of factual truth",
+          "assessment_outcome": "SUPPORTED",
+          "assessor_version": "deterministic-evidence-policy.v2",
+          "configuration_sha256": "52bd4b6574746d8ff9a3b39c60ecb909aa64913ba6fdd0d50a8fd60101f5df41",
+          "contradicting": [],
+          "default_configuration": true,
+          "passage": {
+            "end": 1714,
+            "start": 1500
+          },
+          "policy_criteria_failed": [
+            {
+              "action": "enable and acquire additional sources in config/source_policy.json that cover the topic",
+              "actual": 1,
+              "criterion": "min_accepted_sources",
+              "required": 2
+            }
+          ],
+          "readiness_policy": {
+            "_rationale": "Defaults chosen so a ~9-minute explainer (about 1,300 words, 7 required topics) has coverage across at least two independently owned sources; quantitative figures need two independent source groups. These are NOT taken from the core design (which sets no number) and are an owner policy decision.",
+            "min_accepted_claims": 8,
+            "min_accepted_sources": 2,
+            "require_source_publisher": true,
+            "required_source_categories_any": [
+              "RESEARCH_INSTITUTION",
+              "GOVERNMENT_OFFICIAL",
+              "OFFICIAL_TECHNICAL",
+              "INDEPENDENT_REPORTING"
+            ]
+          },
+          "registry_sha256": "61b1439b6ea3eb9733c7f8998992134fd9c669e411addb73a2ab0f98ca0d5ad8",
+          "source_id": "26a9d035e38e459b0ac5a3df57aeaafaad658489",
+          "supporting": [
+            {
+              "end": 1714,
+              "source_id": "26a9d035e38e459b0ac5a3df57aeaafaad658489",
+              "start": 1500
+            }
+          ]
+        },
+        "run_id": "ead139498bab5716",
+        "policy_version": "defence-studio.evidence-policy.v1",
+        "assessor_version": "deterministic-evidence-policy.v2",
+        "analysis_sha256": "c48015a7bc6a394c9b41f603feb1fe6fc2c1c2a802d1a161d47ac831837099c0",
+        "created_at": "2026-10-17T12:52:36.495201+00:00"
+      },
+      "has_conflict": false,
+      "review": null,
+      "review_status": "PENDING",
+      "is_stale": false,
+      "evidence_class": "unverified"
+    },
+    {
+      "acquisition_timestamp": "2026-10-17T09:55:20.901430+00:00",
+      "claim_id": "claim-68a2321422174c42",
+      "claim_text": "He observed that self-reliance in defence is no longer merely an aspiration but an emerging reality, contributing to India\u2019s strategic autonomy and the vision of a Viksit and Aatmanirbhar Bharat articulated by Prime Minister Shri Narendra Modi.",
+      "entities": {
+        "dates": [],
+        "designations": [],
+        "named": [
+          "Aatmanirbhar Bharat",
+          "Prime Minister Shri Narendra Modi"
+        ],
+        "quantities": []
+      },
+      "extraction_method": "deterministic-sentence-span",
+      "extractor_version": "defence-studio.claim-extractor.deterministic.v2",
+      "has_negation": true,
+      "is_explicit": true,
+      "normalized_language": "en",
+      "original_language": "en",
+      "passage": {
+        "artifact_uri": "jobs/ff16816c-7af1-477a-b5f7-888ebd42f21a/research/sources/26a9d035e38e459b0ac5a3df57aeaafaad658489/content.html",
+        "end_offset": 1959,
+        "kind": "TEXT_SPAN",
+        "source_id": "26a9d035e38e459b0ac5a3df57aeaafaad658489",
+        "start_offset": 1715,
+        "text": "He observed that self-reliance in defence is no longer merely an aspiration but an emerging reality, contributing to India\u2019s strategic autonomy and the vision of a Viksit and Aatmanirbhar Bharat articulated by Prime Minister Shri Narendra Modi.",
+        "timestamp_end": null,
+        "timestamp_start": null
+      },
+      "qualifiers": [],
+      "source_id": "26a9d035e38e459b0ac5a3df57aeaafaad658489",
+      "source_published_at": "2026-10-16",
+      "warnings": [
+        "Statement contains a negation; preserve polarity in review."
+      ],
+      "assessment": {
+        "outcome": "INSUFFICIENT_EVIDENCE",
+        "policy_state": "REJECTED",
+        "reasons": [
+          "no topic anchor term: not self-contained (refers to the topic only by pronoun or context), so it is not used as standalone evidence"
+        ],
+        "evidence": {
+          "assessment_basis": "Deterministic policy support and integrity checks; not verification of factual truth",
+          "assessment_outcome": "INSUFFICIENT_EVIDENCE",
+          "assessor_version": "deterministic-evidence-policy.v2",
+          "configuration_sha256": "52bd4b6574746d8ff9a3b39c60ecb909aa64913ba6fdd0d50a8fd60101f5df41",
+          "contradicting": [],
+          "default_configuration": true,
+          "passage": {
+            "end": 1959,
+            "start": 1715
+          },
+          "policy_criteria_failed": [
+            {
+              "action": "enable and acquire additional sources in config/source_policy.json that cover the topic",
+              "actual": 1,
+              "criterion": "min_accepted_sources",
+              "required": 2
+            }
+          ],
+          "readiness_policy": {
+            "_rationale": "Defaults chosen so a ~9-minute explainer (about 1,300 words, 7 required topics) has coverage across at least two independently owned sources; quantitative figures need two independent source groups. These are NOT taken from the core design (which sets no number) and are an owner policy decision.",
+            "min_accepted_claims": 8,
+            "min_accepted_sources": 2,
+            "require_source_publisher": true,
+            "required_source_categories_any": [
+              "RESEARCH_INSTITUTION",
+              "GOVERNMENT_OFFICIAL",
+              "OFFICIAL_TECHNICAL",
+              "INDEPENDENT_REPORTING"
+            ]
+          },
+          "registry_sha256": "61b1439b6ea3eb9733c7f8998992134fd9c669e411addb73a2ab0f98ca0d5ad8",
+          "source_id": "26a9d035e38e459b0ac5a3df57aeaafaad658489",
+          "supporting": [
+            {
+              "end": 1959,
+              "source_id": "26a9d035e38e459b0ac5a3df57aeaafaad658489",
+              "start": 1715
+            }
+          ]
+        },
+        "run_id": "ead139498bab5716",
+        "policy_version": "defence-studio.evidence-policy.v1",
+        "assessor_version": "deterministic-evidence-policy.v2",
+        "analysis_sha256": "c48015a7bc6a394c9b41f603feb1fe6fc2c1c2a802d1a161d47ac831837099c0",
+        "created_at": "2026-10-17T12:52:36.495201+00:00"
+      },
+      "has_conflict": false,
+      "review": null,
+      "review_status": "PENDING",
+      "is_stale": false,
+      "evidence_class": "unverified"
+    },
+    {
+      "acquisition_timestamp": "2026-10-17T09:55:20.901430+00:00",
+      "claim_id": "claim-f0a46d903bb8af57",
+      "claim_text": "Highlighting India\u2019s rich maritime heritage, Shri C. P. Radhakrishnan recalled the naval traditions of Chhatrapati Shivaji Maharaj and the Chola dynasty, which extended India\u2019s maritime influence across the Indian Ocean and Southeast Asia.",
+      "entities": {
+        "dates": [],
+        "designations": [],
+        "named": [
+          "Highlighting India",
+          "Shri C. P. Radhakrishnan",
+          "Chhatrapati Shivaji Maharaj",
+          "Indian Ocean",
+          "Southeast Asia"
+        ],
+        "quantities": []
+      },
+      "extraction_method": "deterministic-sentence-span",
+      "extractor_version": "defence-studio.claim-extractor.deterministic.v2",
+      "has_negation": false,
+      "is_explicit": true,
+      "normalized_language": "en",
+      "original_language": "en",
+      "passage": {
+        "artifact_uri": "jobs/ff16816c-7af1-477a-b5f7-888ebd42f21a/research/sources/26a9d035e38e459b0ac5a3df57aeaafaad658489/content.html",
+        "end_offset": 2200,
+        "kind": "TEXT_SPAN",
+        "source_id": "26a9d035e38e459b0ac5a3df57aeaafaad658489",
+        "start_offset": 1961,
+        "text": "Highlighting India\u2019s rich maritime heritage, Shri C. P. Radhakrishnan recalled the naval traditions of Chhatrapati Shivaji Maharaj and the Chola dynasty, which extended India\u2019s maritime influence across the Indian Ocean and Southeast Asia.",
+        "timestamp_end": null,
+        "timestamp_start": null
+      },
+      "qualifiers": [],
+      "source_id": "26a9d035e38e459b0ac5a3df57aeaafaad658489",
+      "source_published_at": "2026-10-16",
+      "warnings": [],
+      "assessment": {
+        "outcome": "INSUFFICIENT_EVIDENCE",
+        "policy_state": "REJECTED",
+        "reasons": [
+          "no topic anchor term: not self-contained (refers to the topic only by pronoun or context), so it is not used as standalone evidence"
+        ],
+        "evidence": {
+          "assessment_basis": "Deterministic policy support and integrity checks; not verification of factual truth",
+          "assessment_outcome": "INSUFFICIENT_EVIDENCE",
+          "assessor_version": "deterministic-evidence-policy.v2",
+          "configuration_sha256": "52bd4b6574746d8ff9a3b39c60ecb909aa64913ba6fdd0d50a8fd60101f5df41",
+          "contradicting": [],
+          "default_configuration": true,
+          "passage": {
+            "end": 2200,
+            "start": 1961
+          },
+          "policy_criteria_failed": [
+            {
+              "action": "enable and acquire additional sources in config/source_policy.json that cover the topic",
+              "actual": 1,
+              "criterion": "min_accepted_sources",
+              "required": 2
+            }
+          ],
+          "readiness_policy": {
+            "_rationale": "Defaults chosen so a ~9-minute explainer (about 1,300 words, 7 required topics) has coverage across at least two independently owned sources; quantitative figures need two independent source groups. These are NOT taken from the core design (which sets no number) and are an owner policy decision.",
+            "min_accepted_claims": 8,
+            "min_accepted_sources": 2,
+            "require_source_publisher": true,
+            "required_source_categories_any": [
+              "RESEARCH_INSTITUTION",
+              "GOVERNMENT_OFFICIAL",
+              "OFFICIAL_TECHNICAL",
+              "INDEPENDENT_REPORTING"
+            ]
+          },
+          "registry_sha256": "61b1439b6ea3eb9733c7f8998992134fd9c669e411addb73a2ab0f98ca0d5ad8",
+          "source_id": "26a9d035e38e459b0ac5a3df57aeaafaad658489",
+          "supporting": [
+            {
+              "end": 2200,
+              "source_id": "26a9d035e38e459b0ac5a3df57aeaafaad658489",
+              "start": 1961
+            }
+          ]
+        },
+        "run_id": "ead139498bab5716",
+        "policy_version": "defence-studio.evidence-policy.v1",
+        "assessor_version": "deterministic-evidence-policy.v2",
+        "analysis_sha256": "c48015a7bc6a394c9b41f603feb1fe6fc2c1c2a802d1a161d47ac831837099c0",
+        "created_at": "2026-10-17T12:52:36.495201+00:00"
+      },
+      "has_conflict": false,
+      "review": null,
+      "review_status": "PENDING",
+      "is_stale": false,
+      "evidence_class": "unverified"
+    },
+    {
+      "acquisition_timestamp": "2026-10-17T09:55:20.901430+00:00",
+      "claim_id": "claim-f320408b586cba3f",
+      "claim_text": "Highlighting the significance of INS Samarthak, the Vice-President said that the vessel will serve as a versatile platform for trials and evaluation of next-generation weapons, sensors and emerging technologies.",
+      "entities": {
+        "dates": [],
+        "designations": [],
+        "named": [
+          "INS Samarthak"
+        ],
+        "quantities": []
+      },
+      "extraction_method": "deterministic-sentence-span",
+      "extractor_version": "defence-studio.claim-extractor.deterministic.v2",
+      "has_negation": false,
+      "is_explicit": true,
+      "normalized_language": "en",
+      "original_language": "en",
+      "passage": {
+        "artifact_uri": "jobs/ff16816c-7af1-477a-b5f7-888ebd42f21a/research/sources/26a9d035e38e459b0ac5a3df57aeaafaad658489/content.html",
+        "end_offset": 2787,
+        "kind": "TEXT_SPAN",
+        "source_id": "26a9d035e38e459b0ac5a3df57aeaafaad658489",
+        "start_offset": 2576,
+        "text": "Highlighting the significance of INS Samarthak, the Vice-President said that the vessel will serve as a versatile platform for trials and evaluation of next-generation weapons, sensors and emerging technologies.",
+        "timestamp_end": null,
+        "timestamp_start": null
+      },
+      "qualifiers": [],
+      "source_id": "26a9d035e38e459b0ac5a3df57aeaafaad658489",
+      "source_published_at": "2026-10-16",
+      "warnings": [],
+      "assessment": {
+        "outcome": "SUPPORTED",
+        "policy_state": "AUTO_ACCEPTED",
+        "reasons": [
+          "substantive, topic-relevant, source usable, no uncertainty or dispute markers"
+        ],
+        "evidence": {
+          "assessment_basis": "Deterministic policy support and integrity checks; not verification of factual truth",
+          "assessment_outcome": "SUPPORTED",
+          "assessor_version": "deterministic-evidence-policy.v2",
+          "configuration_sha256": "52bd4b6574746d8ff9a3b39c60ecb909aa64913ba6fdd0d50a8fd60101f5df41",
+          "contradicting": [],
+          "default_configuration": true,
+          "passage": {
+            "end": 2787,
+            "start": 2576
+          },
+          "policy_criteria_failed": [
+            {
+              "action": "enable and acquire additional sources in config/source_policy.json that cover the topic",
+              "actual": 1,
+              "criterion": "min_accepted_sources",
+              "required": 2
+            }
+          ],
+          "readiness_policy": {
+            "_rationale": "Defaults chosen so a ~9-minute explainer (about 1,300 words, 7 required topics) has coverage across at least two independently owned sources; quantitative figures need two independent source groups. These are NOT taken from the core design (which sets no number) and are an owner policy decision.",
+            "min_accepted_claims": 8,
+            "min_accepted_sources": 2,
+            "require_source_publisher": true,
+            "required_source_categories_any": [
+              "RESEARCH_INSTITUTION",
+              "GOVERNMENT_OFFICIAL",
+              "OFFICIAL_TECHNICAL",
+              "INDEPENDENT_REPORTING"
+            ]
+          },
+          "registry_sha256": "61b1439b6ea3eb9733c7f8998992134fd9c669e411addb73a2ab0f98ca0d5ad8",
+          "source_id": "26a9d035e38e459b0ac5a3df57aeaafaad658489",
+          "supporting": [
+            {
+              "end": 2787,
+              "source_id": "26a9d035e38e459b0ac5a3df57aeaafaad658489",
+              "start": 2576
+            }
+          ]
+        },
+        "run_id": "ead139498bab5716",
+        "policy_version": "defence-studio.evidence-policy.v1",
+        "assessor_version": "deterministic-evidence-policy.v2",
+        "analysis_sha256": "c48015a7bc6a394c9b41f603feb1fe6fc2c1c2a802d1a161d47ac831837099c0",
+        "created_at": "2026-10-17T12:52:36.495201+00:00"
+      },
+      "has_conflict": false,
+      "review": null,
+      "review_status": "PENDING",
+      "is_stale": false,
+      "evidence_class": "unverified"
+    },
+    {
+      "acquisition_timestamp": "2026-10-17T09:55:20.901430+00:00",
+      "claim_id": "claim-4767d2d26611ed44",
+      "claim_text": "Referring to Karwar\u2019s strategic importance, Shri C. P. Radhakrishnan said that its deep natural harbour and proximity to the Arabian Sea make it a vital component of India\u2019s maritime security architecture.",
+      "entities": {
+        "dates": [],
+        "designations": [],
+        "named": [
+          "Shri C. P. Radhakrishnan",
+          "Arabian Sea"
+        ],
+        "quantities": []
+      },
+      "extraction_method": "deterministic-sentence-span",
+      "extractor_version": "defence-studio.claim-extractor.deterministic.v2",
+      "has_negation": false,
+      "is_explicit": true,
+      "normalized_language": "en",
+      "original_language": "en",
+      "passage": {
+        "artifact_uri": "jobs/ff16816c-7af1-477a-b5f7-888ebd42f21a/research/sources/26a9d035e38e459b0ac5a3df57aeaafaad658489/content.html",
+        "end_offset": 3395,
+        "kind": "TEXT_SPAN",
+        "source_id": "26a9d035e38e459b0ac5a3df57aeaafaad658489",
+        "start_offset": 3190,
+        "text": "Referring to Karwar\u2019s strategic importance, Shri C. P. Radhakrishnan said that its deep natural harbour and proximity to the Arabian Sea make it a vital component of India\u2019s maritime security architecture.",
+        "timestamp_end": null,
+        "timestamp_start": null
+      },
+      "qualifiers": [],
+      "source_id": "26a9d035e38e459b0ac5a3df57aeaafaad658489",
+      "source_published_at": "2026-10-16",
+      "warnings": [],
+      "assessment": {
+        "outcome": "INSUFFICIENT_EVIDENCE",
+        "policy_state": "REJECTED",
+        "reasons": [
+          "no topic anchor term: not self-contained (refers to the topic only by pronoun or context), so it is not used as standalone evidence"
+        ],
+        "evidence": {
+          "assessment_basis": "Deterministic policy support and integrity checks; not verification of factual truth",
+          "assessment_outcome": "INSUFFICIENT_EVIDENCE",
+          "assessor_version": "deterministic-evidence-policy.v2",
+          "configuration_sha256": "52bd4b6574746d8ff9a3b39c60ecb909aa64913ba6fdd0d50a8fd60101f5df41",
+          "contradicting": [],
+          "default_configuration": true,
+          "passage": {
+            "end": 3395,
+            "start": 3190
+          },
+          "policy_criteria_failed": [
+            {
+              "action": "enable and acquire additional sources in config/source_policy.json that cover the topic",
+              "actual": 1,
+              "criterion": "min_accepted_sources",
+              "required": 2
+            }
+          ],
+          "readiness_policy": {
+            "_rationale": "Defaults chosen so a ~9-minute explainer (about 1,300 words, 7 required topics) has coverage across at least two independently owned sources; quantitative figures need two independent source groups. These are NOT taken from the core design (which sets no number) and are an owner policy decision.",
+            "min_accepted_claims": 8,
+            "min_accepted_sources": 2,
+            "require_source_publisher": true,
+            "required_source_categories_any": [
+              "RESEARCH_INSTITUTION",
+              "GOVERNMENT_OFFICIAL",
+              "OFFICIAL_TECHNICAL",
+              "INDEPENDENT_REPORTING"
+            ]
+          },
+          "registry_sha256": "61b1439b6ea3eb9733c7f8998992134fd9c669e411addb73a2ab0f98ca0d5ad8",
+          "source_id": "26a9d035e38e459b0ac5a3df57aeaafaad658489",
+          "supporting": [
+            {
+              "end": 3395,
+              "source_id": "26a9d035e38e459b0ac5a3df57aeaafaad658489",
+              "start": 3190
+            }
+          ]
+        },
+        "run_id": "ead139498bab5716",
+        "policy_version": "defence-studio.evidence-policy.v1",
+        "assessor_version": "deterministic-evidence-policy.v2",
+        "analysis_sha256": "c48015a7bc6a394c9b41f603feb1fe6fc2c1c2a802d1a161d47ac831837099c0",
+        "created_at": "2026-10-17T12:52:36.495201+00:00"
+      },
+      "has_conflict": false,
+      "review": null,
+      "review_status": "PENDING",
+      "is_stale": false,
+      "evidence_class": "unverified"
+    },
+    {
+      "acquisition_timestamp": "2026-10-17T09:55:20.901430+00:00",
+      "claim_id": "claim-1ddb6ee7cf576f5c",
+      "claim_text": "The Vice-President also underscored the growing partnership between the Indian Navy, defence public sector undertakings, private shipyards, DRDO, academia, MSMEs and start-ups in strengthening India\u2019s defence manufacturing ecosystem.",
+      "entities": {
+        "dates": [],
+        "designations": [],
+        "named": [
+          "The Vice",
+          "Indian Navy",
+          "DRDO"
+        ],
+        "quantities": []
+      },
+      "extraction_method": "deterministic-sentence-span",
+      "extractor_version": "defence-studio.claim-extractor.deterministic.v2",
+      "has_negation": false,
+      "is_explicit": true,
+      "normalized_language": "en",
+      "original_language": "en",
+      "passage": {
+        "artifact_uri": "jobs/ff16816c-7af1-477a-b5f7-888ebd42f21a/research/sources/26a9d035e38e459b0ac5a3df57aeaafaad658489/content.html",
+        "end_offset": 3865,
+        "kind": "TEXT_SPAN",
+        "source_id": "26a9d035e38e459b0ac5a3df57aeaafaad658489",
+        "start_offset": 3632,
+        "text": "The Vice-President also underscored the growing partnership between the Indian Navy, defence public sector undertakings, private shipyards, DRDO, academia, MSMEs and start-ups in strengthening India\u2019s defence manufacturing ecosystem.",
+        "timestamp_end": null,
+        "timestamp_start": null
+      },
+      "qualifiers": [],
+      "source_id": "26a9d035e38e459b0ac5a3df57aeaafaad658489",
+      "source_published_at": "2026-10-16",
+      "warnings": [],
+      "assessment": {
+        "outcome": "INSUFFICIENT_EVIDENCE",
+        "policy_state": "REJECTED",
+        "reasons": [
+          "no topic anchor term: not self-contained (refers to the topic only by pronoun or context), so it is not used as standalone evidence"
+        ],
+        "evidence": {
+          "assessment_basis": "Deterministic policy support and integrity checks; not verification of factual truth",
+          "assessment_outcome": "INSUFFICIENT_EVIDENCE",
+          "assessor_version": "deterministic-evidence-policy.v2",
+          "configuration_sha256": "52bd4b6574746d8ff9a3b39c60ecb909aa64913ba6fdd0d50a8fd60101f5df41",
+          "contradicting": [],
+          "default_configuration": true,
+          "passage": {
+            "end": 3865,
+            "start": 3632
+          },
+          "policy_criteria_failed": [
+            {
+              "action": "enable and acquire additional sources in config/source_policy.json that cover the topic",
+              "actual": 1,
+              "criterion": "min_accepted_sources",
+              "required": 2
+            }
+          ],
+          "readiness_policy": {
+            "_rationale": "Defaults chosen so a ~9-minute explainer (about 1,300 words, 7 required topics) has coverage across at least two independently owned sources; quantitative figures need two independent source groups. These are NOT taken from the core design (which sets no number) and are an owner policy decision.",
+            "min_accepted_claims": 8,
+            "min_accepted_sources": 2,
+            "require_source_publisher": true,
+            "required_source_categories_any": [
+              "RESEARCH_INSTITUTION",
+              "GOVERNMENT_OFFICIAL",
+              "OFFICIAL_TECHNICAL",
+              "INDEPENDENT_REPORTING"
+            ]
+          },
+          "registry_sha256": "61b1439b6ea3eb9733c7f8998992134fd9c669e411addb73a2ab0f98ca0d5ad8",
+          "source_id": "26a9d035e38e459b0ac5a3df57aeaafaad658489",
+          "supporting": [
+            {
+              "end": 3865,
+              "source_id": "26a9d035e38e459b0ac5a3df57aeaafaad658489",
+              "start": 3632
+            }
+          ]
+        },
+        "run_id": "ead139498bab5716",
+        "policy_version": "defence-studio.evidence-policy.v1",
+        "assessor_version": "deterministic-evidence-policy.v2",
+        "analysis_sha256": "c48015a7bc6a394c9b41f603feb1fe6fc2c1c2a802d1a161d47ac831837099c0",
+        "created_at": "2026-10-17T12:52:36.495201+00:00"
+      },
+      "has_conflict": false,
+      "review": null,
+      "review_status": "PENDING",
+      "is_stale": false,
+      "evidence_class": "unverified"
+    },
+    {
+      "acquisition_timestamp": "2026-10-17T09:55:20.901430+00:00",
+      "claim_id": "claim-b14ad3fdbc9f70d9",
+      "claim_text": "Admiral Krishna Swaminathan, Chief of the Naval Staff; Vice-Admiral Sanjay Vatsayan, Flag Officer Commanding-in-Chief; Vice-Admiral Sanjay Sadhu, Controller Warship Production and Acquisition; Rear Admiral Vikram Menon, Flag Officer (Karnataka); retired Rear Admiral G. K. Harish, Head of Shipbuilding, L&T; Commander Sushil Kumar Singh, Commanding Officer of INS Samarthak; senior officers of the Indian Navy and Ministry of Defence, and other distinguished guests were present on the occasion.",
+      "entities": {
+        "dates": [],
+        "designations": [],
+        "named": [
+          "Admiral Krishna Swaminathan",
+          "Naval Staff",
+          "Admiral Sanjay Vatsayan",
+          "Flag Officer Commanding",
+          "Admiral Sanjay Sadhu",
+          "Controller Warship Production",
+          "Rear Admiral Vikram Menon",
+          "Flag Officer",
+          "Rear Admiral G. K. Harish",
+          "Commander Sushil Kumar Singh",
+          "Commanding Officer",
+          "INS Samarthak",
+          "Indian Navy"
+        ],
+        "quantities": []
+      },
+      "extraction_method": "deterministic-sentence-span",
+      "extractor_version": "defence-studio.claim-extractor.deterministic.v2",
+      "has_negation": false,
+      "is_explicit": true,
+      "normalized_language": "en",
+      "original_language": "en",
+      "passage": {
+        "artifact_uri": "jobs/ff16816c-7af1-477a-b5f7-888ebd42f21a/research/sources/26a9d035e38e459b0ac5a3df57aeaafaad658489/content.html",
+        "end_offset": 4632,
+        "kind": "TEXT_SPAN",
+        "source_id": "26a9d035e38e459b0ac5a3df57aeaafaad658489",
+        "start_offset": 4137,
+        "text": "Admiral Krishna Swaminathan, Chief of the Naval Staff; Vice-Admiral Sanjay Vatsayan, Flag Officer Commanding-in-Chief; Vice-Admiral Sanjay Sadhu, Controller Warship Production and Acquisition; Rear Admiral Vikram Menon, Flag Officer (Karnataka); retired Rear Admiral G. K. Harish, Head of Shipbuilding, L&T; Commander Sushil Kumar Singh, Commanding Officer of INS Samarthak; senior officers of the Indian Navy and Ministry of Defence, and other distinguished guests were present on the occasion.",
+        "timestamp_end": null,
+        "timestamp_start": null
+      },
+      "qualifiers": [],
+      "source_id": "26a9d035e38e459b0ac5a3df57aeaafaad658489",
+      "source_published_at": "2026-10-16",
+      "warnings": [],
+      "assessment": {
+        "outcome": "SUPPORTED",
+        "policy_state": "AUTO_ACCEPTED",
+        "reasons": [
+          "substantive, topic-relevant, source usable, no uncertainty or dispute markers"
+        ],
+        "evidence": {
+          "assessment_basis": "Deterministic policy support and integrity checks; not verification of factual truth",
+          "assessment_outcome": "SUPPORTED",
+          "assessor_version": "deterministic-evidence-policy.v2",
+          "configuration_sha256": "52bd4b6574746d8ff9a3b39c60ecb909aa64913ba6fdd0d50a8fd60101f5df41",
+          "contradicting": [],
+          "default_configuration": true,
+          "passage": {
+            "end": 4632,
+            "start": 4137
+          },
+          "policy_criteria_failed": [
+            {
+              "action": "enable and acquire additional sources in config/source_policy.json that cover the topic",
+              "actual": 1,
+              "criterion": "min_accepted_sources",
+              "required": 2
+            }
+          ],
+          "readiness_policy": {
+            "_rationale": "Defaults chosen so a ~9-minute explainer (about 1,300 words, 7 required topics) has coverage across at least two independently owned sources; quantitative figures need two independent source groups. These are NOT taken from the core design (which sets no number) and are an owner policy decision.",
+            "min_accepted_claims": 8,
+            "min_accepted_sources": 2,
+            "require_source_publisher": true,
+            "required_source_categories_any": [
+              "RESEARCH_INSTITUTION",
+              "GOVERNMENT_OFFICIAL",
+              "OFFICIAL_TECHNICAL",
+              "INDEPENDENT_REPORTING"
+            ]
+          },
+          "registry_sha256": "61b1439b6ea3eb9733c7f8998992134fd9c669e411addb73a2ab0f98ca0d5ad8",
+          "source_id": "26a9d035e38e459b0ac5a3df57aeaafaad658489",
+          "supporting": [
+            {
+              "end": 4632,
+              "source_id": "26a9d035e38e459b0ac5a3df57aeaafaad658489",
+              "start": 4137
+            }
+          ]
+        },
+        "run_id": "ead139498bab5716",
+        "policy_version": "defence-studio.evidence-policy.v1",
+        "assessor_version": "deterministic-evidence-policy.v2",
+        "analysis_sha256": "c48015a7bc6a394c9b41f603feb1fe6fc2c1c2a802d1a161d47ac831837099c0",
+        "created_at": "2026-10-17T12:52:36.495201+00:00"
+      },
+      "has_conflict": false,
+      "review": null,
+      "review_status": "PENDING",
+      "is_stale": false,
+      "evidence_class": "unverified"
+    }
+  ]
+}

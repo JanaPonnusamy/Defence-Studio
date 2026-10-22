@@ -1,0 +1,10 @@
+{
+  "timestamp": "2026-10-16T12:10:55.5889976+05:30",
+  "branch": "main",
+  "head": "47159881f39a477c37c6b2a91ffd103d34c5d593",
+  "remote_main": "47159881f39a477c37c6b2a91ffd103d34c5d593",
+  "head_matches_remote": true,
+  "push_exit": 0,
+  "tracked_changes": null,
+  "receipt_scope": "Local post-push receipt, intentionally generated after the evidence commit; prior untracked evidence and verbatim Claude prompt preserved"
+}

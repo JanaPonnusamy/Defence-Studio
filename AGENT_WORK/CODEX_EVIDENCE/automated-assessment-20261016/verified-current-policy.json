@@ -1,0 +1,1112 @@
+{
+  "acquisition_sha256": "3cb1de1ad89d26f09a1b6bdc6dc10527dbde0a3bea20455d4935d09c3574efa5",
+  "analysis_sha256": "d7566bf1274563bf88d93270e95a985a3d7250b87896353e4bddc196bd5c225d",
+  "analysis_versions": {
+    "dedup_version": "defence-studio.dedup.v1",
+    "extractor_version": "defence-studio.claim-extractor.deterministic.v2",
+    "normalization_version": "defence-studio.normalizer.v2",
+    "schema_version": "defence-studio.analysis-result.v1"
+  },
+  "anchors": [
+    "today"
+  ],
+  "assessor_version": "deterministic-evidence-policy.v2",
+  "claims": [
+    {
+      "assessment_basis": "Deterministic policy support and integrity checks; not verification of factual truth",
+      "assessment_outcome": "INSUFFICIENT_EVIDENCE",
+      "assessor_version": "deterministic-evidence-policy.v2",
+      "claim_class": "QUANTITATIVE",
+      "claim_id": "claim-fb8ebbaa4ee68a26",
+      "contradicting_evidence": [],
+      "corroboration": {
+        "applicable": true,
+        "independent_groups": [],
+        "quantities": [
+          "4106"
+        ],
+        "single_source": true,
+        "source_ids": []
+      },
+      "flags": [],
+      "independent_groups": 0,
+      "passage": {
+        "end": 168,
+        "start": 61
+      },
+      "reasons": [
+        "supporting source is not usable under the source policy"
+      ],
+      "score": {
+        "calibrated": false,
+        "components": {
+          "attribution": 0.5,
+          "contradiction_clear": 1.0,
+          "corroboration": 0.0,
+          "freshness": 0.0,
+          "passage_match": 1.0,
+          "relevance": 0.0,
+          "source_credibility": 0.0
+        },
+        "scale": "0-100",
+        "scoring_policy_version": "defence-studio.claim-score.v1",
+        "total": 30.0,
+        "weights": {
+          "attribution": 10,
+          "contradiction_clear": 10,
+          "corroboration": 20,
+          "freshness": 10,
+          "passage_match": 15,
+          "relevance": 15,
+          "source_credibility": 20
+        }
+      },
+      "source_id": "3e9c744833869a0bb3ab9752e712d50f6a73cb1e",
+      "state": "REJECTED",
+      "supporting_evidence": [
+        {
+          "end": 168,
+          "source_id": "3e9c744833869a0bb3ab9752e712d50f6a73cb1e",
+          "start": 61
+        }
+      ],
+      "text": "MoD inks Rs 4,106 crore contracts for GSAT-7C communication satellite and Varunastra Heavy Weight Torpedoes"
+    },
+    {
+      "assessment_basis": "Deterministic policy support and integrity checks; not verification of factual truth",
+      "assessment_outcome": "INSUFFICIENT_EVIDENCE",
+      "assessor_version": "deterministic-evidence-policy.v2",
+      "claim_class": "QUANTITATIVE",
+      "claim_id": "claim-035fb086945a882a",
+      "contradicting_evidence": [],
+      "corroboration": {
+        "applicable": true,
+        "independent_groups": [],
+        "quantities": [
+          "4106"
+        ],
+        "single_source": true,
+        "source_ids": []
+      },
+      "flags": [],
+      "independent_groups": 0,
+      "passage": {
+        "end": 473,
+        "start": 219
+      },
+      "reasons": [
+        "supporting source is not usable under the source policy"
+      ],
+      "score": {
+        "calibrated": false,
+        "components": {
+          "attribution": 0.5,
+          "contradiction_clear": 1.0,
+          "corroboration": 0.0,
+          "freshness": 0.0,
+          "passage_match": 1.0,
+          "relevance": 0.0,
+          "source_credibility": 0.0
+        },
+        "scale": "0-100",
+        "scoring_policy_version": "defence-studio.claim-score.v1",
+        "total": 30.0,
+        "weights": {
+          "attribution": 10,
+          "contradiction_clear": 10,
+          "corroboration": 20,
+          "freshness": 10,
+          "passage_match": 15,
+          "relevance": 15,
+          "source_credibility": 20
+        }
+      },
+      "source_id": "3e9c744833869a0bb3ab9752e712d50f6a73cb1e",
+      "state": "REJECTED",
+      "supporting_evidence": [
+        {
+          "end": 473,
+          "source_id": "3e9c744833869a0bb3ab9752e712d50f6a73cb1e",
+          "start": 219
+        }
+      ],
+      "text": "The Ministry of Defence has signed contracts worth a total of approximately Rs 4,106 crore for the acquisition of a dedicated communication satellite capability, GSAT-7C for the Indian Air Force, and Varunastra Heavy Weight Torpedoes for the Indian Navy."
+    },
+    {
+      "assessment_basis": "Deterministic policy support and integrity checks; not verification of factual truth",
+      "assessment_outcome": "INSUFFICIENT_EVIDENCE",
+      "assessor_version": "deterministic-evidence-policy.v2",
+      "claim_class": "QUANTITATIVE",
+      "claim_id": "claim-bb24e64887e7073d",
+      "contradicting_evidence": [],
+      "corroboration": {
+        "applicable": true,
+        "independent_groups": [],
+        "quantities": [
+          "2563"
+        ],
+        "single_source": true,
+        "source_ids": []
+      },
+      "flags": [],
+      "independent_groups": 0,
+      "passage": {
+        "end": 577,
+        "start": 475
+      },
+      "reasons": [
+        "supporting source is not usable under the source policy"
+      ],
+      "score": {
+        "calibrated": false,
+        "components": {
+          "attribution": 0.5,
+          "contradiction_clear": 1.0,
+          "corroboration": 0.0,
+          "freshness": 0.0,
+          "passage_match": 1.0,
+          "relevance": 0.0,
+          "source_credibility": 0.0
+        },
+        "scale": "0-100",
+        "scoring_policy_version": "defence-studio.claim-score.v1",
+        "total": 30.0,
+        "weights": {
+          "attribution": 10,
+          "contradiction_clear": 10,
+          "corroboration": 20,
+          "freshness": 10,
+          "passage_match": 15,
+          "relevance": 15,
+          "source_credibility": 20
+        }
+      },
+      "source_id": "3e9c744833869a0bb3ab9752e712d50f6a73cb1e",
+      "state": "REJECTED",
+      "supporting_evidence": [
+        {
+          "end": 577,
+          "source_id": "3e9c744833869a0bb3ab9752e712d50f6a73cb1e",
+          "start": 475
+        }
+      ],
+      "text": "The contract for GSAT-7C, valued at Rs 2,563 crore, was inked with New Space India Limited, Bengaluru."
+    },
+    {
+      "assessment_basis": "Deterministic policy support and integrity checks; not verification of factual truth",
+      "assessment_outcome": "INSUFFICIENT_EVIDENCE",
+      "assessor_version": "deterministic-evidence-policy.v2",
+      "claim_class": "OPERATIONAL",
+      "claim_id": "claim-836b80783f429fbb",
+      "contradicting_evidence": [],
+      "corroboration": {
+        "applicable": false,
+        "independent_groups": [],
+        "quantities": [],
+        "single_source": null,
+        "source_ids": []
+      },
+      "flags": [],
+      "independent_groups": 0,
+      "passage": {
+        "end": 802,
+        "start": 578
+      },
+      "reasons": [
+        "supporting source is not usable under the source policy"
+      ],
+      "score": {
+        "calibrated": false,
+        "components": {
+          "attribution": 1.0,
+          "contradiction_clear": 1.0,
+          "corroboration": 0.0,
+          "freshness": 0.0,
+          "passage_match": 1.0,
+          "relevance": 0.0,
+          "source_credibility": 0.0
+        },
+        "scale": "0-100",
+        "scoring_policy_version": "defence-studio.claim-score.v1",
+        "total": 35.0,
+        "weights": {
+          "attribution": 10,
+          "contradiction_clear": 10,
+          "corroboration": 20,
+          "freshness": 10,
+          "passage_match": 15,
+          "relevance": 15,
+          "source_credibility": 20
+        }
+      },
+      "source_id": "3e9c744833869a0bb3ab9752e712d50f6a73cb1e",
+      "state": "REJECTED",
+      "supporting_evidence": [
+        {
+          "end": 802,
+          "source_id": "3e9c744833869a0bb3ab9752e712d50f6a73cb1e",
+          "start": 578
+        }
+      ],
+      "text": "This indigenously designed, developed & manufactured satellite will enhance the secure, resilient & seamless communication capabilities for the assets of the Indian Air Force, thereby strengthening operational effectiveness."
+    },
+    {
+      "assessment_basis": "Deterministic policy support and integrity checks; not verification of factual truth",
+      "assessment_outcome": "INSUFFICIENT_EVIDENCE",
+      "assessor_version": "deterministic-evidence-policy.v2",
+      "claim_class": "DESCRIPTIVE",
+      "claim_id": "claim-0a5a49221bc77747",
+      "contradicting_evidence": [],
+      "corroboration": {
+        "applicable": false,
+        "independent_groups": [],
+        "quantities": [],
+        "single_source": null,
+        "source_ids": []
+      },
+      "flags": [],
+      "independent_groups": 0,
+      "passage": {
+        "end": 1214,
+        "start": 1031
+      },
+      "reasons": [
+        "supporting source is not usable under the source policy"
+      ],
+      "score": {
+        "calibrated": false,
+        "components": {
+          "attribution": 1.0,
+          "contradiction_clear": 1.0,
+          "corroboration": 0.0,
+          "freshness": 0.0,
+          "passage_match": 1.0,
+          "relevance": 0.0,
+          "source_credibility": 0.0
+        },
+        "scale": "0-100",
+        "scoring_policy_version": "defence-studio.claim-score.v1",
+        "total": 35.0,
+        "weights": {
+          "attribution": 10,
+          "contradiction_clear": 10,
+          "corroboration": 20,
+          "freshness": 10,
+          "passage_match": 15,
+          "relevance": 15,
+          "source_credibility": 20
+        }
+      },
+      "source_id": "3e9c744833869a0bb3ab9752e712d50f6a73cb1e",
+      "state": "REJECTED",
+      "supporting_evidence": [
+        {
+          "end": 1214,
+          "source_id": "3e9c744833869a0bb3ab9752e712d50f6a73cb1e",
+          "start": 1031
+        }
+      ],
+      "text": "Equipped with advanced maneuvering capabilities, it is capable of engaging enemy submarines at long ranges, thereby enhancing the anti-submarine warfare capability of the Indian Navy."
+    },
+    {
+      "assessment_basis": "Deterministic policy support and integrity checks; not verification of factual truth",
+      "assessment_outcome": "INSUFFICIENT_EVIDENCE",
+      "assessor_version": "deterministic-evidence-policy.v2",
+      "claim_class": "DESCRIPTIVE",
+      "claim_id": "claim-7f8906d238ad3e5a",
+      "contradicting_evidence": [],
+      "corroboration": {
+        "applicable": false,
+        "independent_groups": [],
+        "quantities": [],
+        "single_source": null,
+        "source_ids": []
+      },
+      "flags": [],
+      "independent_groups": 0,
+      "passage": {
+        "end": 1389,
+        "start": 1216
+      },
+      "reasons": [
+        "supporting source is not usable under the source policy"
+      ],
+      "score": {
+        "calibrated": false,
+        "components": {
+          "attribution": 1.0,
+          "contradiction_clear": 1.0,
+          "corroboration": 0.0,
+          "freshness": 0.0,
+          "passage_match": 1.0,
+          "relevance": 0.0,
+          "source_credibility": 0.0
+        },
+        "scale": "0-100",
+        "scoring_policy_version": "defence-studio.claim-score.v1",
+        "total": 35.0,
+        "weights": {
+          "attribution": 10,
+          "contradiction_clear": 10,
+          "corroboration": 20,
+          "freshness": 10,
+          "passage_match": 15,
+          "relevance": 15,
+          "source_credibility": 20
+        }
+      },
+      "source_id": "3e9c744833869a0bb3ab9752e712d50f6a73cb1e",
+      "state": "REJECTED",
+      "supporting_evidence": [
+        {
+          "end": 1389,
+          "source_id": "3e9c744833869a0bb3ab9752e712d50f6a73cb1e",
+          "start": 1216
+        }
+      ],
+      "text": "The contracts were signed in the presence of Additional Secretary and Director General (Acquisition), Department of Defence Shri A Anbarasu in New Delhi on October 15, 2026."
+    },
+    {
+      "assessment_basis": "Deterministic policy support and integrity checks; not verification of factual truth",
+      "assessment_outcome": "INSUFFICIENT_EVIDENCE",
+      "assessor_version": "deterministic-evidence-policy.v2",
+      "claim_class": "DESCRIPTIVE",
+      "claim_id": "claim-86b07584ede71644",
+      "contradicting_evidence": [],
+      "corroboration": {
+        "applicable": false,
+        "independent_groups": [],
+        "quantities": [],
+        "single_source": null,
+        "source_ids": []
+      },
+      "flags": [],
+      "independent_groups": 0,
+      "passage": {
+        "end": 1644,
+        "start": 1390
+      },
+      "reasons": [
+        "supporting source is not usable under the source policy"
+      ],
+      "score": {
+        "calibrated": false,
+        "components": {
+          "attribution": 1.0,
+          "contradiction_clear": 1.0,
+          "corroboration": 0.0,
+          "freshness": 0.0,
+          "passage_match": 1.0,
+          "relevance": 0.0,
+          "source_credibility": 0.0
+        },
+        "scale": "0-100",
+        "scoring_policy_version": "defence-studio.claim-score.v1",
+        "total": 35.0,
+        "weights": {
+          "attribution": 10,
+          "contradiction_clear": 10,
+          "corroboration": 20,
+          "freshness": 10,
+          "passage_match": 15,
+          "relevance": 15,
+          "source_credibility": 20
+        }
+      },
+      "source_id": "3e9c744833869a0bb3ab9752e712d50f6a73cb1e",
+      "state": "REJECTED",
+      "supporting_evidence": [
+        {
+          "end": 1644,
+          "source_id": "3e9c744833869a0bb3ab9752e712d50f6a73cb1e",
+          "start": 1390
+        }
+      ],
+      "text": "Both contracts mark a significant step towards advancing the development of domestic defence manufacturing capabilities while promoting self-reliance in critical technologies in line with the Government\u2019s \u2018Aatmanirbhar Bharat\u2019 and \u2018Make-in-India\u2019 vision."
+    },
+    {
+      "assessment_basis": "Deterministic policy support and integrity checks; not verification of factual truth",
+      "assessment_outcome": "INSUFFICIENT_EVIDENCE",
+      "assessor_version": "deterministic-evidence-policy.v2",
+      "claim_class": "QUANTITATIVE",
+      "claim_id": "claim-23eb31cf575157a6",
+      "contradicting_evidence": [],
+      "corroboration": {
+        "applicable": true,
+        "independent_groups": [],
+        "quantities": [
+          "4106"
+        ],
+        "single_source": true,
+        "source_ids": []
+      },
+      "flags": [],
+      "independent_groups": 0,
+      "passage": {
+        "end": 1929,
+        "start": 1822
+      },
+      "reasons": [
+        "supporting source is not usable under the source policy"
+      ],
+      "score": {
+        "calibrated": false,
+        "components": {
+          "attribution": 0.5,
+          "contradiction_clear": 1.0,
+          "corroboration": 0.0,
+          "freshness": 0.0,
+          "passage_match": 1.0,
+          "relevance": 0.0,
+          "source_credibility": 0.0
+        },
+        "scale": "0-100",
+        "scoring_policy_version": "defence-studio.claim-score.v1",
+        "total": 30.0,
+        "weights": {
+          "attribution": 10,
+          "contradiction_clear": 10,
+          "corroboration": 20,
+          "freshness": 10,
+          "passage_match": 15,
+          "relevance": 15,
+          "source_credibility": 20
+        }
+      },
+      "source_id": "3e9c744833869a0bb3ab9752e712d50f6a73cb1e",
+      "state": "REJECTED",
+      "supporting_evidence": [
+        {
+          "end": 1929,
+          "source_id": "3e9c744833869a0bb3ab9752e712d50f6a73cb1e",
+          "start": 1822
+        }
+      ],
+      "text": "MoD inks Rs 4,106 crore contracts for GSAT-7C communication satellite and Varunastra Heavy Weight Torpedoes"
+    },
+    {
+      "assessment_basis": "Deterministic policy support and integrity checks; not verification of factual truth",
+      "assessment_outcome": "INSUFFICIENT_EVIDENCE",
+      "assessor_version": "deterministic-evidence-policy.v2",
+      "claim_class": "QUANTITATIVE",
+      "claim_id": "claim-667cf87909eb12d5",
+      "contradicting_evidence": [],
+      "corroboration": {
+        "applicable": true,
+        "independent_groups": [],
+        "quantities": [
+          "4106"
+        ],
+        "single_source": true,
+        "source_ids": []
+      },
+      "flags": [],
+      "independent_groups": 0,
+      "passage": {
+        "end": 2234,
+        "start": 1980
+      },
+      "reasons": [
+        "supporting source is not usable under the source policy"
+      ],
+      "score": {
+        "calibrated": false,
+        "components": {
+          "attribution": 0.5,
+          "contradiction_clear": 1.0,
+          "corroboration": 0.0,
+          "freshness": 0.0,
+          "passage_match": 1.0,
+          "relevance": 0.0,
+          "source_credibility": 0.0
+        },
+        "scale": "0-100",
+        "scoring_policy_version": "defence-studio.claim-score.v1",
+        "total": 30.0,
+        "weights": {
+          "attribution": 10,
+          "contradiction_clear": 10,
+          "corroboration": 20,
+          "freshness": 10,
+          "passage_match": 15,
+          "relevance": 15,
+          "source_credibility": 20
+        }
+      },
+      "source_id": "3e9c744833869a0bb3ab9752e712d50f6a73cb1e",
+      "state": "REJECTED",
+      "supporting_evidence": [
+        {
+          "end": 2234,
+          "source_id": "3e9c744833869a0bb3ab9752e712d50f6a73cb1e",
+          "start": 1980
+        }
+      ],
+      "text": "The Ministry of Defence has signed contracts worth a total of approximately Rs 4,106 crore for the acquisition of a dedicated communication satellite capability, GSAT-7C for the Indian Air Force, and Varunastra Heavy Weight Torpedoes for the Indian Navy."
+    },
+    {
+      "assessment_basis": "Deterministic policy support and integrity checks; not verification of factual truth",
+      "assessment_outcome": "INSUFFICIENT_EVIDENCE",
+      "assessor_version": "deterministic-evidence-policy.v2",
+      "claim_class": "QUANTITATIVE",
+      "claim_id": "claim-680430151d1c0555",
+      "contradicting_evidence": [],
+      "corroboration": {
+        "applicable": true,
+        "independent_groups": [],
+        "quantities": [
+          "2563"
+        ],
+        "single_source": true,
+        "source_ids": []
+      },
+      "flags": [],
+      "independent_groups": 0,
+      "passage": {
+        "end": 2338,
+        "start": 2236
+      },
+      "reasons": [
+        "supporting source is not usable under the source policy"
+      ],
+      "score": {
+        "calibrated": false,
+        "components": {
+          "attribution": 0.5,
+          "contradiction_clear": 1.0,
+          "corroboration": 0.0,
+          "freshness": 0.0,
+          "passage_match": 1.0,
+          "relevance": 0.0,
+          "source_credibility": 0.0
+        },
+        "scale": "0-100",
+        "scoring_policy_version": "defence-studio.claim-score.v1",
+        "total": 30.0,
+        "weights": {
+          "attribution": 10,
+          "contradiction_clear": 10,
+          "corroboration": 20,
+          "freshness": 10,
+          "passage_match": 15,
+          "relevance": 15,
+          "source_credibility": 20
+        }
+      },
+      "source_id": "3e9c744833869a0bb3ab9752e712d50f6a73cb1e",
+      "state": "REJECTED",
+      "supporting_evidence": [
+        {
+          "end": 2338,
+          "source_id": "3e9c744833869a0bb3ab9752e712d50f6a73cb1e",
+          "start": 2236
+        }
+      ],
+      "text": "The contract for GSAT-7C, valued at Rs 2,563 crore, was inked with New Space India Limited, Bengaluru."
+    },
+    {
+      "assessment_basis": "Deterministic policy support and integrity checks; not verification of factual truth",
+      "assessment_outcome": "INSUFFICIENT_EVIDENCE",
+      "assessor_version": "deterministic-evidence-policy.v2",
+      "claim_class": "OPERATIONAL",
+      "claim_id": "claim-4331c452f56d9f18",
+      "contradicting_evidence": [],
+      "corroboration": {
+        "applicable": false,
+        "independent_groups": [],
+        "quantities": [],
+        "single_source": null,
+        "source_ids": []
+      },
+      "flags": [],
+      "independent_groups": 0,
+      "passage": {
+        "end": 2563,
+        "start": 2339
+      },
+      "reasons": [
+        "supporting source is not usable under the source policy"
+      ],
+      "score": {
+        "calibrated": false,
+        "components": {
+          "attribution": 1.0,
+          "contradiction_clear": 1.0,
+          "corroboration": 0.0,
+          "freshness": 0.0,
+          "passage_match": 1.0,
+          "relevance": 0.0,
+          "source_credibility": 0.0
+        },
+        "scale": "0-100",
+        "scoring_policy_version": "defence-studio.claim-score.v1",
+        "total": 35.0,
+        "weights": {
+          "attribution": 10,
+          "contradiction_clear": 10,
+          "corroboration": 20,
+          "freshness": 10,
+          "passage_match": 15,
+          "relevance": 15,
+          "source_credibility": 20
+        }
+      },
+      "source_id": "3e9c744833869a0bb3ab9752e712d50f6a73cb1e",
+      "state": "REJECTED",
+      "supporting_evidence": [
+        {
+          "end": 2563,
+          "source_id": "3e9c744833869a0bb3ab9752e712d50f6a73cb1e",
+          "start": 2339
+        }
+      ],
+      "text": "This indigenously designed, developed & manufactured satellite will enhance the secure, resilient & seamless communication capabilities for the assets of the Indian Air Force, thereby strengthening operational effectiveness."
+    },
+    {
+      "assessment_basis": "Deterministic policy support and integrity checks; not verification of factual truth",
+      "assessment_outcome": "INSUFFICIENT_EVIDENCE",
+      "assessor_version": "deterministic-evidence-policy.v2",
+      "claim_class": "DESCRIPTIVE",
+      "claim_id": "claim-5a16079dad332d5c",
+      "contradicting_evidence": [],
+      "corroboration": {
+        "applicable": false,
+        "independent_groups": [],
+        "quantities": [],
+        "single_source": null,
+        "source_ids": []
+      },
+      "flags": [],
+      "independent_groups": 0,
+      "passage": {
+        "end": 2975,
+        "start": 2792
+      },
+      "reasons": [
+        "supporting source is not usable under the source policy"
+      ],
+      "score": {
+        "calibrated": false,
+        "components": {
+          "attribution": 1.0,
+          "contradiction_clear": 1.0,
+          "corroboration": 0.0,
+          "freshness": 0.0,
+          "passage_match": 1.0,
+          "relevance": 0.0,
+          "source_credibility": 0.0
+        },
+        "scale": "0-100",
+        "scoring_policy_version": "defence-studio.claim-score.v1",
+        "total": 35.0,
+        "weights": {
+          "attribution": 10,
+          "contradiction_clear": 10,
+          "corroboration": 20,
+          "freshness": 10,
+          "passage_match": 15,
+          "relevance": 15,
+          "source_credibility": 20
+        }
+      },
+      "source_id": "3e9c744833869a0bb3ab9752e712d50f6a73cb1e",
+      "state": "REJECTED",
+      "supporting_evidence": [
+        {
+          "end": 2975,
+          "source_id": "3e9c744833869a0bb3ab9752e712d50f6a73cb1e",
+          "start": 2792
+        }
+      ],
+      "text": "Equipped with advanced maneuvering capabilities, it is capable of engaging enemy submarines at long ranges, thereby enhancing the anti-submarine warfare capability of the Indian Navy."
+    },
+    {
+      "assessment_basis": "Deterministic policy support and integrity checks; not verification of factual truth",
+      "assessment_outcome": "INSUFFICIENT_EVIDENCE",
+      "assessor_version": "deterministic-evidence-policy.v2",
+      "claim_class": "DESCRIPTIVE",
+      "claim_id": "claim-131a80ad288d910b",
+      "contradicting_evidence": [],
+      "corroboration": {
+        "applicable": false,
+        "independent_groups": [],
+        "quantities": [],
+        "single_source": null,
+        "source_ids": []
+      },
+      "flags": [],
+      "independent_groups": 0,
+      "passage": {
+        "end": 3150,
+        "start": 2977
+      },
+      "reasons": [
+        "supporting source is not usable under the source policy"
+      ],
+      "score": {
+        "calibrated": false,
+        "components": {
+          "attribution": 1.0,
+          "contradiction_clear": 1.0,
+          "corroboration": 0.0,
+          "freshness": 0.0,
+          "passage_match": 1.0,
+          "relevance": 0.0,
+          "source_credibility": 0.0
+        },
+        "scale": "0-100",
+        "scoring_policy_version": "defence-studio.claim-score.v1",
+        "total": 35.0,
+        "weights": {
+          "attribution": 10,
+          "contradiction_clear": 10,
+          "corroboration": 20,
+          "freshness": 10,
+          "passage_match": 15,
+          "relevance": 15,
+          "source_credibility": 20
+        }
+      },
+      "source_id": "3e9c744833869a0bb3ab9752e712d50f6a73cb1e",
+      "state": "REJECTED",
+      "supporting_evidence": [
+        {
+          "end": 3150,
+          "source_id": "3e9c744833869a0bb3ab9752e712d50f6a73cb1e",
+          "start": 2977
+        }
+      ],
+      "text": "The contracts were signed in the presence of Additional Secretary and Director General (Acquisition), Department of Defence Shri A Anbarasu in New Delhi on October 15, 2026."
+    },
+    {
+      "assessment_basis": "Deterministic policy support and integrity checks; not verification of factual truth",
+      "assessment_outcome": "INSUFFICIENT_EVIDENCE",
+      "assessor_version": "deterministic-evidence-policy.v2",
+      "claim_class": "DESCRIPTIVE",
+      "claim_id": "claim-3b18dea9a86db622",
+      "contradicting_evidence": [],
+      "corroboration": {
+        "applicable": false,
+        "independent_groups": [],
+        "quantities": [],
+        "single_source": null,
+        "source_ids": []
+      },
+      "flags": [],
+      "independent_groups": 0,
+      "passage": {
+        "end": 3405,
+        "start": 3151
+      },
+      "reasons": [
+        "supporting source is not usable under the source policy"
+      ],
+      "score": {
+        "calibrated": false,
+        "components": {
+          "attribution": 1.0,
+          "contradiction_clear": 1.0,
+          "corroboration": 0.0,
+          "freshness": 0.0,
+          "passage_match": 1.0,
+          "relevance": 0.0,
+          "source_credibility": 0.0
+        },
+        "scale": "0-100",
+        "scoring_policy_version": "defence-studio.claim-score.v1",
+        "total": 35.0,
+        "weights": {
+          "attribution": 10,
+          "contradiction_clear": 10,
+          "corroboration": 20,
+          "freshness": 10,
+          "passage_match": 15,
+          "relevance": 15,
+          "source_credibility": 20
+        }
+      },
+      "source_id": "3e9c744833869a0bb3ab9752e712d50f6a73cb1e",
+      "state": "REJECTED",
+      "supporting_evidence": [
+        {
+          "end": 3405,
+          "source_id": "3e9c744833869a0bb3ab9752e712d50f6a73cb1e",
+          "start": 3151
+        }
+      ],
+      "text": "Both contracts mark a significant step towards advancing the development of domestic defence manufacturing capabilities while promoting self-reliance in critical technologies in line with the Government\u2019s \u2018Aatmanirbhar Bharat\u2019 and \u2018Make-in-India\u2019 vision."
+    },
+    {
+      "assessment_basis": "Deterministic policy support and integrity checks; not verification of factual truth",
+      "assessment_outcome": "INSUFFICIENT_EVIDENCE",
+      "assessor_version": "deterministic-evidence-policy.v2",
+      "claim_class": "OPERATIONAL",
+      "claim_id": "claim-7f0da7ec8b6acc1f",
+      "contradicting_evidence": [],
+      "corroboration": {
+        "applicable": false,
+        "independent_groups": [],
+        "quantities": [],
+        "single_source": null,
+        "source_ids": []
+      },
+      "flags": [],
+      "independent_groups": 0,
+      "passage": {
+        "end": 4274,
+        "start": 4042
+      },
+      "reasons": [
+        "supporting source is not usable under the source policy"
+      ],
+      "score": {
+        "calibrated": false,
+        "components": {
+          "attribution": 1.0,
+          "contradiction_clear": 1.0,
+          "corroboration": 0.0,
+          "freshness": 0.0,
+          "passage_match": 1.0,
+          "relevance": 0.0,
+          "source_credibility": 0.0
+        },
+        "scale": "0-100",
+        "scoring_policy_version": "defence-studio.claim-score.v1",
+        "total": 35.0,
+        "weights": {
+          "attribution": 10,
+          "contradiction_clear": 10,
+          "corroboration": 20,
+          "freshness": 10,
+          "passage_match": 15,
+          "relevance": 15,
+          "source_credibility": 20
+        }
+      },
+      "source_id": "3e9c744833869a0bb3ab9752e712d50f6a73cb1e",
+      "state": "REJECTED",
+      "supporting_evidence": [
+        {
+          "end": 4274,
+          "source_id": "3e9c744833869a0bb3ab9752e712d50f6a73cb1e",
+          "start": 4042
+        }
+      ],
+      "text": "This indigenously designed, developed &amp; manufactured satellite will enhance the secure, resilient &amp; seamless communication capabilities for the assets of the Indian Air Force, thereby strengthening operational effectiveness."
+    },
+    {
+      "assessment_basis": "Deterministic policy support and integrity checks; not verification of factual truth",
+      "assessment_outcome": "INSUFFICIENT_EVIDENCE",
+      "assessor_version": "deterministic-evidence-policy.v2",
+      "claim_class": "DESCRIPTIVE",
+      "claim_id": "claim-021ac40f59f7fbd0",
+      "contradicting_evidence": [],
+      "corroboration": {
+        "applicable": false,
+        "independent_groups": [],
+        "quantities": [],
+        "single_source": null,
+        "source_ids": []
+      },
+      "flags": [],
+      "independent_groups": 0,
+      "passage": {
+        "end": 5167,
+        "start": 4984
+      },
+      "reasons": [
+        "supporting source is not usable under the source policy"
+      ],
+      "score": {
+        "calibrated": false,
+        "components": {
+          "attribution": 1.0,
+          "contradiction_clear": 1.0,
+          "corroboration": 0.0,
+          "freshness": 0.0,
+          "passage_match": 1.0,
+          "relevance": 0.0,
+          "source_credibility": 0.0
+        },
+        "scale": "0-100",
+        "scoring_policy_version": "defence-studio.claim-score.v1",
+        "total": 35.0,
+        "weights": {
+          "attribution": 10,
+          "contradiction_clear": 10,
+          "corroboration": 20,
+          "freshness": 10,
+          "passage_match": 15,
+          "relevance": 15,
+          "source_credibility": 20
+        }
+      },
+      "source_id": "3e9c744833869a0bb3ab9752e712d50f6a73cb1e",
+      "state": "REJECTED",
+      "supporting_evidence": [
+        {
+          "end": 5167,
+          "source_id": "3e9c744833869a0bb3ab9752e712d50f6a73cb1e",
+          "start": 4984
+        }
+      ],
+      "text": "Equipped with advanced maneuvering capabilities, it is capable of engaging enemy submarines at long ranges, thereby enhancing the anti-submarine warfare capability of the Indian Navy."
+    },
+    {
+      "assessment_basis": "Deterministic policy support and integrity checks; not verification of factual truth",
+      "assessment_outcome": "INSUFFICIENT_EVIDENCE",
+      "assessor_version": "deterministic-evidence-policy.v2",
+      "claim_class": "DESCRIPTIVE",
+      "claim_id": "claim-ba13805b0d929b9d",
+      "contradicting_evidence": [],
+      "corroboration": {
+        "applicable": false,
+        "independent_groups": [],
+        "quantities": [],
+        "single_source": null,
+        "source_ids": []
+      },
+      "flags": [],
+      "independent_groups": 0,
+      "passage": {
+        "end": 6107,
+        "start": 5823
+      },
+      "reasons": [
+        "supporting source is not usable under the source policy"
+      ],
+      "score": {
+        "calibrated": false,
+        "components": {
+          "attribution": 1.0,
+          "contradiction_clear": 1.0,
+          "corroboration": 0.0,
+          "freshness": 0.0,
+          "passage_match": 1.0,
+          "relevance": 0.0,
+          "source_credibility": 0.0
+        },
+        "scale": "0-100",
+        "scoring_policy_version": "defence-studio.claim-score.v1",
+        "total": 35.0,
+        "weights": {
+          "attribution": 10,
+          "contradiction_clear": 10,
+          "corroboration": 20,
+          "freshness": 10,
+          "passage_match": 15,
+          "relevance": 15,
+          "source_credibility": 20
+        }
+      },
+      "source_id": "3e9c744833869a0bb3ab9752e712d50f6a73cb1e",
+      "state": "REJECTED",
+      "supporting_evidence": [
+        {
+          "end": 6107,
+          "source_id": "3e9c744833869a0bb3ab9752e712d50f6a73cb1e",
+          "start": 5823
+        }
+      ],
+      "text": "Both contracts mark a significant step towards advancing the development of domestic defence manufacturing capabilities while promoting self-reliance in critical technologies in line with the Government&rsquo;s &lsquo;Aatmanirbhar Bharat&rsquo; and &lsquo;Make-in-India&rsquo; vision."
+    }
+  ],
+  "configuration_sha256": "52bd4b6574746d8ff9a3b39c60ecb909aa64913ba6fdd0d50a8fd60101f5df41",
+  "counts": {
+    "claims": {
+      "AUTO_ACCEPTED": 0,
+      "NEEDS_REVIEW": 0,
+      "REJECTED": 17,
+      "SOURCE_BLOCKED": 0
+    },
+    "sources": {
+      "AUTO_ACCEPTED": 0,
+      "REJECTED": 1,
+      "SOURCE_BLOCKED": 0
+    }
+  },
+  "default_configuration": true,
+  "explanation": "Generation is stopped: min_accepted_claims required 8 got 0; min_accepted_sources required 2 got 0; required_source_categories_any required ['RESEARCH_INSTITUTION', 'GOVERNMENT_OFFICIAL', 'OFFICIAL_TECHNICAL', 'INDEPENDENT_REPORTING'] got []; Automated policy: insufficient currently eligible claims after human exceptions; Automated policy: insufficient supporting sources after human exceptions; Automated policy: min_accepted_claims required 8 got 0; acquire more allowlisted sources for this topic or change the owner policy threshold; Automated policy: min_accepted_sources required 2 got 0; enable and acquire additional sources in config/source_policy.json that cover the topic; Automated policy: required_source_categories_any required ['RESEARCH_INSTITUTION', 'GOVERNMENT_OFFICIAL', 'OFFICIAL_TECHNICAL', 'INDEPENDENT_REPORTING'] got []; include an accepted source from a required category",
+  "human_decisions_preserved": [
+    {
+      "decision": "APPROVED_FOR_USE",
+      "subject": "3e9c744833869a0bb3ab9752e712d50f6a73cb1e"
+    }
+  ],
+  "human_state_sha256": "154a28f60d0f00bf188120cd0630f3001bc9a418a2de8c657f36fdeb523b7df0",
+  "job_id": "dfe0b173-d9ff-458b-99b6-7b4ad3cccb8e",
+  "package_approval": null,
+  "package_blockers": [
+    "Automated policy: insufficient currently eligible claims after human exceptions",
+    "Automated policy: insufficient supporting sources after human exceptions",
+    "Automated policy: min_accepted_claims required 8 got 0; acquire more allowlisted sources for this topic or change the owner policy threshold",
+    "Automated policy: min_accepted_sources required 2 got 0; enable and acquire additional sources in config/source_policy.json that cover the topic",
+    "Automated policy: required_source_categories_any required ['RESEARCH_INSTITUTION', 'GOVERNMENT_OFFICIAL', 'OFFICIAL_TECHNICAL', 'INDEPENDENT_REPORTING'] got []; include an accepted source from a required category",
+    "No approved claims with approved source support"
+  ],
+  "package_ready": false,
+  "policy_criteria_failed": [
+    {
+      "action": "acquire more allowlisted sources for this topic or change the owner policy threshold",
+      "actual": 0,
+      "criterion": "min_accepted_claims",
+      "required": 8
+    },
+    {
+      "action": "enable and acquire additional sources in config/source_policy.json that cover the topic",
+      "actual": 0,
+      "criterion": "min_accepted_sources",
+      "required": 2
+    },
+    {
+      "action": "include an accepted source from a required category",
+      "actual": [],
+      "criterion": "required_source_categories_any",
+      "required": [
+        "RESEARCH_INSTITUTION",
+        "GOVERNMENT_OFFICIAL",
+        "OFFICIAL_TECHNICAL",
+        "INDEPENDENT_REPORTING"
+      ]
+    }
+  ],
+  "policy_version": "defence-studio.evidence-policy.v1",
+  "ready_for_generation": false,
+  "registry_sha256": "61b1439b6ea3eb9733c7f8998992134fd9c669e411addb73a2ab0f98ca0d5ad8",
+  "run_id": "23b5ca4d76d1f91c",
+  "schema_version": "defence-studio.evidence-policy-result.v1",
+  "scoring_policy_version": "defence-studio.claim-score.v1",
+  "source_policy_version": "defence-studio.source-policy.v1",
+  "sources": [
+    {
+      "anchor_mentions": 0,
+      "assessment_basis": "Deterministic policy support and integrity checks; not verification of factual truth",
+      "assessment_outcome": "INSUFFICIENT_EVIDENCE",
+      "assessor_version": "deterministic-evidence-policy.v2",
+      "canonical_url": "https://www.pib.gov.in/PressReleaseIframePage.aspx?PRID=2323814&lang=2&reg=48",
+      "category": "GOVERNMENT_OFFICIAL",
+      "final_url": "https://www.pib.gov.in/PressReleaseIframePage.aspx?PRID=2323814&lang=2&reg=48",
+      "independence_group": "gov-india",
+      "published_at": "2026-10-15",
+      "published_at_basis": "EXPLICIT_SOURCE_DATE",
+      "publisher": "Press Information Bureau, Government of India",
+      "publisher_basis": "SOURCE_REGISTRY",
+      "quantitative_trust": "ATTRIBUTED_ONLY",
+      "reasons": [
+        "not relevant to the topic: 0 mention(s) of topic anchors, policy minimum 3"
+      ],
+      "registry_id": "pib-india",
+      "retrieved_at": "2026-10-16T13:46:19.140121+00:00",
+      "sha256": "1142626b48c40df6d50bc0ecfbbeb8983631fd5bc5dfe3568c7212f3bc842b6d",
+      "source_id": "3e9c744833869a0bb3ab9752e712d50f6a73cb1e",
+      "state": "REJECTED"
+    }
+  ],
+  "subject_categories": [
+    "INDIA_DEFENCE"
+  ],
+  "topic": "today indian defence news",
+  "result_uri": "jobs/dfe0b173-d9ff-458b-99b6-7b4ad3cccb8e/evidence/policy_e42a688a6f6413418edfd87152f53a94224571410f066bda0bdbcdea9ddd912a.json",
+  "result_sha256": "e42a688a6f6413418edfd87152f53a94224571410f066bda0bdbcdea9ddd912a",
+  "is_stale": false
+}

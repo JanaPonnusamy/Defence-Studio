@@ -10,7 +10,8 @@ mandatory deterministic check", and every non-accepted claim stays out of the us
 Safety rules:
   * a person's decision always takes precedence and is never written or altered here;
   * ``NEEDS_REVIEW`` claims are an explicit, explained exclusion from the usable set that does not
-    block readiness (distinguished from a person's hold by an explicit ``origin`` field);
+    block readiness on their own (distinguished from a person's hold by an explicit ``origin`` field);
+    material conflicts and package policy criteria still block generation;
   * if readiness criteria fail, nothing is approved and the failed criteria + corrective action
     are returned.
 """
@@ -39,6 +40,7 @@ from defence_studio.storage.artifacts import ArtifactStore
 
 POLICY_FILE = Path(__file__).resolve().parents[2] / "config" / "evidence_policy.json"
 RESULT_SCHEMA = "defence-studio.evidence-policy-result.v1"
+ASSESSOR_VERSION = policy_decisions.ASSESSOR_VERSION
 
 AUTO_ACCEPTED, REJECTED, NEEDS_REVIEW, SOURCE_BLOCKED = "AUTO_ACCEPTED", "REJECTED", "NEEDS_REVIEW", "SOURCE_BLOCKED"
 
@@ -88,6 +90,7 @@ def extract_publication_date(html: str) -> tuple[str | None, str]:
 class EvidencePolicyService:
     def __init__(self, database_file: Path, storage_root: Path, *, policy: dict | None = None,
                  source_policy: SourcePolicy | None = None, workspace: JobWorkspaceService | None = None):
+        self.default_configuration = policy is None and source_policy is None
         self.database_file = Path(database_file)
         self.storage_root = Path(storage_root)
         self.store = ArtifactStore(self.storage_root)
@@ -96,6 +99,8 @@ class EvidencePolicyService:
         self.review = ReviewService(self.database_file, self.storage_root)
         self.evidence = EvidenceService(self.database_file, self.storage_root)
         self.workspace = workspace or JobWorkspaceService(self.database_file)
+        self.configuration_sha256 = hashlib.sha256(canonical(self.policy)).hexdigest()
+        self.registry_sha256 = hashlib.sha256(str(self.sources).encode()).hexdigest()
         with closing(connect(self.database_file)) as c:
             c.execute(_DDL)
             policy_decisions.ensure(c)
@@ -146,6 +151,8 @@ class EvidencePolicyService:
     # -- evaluation ----------------------------------------------------------
     def evaluate(self, job_id: str, owner_id: str) -> dict:
         job, acq_ref, ana_ref, acq, ana = self._load(job_id, owner_id)
+        if ana.get("input_acquisition_sha256") != acq_ref["sha256"]:
+            raise ReviewValidationError("Analysis does not reference the current acquisition revision")
         anchors = self._anchors(job["topic"])
         subjects = self.subject_categories(job["topic"])
         cfg = self.policy
@@ -173,6 +180,14 @@ class EvidencePolicyService:
                     state, reasons = REJECTED, ["content could not be normalized"]
                 else:
                     try:
+                        if not s.get("artifacts"):
+                            raise ValueError("missing source bytes")
+                        if hashlib.sha256(norm["normalized_text"].encode("utf-8")).hexdigest() != norm["normalized_sha256"]:
+                            raise ValueError("normalized hash mismatch")
+                        original = norm.get("original_artifact") or {}
+                        if not any(original.get("uri") == r.get("uri") and original.get("sha256") == r.get("sha256")
+                                   for r in s["artifacts"]):
+                            raise ValueError("original byte reference mismatch")
                         for ref in s.get("artifacts", []):
                             if self.store.sha256_of(job_id, ref["uri"]) != ref["sha256"]:
                                 raise ValueError("hash mismatch")
@@ -200,6 +215,11 @@ class EvidencePolicyService:
                     art = s["artifacts"][0]
                     html = self.store.read_bytes(job_id, art["uri"], max_bytes=16 * 1024 * 1024).decode("utf-8", "replace")
                     date, basis = extract_publication_date(html)
+                    if not date:
+                        from defence_studio.acquisition.source_dates import pib_publication_date
+                        date = pib_publication_date(html, s.get("final_url") or s.get("canonical_url") or "")
+                        if date:
+                            basis = "EXPLICIT_SOURCE_DATE"
                 except (OSError, KeyError, IndexError, ValueError):
                     pass
             if state == AUTO_ACCEPTED:
@@ -305,7 +325,9 @@ class EvidencePolicyService:
             if src_row is None or src_row["state"] != AUTO_ACCEPTED:
                 state = SOURCE_BLOCKED if src_row and src_row["state"] == SOURCE_BLOCKED else REJECTED
                 reasons.append("supporting source is not usable under the source policy")
-            elif not (type(s0) is int and type(e0) is int and 0 <= s0 < e0 <= len(nt) and nt[s0:e0] == text == passage.get("text")):
+            elif not (type(s0) is int and type(e0) is int and 0 <= s0 < e0 <= len(nt) and nt[s0:e0] == text == passage.get("text")
+                      and passage.get("source_id") == sid
+                      and passage.get("artifact_uri") == (norm.get("original_artifact") or {}).get("uri")):
                 state, reasons = REJECTED, ["supporting passage does not match the stored source text"]
             elif len(re.findall(r"\w+", text)) < int(claim_cfg["min_words"]):
                 state, reasons = REJECTED, [f"fragment: fewer than {claim_cfg['min_words']} words"]
@@ -348,7 +370,7 @@ class EvidencePolicyService:
                                                if ng >= need else f"{klass['id']} claim: explicitly attributed")
                         elif qs:
                             trust = src_row["quantitative_trust"]
-                            groups = set().union(*(groups_by_qty.get(q, set()) for q in qs))
+                            groups = set.intersection(*(groups_by_qty.get(q, set()) for q in qs)) & textual_groups(c)
                             attributed = bool(c.get("qualifiers"))
                             if trust == "NOT_TRUSTED":
                                 state, reasons = NEEDS_REVIEW, ["figures from this source category are not trusted automatically"]
@@ -367,7 +389,7 @@ class EvidencePolicyService:
                 # military performance / casualty / operational claim: stricter class
                 qs = qty_tokens(c)
                 flags.append("strict_class")
-                ind = {g for q in qs for g in groups_by_qty.get(q, set()) if g not in manufacturer_groups}
+                ind = (set.intersection(*(groups_by_qty.get(q, set()) for q in qs)) & textual_groups(c)) - manufacturer_groups
                 if src_row["category"] == "MANUFACTURER":
                     state, reasons = NEEDS_REVIEW, ["manufacturer claim; not independently verified performance"]
                 elif len(ind) < strict_min:
@@ -385,18 +407,26 @@ class EvidencePolicyService:
             n_groups = 0
             if src_row and src_row["state"] == AUTO_ACCEPTED:
                 fig = {g for q in qty_tokens(c) for g in groups_by_qty.get(q, set()) if g not in manufacturer_groups}
-                n_groups = max(len(textual_groups(c)), len(fig))
+                n_groups = len(textual_groups(c))
             if c.get("qualifiers"):
                 flags.append("qualified:" + ",".join(c["qualifiers"]))
             if re.match(r"^\s*\d{1,3}\s+[A-Z]", text):
                 flags.append("footnote_number_prefix")
+            checked_groups = textual_groups(c)
+            quantities = qty_tokens(c)
+            if quantities:
+                checked_groups &= set.intersection(*(groups_by_qty.get(q, set()) for q in quantities))
+            contextual_groups = {q: groups_by_qty.get(q, set()) & checked_groups for q in quantities}
+            contextual_sources = {q: {sid_ for sid_ in sources_by_qty.get(q, set())
+                                     if sid_ in usable and _group_of(usable[sid_]) in checked_groups}
+                                  for q in quantities}
             claim_out.append({"claim_id": cid, "source_id": sid, "state": state, "reasons": reasons, "flags": flags,
                               "text": text, "passage": {"start": s0, "end": e0}, "score": score,
                               "claim_class": claim_class, "independent_groups": n_groups,
                               "supporting_evidence": ([{"source_id": sid, "start": s0, "end": e0}]
                                                       if score["components"]["passage_match"] else []),
                               "contradicting_evidence": [{"claim_id": x} for x in conflict_peers.get(cid, [])],
-                              "corroboration": self._corroboration(qty_tokens(c), groups_by_qty, sources_by_qty)})
+                              "corroboration": self._corroboration(quantities, contextual_groups, contextual_sources)})
 
         counts = {k: sum(1 for c in claim_out if c["state"] == k) for k in (AUTO_ACCEPTED, REJECTED, NEEDS_REVIEW, SOURCE_BLOCKED)}
         scounts = {k: sum(1 for s in source_out if s["state"] == k) for k in (AUTO_ACCEPTED, REJECTED, SOURCE_BLOCKED)}
@@ -404,12 +434,21 @@ class EvidencePolicyService:
         supporting = {c["source_id"] for c in claim_out if c["state"] == AUTO_ACCEPTED}
         failed = evaluate_readiness(
             cfg, accepted_claims=len({_norm_text(c["text"]) for c in claim_out if c["state"] == AUTO_ACCEPTED}),
-            supporting_sources=supporting,
+            supporting_sources={_group_of(usable[x]) for x in supporting if x in usable},
             supporting_categories={usable[x]["category"] for x in supporting if x in usable},
             missing_publisher_sources={x for x in supporting if x in usable and not usable[x].get("publisher")},
             anchors=anchors, stale_decisions=False, versions={cfg["version"]},
-            unresolved_conflicts=[], claims_without_disposition=sum(1 for c in claim_out if not c.get("state")))
-        body = {"schema_version": RESULT_SCHEMA, "policy_version": cfg["version"], "scoring_policy_version": cfg["scoring"]["version"],
+            unresolved_conflicts=sorted(conflict_ids), claims_without_disposition=sum(1 for c in claim_out if not c.get("state")))
+        for row in source_out + claim_out:
+            row["assessment_outcome"] = self._assessment_outcome(row)
+            if "claim_id" in row and any(src["source_id"] == row["source_id"] and
+                    src.get("assessment_outcome") == "ASSESSMENT_FAILED" for src in source_out):
+                row["assessment_outcome"] = "ASSESSMENT_FAILED"
+            row["assessor_version"] = ASSESSOR_VERSION
+            row["assessment_basis"] = "Deterministic policy support and integrity checks; not verification of factual truth"
+        body = {"schema_version": RESULT_SCHEMA, "assessor_version": ASSESSOR_VERSION,
+                "configuration_sha256": self.configuration_sha256, "registry_sha256": self.registry_sha256,
+                "default_configuration": self.default_configuration, "policy_version": cfg["version"], "scoring_policy_version": cfg["scoring"]["version"],
                 "source_policy_version": self.sources.version if self.sources else "DISABLED",
                 "analysis_versions": ana.get("versions"), "job_id": job_id, "topic": job["topic"], "anchors": anchors,
                 "subject_categories": subjects,
@@ -418,6 +457,19 @@ class EvidencePolicyService:
                 "counts": {"claims": counts, "sources": scounts},
                 "policy_criteria_failed": failed}
         return body
+
+    @staticmethod
+    def _assessment_outcome(row):
+        reasons = " ".join(row.get("reasons", [])).lower()
+        if ("integrity" in reasons and "failed" in reasons) or "passage does not match" in reasons:
+            return "ASSESSMENT_FAILED"
+        if row.get("contradicting_evidence") or "detected conflict" in reasons:
+            return "CONTRADICTED"
+        if row["state"] == AUTO_ACCEPTED:
+            return "SUPPORTED"
+        if "independent" in reasons or "single-source" in reasons or "corroborat" in reasons:
+            return "NEEDS_MORE_SOURCES"
+        return "INSUFFICIENT_EVIDENCE"
 
     @staticmethod
     def _corroboration(qs, groups_by_qty, sources_by_qty) -> dict:
@@ -458,9 +510,52 @@ class EvidencePolicyService:
         return {"total": total, "scale": "0-100", "components": comp, "weights": weights,
                 "scoring_policy_version": cfg["version"], "calibrated": False}
 
+    def run_assessment(self, job_id: str, owner_id: str) -> dict:
+        """Existing policy entry with a persisted, fail-closed assessment failure."""
+        # Ownership is checked before even attempting to record a failure.
+        with closing(connect(self.database_file)) as connection:
+            if JobRepository(connection).get_owned_job(job_id, owner_id) is None:
+                raise ReviewNotFound("Workflow job not found")
+        try:
+            return self.run(job_id, owner_id)
+        except ReviewNotFound:
+            raise
+        except Exception as exc:
+            # Do not persist arbitrary exception strings (which can contain secrets).
+            reason = "Assessment could not validate current evidence (" + type(exc).__name__ + "). Inspect source integrity and retry assessment."
+            with closing(connect(self.database_file)) as connection:
+                refs = {k: ReviewService._latest_artifact(connection, job_id, k)
+                        for k in (ACQUISITION_RESULT_ARTIFACT, ANALYSIS_RESULT_ARTIFACT)}
+            result = {"schema_version": RESULT_SCHEMA, "job_id": job_id, "assessment_outcome": "ASSESSMENT_FAILED",
+                      "assessor_version": ASSESSOR_VERSION, "policy_version": self.policy["version"],
+                      "configuration_sha256": self.configuration_sha256, "registry_sha256": self.registry_sha256,
+                      "acquisition_sha256": (refs[ACQUISITION_RESULT_ARTIFACT] or {}).get("sha256"),
+                      "analysis_sha256": (refs[ANALYSIS_RESULT_ARTIFACT] or {}).get("sha256"),
+                      "ready_for_generation": False, "package_ready": False, "package_approval": None,
+                      "sources": [], "claims": [], "counts": {"claims": {}, "sources": {}},
+                      "policy_criteria_failed": [{"criterion": "assessment_completed", "required": True,
+                           "actual": False, "action": reason}], "package_blockers": [reason], "explanation": reason}
+            run_id = hashlib.sha256(canonical(result)).hexdigest()[:16]
+            result["run_id"] = run_id
+            data = canonical(result)
+            sha = hashlib.sha256(data).hexdigest()
+            uri = f"jobs/{job_id}/evidence/policy_{sha}.json"
+            self.store.write_bytes(job_id, uri, data, "application/json")
+            with closing(connect(self.database_file)) as connection:
+                connection.execute("INSERT INTO evidence_policy_runs VALUES(?,?,?,?,?,?,?,?) ON CONFLICT(job_id,run_id) DO UPDATE SET "
+                                   "result_uri=excluded.result_uri,result_sha256=excluded.result_sha256,"
+                                   "counts_json=excluded.counts_json,ready=excluded.ready,created_at=excluded.created_at",
+                                   (job_id, run_id, self.policy["version"], uri, sha, "{}", 0, _now()))
+                connection.commit()
+            return {**result, "result_uri": uri, "result_sha256": sha}
+
     # -- apply ---------------------------------------------------------------
     def run(self, job_id: str, owner_id: str, *, approve_package: bool = True) -> dict:
         body = self.evaluate(job_id, owner_id)
+        with closing(connect(self.database_file)) as history:
+            human_snapshot = [dict(r) for table in ("source_reviews", "claim_reviews")
+                              for r in history.execute(f"SELECT * FROM {table} WHERE job_id=? ORDER BY rowid", (job_id,))]
+        body["human_state_sha256"] = hashlib.sha256(canonical({"records": human_snapshot})).hexdigest()
         digest = hashlib.sha256(canonical(body)).hexdigest()
         run_id = digest[:16]
         self.workspace.write_text(job_id, f"policy/{run_id}.input.json",
@@ -472,16 +567,31 @@ class EvidencePolicyService:
                          if rec and rec.get("origin", "HUMAN") == "HUMAN"]
         rows = [{"subject_type": "SOURCE", "subject_id": x["source_id"], "state": x["state"], "reasons": x["reasons"],
                  "evidence": {"canonical_url": x["canonical_url"], "sha256": x["sha256"],
-                              "independence_group": x["independence_group"], "category": x["category"]}}
+                              "independence_group": x["independence_group"], "category": x["category"], "assessment_outcome": x["assessment_outcome"],
+                              "assessor_version": ASSESSOR_VERSION, "assessment_basis": x["assessment_basis"]}}
                 for x in body["sources"]]
         rows += [{"subject_type": "CLAIM", "subject_id": x["claim_id"], "state": x["state"], "reasons": x["reasons"],
                   "score": x["score"]["total"], "components": x["score"]["components"],
                   "claim_class": x.get("claim_class"), "independent_groups": x.get("independent_groups"),
                   "evidence": {"source_id": x["source_id"], "passage": x["passage"],
-                               "supporting": x.get("supporting_evidence"), "contradicting": x.get("contradicting_evidence")}}
+                               "supporting": x.get("supporting_evidence"), "contradicting": x.get("contradicting_evidence"), "assessment_outcome": x["assessment_outcome"],
+                               "assessor_version": ASSESSOR_VERSION, "assessment_basis": x["assessment_basis"]}}
                 for x in body["claims"]]
+        for row in rows:
+            row["evidence"].update(default_configuration=self.default_configuration,
+                configuration_sha256=self.configuration_sha256, registry_sha256=self.registry_sha256,
+                policy_criteria_failed=body["policy_criteria_failed"], readiness_policy=self.policy["readiness"])
         with closing(connect(self.database_file)) as c:
             c.execute("BEGIN IMMEDIATE")
+            if self.default_configuration and (
+                    hashlib.sha256(canonical(load_evidence_policy())).hexdigest() != self.configuration_sha256 or
+                    hashlib.sha256(str(default_policy()).encode()).hexdigest() != self.registry_sha256):
+                raise ReviewValidationError("Policy configuration changed during assessment; reassess")
+            for kind, expected in ((ACQUISITION_RESULT_ARTIFACT, body["acquisition_sha256"]),
+                                   (ANALYSIS_RESULT_ARTIFACT, body["analysis_sha256"])):
+                current = ReviewService._latest_artifact(c, job_id, kind)
+                if current is None or current["sha256"] != expected:
+                    raise ReviewValidationError("Evidence changed during assessment; run again on current inputs")
             policy_decisions.insert_run(c, job_id, run_id, self.policy["version"], self.policy["scoring"]["version"],
                                         body["acquisition_sha256"], body["analysis_sha256"], rows, _now())
             c.commit()
@@ -491,11 +601,11 @@ class EvidencePolicyService:
         blockers = list(pkg["blockers"])
         approval = None
         ready = not blockers and not body["policy_criteria_failed"]
-        if ready and approve_package:
+        if ready:
             existing = draft.get("current_approval")
             if existing:
                 approval = self._approval_view(existing)
-            else:
+            elif approve_package:
                 row = self.evidence.approve(
                     job_id, owner_id, draft["revision"],
                     f"[AUTO-POLICY {self.policy['version']}] readiness criteria satisfied: "
@@ -514,7 +624,9 @@ class EvidencePolicyService:
         uri = f"jobs/{job_id}/evidence/policy_{sha}.json"
         self.store.write_bytes(job_id, uri, data, "application/json")
         with closing(connect(self.database_file)) as c:
-            c.execute("INSERT OR REPLACE INTO evidence_policy_runs VALUES(?,?,?,?,?,?,?,?)",
+            c.execute("INSERT INTO evidence_policy_runs VALUES(?,?,?,?,?,?,?,?) ON CONFLICT(job_id,run_id) DO UPDATE SET "
+                                   "result_uri=excluded.result_uri,result_sha256=excluded.result_sha256,"
+                                   "counts_json=excluded.counts_json,ready=excluded.ready,created_at=excluded.created_at",
                       (job_id, run_id, self.policy["version"], uri, sha, json.dumps(body["counts"]),
                        int(result["ready_for_generation"]), _now()))
             c.commit()
@@ -539,4 +651,15 @@ class EvidencePolicyService:
             return None
         data = json.loads(self.store.read_bytes(job_id, row["result_uri"]))
         data["result_uri"], data["result_sha256"] = row["result_uri"], row["result_sha256"]
+        with closing(connect(self.database_file)) as c:
+            acq = ReviewService._latest_artifact(c, job_id, ACQUISITION_RESULT_ARTIFACT)
+            ana = ReviewService._latest_artifact(c, job_id, ANALYSIS_RESULT_ARTIFACT)
+        data["is_stale"] = bool(not acq or not ana or data.get("acquisition_sha256") != acq["sha256"] or
+            data.get("analysis_sha256") != ana["sha256"] or
+            data.get("configuration_sha256") != self.configuration_sha256 or
+            data.get("registry_sha256") != self.registry_sha256 or
+            data.get("assessor_version") != ASSESSOR_VERSION)
+        if data["is_stale"]:
+            data["ready_for_generation"] = False
+            data["explanation"] = "Assessment is stale; reassess current evidence and policy configuration."
         return data

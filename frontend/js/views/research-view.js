@@ -3,6 +3,8 @@
 // unknown values render as "Unknown" / "Estimating". Fetched text is always escaped.
 import { escapeHtml as esc } from "../components/status-badge.js";
 import { newIdempotencyKey } from "../api.js";
+import { singleFlight } from "../components/single-flight.js";
+import { parseSeedUrlInput, renderCoverageHtml } from "./discovery-view.js";
 
 const TERMINAL = new Set(["COMPLETED", "FAILED", "CANCELLED"]);
 const STATE_LABEL = {
@@ -53,6 +55,8 @@ function stageRow(s) {
 export function renderMonitorHtml(m) {
   const est = m.estimate || {};
   const remaining = TERMINAL.has(m.job_status) ? "—"
+    : m.job_status === "AWAITING_REVIEW" ? "Awaiting evidence requirements"
+    : m.job_status === "PAUSED" ? "Paused; awaiting next action"
     : est.remaining_seconds === null || est.remaining_seconds === undefined ? "Estimating"
       : `${formatDuration(est.remaining_seconds)} (${esc(est.basis)}, ${esc(est.confidence)} confidence)`;
   const c = m.counts || {};
@@ -83,7 +87,7 @@ export function renderMonitorHtml(m) {
     ${rows ? `<div class="table-wrap"><table><thead><tr><th>Host</th><th>Title</th><th>Category</th><th>Independence group</th>
       <th>Status</th><th>Fetch time</th><th>Error</th></tr></thead><tbody>${rows}</tbody></table></div>`
       : `<div class="empty-state">No sources have been acquired yet.</div>`}
-    <p class="meta">Pause, resume, cancel and retry are not offered: the backend does not implement them.</p>`;
+    <p class="meta">Pause, resume and cancel controls are unavailable.</p>`;
 }
 
 export function renderExplorerHtml(ex, ui) {
@@ -181,33 +185,63 @@ export function startFormHtml() {
     <h2>Start research</h2>
     <label>Topic <input id="rs-topic" required maxlength="1000" placeholder="e.g. Rafale deal"></label>
     <label>Language <select id="rs-lang"><option value="en">English</option><option value="ta">Tamil</option></select></label>
+    <label>Verified source URLs (one per line, optional)<textarea id="rs-sources" rows="3" placeholder="https://www.pib.gov.in/PressReleaseIframePage.aspx?PRID=2323814&amp;lang=2&amp;reg=48"></textarea></label>
     <p id="rs-error" class="error-state" role="alert" hidden></p>
-    <button type="submit" class="primary">Start research</button>
-    <p class="meta">Sources are fetched only from the controlled source registry.</p></form>`;
+    <button id="rs-submit" type="submit" class="primary">Start research</button>
+    <p class="meta">Sources are fetched only from the controlled source registry. Source URLs use the existing manual discovery provider; they do not bypass policy. Once evidence checks pass, generate the draft on the Script tab. Valid drafts approve automatically.</p></form>`;
+}
+
+export function createResearchSubmission(api, onStarted) {
+  const once = singleFlight();
+  let attempt;
+  return (payload, button) => once(button, async () => {
+    const signature = JSON.stringify(payload);
+    if (!attempt || attempt.signature !== signature) attempt = { signature, key: newIdempotencyKey() };
+    // Retain each acknowledged step and the job key if a later request fails.
+    // Retrying queue dispatch must not create another job or rewrite its inputs.
+    if (!attempt.job) attempt.job = await api.createJob(payload.topic, payload.language, attempt.key);
+    if (!attempt.requestSaved) {
+      await api.createDiscoveryRequest(attempt.job.job_id, payload);
+      attempt.requestSaved = true;
+    }
+    await api.queueJob(attempt.job.job_id);
+    onStarted?.(attempt.job.job_id);
+  });
+}
+
+export function renderResearchDiscoveryHtml(result) {
+  return `${result.candidates?.length ? "" : '<p role="alert" class="error-state">No candidate sources were found. Research cannot support a draft yet; check provider results or start research with permitted source URLs.</p>'}
+    ${renderCoverageHtml(result)}
+    <p><a href="#/evidence">Review the evidence package</a> · <a href="#/script">Generate a draft after evidence approval</a></p>`;
 }
 
 export async function mountResearch({ api, jobId, list, detail, filters, isCurrent, onStarted, pollMs = 3000 }) {
   filters.innerHTML = "<p>Live research progress and evidence. Decisions are automatic and policy-driven.</p>";
   detail.innerHTML = "";
-  if (!jobId) {
-    list.innerHTML = startFormHtml();
+  function wireStart() {
+    const submit = createResearchSubmission(api, onStarted);
     list.querySelector("#research-start").addEventListener("submit", async (ev) => {
       ev.preventDefault();
       const topic = list.querySelector("#rs-topic").value.trim();
       const err = list.querySelector("#rs-error");
       if (!topic) { err.textContent = "Enter a topic to research."; err.hidden = false; return; }
+      const sources = parseSeedUrlInput(list.querySelector("#rs-sources").value);
+      if (sources.error) { err.textContent = sources.error; err.hidden = false; return; }
       try {
+        err.hidden = true;
         const lang = list.querySelector("#rs-lang").value;
-        const job = await api.createJob(topic, lang, newIdempotencyKey());
-        await api.createDiscoveryRequest(job.job_id, { topic, language: lang });
-        await api.queueJob(job.job_id);
-        onStarted?.(job.job_id);
+        await submit({ topic, language: lang, seed_urls: sources.urls }, list.querySelector("#rs-submit"));
       } catch (e) { err.textContent = e.message; err.hidden = false; }
     });
+  }
+  if (!jobId) {
+    list.innerHTML = startFormHtml();
+    wireStart();
     return;
   }
   const ui = { filter: "all", query: "", host: "", selected: null, explorer: null, timer: null };
-  list.innerHTML = '<div id="rm-monitor"></div><div id="rm-explorer"></div>';
+  list.innerHTML = `<details><summary>Start research on another topic</summary>${startFormHtml()}</details><div id="rm-monitor"></div><div id="rm-discovery"></div><div id="rm-explorer"></div>`;
+  wireStart();
   const monEl = list.querySelector("#rm-monitor");
   const exEl = list.querySelector("#rm-explorer");
 
@@ -259,6 +293,15 @@ export async function mountResearch({ api, jobId, list, detail, filters, isCurre
     } catch (err) {
       monEl.innerHTML = `<p role="alert" class="error-state">${esc(err.message)}</p>`;
       return;
+    }
+    if (m.stages.some(s => s.stage_key === "news_feed_and_topic_discovery" && s.status === "COMPLETED")) {
+      const slot = list.querySelector("#rm-discovery");
+      try {
+        const discovery = await api.listDiscoveryCandidates(jobId);
+        if (isCurrent()) slot.innerHTML = renderResearchDiscoveryHtml(discovery);
+      } catch (err) {
+        if (isCurrent()) slot.innerHTML = `<p role="alert" class="error-state">Could not load discovery results: ${esc(err.message)}</p>`;
+      }
     }
     try {
       ui.explorer = await api.request("GET", `/jobs/${encodeURIComponent(jobId)}/evidence/explorer`);

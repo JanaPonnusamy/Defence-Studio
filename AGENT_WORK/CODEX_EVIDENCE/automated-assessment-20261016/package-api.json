@@ -1,0 +1,2458 @@
+{
+  "package": {
+    "schema_version": "defence-studio.evidence-package.v1",
+    "policy": "defence-studio.evidence-approval.strict.v1",
+    "job_id": "dfe0b173-d9ff-458b-99b6-7b4ad3cccb8e",
+    "topic": "today indian defence news",
+    "language": "en",
+    "generated_from_timestamp": "2026-10-16T14:33:34.016980+00:00",
+    "artifacts": [
+      {
+        "artifact_type": "acquisition_manifest",
+        "uri": "jobs/dfe0b173-d9ff-458b-99b6-7b4ad3cccb8e/research/attempts/7fd7f84d-3fb7-4af2-85a8-55a4fb905d05/acquisition_result.json",
+        "sha256": "3cb1de1ad89d26f09a1b6bdc6dc10527dbde0a3bea20455d4935d09c3574efa5",
+        "schema_version": "defence-studio.acquisition-result.v1"
+      },
+      {
+        "artifact_type": "analysis_result",
+        "uri": "jobs/dfe0b173-d9ff-458b-99b6-7b4ad3cccb8e/research/analysis/b6850826d88d6f2f286b23a0d983fb056bfa305a575f8163153ddd02bd10fa51.json",
+        "sha256": "d7566bf1274563bf88d93270e95a985a3d7250b87896353e4bddc196bd5c225d",
+        "schema_version": "defence-studio.analysis-result.v1"
+      },
+      {
+        "artifact_type": "discovery_result",
+        "uri": "jobs/dfe0b173-d9ff-458b-99b6-7b4ad3cccb8e/research/attempts/e7dd8248-67a8-424f-8fe9-3f3e2402c35c/discovery_result.json",
+        "sha256": "6f89f9886d7b990a5f6a104ea389ad59f7a6efeaa5e7cdd8472f765ee538f255",
+        "schema_version": "defence-studio.discovery-result.v2"
+      },
+      {
+        "artifact_type": "acquisition_request",
+        "uri": "jobs/dfe0b173-d9ff-458b-99b6-7b4ad3cccb8e/research/attempts/7fd7f84d-3fb7-4af2-85a8-55a4fb905d05/automatic_acquisition_request.json",
+        "sha256": "421949ef1006490dbe412967ca30bb8fca61ad332f6978ef16aec59ad9e9df9c",
+        "schema_version": "defence-studio.acquisition-request.v1"
+      }
+    ],
+    "discovery": {
+      "selected_candidate_ids": [
+        "3e9c744833869a0bb3ab9752e712d50f6a73cb1e"
+      ],
+      "candidates": [
+        {
+          "candidate_id": "3e9c744833869a0bb3ab9752e712d50f6a73cb1e",
+          "canonical_url": "https://www.pib.gov.in/PressReleaseIframePage.aspx?PRID=2323814&lang=2&reg=48",
+          "category": "INDIAN_DEFENCE",
+          "category_basis": "KEYWORD_RULE",
+          "declared_metadata": {
+            "language": "en",
+            "language_status": "COLLECTED",
+            "published_at": "2026-10-15",
+            "published_at_status": "COLLECTED",
+            "publisher": "www.pib.gov.in",
+            "publisher_status": "COLLECTED",
+            "title": "MoD inks Rs 4,106 crore contracts for GSAT-7C communication satellite and Varunastra Heavy Weight Torpedoes",
+            "title_status": "COLLECTED"
+          },
+          "discovered_at": "2026-10-16T13:46:18.079074+00:00",
+          "filter_flags": [],
+          "merged_from_providers": [],
+          "original_metadata": {
+            "declared_canonical_url": null,
+            "fetch_status": "REACHABLE",
+            "final_url": "https://www.pib.gov.in/PressReleaseIframePage.aspx?PRID=2323814&lang=2&reg=48",
+            "http_status": 200,
+            "media_type": "text/html",
+            "publisher_declared": false,
+            "reachability_only": true,
+            "seed_url": "https://www.pib.gov.in/PressReleaseIframePage.aspx?PRID=2323814&lang=2&reg=48",
+            "text_chars": 3409,
+            "text_sha256": "8e1991b91cd9286603e367409e5abc7b787b396c32fc602a0fd7d29fd98d5390"
+          },
+          "provider": "manual_url",
+          "provider_rank": null,
+          "provider_version": "0.1.0",
+          "ranking": {
+            "explanation": [
+              "Title shares 0/4 topic token(s).",
+              "Published 1 day(s) ago.",
+              "Candidate language matches the requested language 'en'.",
+              "No source-type preference was set."
+            ],
+            "language_match_score": 1.0,
+            "recency_score": 0.9973,
+            "relevance_score": 0.0,
+            "source_type_score": 1.0,
+            "total_score": 0.4995
+          },
+          "region_basis": "KEYWORD_RULE",
+          "regions": [
+            "INDIA"
+          ],
+          "requested_url": "https://www.pib.gov.in/PressReleaseIframePage.aspx?PRID=2323814&lang=2&reg=48",
+          "retrieved_at": "2026-10-16T13:46:18.079074+00:00",
+          "snippet": "Press Release:Press Information Bureau Ministry of Defence MoD inks Rs 4,106 crore contracts for GSAT-7C communication satellite and Varunastra Heavy Weight Torpedoes \u092a\u094d\u0930\u0935\u093f\u0937\u094d\u091f\u093f \u0924\u093f\u0925\u093f: 15 OCT 2026 3:22PM by PIB Delhi The Ministry of Defence has signed contracts worth a total of approximately Rs 4,106 crore for the acquisition of a dedicated communication satellite capability, GSAT-7C for the Indian Air Force, and Varunastra Heavy Weight Torpedoes for the Indian Navy. The contract for GSAT-7C, valu",
+          "source_class": "UNKNOWN",
+          "source_type": "web_page",
+          "warnings": []
+        }
+      ],
+      "status": "COMPLETED",
+      "providers": [
+        {
+          "candidates_returned": 1,
+          "duration_ms": 969,
+          "filters_applied": [
+            "seed_urls"
+          ],
+          "filters_not_supported": [],
+          "http_attempts": 1,
+          "message": "Fetched 1 seed URL(s); HTTP 200 shows reachability only.",
+          "optional_dependency": false,
+          "provider": "manual_url",
+          "rate_limited": false,
+          "requires_credentials": false,
+          "status": "OK",
+          "truncated": false
+        }
+      ]
+    },
+    "sources": [
+      {
+        "acquisition_timestamp": "2026-10-16T13:46:19.140121+00:00",
+        "artifacts": [
+          {
+            "artifact_type": "source_content",
+            "bytes": 83911,
+            "media_type": "text/html",
+            "schema_version": "defence-studio.source-artifact.v1",
+            "sha256": "1142626b48c40df6d50bc0ecfbbeb8983631fd5bc5dfe3568c7212f3bc842b6d",
+            "uri": "jobs/dfe0b173-d9ff-458b-99b6-7b4ad3cccb8e/research/sources/3e9c744833869a0bb3ab9752e712d50f6a73cb1e/content.html"
+          }
+        ],
+        "canonical_url": "https://www.pib.gov.in/PressReleaseIframePage.aspx?PRID=2323814&lang=2&reg=48",
+        "declared_metadata": {
+          "language": "hi",
+          "language_status": "COLLECTED",
+          "published_at": "2026-10-15",
+          "published_at_status": "COLLECTED",
+          "publisher": null,
+          "publisher_status": "UNAVAILABLE",
+          "title": "Press Release:Press Information Bureau",
+          "title_status": "COLLECTED"
+        },
+        "error": null,
+        "final_url": "https://www.pib.gov.in/PressReleaseIframePage.aspx?PRID=2323814&lang=2&reg=48",
+        "method": "auto",
+        "original_metadata": {
+          "declared_media_type": "text/html",
+          "http_status": 200,
+          "response_headers": {
+            "content-length": "30672",
+            "content-type": "text/html; charset=utf-8",
+            "date": "Fri, 16 Oct 2026 13:46:19 GMT",
+            "etag": "XXXXXXXX"
+          }
+        },
+        "provenance": {
+          "acquired_at": "2026-10-16T13:46:19.140121+00:00",
+          "canonical_url": "https://www.pib.gov.in/PressReleaseIframePage.aspx?PRID=2323814&lang=2&reg=48",
+          "final_url": "https://www.pib.gov.in/PressReleaseIframePage.aspx?PRID=2323814&lang=2&reg=48",
+          "provider": "http_page",
+          "provider_version": "0.1.0",
+          "request_target_id": "3e9c744833869a0bb3ab9752e712d50f6a73cb1e",
+          "requested_url": "https://www.pib.gov.in/PressReleaseIframePage.aspx?PRID=2323814&lang=2&reg=48",
+          "source_component": "defence_studio.acquisition.providers.http_page@0.1.0"
+        },
+        "requested_url": "https://www.pib.gov.in/PressReleaseIframePage.aspx?PRID=2323814&lang=2&reg=48",
+        "source_id": "3e9c744833869a0bb3ab9752e712d50f6a73cb1e",
+        "source_type": "web_page",
+        "status": "ACQUIRED",
+        "target_id": "3e9c744833869a0bb3ab9752e712d50f6a73cb1e",
+        "warnings": [],
+        "normalized": {
+          "canonical_url": "https://www.pib.gov.in/PressReleaseIframePage.aspx?PRID=2323814&lang=2&reg=48",
+          "dates": {
+            "acquired_at": "2026-10-16T13:46:19.140121+00:00",
+            "published_at": "2026-10-15"
+          },
+          "declared_metadata": {
+            "language": "hi",
+            "language_status": "COLLECTED",
+            "published_at": "2026-10-15",
+            "published_at_status": "COLLECTED",
+            "publisher": null,
+            "publisher_status": "UNAVAILABLE",
+            "title": "Press Release:Press Information Bureau",
+            "title_status": "COLLECTED"
+          },
+          "final_url": "https://www.pib.gov.in/PressReleaseIframePage.aspx?PRID=2323814&lang=2&reg=48",
+          "language_detected": "en",
+          "media_type": "text/html",
+          "normalization_version": "defence-studio.normalizer.v2",
+          "normalized_char_count": 6367,
+          "normalized_sha256": "c7495776d123fe388ce37c093bc95591ee9ff23d41aa308f753b09408cd4cf4d",
+          "original_artifact": {
+            "artifact_type": "source_content",
+            "bytes": 83911,
+            "media_type": "text/html",
+            "sha256": "1142626b48c40df6d50bc0ecfbbeb8983631fd5bc5dfe3568c7212f3bc842b6d",
+            "uri": "jobs/dfe0b173-d9ff-458b-99b6-7b4ad3cccb8e/research/sources/3e9c744833869a0bb3ab9752e712d50f6a73cb1e/content.html"
+          },
+          "original_sha256_verified": true,
+          "requested_url": "https://www.pib.gov.in/PressReleaseIframePage.aspx?PRID=2323814&lang=2&reg=48",
+          "schema_version": "defence-studio.normalized-source.v1",
+          "source_id": "3e9c744833869a0bb3ab9752e712d50f6a73cb1e",
+          "source_type": "web_page",
+          "status": "NORMALIZED",
+          "target_id": "3e9c744833869a0bb3ab9752e712d50f6a73cb1e",
+          "warnings": []
+        },
+        "review": {
+          "job_id": "dfe0b173-d9ff-458b-99b6-7b4ad3cccb8e",
+          "source_id": "3e9c744833869a0bb3ab9752e712d50f6a73cb1e",
+          "decision": "APPROVED_FOR_USE",
+          "reviewed_artifact_type": "acquisition_manifest",
+          "reviewed_artifact_sha256": "3cb1de1ad89d26f09a1b6bdc6dc10527dbde0a3bea20455d4935d09c3574efa5",
+          "reviewer_id": "e2e-operator",
+          "note": "hi",
+          "revision": 8,
+          "created_at": "2026-10-16T14:32:56.519720+00:00",
+          "updated_at": "2026-10-16T14:33:34.016980+00:00",
+          "origin": "HUMAN"
+        },
+        "is_stale": false
+      }
+    ],
+    "claims": [
+      {
+        "acquisition_timestamp": "2026-10-16T13:46:19.140121+00:00",
+        "claim_id": "claim-fb8ebbaa4ee68a26",
+        "claim_text": "MoD inks Rs 4,106 crore contracts for GSAT-7C communication satellite and Varunastra Heavy Weight Torpedoes",
+        "entities": {
+          "dates": [],
+          "designations": [
+            "GSAT-7C"
+          ],
+          "named": [
+            "GSAT",
+            "Varunastra Heavy Weight Torpedoes"
+          ],
+          "quantities": [
+            "4,106 crore"
+          ]
+        },
+        "extraction_method": "deterministic-sentence-span",
+        "extractor_version": "defence-studio.claim-extractor.deterministic.v2",
+        "has_negation": false,
+        "is_explicit": true,
+        "normalized_language": "en",
+        "original_language": "en",
+        "passage": {
+          "artifact_uri": "jobs/dfe0b173-d9ff-458b-99b6-7b4ad3cccb8e/research/sources/3e9c744833869a0bb3ab9752e712d50f6a73cb1e/content.html",
+          "end_offset": 168,
+          "kind": "TEXT_SPAN",
+          "source_id": "3e9c744833869a0bb3ab9752e712d50f6a73cb1e",
+          "start_offset": 61,
+          "text": "MoD inks Rs 4,106 crore contracts for GSAT-7C communication satellite and Varunastra Heavy Weight Torpedoes",
+          "timestamp_end": null,
+          "timestamp_start": null
+        },
+        "qualifiers": [],
+        "source_id": "3e9c744833869a0bb3ab9752e712d50f6a73cb1e",
+        "source_published_at": "2026-10-15",
+        "warnings": [],
+        "review": {
+          "origin": "AUTOMATED_POLICY",
+          "decision": "REJECTED",
+          "policy_state": "REJECTED",
+          "policy_version": "defence-studio.evidence-policy.v1",
+          "run_id": "23b5ca4d76d1f91c",
+          "score": 30.0,
+          "claim_class": "QUANTITATIVE",
+          "independent_groups": 0,
+          "reviewer_id": null,
+          "note": "supporting source is not usable under the source policy",
+          "reviewed_artifact_sha256": "d7566bf1274563bf88d93270e95a985a3d7250b87896353e4bddc196bd5c225d",
+          "revision": 0
+        },
+        "is_stale": false
+      },
+      {
+        "acquisition_timestamp": "2026-10-16T13:46:19.140121+00:00",
+        "claim_id": "claim-035fb086945a882a",
+        "claim_text": "The Ministry of Defence has signed contracts worth a total of approximately Rs 4,106 crore for the acquisition of a dedicated communication satellite capability, GSAT-7C for the Indian Air Force, and Varunastra Heavy Weight Torpedoes for the Indian Navy.",
+        "entities": {
+          "dates": [],
+          "designations": [
+            "GSAT-7C"
+          ],
+          "named": [
+            "The Ministry",
+            "GSAT",
+            "Indian Air Force",
+            "Varunastra Heavy Weight Torpedoes",
+            "Indian Navy"
+          ],
+          "quantities": [
+            "4,106 crore"
+          ]
+        },
+        "extraction_method": "deterministic-sentence-span",
+        "extractor_version": "defence-studio.claim-extractor.deterministic.v2",
+        "has_negation": false,
+        "is_explicit": true,
+        "normalized_language": "en",
+        "original_language": "en",
+        "passage": {
+          "artifact_uri": "jobs/dfe0b173-d9ff-458b-99b6-7b4ad3cccb8e/research/sources/3e9c744833869a0bb3ab9752e712d50f6a73cb1e/content.html",
+          "end_offset": 473,
+          "kind": "TEXT_SPAN",
+          "source_id": "3e9c744833869a0bb3ab9752e712d50f6a73cb1e",
+          "start_offset": 219,
+          "text": "The Ministry of Defence has signed contracts worth a total of approximately Rs 4,106 crore for the acquisition of a dedicated communication satellite capability, GSAT-7C for the Indian Air Force, and Varunastra Heavy Weight Torpedoes for the Indian Navy.",
+          "timestamp_end": null,
+          "timestamp_start": null
+        },
+        "qualifiers": [],
+        "source_id": "3e9c744833869a0bb3ab9752e712d50f6a73cb1e",
+        "source_published_at": "2026-10-15",
+        "warnings": [],
+        "review": {
+          "origin": "AUTOMATED_POLICY",
+          "decision": "REJECTED",
+          "policy_state": "REJECTED",
+          "policy_version": "defence-studio.evidence-policy.v1",
+          "run_id": "23b5ca4d76d1f91c",
+          "score": 30.0,
+          "claim_class": "QUANTITATIVE",
+          "independent_groups": 0,
+          "reviewer_id": null,
+          "note": "supporting source is not usable under the source policy",
+          "reviewed_artifact_sha256": "d7566bf1274563bf88d93270e95a985a3d7250b87896353e4bddc196bd5c225d",
+          "revision": 0
+        },
+        "is_stale": false
+      },
+      {
+        "acquisition_timestamp": "2026-10-16T13:46:19.140121+00:00",
+        "claim_id": "claim-bb24e64887e7073d",
+        "claim_text": "The contract for GSAT-7C, valued at Rs 2,563 crore, was inked with New Space India Limited, Bengaluru.",
+        "entities": {
+          "dates": [],
+          "designations": [
+            "GSAT-7C"
+          ],
+          "named": [
+            "GSAT",
+            "New Space India Limited"
+          ],
+          "quantities": [
+            "2,563 crore"
+          ]
+        },
+        "extraction_method": "deterministic-sentence-span",
+        "extractor_version": "defence-studio.claim-extractor.deterministic.v2",
+        "has_negation": false,
+        "is_explicit": true,
+        "normalized_language": "en",
+        "original_language": "en",
+        "passage": {
+          "artifact_uri": "jobs/dfe0b173-d9ff-458b-99b6-7b4ad3cccb8e/research/sources/3e9c744833869a0bb3ab9752e712d50f6a73cb1e/content.html",
+          "end_offset": 577,
+          "kind": "TEXT_SPAN",
+          "source_id": "3e9c744833869a0bb3ab9752e712d50f6a73cb1e",
+          "start_offset": 475,
+          "text": "The contract for GSAT-7C, valued at Rs 2,563 crore, was inked with New Space India Limited, Bengaluru.",
+          "timestamp_end": null,
+          "timestamp_start": null
+        },
+        "qualifiers": [],
+        "source_id": "3e9c744833869a0bb3ab9752e712d50f6a73cb1e",
+        "source_published_at": "2026-10-15",
+        "warnings": [],
+        "review": {
+          "origin": "AUTOMATED_POLICY",
+          "decision": "REJECTED",
+          "policy_state": "REJECTED",
+          "policy_version": "defence-studio.evidence-policy.v1",
+          "run_id": "23b5ca4d76d1f91c",
+          "score": 30.0,
+          "claim_class": "QUANTITATIVE",
+          "independent_groups": 0,
+          "reviewer_id": null,
+          "note": "supporting source is not usable under the source policy",
+          "reviewed_artifact_sha256": "d7566bf1274563bf88d93270e95a985a3d7250b87896353e4bddc196bd5c225d",
+          "revision": 0
+        },
+        "is_stale": false
+      },
+      {
+        "acquisition_timestamp": "2026-10-16T13:46:19.140121+00:00",
+        "claim_id": "claim-836b80783f429fbb",
+        "claim_text": "This indigenously designed, developed & manufactured satellite will enhance the secure, resilient & seamless communication capabilities for the assets of the Indian Air Force, thereby strengthening operational effectiveness.",
+        "entities": {
+          "dates": [],
+          "designations": [],
+          "named": [
+            "Indian Air Force"
+          ],
+          "quantities": []
+        },
+        "extraction_method": "deterministic-sentence-span",
+        "extractor_version": "defence-studio.claim-extractor.deterministic.v2",
+        "has_negation": false,
+        "is_explicit": true,
+        "normalized_language": "en",
+        "original_language": "en",
+        "passage": {
+          "artifact_uri": "jobs/dfe0b173-d9ff-458b-99b6-7b4ad3cccb8e/research/sources/3e9c744833869a0bb3ab9752e712d50f6a73cb1e/content.html",
+          "end_offset": 802,
+          "kind": "TEXT_SPAN",
+          "source_id": "3e9c744833869a0bb3ab9752e712d50f6a73cb1e",
+          "start_offset": 578,
+          "text": "This indigenously designed, developed & manufactured satellite will enhance the secure, resilient & seamless communication capabilities for the assets of the Indian Air Force, thereby strengthening operational effectiveness.",
+          "timestamp_end": null,
+          "timestamp_start": null
+        },
+        "qualifiers": [],
+        "source_id": "3e9c744833869a0bb3ab9752e712d50f6a73cb1e",
+        "source_published_at": "2026-10-15",
+        "warnings": [],
+        "review": {
+          "origin": "AUTOMATED_POLICY",
+          "decision": "REJECTED",
+          "policy_state": "REJECTED",
+          "policy_version": "defence-studio.evidence-policy.v1",
+          "run_id": "23b5ca4d76d1f91c",
+          "score": 35.0,
+          "claim_class": "OPERATIONAL",
+          "independent_groups": 0,
+          "reviewer_id": null,
+          "note": "supporting source is not usable under the source policy",
+          "reviewed_artifact_sha256": "d7566bf1274563bf88d93270e95a985a3d7250b87896353e4bddc196bd5c225d",
+          "revision": 0
+        },
+        "is_stale": false
+      },
+      {
+        "acquisition_timestamp": "2026-10-16T13:46:19.140121+00:00",
+        "claim_id": "claim-0a5a49221bc77747",
+        "claim_text": "Equipped with advanced maneuvering capabilities, it is capable of engaging enemy submarines at long ranges, thereby enhancing the anti-submarine warfare capability of the Indian Navy.",
+        "entities": {
+          "dates": [],
+          "designations": [],
+          "named": [
+            "Indian Navy"
+          ],
+          "quantities": []
+        },
+        "extraction_method": "deterministic-sentence-span",
+        "extractor_version": "defence-studio.claim-extractor.deterministic.v2",
+        "has_negation": false,
+        "is_explicit": true,
+        "normalized_language": "en",
+        "original_language": "en",
+        "passage": {
+          "artifact_uri": "jobs/dfe0b173-d9ff-458b-99b6-7b4ad3cccb8e/research/sources/3e9c744833869a0bb3ab9752e712d50f6a73cb1e/content.html",
+          "end_offset": 1214,
+          "kind": "TEXT_SPAN",
+          "source_id": "3e9c744833869a0bb3ab9752e712d50f6a73cb1e",
+          "start_offset": 1031,
+          "text": "Equipped with advanced maneuvering capabilities, it is capable of engaging enemy submarines at long ranges, thereby enhancing the anti-submarine warfare capability of the Indian Navy.",
+          "timestamp_end": null,
+          "timestamp_start": null
+        },
+        "qualifiers": [],
+        "source_id": "3e9c744833869a0bb3ab9752e712d50f6a73cb1e",
+        "source_published_at": "2026-10-15",
+        "warnings": [],
+        "review": {
+          "origin": "AUTOMATED_POLICY",
+          "decision": "REJECTED",
+          "policy_state": "REJECTED",
+          "policy_version": "defence-studio.evidence-policy.v1",
+          "run_id": "23b5ca4d76d1f91c",
+          "score": 35.0,
+          "claim_class": "DESCRIPTIVE",
+          "independent_groups": 0,
+          "reviewer_id": null,
+          "note": "supporting source is not usable under the source policy",
+          "reviewed_artifact_sha256": "d7566bf1274563bf88d93270e95a985a3d7250b87896353e4bddc196bd5c225d",
+          "revision": 0
+        },
+        "is_stale": false
+      },
+      {
+        "acquisition_timestamp": "2026-10-16T13:46:19.140121+00:00",
+        "claim_id": "claim-7f8906d238ad3e5a",
+        "claim_text": "The contracts were signed in the presence of Additional Secretary and Director General (Acquisition), Department of Defence Shri A Anbarasu in New Delhi on October 15, 2026.",
+        "entities": {
+          "dates": [
+            "October 15, 2026"
+          ],
+          "designations": [],
+          "named": [
+            "Additional Secretary",
+            "Director General",
+            "Defence Shri",
+            "New Delhi"
+          ],
+          "quantities": []
+        },
+        "extraction_method": "deterministic-sentence-span",
+        "extractor_version": "defence-studio.claim-extractor.deterministic.v2",
+        "has_negation": false,
+        "is_explicit": true,
+        "normalized_language": "en",
+        "original_language": "en",
+        "passage": {
+          "artifact_uri": "jobs/dfe0b173-d9ff-458b-99b6-7b4ad3cccb8e/research/sources/3e9c744833869a0bb3ab9752e712d50f6a73cb1e/content.html",
+          "end_offset": 1389,
+          "kind": "TEXT_SPAN",
+          "source_id": "3e9c744833869a0bb3ab9752e712d50f6a73cb1e",
+          "start_offset": 1216,
+          "text": "The contracts were signed in the presence of Additional Secretary and Director General (Acquisition), Department of Defence Shri A Anbarasu in New Delhi on October 15, 2026.",
+          "timestamp_end": null,
+          "timestamp_start": null
+        },
+        "qualifiers": [],
+        "source_id": "3e9c744833869a0bb3ab9752e712d50f6a73cb1e",
+        "source_published_at": "2026-10-15",
+        "warnings": [],
+        "review": {
+          "origin": "AUTOMATED_POLICY",
+          "decision": "REJECTED",
+          "policy_state": "REJECTED",
+          "policy_version": "defence-studio.evidence-policy.v1",
+          "run_id": "23b5ca4d76d1f91c",
+          "score": 35.0,
+          "claim_class": "DESCRIPTIVE",
+          "independent_groups": 0,
+          "reviewer_id": null,
+          "note": "supporting source is not usable under the source policy",
+          "reviewed_artifact_sha256": "d7566bf1274563bf88d93270e95a985a3d7250b87896353e4bddc196bd5c225d",
+          "revision": 0
+        },
+        "is_stale": false
+      },
+      {
+        "acquisition_timestamp": "2026-10-16T13:46:19.140121+00:00",
+        "claim_id": "claim-86b07584ede71644",
+        "claim_text": "Both contracts mark a significant step towards advancing the development of domestic defence manufacturing capabilities while promoting self-reliance in critical technologies in line with the Government\u2019s \u2018Aatmanirbhar Bharat\u2019 and \u2018Make-in-India\u2019 vision.",
+        "entities": {
+          "dates": [],
+          "designations": [],
+          "named": [
+            "Aatmanirbhar Bharat"
+          ],
+          "quantities": []
+        },
+        "extraction_method": "deterministic-sentence-span",
+        "extractor_version": "defence-studio.claim-extractor.deterministic.v2",
+        "has_negation": false,
+        "is_explicit": true,
+        "normalized_language": "en",
+        "original_language": "en",
+        "passage": {
+          "artifact_uri": "jobs/dfe0b173-d9ff-458b-99b6-7b4ad3cccb8e/research/sources/3e9c744833869a0bb3ab9752e712d50f6a73cb1e/content.html",
+          "end_offset": 1644,
+          "kind": "TEXT_SPAN",
+          "source_id": "3e9c744833869a0bb3ab9752e712d50f6a73cb1e",
+          "start_offset": 1390,
+          "text": "Both contracts mark a significant step towards advancing the development of domestic defence manufacturing capabilities while promoting self-reliance in critical technologies in line with the Government\u2019s \u2018Aatmanirbhar Bharat\u2019 and \u2018Make-in-India\u2019 vision.",
+          "timestamp_end": null,
+          "timestamp_start": null
+        },
+        "qualifiers": [],
+        "source_id": "3e9c744833869a0bb3ab9752e712d50f6a73cb1e",
+        "source_published_at": "2026-10-15",
+        "warnings": [],
+        "review": {
+          "origin": "AUTOMATED_POLICY",
+          "decision": "REJECTED",
+          "policy_state": "REJECTED",
+          "policy_version": "defence-studio.evidence-policy.v1",
+          "run_id": "23b5ca4d76d1f91c",
+          "score": 35.0,
+          "claim_class": "DESCRIPTIVE",
+          "independent_groups": 0,
+          "reviewer_id": null,
+          "note": "supporting source is not usable under the source policy",
+          "reviewed_artifact_sha256": "d7566bf1274563bf88d93270e95a985a3d7250b87896353e4bddc196bd5c225d",
+          "revision": 0
+        },
+        "is_stale": false
+      },
+      {
+        "acquisition_timestamp": "2026-10-16T13:46:19.140121+00:00",
+        "claim_id": "claim-23eb31cf575157a6",
+        "claim_text": "MoD inks Rs 4,106 crore contracts for GSAT-7C communication satellite and Varunastra Heavy Weight Torpedoes",
+        "entities": {
+          "dates": [],
+          "designations": [
+            "GSAT-7C"
+          ],
+          "named": [
+            "GSAT",
+            "Varunastra Heavy Weight Torpedoes"
+          ],
+          "quantities": [
+            "4,106 crore"
+          ]
+        },
+        "extraction_method": "deterministic-sentence-span",
+        "extractor_version": "defence-studio.claim-extractor.deterministic.v2",
+        "has_negation": false,
+        "is_explicit": true,
+        "normalized_language": "en",
+        "original_language": "en",
+        "passage": {
+          "artifact_uri": "jobs/dfe0b173-d9ff-458b-99b6-7b4ad3cccb8e/research/sources/3e9c744833869a0bb3ab9752e712d50f6a73cb1e/content.html",
+          "end_offset": 1929,
+          "kind": "TEXT_SPAN",
+          "source_id": "3e9c744833869a0bb3ab9752e712d50f6a73cb1e",
+          "start_offset": 1822,
+          "text": "MoD inks Rs 4,106 crore contracts for GSAT-7C communication satellite and Varunastra Heavy Weight Torpedoes",
+          "timestamp_end": null,
+          "timestamp_start": null
+        },
+        "qualifiers": [],
+        "source_id": "3e9c744833869a0bb3ab9752e712d50f6a73cb1e",
+        "source_published_at": "2026-10-15",
+        "warnings": [],
+        "review": {
+          "origin": "AUTOMATED_POLICY",
+          "decision": "REJECTED",
+          "policy_state": "REJECTED",
+          "policy_version": "defence-studio.evidence-policy.v1",
+          "run_id": "23b5ca4d76d1f91c",
+          "score": 30.0,
+          "claim_class": "QUANTITATIVE",
+          "independent_groups": 0,
+          "reviewer_id": null,
+          "note": "supporting source is not usable under the source policy",
+          "reviewed_artifact_sha256": "d7566bf1274563bf88d93270e95a985a3d7250b87896353e4bddc196bd5c225d",
+          "revision": 0
+        },
+        "is_stale": false
+      },
+      {
+        "acquisition_timestamp": "2026-10-16T13:46:19.140121+00:00",
+        "claim_id": "claim-667cf87909eb12d5",
+        "claim_text": "The Ministry of Defence has signed contracts worth a total of approximately Rs 4,106 crore for the acquisition of a dedicated communication satellite capability, GSAT-7C for the Indian Air Force, and Varunastra Heavy Weight Torpedoes for the Indian Navy.",
+        "entities": {
+          "dates": [],
+          "designations": [
+            "GSAT-7C"
+          ],
+          "named": [
+            "The Ministry",
+            "GSAT",
+            "Indian Air Force",
+            "Varunastra Heavy Weight Torpedoes",
+            "Indian Navy"
+          ],
+          "quantities": [
+            "4,106 crore"
+          ]
+        },
+        "extraction_method": "deterministic-sentence-span",
+        "extractor_version": "defence-studio.claim-extractor.deterministic.v2",
+        "has_negation": false,
+        "is_explicit": true,
+        "normalized_language": "en",
+        "original_language": "en",
+        "passage": {
+          "artifact_uri": "jobs/dfe0b173-d9ff-458b-99b6-7b4ad3cccb8e/research/sources/3e9c744833869a0bb3ab9752e712d50f6a73cb1e/content.html",
+          "end_offset": 2234,
+          "kind": "TEXT_SPAN",
+          "source_id": "3e9c744833869a0bb3ab9752e712d50f6a73cb1e",
+          "start_offset": 1980,
+          "text": "The Ministry of Defence has signed contracts worth a total of approximately Rs 4,106 crore for the acquisition of a dedicated communication satellite capability, GSAT-7C for the Indian Air Force, and Varunastra Heavy Weight Torpedoes for the Indian Navy.",
+          "timestamp_end": null,
+          "timestamp_start": null
+        },
+        "qualifiers": [],
+        "source_id": "3e9c744833869a0bb3ab9752e712d50f6a73cb1e",
+        "source_published_at": "2026-10-15",
+        "warnings": [],
+        "review": {
+          "origin": "AUTOMATED_POLICY",
+          "decision": "REJECTED",
+          "policy_state": "REJECTED",
+          "policy_version": "defence-studio.evidence-policy.v1",
+          "run_id": "23b5ca4d76d1f91c",
+          "score": 30.0,
+          "claim_class": "QUANTITATIVE",
+          "independent_groups": 0,
+          "reviewer_id": null,
+          "note": "supporting source is not usable under the source policy",
+          "reviewed_artifact_sha256": "d7566bf1274563bf88d93270e95a985a3d7250b87896353e4bddc196bd5c225d",
+          "revision": 0
+        },
+        "is_stale": false
+      },
+      {
+        "acquisition_timestamp": "2026-10-16T13:46:19.140121+00:00",
+        "claim_id": "claim-680430151d1c0555",
+        "claim_text": "The contract for GSAT-7C, valued at Rs 2,563 crore, was inked with New Space India Limited, Bengaluru.",
+        "entities": {
+          "dates": [],
+          "designations": [
+            "GSAT-7C"
+          ],
+          "named": [
+            "GSAT",
+            "New Space India Limited"
+          ],
+          "quantities": [
+            "2,563 crore"
+          ]
+        },
+        "extraction_method": "deterministic-sentence-span",
+        "extractor_version": "defence-studio.claim-extractor.deterministic.v2",
+        "has_negation": false,
+        "is_explicit": true,
+        "normalized_language": "en",
+        "original_language": "en",
+        "passage": {
+          "artifact_uri": "jobs/dfe0b173-d9ff-458b-99b6-7b4ad3cccb8e/research/sources/3e9c744833869a0bb3ab9752e712d50f6a73cb1e/content.html",
+          "end_offset": 2338,
+          "kind": "TEXT_SPAN",
+          "source_id": "3e9c744833869a0bb3ab9752e712d50f6a73cb1e",
+          "start_offset": 2236,
+          "text": "The contract for GSAT-7C, valued at Rs 2,563 crore, was inked with New Space India Limited, Bengaluru.",
+          "timestamp_end": null,
+          "timestamp_start": null
+        },
+        "qualifiers": [],
+        "source_id": "3e9c744833869a0bb3ab9752e712d50f6a73cb1e",
+        "source_published_at": "2026-10-15",
+        "warnings": [],
+        "review": {
+          "origin": "AUTOMATED_POLICY",
+          "decision": "REJECTED",
+          "policy_state": "REJECTED",
+          "policy_version": "defence-studio.evidence-policy.v1",
+          "run_id": "23b5ca4d76d1f91c",
+          "score": 30.0,
+          "claim_class": "QUANTITATIVE",
+          "independent_groups": 0,
+          "reviewer_id": null,
+          "note": "supporting source is not usable under the source policy",
+          "reviewed_artifact_sha256": "d7566bf1274563bf88d93270e95a985a3d7250b87896353e4bddc196bd5c225d",
+          "revision": 0
+        },
+        "is_stale": false
+      },
+      {
+        "acquisition_timestamp": "2026-10-16T13:46:19.140121+00:00",
+        "claim_id": "claim-4331c452f56d9f18",
+        "claim_text": "This indigenously designed, developed & manufactured satellite will enhance the secure, resilient & seamless communication capabilities for the assets of the Indian Air Force, thereby strengthening operational effectiveness.",
+        "entities": {
+          "dates": [],
+          "designations": [],
+          "named": [
+            "Indian Air Force"
+          ],
+          "quantities": []
+        },
+        "extraction_method": "deterministic-sentence-span",
+        "extractor_version": "defence-studio.claim-extractor.deterministic.v2",
+        "has_negation": false,
+        "is_explicit": true,
+        "normalized_language": "en",
+        "original_language": "en",
+        "passage": {
+          "artifact_uri": "jobs/dfe0b173-d9ff-458b-99b6-7b4ad3cccb8e/research/sources/3e9c744833869a0bb3ab9752e712d50f6a73cb1e/content.html",
+          "end_offset": 2563,
+          "kind": "TEXT_SPAN",
+          "source_id": "3e9c744833869a0bb3ab9752e712d50f6a73cb1e",
+          "start_offset": 2339,
+          "text": "This indigenously designed, developed & manufactured satellite will enhance the secure, resilient & seamless communication capabilities for the assets of the Indian Air Force, thereby strengthening operational effectiveness.",
+          "timestamp_end": null,
+          "timestamp_start": null
+        },
+        "qualifiers": [],
+        "source_id": "3e9c744833869a0bb3ab9752e712d50f6a73cb1e",
+        "source_published_at": "2026-10-15",
+        "warnings": [],
+        "review": {
+          "origin": "AUTOMATED_POLICY",
+          "decision": "REJECTED",
+          "policy_state": "REJECTED",
+          "policy_version": "defence-studio.evidence-policy.v1",
+          "run_id": "23b5ca4d76d1f91c",
+          "score": 35.0,
+          "claim_class": "OPERATIONAL",
+          "independent_groups": 0,
+          "reviewer_id": null,
+          "note": "supporting source is not usable under the source policy",
+          "reviewed_artifact_sha256": "d7566bf1274563bf88d93270e95a985a3d7250b87896353e4bddc196bd5c225d",
+          "revision": 0
+        },
+        "is_stale": false
+      },
+      {
+        "acquisition_timestamp": "2026-10-16T13:46:19.140121+00:00",
+        "claim_id": "claim-5a16079dad332d5c",
+        "claim_text": "Equipped with advanced maneuvering capabilities, it is capable of engaging enemy submarines at long ranges, thereby enhancing the anti-submarine warfare capability of the Indian Navy.",
+        "entities": {
+          "dates": [],
+          "designations": [],
+          "named": [
+            "Indian Navy"
+          ],
+          "quantities": []
+        },
+        "extraction_method": "deterministic-sentence-span",
+        "extractor_version": "defence-studio.claim-extractor.deterministic.v2",
+        "has_negation": false,
+        "is_explicit": true,
+        "normalized_language": "en",
+        "original_language": "en",
+        "passage": {
+          "artifact_uri": "jobs/dfe0b173-d9ff-458b-99b6-7b4ad3cccb8e/research/sources/3e9c744833869a0bb3ab9752e712d50f6a73cb1e/content.html",
+          "end_offset": 2975,
+          "kind": "TEXT_SPAN",
+          "source_id": "3e9c744833869a0bb3ab9752e712d50f6a73cb1e",
+          "start_offset": 2792,
+          "text": "Equipped with advanced maneuvering capabilities, it is capable of engaging enemy submarines at long ranges, thereby enhancing the anti-submarine warfare capability of the Indian Navy.",
+          "timestamp_end": null,
+          "timestamp_start": null
+        },
+        "qualifiers": [],
+        "source_id": "3e9c744833869a0bb3ab9752e712d50f6a73cb1e",
+        "source_published_at": "2026-10-15",
+        "warnings": [],
+        "review": {
+          "origin": "AUTOMATED_POLICY",
+          "decision": "REJECTED",
+          "policy_state": "REJECTED",
+          "policy_version": "defence-studio.evidence-policy.v1",
+          "run_id": "23b5ca4d76d1f91c",
+          "score": 35.0,
+          "claim_class": "DESCRIPTIVE",
+          "independent_groups": 0,
+          "reviewer_id": null,
+          "note": "supporting source is not usable under the source policy",
+          "reviewed_artifact_sha256": "d7566bf1274563bf88d93270e95a985a3d7250b87896353e4bddc196bd5c225d",
+          "revision": 0
+        },
+        "is_stale": false
+      },
+      {
+        "acquisition_timestamp": "2026-10-16T13:46:19.140121+00:00",
+        "claim_id": "claim-131a80ad288d910b",
+        "claim_text": "The contracts were signed in the presence of Additional Secretary and Director General (Acquisition), Department of Defence Shri A Anbarasu in New Delhi on October 15, 2026.",
+        "entities": {
+          "dates": [
+            "October 15, 2026"
+          ],
+          "designations": [],
+          "named": [
+            "Additional Secretary",
+            "Director General",
+            "Defence Shri",
+            "New Delhi"
+          ],
+          "quantities": []
+        },
+        "extraction_method": "deterministic-sentence-span",
+        "extractor_version": "defence-studio.claim-extractor.deterministic.v2",
+        "has_negation": false,
+        "is_explicit": true,
+        "normalized_language": "en",
+        "original_language": "en",
+        "passage": {
+          "artifact_uri": "jobs/dfe0b173-d9ff-458b-99b6-7b4ad3cccb8e/research/sources/3e9c744833869a0bb3ab9752e712d50f6a73cb1e/content.html",
+          "end_offset": 3150,
+          "kind": "TEXT_SPAN",
+          "source_id": "3e9c744833869a0bb3ab9752e712d50f6a73cb1e",
+          "start_offset": 2977,
+          "text": "The contracts were signed in the presence of Additional Secretary and Director General (Acquisition), Department of Defence Shri A Anbarasu in New Delhi on October 15, 2026.",
+          "timestamp_end": null,
+          "timestamp_start": null
+        },
+        "qualifiers": [],
+        "source_id": "3e9c744833869a0bb3ab9752e712d50f6a73cb1e",
+        "source_published_at": "2026-10-15",
+        "warnings": [],
+        "review": {
+          "origin": "AUTOMATED_POLICY",
+          "decision": "REJECTED",
+          "policy_state": "REJECTED",
+          "policy_version": "defence-studio.evidence-policy.v1",
+          "run_id": "23b5ca4d76d1f91c",
+          "score": 35.0,
+          "claim_class": "DESCRIPTIVE",
+          "independent_groups": 0,
+          "reviewer_id": null,
+          "note": "supporting source is not usable under the source policy",
+          "reviewed_artifact_sha256": "d7566bf1274563bf88d93270e95a985a3d7250b87896353e4bddc196bd5c225d",
+          "revision": 0
+        },
+        "is_stale": false
+      },
+      {
+        "acquisition_timestamp": "2026-10-16T13:46:19.140121+00:00",
+        "claim_id": "claim-3b18dea9a86db622",
+        "claim_text": "Both contracts mark a significant step towards advancing the development of domestic defence manufacturing capabilities while promoting self-reliance in critical technologies in line with the Government\u2019s \u2018Aatmanirbhar Bharat\u2019 and \u2018Make-in-India\u2019 vision.",
+        "entities": {
+          "dates": [],
+          "designations": [],
+          "named": [
+            "Aatmanirbhar Bharat"
+          ],
+          "quantities": []
+        },
+        "extraction_method": "deterministic-sentence-span",
+        "extractor_version": "defence-studio.claim-extractor.deterministic.v2",
+        "has_negation": false,
+        "is_explicit": true,
+        "normalized_language": "en",
+        "original_language": "en",
+        "passage": {
+          "artifact_uri": "jobs/dfe0b173-d9ff-458b-99b6-7b4ad3cccb8e/research/sources/3e9c744833869a0bb3ab9752e712d50f6a73cb1e/content.html",
+          "end_offset": 3405,
+          "kind": "TEXT_SPAN",
+          "source_id": "3e9c744833869a0bb3ab9752e712d50f6a73cb1e",
+          "start_offset": 3151,
+          "text": "Both contracts mark a significant step towards advancing the development of domestic defence manufacturing capabilities while promoting self-reliance in critical technologies in line with the Government\u2019s \u2018Aatmanirbhar Bharat\u2019 and \u2018Make-in-India\u2019 vision.",
+          "timestamp_end": null,
+          "timestamp_start": null
+        },
+        "qualifiers": [],
+        "source_id": "3e9c744833869a0bb3ab9752e712d50f6a73cb1e",
+        "source_published_at": "2026-10-15",
+        "warnings": [],
+        "review": {
+          "origin": "AUTOMATED_POLICY",
+          "decision": "REJECTED",
+          "policy_state": "REJECTED",
+          "policy_version": "defence-studio.evidence-policy.v1",
+          "run_id": "23b5ca4d76d1f91c",
+          "score": 35.0,
+          "claim_class": "DESCRIPTIVE",
+          "independent_groups": 0,
+          "reviewer_id": null,
+          "note": "supporting source is not usable under the source policy",
+          "reviewed_artifact_sha256": "d7566bf1274563bf88d93270e95a985a3d7250b87896353e4bddc196bd5c225d",
+          "revision": 0
+        },
+        "is_stale": false
+      },
+      {
+        "acquisition_timestamp": "2026-10-16T13:46:19.140121+00:00",
+        "claim_id": "claim-7f0da7ec8b6acc1f",
+        "claim_text": "This indigenously designed, developed &amp; manufactured satellite will enhance the secure, resilient &amp; seamless communication capabilities for the assets of the Indian Air Force, thereby strengthening operational effectiveness.",
+        "entities": {
+          "dates": [],
+          "designations": [],
+          "named": [
+            "Indian Air Force"
+          ],
+          "quantities": []
+        },
+        "extraction_method": "deterministic-sentence-span",
+        "extractor_version": "defence-studio.claim-extractor.deterministic.v2",
+        "has_negation": false,
+        "is_explicit": true,
+        "normalized_language": "en",
+        "original_language": "en",
+        "passage": {
+          "artifact_uri": "jobs/dfe0b173-d9ff-458b-99b6-7b4ad3cccb8e/research/sources/3e9c744833869a0bb3ab9752e712d50f6a73cb1e/content.html",
+          "end_offset": 4274,
+          "kind": "TEXT_SPAN",
+          "source_id": "3e9c744833869a0bb3ab9752e712d50f6a73cb1e",
+          "start_offset": 4042,
+          "text": "This indigenously designed, developed &amp; manufactured satellite will enhance the secure, resilient &amp; seamless communication capabilities for the assets of the Indian Air Force, thereby strengthening operational effectiveness.",
+          "timestamp_end": null,
+          "timestamp_start": null
+        },
+        "qualifiers": [],
+        "source_id": "3e9c744833869a0bb3ab9752e712d50f6a73cb1e",
+        "source_published_at": "2026-10-15",
+        "warnings": [],
+        "review": {
+          "origin": "AUTOMATED_POLICY",
+          "decision": "REJECTED",
+          "policy_state": "REJECTED",
+          "policy_version": "defence-studio.evidence-policy.v1",
+          "run_id": "23b5ca4d76d1f91c",
+          "score": 35.0,
+          "claim_class": "OPERATIONAL",
+          "independent_groups": 0,
+          "reviewer_id": null,
+          "note": "supporting source is not usable under the source policy",
+          "reviewed_artifact_sha256": "d7566bf1274563bf88d93270e95a985a3d7250b87896353e4bddc196bd5c225d",
+          "revision": 0
+        },
+        "is_stale": false
+      },
+      {
+        "acquisition_timestamp": "2026-10-16T13:46:19.140121+00:00",
+        "claim_id": "claim-021ac40f59f7fbd0",
+        "claim_text": "Equipped with advanced maneuvering capabilities, it is capable of engaging enemy submarines at long ranges, thereby enhancing the anti-submarine warfare capability of the Indian Navy.",
+        "entities": {
+          "dates": [],
+          "designations": [],
+          "named": [
+            "Indian Navy"
+          ],
+          "quantities": []
+        },
+        "extraction_method": "deterministic-sentence-span",
+        "extractor_version": "defence-studio.claim-extractor.deterministic.v2",
+        "has_negation": false,
+        "is_explicit": true,
+        "normalized_language": "en",
+        "original_language": "en",
+        "passage": {
+          "artifact_uri": "jobs/dfe0b173-d9ff-458b-99b6-7b4ad3cccb8e/research/sources/3e9c744833869a0bb3ab9752e712d50f6a73cb1e/content.html",
+          "end_offset": 5167,
+          "kind": "TEXT_SPAN",
+          "source_id": "3e9c744833869a0bb3ab9752e712d50f6a73cb1e",
+          "start_offset": 4984,
+          "text": "Equipped with advanced maneuvering capabilities, it is capable of engaging enemy submarines at long ranges, thereby enhancing the anti-submarine warfare capability of the Indian Navy.",
+          "timestamp_end": null,
+          "timestamp_start": null
+        },
+        "qualifiers": [],
+        "source_id": "3e9c744833869a0bb3ab9752e712d50f6a73cb1e",
+        "source_published_at": "2026-10-15",
+        "warnings": [],
+        "review": {
+          "origin": "AUTOMATED_POLICY",
+          "decision": "REJECTED",
+          "policy_state": "REJECTED",
+          "policy_version": "defence-studio.evidence-policy.v1",
+          "run_id": "23b5ca4d76d1f91c",
+          "score": 35.0,
+          "claim_class": "DESCRIPTIVE",
+          "independent_groups": 0,
+          "reviewer_id": null,
+          "note": "supporting source is not usable under the source policy",
+          "reviewed_artifact_sha256": "d7566bf1274563bf88d93270e95a985a3d7250b87896353e4bddc196bd5c225d",
+          "revision": 0
+        },
+        "is_stale": false
+      },
+      {
+        "acquisition_timestamp": "2026-10-16T13:46:19.140121+00:00",
+        "claim_id": "claim-ba13805b0d929b9d",
+        "claim_text": "Both contracts mark a significant step towards advancing the development of domestic defence manufacturing capabilities while promoting self-reliance in critical technologies in line with the Government&rsquo;s &lsquo;Aatmanirbhar Bharat&rsquo; and &lsquo;Make-in-India&rsquo; vision.",
+        "entities": {
+          "dates": [],
+          "designations": [],
+          "named": [
+            "Aatmanirbhar Bharat"
+          ],
+          "quantities": []
+        },
+        "extraction_method": "deterministic-sentence-span",
+        "extractor_version": "defence-studio.claim-extractor.deterministic.v2",
+        "has_negation": false,
+        "is_explicit": true,
+        "normalized_language": "en",
+        "original_language": "en",
+        "passage": {
+          "artifact_uri": "jobs/dfe0b173-d9ff-458b-99b6-7b4ad3cccb8e/research/sources/3e9c744833869a0bb3ab9752e712d50f6a73cb1e/content.html",
+          "end_offset": 6107,
+          "kind": "TEXT_SPAN",
+          "source_id": "3e9c744833869a0bb3ab9752e712d50f6a73cb1e",
+          "start_offset": 5823,
+          "text": "Both contracts mark a significant step towards advancing the development of domestic defence manufacturing capabilities while promoting self-reliance in critical technologies in line with the Government&rsquo;s &lsquo;Aatmanirbhar Bharat&rsquo; and &lsquo;Make-in-India&rsquo; vision.",
+          "timestamp_end": null,
+          "timestamp_start": null
+        },
+        "qualifiers": [],
+        "source_id": "3e9c744833869a0bb3ab9752e712d50f6a73cb1e",
+        "source_published_at": "2026-10-15",
+        "warnings": [],
+        "review": {
+          "origin": "AUTOMATED_POLICY",
+          "decision": "REJECTED",
+          "policy_state": "REJECTED",
+          "policy_version": "defence-studio.evidence-policy.v1",
+          "run_id": "23b5ca4d76d1f91c",
+          "score": 35.0,
+          "claim_class": "DESCRIPTIVE",
+          "independent_groups": 0,
+          "reviewer_id": null,
+          "note": "supporting source is not usable under the source policy",
+          "reviewed_artifact_sha256": "d7566bf1274563bf88d93270e95a985a3d7250b87896353e4bddc196bd5c225d",
+          "revision": 0
+        },
+        "is_stale": false
+      }
+    ],
+    "duplicate_groups": [],
+    "claim_groups": [
+      {
+        "basis": "SAME_NORMALIZED_TEXT",
+        "group_id": "claimgroup-0001",
+        "member_claim_ids": [
+          "claim-fb8ebbaa4ee68a26",
+          "claim-23eb31cf575157a6"
+        ],
+        "note": "Textual similarity only; not corroboration or verification.",
+        "similarity": null
+      },
+      {
+        "basis": "SAME_NORMALIZED_TEXT",
+        "group_id": "claimgroup-0002",
+        "member_claim_ids": [
+          "claim-035fb086945a882a",
+          "claim-667cf87909eb12d5"
+        ],
+        "note": "Textual similarity only; not corroboration or verification.",
+        "similarity": null
+      },
+      {
+        "basis": "SAME_NORMALIZED_TEXT",
+        "group_id": "claimgroup-0003",
+        "member_claim_ids": [
+          "claim-bb24e64887e7073d",
+          "claim-680430151d1c0555"
+        ],
+        "note": "Textual similarity only; not corroboration or verification.",
+        "similarity": null
+      },
+      {
+        "basis": "SAME_NORMALIZED_TEXT",
+        "group_id": "claimgroup-0004",
+        "member_claim_ids": [
+          "claim-836b80783f429fbb",
+          "claim-4331c452f56d9f18"
+        ],
+        "note": "Textual similarity only; not corroboration or verification.",
+        "similarity": null
+      },
+      {
+        "basis": "NEAR_DUPLICATE_TEXT",
+        "group_id": "claimgroup-0005",
+        "member_claim_ids": [
+          "claim-0a5a49221bc77747",
+          "claim-5a16079dad332d5c",
+          "claim-021ac40f59f7fbd0"
+        ],
+        "note": "Textual similarity only; not corroboration or verification.",
+        "similarity": null
+      },
+      {
+        "basis": "SAME_NORMALIZED_TEXT",
+        "group_id": "claimgroup-0006",
+        "member_claim_ids": [
+          "claim-7f8906d238ad3e5a",
+          "claim-131a80ad288d910b"
+        ],
+        "note": "Textual similarity only; not corroboration or verification.",
+        "similarity": null
+      },
+      {
+        "basis": "SAME_NORMALIZED_TEXT",
+        "group_id": "claimgroup-0007",
+        "member_claim_ids": [
+          "claim-86b07584ede71644",
+          "claim-3b18dea9a86db622"
+        ],
+        "note": "Textual similarity only; not corroboration or verification.",
+        "similarity": null
+      }
+    ],
+    "conflicts": [],
+    "processing": {
+      "status": "COMPLETED",
+      "warnings": [],
+      "failures": []
+    },
+    "audit": {
+      "source": [
+        {
+          "history_id": "78cab3fd-ad8d-4e1e-a492-86955263cfca",
+          "job_id": "dfe0b173-d9ff-458b-99b6-7b4ad3cccb8e",
+          "source_id": "3e9c744833869a0bb3ab9752e712d50f6a73cb1e",
+          "decision": "APPROVED_FOR_USE",
+          "reviewed_artifact_type": "acquisition_manifest",
+          "reviewed_artifact_sha256": "3cb1de1ad89d26f09a1b6bdc6dc10527dbde0a3bea20455d4935d09c3574efa5",
+          "reviewer_id": "e2e-operator",
+          "note": "as",
+          "revision": 1,
+          "previous_decision": null,
+          "occurred_at": "2026-10-16T14:32:56.519720+00:00",
+          "idempotency_key": "3fd158f6-e4fc-4d25-a846-8ee8958c8d6c"
+        },
+        {
+          "history_id": "a1638d34-b22e-4a8c-850c-30af5fac29a2",
+          "job_id": "dfe0b173-d9ff-458b-99b6-7b4ad3cccb8e",
+          "source_id": "3e9c744833869a0bb3ab9752e712d50f6a73cb1e",
+          "decision": "APPROVED_FOR_USE",
+          "reviewed_artifact_type": "acquisition_manifest",
+          "reviewed_artifact_sha256": "3cb1de1ad89d26f09a1b6bdc6dc10527dbde0a3bea20455d4935d09c3574efa5",
+          "reviewer_id": "e2e-operator",
+          "note": "as",
+          "revision": 2,
+          "previous_decision": "APPROVED_FOR_USE",
+          "occurred_at": "2026-10-16T14:33:02.737161+00:00",
+          "idempotency_key": "cf5cdf46-20e2-4abe-a500-fc00a975f454"
+        },
+        {
+          "history_id": "489c1ecf-11b0-4164-b0ee-599d7394a8a5",
+          "job_id": "dfe0b173-d9ff-458b-99b6-7b4ad3cccb8e",
+          "source_id": "3e9c744833869a0bb3ab9752e712d50f6a73cb1e",
+          "decision": "APPROVED_FOR_USE",
+          "reviewed_artifact_type": "acquisition_manifest",
+          "reviewed_artifact_sha256": "3cb1de1ad89d26f09a1b6bdc6dc10527dbde0a3bea20455d4935d09c3574efa5",
+          "reviewer_id": "e2e-operator",
+          "note": "zx",
+          "revision": 3,
+          "previous_decision": "APPROVED_FOR_USE",
+          "occurred_at": "2026-10-16T14:33:07.747321+00:00",
+          "idempotency_key": "9dac24b3-0ee4-4369-a539-5005814efad5"
+        },
+        {
+          "history_id": "87920a14-aa9d-4acd-a9cb-c7ab8a3eed49",
+          "job_id": "dfe0b173-d9ff-458b-99b6-7b4ad3cccb8e",
+          "source_id": "3e9c744833869a0bb3ab9752e712d50f6a73cb1e",
+          "decision": "APPROVED_FOR_USE",
+          "reviewed_artifact_type": "acquisition_manifest",
+          "reviewed_artifact_sha256": "3cb1de1ad89d26f09a1b6bdc6dc10527dbde0a3bea20455d4935d09c3574efa5",
+          "reviewer_id": "e2e-operator",
+          "note": "zx",
+          "revision": 4,
+          "previous_decision": "APPROVED_FOR_USE",
+          "occurred_at": "2026-10-16T14:33:12.100298+00:00",
+          "idempotency_key": "1f02d16f-4721-475c-97b6-295deb43a5c5"
+        },
+        {
+          "history_id": "4580a42d-e849-4c57-9d64-f88f376d51e2",
+          "job_id": "dfe0b173-d9ff-458b-99b6-7b4ad3cccb8e",
+          "source_id": "3e9c744833869a0bb3ab9752e712d50f6a73cb1e",
+          "decision": "APPROVED_FOR_USE",
+          "reviewed_artifact_type": "acquisition_manifest",
+          "reviewed_artifact_sha256": "3cb1de1ad89d26f09a1b6bdc6dc10527dbde0a3bea20455d4935d09c3574efa5",
+          "reviewer_id": "e2e-operator",
+          "note": "zx",
+          "revision": 5,
+          "previous_decision": "APPROVED_FOR_USE",
+          "occurred_at": "2026-10-16T14:33:15.607386+00:00",
+          "idempotency_key": "4b78e138-2e8c-4359-9419-bf88bda54a65"
+        },
+        {
+          "history_id": "51dc5362-d81e-4bd6-9839-7b2e7ad024d3",
+          "job_id": "dfe0b173-d9ff-458b-99b6-7b4ad3cccb8e",
+          "source_id": "3e9c744833869a0bb3ab9752e712d50f6a73cb1e",
+          "decision": "APPROVED_FOR_USE",
+          "reviewed_artifact_type": "acquisition_manifest",
+          "reviewed_artifact_sha256": "3cb1de1ad89d26f09a1b6bdc6dc10527dbde0a3bea20455d4935d09c3574efa5",
+          "reviewer_id": "e2e-operator",
+          "note": "zx",
+          "revision": 6,
+          "previous_decision": "APPROVED_FOR_USE",
+          "occurred_at": "2026-10-16T14:33:19.060340+00:00",
+          "idempotency_key": "ac477b4b-2023-4a3e-9777-cb5b8a08364f"
+        },
+        {
+          "history_id": "55c01e2c-2bab-41ae-9c9c-27588d991855",
+          "job_id": "dfe0b173-d9ff-458b-99b6-7b4ad3cccb8e",
+          "source_id": "3e9c744833869a0bb3ab9752e712d50f6a73cb1e",
+          "decision": "APPROVED_FOR_USE",
+          "reviewed_artifact_type": "acquisition_manifest",
+          "reviewed_artifact_sha256": "3cb1de1ad89d26f09a1b6bdc6dc10527dbde0a3bea20455d4935d09c3574efa5",
+          "reviewer_id": "e2e-operator",
+          "note": "hi",
+          "revision": 7,
+          "previous_decision": "APPROVED_FOR_USE",
+          "occurred_at": "2026-10-16T14:33:28.497104+00:00",
+          "idempotency_key": "6f3a60d1-928f-4739-9ee0-fb1b69da6275"
+        },
+        {
+          "history_id": "91b4c6d2-0204-47f2-a16b-3a8653234d42",
+          "job_id": "dfe0b173-d9ff-458b-99b6-7b4ad3cccb8e",
+          "source_id": "3e9c744833869a0bb3ab9752e712d50f6a73cb1e",
+          "decision": "APPROVED_FOR_USE",
+          "reviewed_artifact_type": "acquisition_manifest",
+          "reviewed_artifact_sha256": "3cb1de1ad89d26f09a1b6bdc6dc10527dbde0a3bea20455d4935d09c3574efa5",
+          "reviewer_id": "e2e-operator",
+          "note": "hi",
+          "revision": 8,
+          "previous_decision": "APPROVED_FOR_USE",
+          "occurred_at": "2026-10-16T14:33:34.016980+00:00",
+          "idempotency_key": "1e9ce37b-fb04-4fab-899b-4d07063161a8"
+        }
+      ],
+      "claim": []
+    },
+    "timeline": [
+      {
+        "kind": "ACQUISITION",
+        "date": {
+          "original": "2026-10-16T13:46:19.140121+00:00",
+          "utc": "2026-10-16T13:46:19.140121+00:00",
+          "precision": "TIMESTAMP",
+          "timezone": "UTC"
+        },
+        "source_id": "3e9c744833869a0bb3ab9752e712d50f6a73cb1e",
+        "claim_id": null,
+        "language": "en",
+        "passage": null,
+        "original_url": "https://www.pib.gov.in/PressReleaseIframePage.aspx?PRID=2323814&lang=2&reg=48"
+      },
+      {
+        "kind": "ANALYSIS",
+        "date": {
+          "original": "2026-10-16T13:46:19.553034+00:00",
+          "utc": "2026-10-16T13:46:19.553034+00:00",
+          "precision": "TIMESTAMP",
+          "timezone": "UTC"
+        },
+        "source_id": "3e9c744833869a0bb3ab9752e712d50f6a73cb1e",
+        "claim_id": "claim-021ac40f59f7fbd0",
+        "language": "en",
+        "passage": {
+          "artifact_uri": "jobs/dfe0b173-d9ff-458b-99b6-7b4ad3cccb8e/research/sources/3e9c744833869a0bb3ab9752e712d50f6a73cb1e/content.html",
+          "end_offset": 5167,
+          "kind": "TEXT_SPAN",
+          "source_id": "3e9c744833869a0bb3ab9752e712d50f6a73cb1e",
+          "start_offset": 4984,
+          "text": "Equipped with advanced maneuvering capabilities, it is capable of engaging enemy submarines at long ranges, thereby enhancing the anti-submarine warfare capability of the Indian Navy.",
+          "timestamp_end": null,
+          "timestamp_start": null
+        },
+        "original_url": "https://www.pib.gov.in/PressReleaseIframePage.aspx?PRID=2323814&lang=2&reg=48"
+      },
+      {
+        "kind": "ANALYSIS",
+        "date": {
+          "original": "2026-10-16T13:46:19.553034+00:00",
+          "utc": "2026-10-16T13:46:19.553034+00:00",
+          "precision": "TIMESTAMP",
+          "timezone": "UTC"
+        },
+        "source_id": "3e9c744833869a0bb3ab9752e712d50f6a73cb1e",
+        "claim_id": "claim-035fb086945a882a",
+        "language": "en",
+        "passage": {
+          "artifact_uri": "jobs/dfe0b173-d9ff-458b-99b6-7b4ad3cccb8e/research/sources/3e9c744833869a0bb3ab9752e712d50f6a73cb1e/content.html",
+          "end_offset": 473,
+          "kind": "TEXT_SPAN",
+          "source_id": "3e9c744833869a0bb3ab9752e712d50f6a73cb1e",
+          "start_offset": 219,
+          "text": "The Ministry of Defence has signed contracts worth a total of approximately Rs 4,106 crore for the acquisition of a dedicated communication satellite capability, GSAT-7C for the Indian Air Force, and Varunastra Heavy Weight Torpedoes for the Indian Navy.",
+          "timestamp_end": null,
+          "timestamp_start": null
+        },
+        "original_url": "https://www.pib.gov.in/PressReleaseIframePage.aspx?PRID=2323814&lang=2&reg=48"
+      },
+      {
+        "kind": "ANALYSIS",
+        "date": {
+          "original": "2026-10-16T13:46:19.553034+00:00",
+          "utc": "2026-10-16T13:46:19.553034+00:00",
+          "precision": "TIMESTAMP",
+          "timezone": "UTC"
+        },
+        "source_id": "3e9c744833869a0bb3ab9752e712d50f6a73cb1e",
+        "claim_id": "claim-0a5a49221bc77747",
+        "language": "en",
+        "passage": {
+          "artifact_uri": "jobs/dfe0b173-d9ff-458b-99b6-7b4ad3cccb8e/research/sources/3e9c744833869a0bb3ab9752e712d50f6a73cb1e/content.html",
+          "end_offset": 1214,
+          "kind": "TEXT_SPAN",
+          "source_id": "3e9c744833869a0bb3ab9752e712d50f6a73cb1e",
+          "start_offset": 1031,
+          "text": "Equipped with advanced maneuvering capabilities, it is capable of engaging enemy submarines at long ranges, thereby enhancing the anti-submarine warfare capability of the Indian Navy.",
+          "timestamp_end": null,
+          "timestamp_start": null
+        },
+        "original_url": "https://www.pib.gov.in/PressReleaseIframePage.aspx?PRID=2323814&lang=2&reg=48"
+      },
+      {
+        "kind": "ANALYSIS",
+        "date": {
+          "original": "2026-10-16T13:46:19.553034+00:00",
+          "utc": "2026-10-16T13:46:19.553034+00:00",
+          "precision": "TIMESTAMP",
+          "timezone": "UTC"
+        },
+        "source_id": "3e9c744833869a0bb3ab9752e712d50f6a73cb1e",
+        "claim_id": "claim-131a80ad288d910b",
+        "language": "en",
+        "passage": {
+          "artifact_uri": "jobs/dfe0b173-d9ff-458b-99b6-7b4ad3cccb8e/research/sources/3e9c744833869a0bb3ab9752e712d50f6a73cb1e/content.html",
+          "end_offset": 3150,
+          "kind": "TEXT_SPAN",
+          "source_id": "3e9c744833869a0bb3ab9752e712d50f6a73cb1e",
+          "start_offset": 2977,
+          "text": "The contracts were signed in the presence of Additional Secretary and Director General (Acquisition), Department of Defence Shri A Anbarasu in New Delhi on October 15, 2026.",
+          "timestamp_end": null,
+          "timestamp_start": null
+        },
+        "original_url": "https://www.pib.gov.in/PressReleaseIframePage.aspx?PRID=2323814&lang=2&reg=48"
+      },
+      {
+        "kind": "ANALYSIS",
+        "date": {
+          "original": "2026-10-16T13:46:19.553034+00:00",
+          "utc": "2026-10-16T13:46:19.553034+00:00",
+          "precision": "TIMESTAMP",
+          "timezone": "UTC"
+        },
+        "source_id": "3e9c744833869a0bb3ab9752e712d50f6a73cb1e",
+        "claim_id": "claim-23eb31cf575157a6",
+        "language": "en",
+        "passage": {
+          "artifact_uri": "jobs/dfe0b173-d9ff-458b-99b6-7b4ad3cccb8e/research/sources/3e9c744833869a0bb3ab9752e712d50f6a73cb1e/content.html",
+          "end_offset": 1929,
+          "kind": "TEXT_SPAN",
+          "source_id": "3e9c744833869a0bb3ab9752e712d50f6a73cb1e",
+          "start_offset": 1822,
+          "text": "MoD inks Rs 4,106 crore contracts for GSAT-7C communication satellite and Varunastra Heavy Weight Torpedoes",
+          "timestamp_end": null,
+          "timestamp_start": null
+        },
+        "original_url": "https://www.pib.gov.in/PressReleaseIframePage.aspx?PRID=2323814&lang=2&reg=48"
+      },
+      {
+        "kind": "ANALYSIS",
+        "date": {
+          "original": "2026-10-16T13:46:19.553034+00:00",
+          "utc": "2026-10-16T13:46:19.553034+00:00",
+          "precision": "TIMESTAMP",
+          "timezone": "UTC"
+        },
+        "source_id": "3e9c744833869a0bb3ab9752e712d50f6a73cb1e",
+        "claim_id": "claim-3b18dea9a86db622",
+        "language": "en",
+        "passage": {
+          "artifact_uri": "jobs/dfe0b173-d9ff-458b-99b6-7b4ad3cccb8e/research/sources/3e9c744833869a0bb3ab9752e712d50f6a73cb1e/content.html",
+          "end_offset": 3405,
+          "kind": "TEXT_SPAN",
+          "source_id": "3e9c744833869a0bb3ab9752e712d50f6a73cb1e",
+          "start_offset": 3151,
+          "text": "Both contracts mark a significant step towards advancing the development of domestic defence manufacturing capabilities while promoting self-reliance in critical technologies in line with the Government\u2019s \u2018Aatmanirbhar Bharat\u2019 and \u2018Make-in-India\u2019 vision.",
+          "timestamp_end": null,
+          "timestamp_start": null
+        },
+        "original_url": "https://www.pib.gov.in/PressReleaseIframePage.aspx?PRID=2323814&lang=2&reg=48"
+      },
+      {
+        "kind": "ANALYSIS",
+        "date": {
+          "original": "2026-10-16T13:46:19.553034+00:00",
+          "utc": "2026-10-16T13:46:19.553034+00:00",
+          "precision": "TIMESTAMP",
+          "timezone": "UTC"
+        },
+        "source_id": "3e9c744833869a0bb3ab9752e712d50f6a73cb1e",
+        "claim_id": "claim-4331c452f56d9f18",
+        "language": "en",
+        "passage": {
+          "artifact_uri": "jobs/dfe0b173-d9ff-458b-99b6-7b4ad3cccb8e/research/sources/3e9c744833869a0bb3ab9752e712d50f6a73cb1e/content.html",
+          "end_offset": 2563,
+          "kind": "TEXT_SPAN",
+          "source_id": "3e9c744833869a0bb3ab9752e712d50f6a73cb1e",
+          "start_offset": 2339,
+          "text": "This indigenously designed, developed & manufactured satellite will enhance the secure, resilient & seamless communication capabilities for the assets of the Indian Air Force, thereby strengthening operational effectiveness.",
+          "timestamp_end": null,
+          "timestamp_start": null
+        },
+        "original_url": "https://www.pib.gov.in/PressReleaseIframePage.aspx?PRID=2323814&lang=2&reg=48"
+      },
+      {
+        "kind": "ANALYSIS",
+        "date": {
+          "original": "2026-10-16T13:46:19.553034+00:00",
+          "utc": "2026-10-16T13:46:19.553034+00:00",
+          "precision": "TIMESTAMP",
+          "timezone": "UTC"
+        },
+        "source_id": "3e9c744833869a0bb3ab9752e712d50f6a73cb1e",
+        "claim_id": "claim-5a16079dad332d5c",
+        "language": "en",
+        "passage": {
+          "artifact_uri": "jobs/dfe0b173-d9ff-458b-99b6-7b4ad3cccb8e/research/sources/3e9c744833869a0bb3ab9752e712d50f6a73cb1e/content.html",
+          "end_offset": 2975,
+          "kind": "TEXT_SPAN",
+          "source_id": "3e9c744833869a0bb3ab9752e712d50f6a73cb1e",
+          "start_offset": 2792,
+          "text": "Equipped with advanced maneuvering capabilities, it is capable of engaging enemy submarines at long ranges, thereby enhancing the anti-submarine warfare capability of the Indian Navy.",
+          "timestamp_end": null,
+          "timestamp_start": null
+        },
+        "original_url": "https://www.pib.gov.in/PressReleaseIframePage.aspx?PRID=2323814&lang=2&reg=48"
+      },
+      {
+        "kind": "ANALYSIS",
+        "date": {
+          "original": "2026-10-16T13:46:19.553034+00:00",
+          "utc": "2026-10-16T13:46:19.553034+00:00",
+          "precision": "TIMESTAMP",
+          "timezone": "UTC"
+        },
+        "source_id": "3e9c744833869a0bb3ab9752e712d50f6a73cb1e",
+        "claim_id": "claim-667cf87909eb12d5",
+        "language": "en",
+        "passage": {
+          "artifact_uri": "jobs/dfe0b173-d9ff-458b-99b6-7b4ad3cccb8e/research/sources/3e9c744833869a0bb3ab9752e712d50f6a73cb1e/content.html",
+          "end_offset": 2234,
+          "kind": "TEXT_SPAN",
+          "source_id": "3e9c744833869a0bb3ab9752e712d50f6a73cb1e",
+          "start_offset": 1980,
+          "text": "The Ministry of Defence has signed contracts worth a total of approximately Rs 4,106 crore for the acquisition of a dedicated communication satellite capability, GSAT-7C for the Indian Air Force, and Varunastra Heavy Weight Torpedoes for the Indian Navy.",
+          "timestamp_end": null,
+          "timestamp_start": null
+        },
+        "original_url": "https://www.pib.gov.in/PressReleaseIframePage.aspx?PRID=2323814&lang=2&reg=48"
+      },
+      {
+        "kind": "ANALYSIS",
+        "date": {
+          "original": "2026-10-16T13:46:19.553034+00:00",
+          "utc": "2026-10-16T13:46:19.553034+00:00",
+          "precision": "TIMESTAMP",
+          "timezone": "UTC"
+        },
+        "source_id": "3e9c744833869a0bb3ab9752e712d50f6a73cb1e",
+        "claim_id": "claim-680430151d1c0555",
+        "language": "en",
+        "passage": {
+          "artifact_uri": "jobs/dfe0b173-d9ff-458b-99b6-7b4ad3cccb8e/research/sources/3e9c744833869a0bb3ab9752e712d50f6a73cb1e/content.html",
+          "end_offset": 2338,
+          "kind": "TEXT_SPAN",
+          "source_id": "3e9c744833869a0bb3ab9752e712d50f6a73cb1e",
+          "start_offset": 2236,
+          "text": "The contract for GSAT-7C, valued at Rs 2,563 crore, was inked with New Space India Limited, Bengaluru.",
+          "timestamp_end": null,
+          "timestamp_start": null
+        },
+        "original_url": "https://www.pib.gov.in/PressReleaseIframePage.aspx?PRID=2323814&lang=2&reg=48"
+      },
+      {
+        "kind": "ANALYSIS",
+        "date": {
+          "original": "2026-10-16T13:46:19.553034+00:00",
+          "utc": "2026-10-16T13:46:19.553034+00:00",
+          "precision": "TIMESTAMP",
+          "timezone": "UTC"
+        },
+        "source_id": "3e9c744833869a0bb3ab9752e712d50f6a73cb1e",
+        "claim_id": "claim-7f0da7ec8b6acc1f",
+        "language": "en",
+        "passage": {
+          "artifact_uri": "jobs/dfe0b173-d9ff-458b-99b6-7b4ad3cccb8e/research/sources/3e9c744833869a0bb3ab9752e712d50f6a73cb1e/content.html",
+          "end_offset": 4274,
+          "kind": "TEXT_SPAN",
+          "source_id": "3e9c744833869a0bb3ab9752e712d50f6a73cb1e",
+          "start_offset": 4042,
+          "text": "This indigenously designed, developed &amp; manufactured satellite will enhance the secure, resilient &amp; seamless communication capabilities for the assets of the Indian Air Force, thereby strengthening operational effectiveness.",
+          "timestamp_end": null,
+          "timestamp_start": null
+        },
+        "original_url": "https://www.pib.gov.in/PressReleaseIframePage.aspx?PRID=2323814&lang=2&reg=48"
+      },
+      {
+        "kind": "ANALYSIS",
+        "date": {
+          "original": "2026-10-16T13:46:19.553034+00:00",
+          "utc": "2026-10-16T13:46:19.553034+00:00",
+          "precision": "TIMESTAMP",
+          "timezone": "UTC"
+        },
+        "source_id": "3e9c744833869a0bb3ab9752e712d50f6a73cb1e",
+        "claim_id": "claim-7f8906d238ad3e5a",
+        "language": "en",
+        "passage": {
+          "artifact_uri": "jobs/dfe0b173-d9ff-458b-99b6-7b4ad3cccb8e/research/sources/3e9c744833869a0bb3ab9752e712d50f6a73cb1e/content.html",
+          "end_offset": 1389,
+          "kind": "TEXT_SPAN",
+          "source_id": "3e9c744833869a0bb3ab9752e712d50f6a73cb1e",
+          "start_offset": 1216,
+          "text": "The contracts were signed in the presence of Additional Secretary and Director General (Acquisition), Department of Defence Shri A Anbarasu in New Delhi on October 15, 2026.",
+          "timestamp_end": null,
+          "timestamp_start": null
+        },
+        "original_url": "https://www.pib.gov.in/PressReleaseIframePage.aspx?PRID=2323814&lang=2&reg=48"
+      },
+      {
+        "kind": "ANALYSIS",
+        "date": {
+          "original": "2026-10-16T13:46:19.553034+00:00",
+          "utc": "2026-10-16T13:46:19.553034+00:00",
+          "precision": "TIMESTAMP",
+          "timezone": "UTC"
+        },
+        "source_id": "3e9c744833869a0bb3ab9752e712d50f6a73cb1e",
+        "claim_id": "claim-836b80783f429fbb",
+        "language": "en",
+        "passage": {
+          "artifact_uri": "jobs/dfe0b173-d9ff-458b-99b6-7b4ad3cccb8e/research/sources/3e9c744833869a0bb3ab9752e712d50f6a73cb1e/content.html",
+          "end_offset": 802,
+          "kind": "TEXT_SPAN",
+          "source_id": "3e9c744833869a0bb3ab9752e712d50f6a73cb1e",
+          "start_offset": 578,
+          "text": "This indigenously designed, developed & manufactured satellite will enhance the secure, resilient & seamless communication capabilities for the assets of the Indian Air Force, thereby strengthening operational effectiveness.",
+          "timestamp_end": null,
+          "timestamp_start": null
+        },
+        "original_url": "https://www.pib.gov.in/PressReleaseIframePage.aspx?PRID=2323814&lang=2&reg=48"
+      },
+      {
+        "kind": "ANALYSIS",
+        "date": {
+          "original": "2026-10-16T13:46:19.553034+00:00",
+          "utc": "2026-10-16T13:46:19.553034+00:00",
+          "precision": "TIMESTAMP",
+          "timezone": "UTC"
+        },
+        "source_id": "3e9c744833869a0bb3ab9752e712d50f6a73cb1e",
+        "claim_id": "claim-86b07584ede71644",
+        "language": "en",
+        "passage": {
+          "artifact_uri": "jobs/dfe0b173-d9ff-458b-99b6-7b4ad3cccb8e/research/sources/3e9c744833869a0bb3ab9752e712d50f6a73cb1e/content.html",
+          "end_offset": 1644,
+          "kind": "TEXT_SPAN",
+          "source_id": "3e9c744833869a0bb3ab9752e712d50f6a73cb1e",
+          "start_offset": 1390,
+          "text": "Both contracts mark a significant step towards advancing the development of domestic defence manufacturing capabilities while promoting self-reliance in critical technologies in line with the Government\u2019s \u2018Aatmanirbhar Bharat\u2019 and \u2018Make-in-India\u2019 vision.",
+          "timestamp_end": null,
+          "timestamp_start": null
+        },
+        "original_url": "https://www.pib.gov.in/PressReleaseIframePage.aspx?PRID=2323814&lang=2&reg=48"
+      },
+      {
+        "kind": "ANALYSIS",
+        "date": {
+          "original": "2026-10-16T13:46:19.553034+00:00",
+          "utc": "2026-10-16T13:46:19.553034+00:00",
+          "precision": "TIMESTAMP",
+          "timezone": "UTC"
+        },
+        "source_id": "3e9c744833869a0bb3ab9752e712d50f6a73cb1e",
+        "claim_id": "claim-ba13805b0d929b9d",
+        "language": "en",
+        "passage": {
+          "artifact_uri": "jobs/dfe0b173-d9ff-458b-99b6-7b4ad3cccb8e/research/sources/3e9c744833869a0bb3ab9752e712d50f6a73cb1e/content.html",
+          "end_offset": 6107,
+          "kind": "TEXT_SPAN",
+          "source_id": "3e9c744833869a0bb3ab9752e712d50f6a73cb1e",
+          "start_offset": 5823,
+          "text": "Both contracts mark a significant step towards advancing the development of domestic defence manufacturing capabilities while promoting self-reliance in critical technologies in line with the Government&rsquo;s &lsquo;Aatmanirbhar Bharat&rsquo; and &lsquo;Make-in-India&rsquo; vision.",
+          "timestamp_end": null,
+          "timestamp_start": null
+        },
+        "original_url": "https://www.pib.gov.in/PressReleaseIframePage.aspx?PRID=2323814&lang=2&reg=48"
+      },
+      {
+        "kind": "ANALYSIS",
+        "date": {
+          "original": "2026-10-16T13:46:19.553034+00:00",
+          "utc": "2026-10-16T13:46:19.553034+00:00",
+          "precision": "TIMESTAMP",
+          "timezone": "UTC"
+        },
+        "source_id": "3e9c744833869a0bb3ab9752e712d50f6a73cb1e",
+        "claim_id": "claim-bb24e64887e7073d",
+        "language": "en",
+        "passage": {
+          "artifact_uri": "jobs/dfe0b173-d9ff-458b-99b6-7b4ad3cccb8e/research/sources/3e9c744833869a0bb3ab9752e712d50f6a73cb1e/content.html",
+          "end_offset": 577,
+          "kind": "TEXT_SPAN",
+          "source_id": "3e9c744833869a0bb3ab9752e712d50f6a73cb1e",
+          "start_offset": 475,
+          "text": "The contract for GSAT-7C, valued at Rs 2,563 crore, was inked with New Space India Limited, Bengaluru.",
+          "timestamp_end": null,
+          "timestamp_start": null
+        },
+        "original_url": "https://www.pib.gov.in/PressReleaseIframePage.aspx?PRID=2323814&lang=2&reg=48"
+      },
+      {
+        "kind": "ANALYSIS",
+        "date": {
+          "original": "2026-10-16T13:46:19.553034+00:00",
+          "utc": "2026-10-16T13:46:19.553034+00:00",
+          "precision": "TIMESTAMP",
+          "timezone": "UTC"
+        },
+        "source_id": "3e9c744833869a0bb3ab9752e712d50f6a73cb1e",
+        "claim_id": "claim-fb8ebbaa4ee68a26",
+        "language": "en",
+        "passage": {
+          "artifact_uri": "jobs/dfe0b173-d9ff-458b-99b6-7b4ad3cccb8e/research/sources/3e9c744833869a0bb3ab9752e712d50f6a73cb1e/content.html",
+          "end_offset": 168,
+          "kind": "TEXT_SPAN",
+          "source_id": "3e9c744833869a0bb3ab9752e712d50f6a73cb1e",
+          "start_offset": 61,
+          "text": "MoD inks Rs 4,106 crore contracts for GSAT-7C communication satellite and Varunastra Heavy Weight Torpedoes",
+          "timestamp_end": null,
+          "timestamp_start": null
+        },
+        "original_url": "https://www.pib.gov.in/PressReleaseIframePage.aspx?PRID=2323814&lang=2&reg=48"
+      },
+      {
+        "kind": "REVIEW",
+        "date": {
+          "original": "2026-10-16T14:32:56.519720+00:00",
+          "utc": "2026-10-16T14:32:56.519720+00:00",
+          "precision": "TIMESTAMP",
+          "timezone": "UTC"
+        },
+        "source_id": "3e9c744833869a0bb3ab9752e712d50f6a73cb1e",
+        "claim_id": null,
+        "language": "en",
+        "passage": null,
+        "original_url": "https://www.pib.gov.in/PressReleaseIframePage.aspx?PRID=2323814&lang=2&reg=48",
+        "review": {
+          "history_id": "78cab3fd-ad8d-4e1e-a492-86955263cfca",
+          "job_id": "dfe0b173-d9ff-458b-99b6-7b4ad3cccb8e",
+          "source_id": "3e9c744833869a0bb3ab9752e712d50f6a73cb1e",
+          "decision": "APPROVED_FOR_USE",
+          "reviewed_artifact_type": "acquisition_manifest",
+          "reviewed_artifact_sha256": "3cb1de1ad89d26f09a1b6bdc6dc10527dbde0a3bea20455d4935d09c3574efa5",
+          "reviewer_id": "e2e-operator",
+          "note": "as",
+          "revision": 1,
+          "previous_decision": null,
+          "occurred_at": "2026-10-16T14:32:56.519720+00:00",
+          "idempotency_key": "3fd158f6-e4fc-4d25-a846-8ee8958c8d6c"
+        }
+      },
+      {
+        "kind": "REVIEW",
+        "date": {
+          "original": "2026-10-16T14:33:02.737161+00:00",
+          "utc": "2026-10-16T14:33:02.737161+00:00",
+          "precision": "TIMESTAMP",
+          "timezone": "UTC"
+        },
+        "source_id": "3e9c744833869a0bb3ab9752e712d50f6a73cb1e",
+        "claim_id": null,
+        "language": "en",
+        "passage": null,
+        "original_url": "https://www.pib.gov.in/PressReleaseIframePage.aspx?PRID=2323814&lang=2&reg=48",
+        "review": {
+          "history_id": "a1638d34-b22e-4a8c-850c-30af5fac29a2",
+          "job_id": "dfe0b173-d9ff-458b-99b6-7b4ad3cccb8e",
+          "source_id": "3e9c744833869a0bb3ab9752e712d50f6a73cb1e",
+          "decision": "APPROVED_FOR_USE",
+          "reviewed_artifact_type": "acquisition_manifest",
+          "reviewed_artifact_sha256": "3cb1de1ad89d26f09a1b6bdc6dc10527dbde0a3bea20455d4935d09c3574efa5",
+          "reviewer_id": "e2e-operator",
+          "note": "as",
+          "revision": 2,
+          "previous_decision": "APPROVED_FOR_USE",
+          "occurred_at": "2026-10-16T14:33:02.737161+00:00",
+          "idempotency_key": "cf5cdf46-20e2-4abe-a500-fc00a975f454"
+        }
+      },
+      {
+        "kind": "REVIEW",
+        "date": {
+          "original": "2026-10-16T14:33:07.747321+00:00",
+          "utc": "2026-10-16T14:33:07.747321+00:00",
+          "precision": "TIMESTAMP",
+          "timezone": "UTC"
+        },
+        "source_id": "3e9c744833869a0bb3ab9752e712d50f6a73cb1e",
+        "claim_id": null,
+        "language": "en",
+        "passage": null,
+        "original_url": "https://www.pib.gov.in/PressReleaseIframePage.aspx?PRID=2323814&lang=2&reg=48",
+        "review": {
+          "history_id": "489c1ecf-11b0-4164-b0ee-599d7394a8a5",
+          "job_id": "dfe0b173-d9ff-458b-99b6-7b4ad3cccb8e",
+          "source_id": "3e9c744833869a0bb3ab9752e712d50f6a73cb1e",
+          "decision": "APPROVED_FOR_USE",
+          "reviewed_artifact_type": "acquisition_manifest",
+          "reviewed_artifact_sha256": "3cb1de1ad89d26f09a1b6bdc6dc10527dbde0a3bea20455d4935d09c3574efa5",
+          "reviewer_id": "e2e-operator",
+          "note": "zx",
+          "revision": 3,
+          "previous_decision": "APPROVED_FOR_USE",
+          "occurred_at": "2026-10-16T14:33:07.747321+00:00",
+          "idempotency_key": "9dac24b3-0ee4-4369-a539-5005814efad5"
+        }
+      },
+      {
+        "kind": "REVIEW",
+        "date": {
+          "original": "2026-10-16T14:33:12.100298+00:00",
+          "utc": "2026-10-16T14:33:12.100298+00:00",
+          "precision": "TIMESTAMP",
+          "timezone": "UTC"
+        },
+        "source_id": "3e9c744833869a0bb3ab9752e712d50f6a73cb1e",
+        "claim_id": null,
+        "language": "en",
+        "passage": null,
+        "original_url": "https://www.pib.gov.in/PressReleaseIframePage.aspx?PRID=2323814&lang=2&reg=48",
+        "review": {
+          "history_id": "87920a14-aa9d-4acd-a9cb-c7ab8a3eed49",
+          "job_id": "dfe0b173-d9ff-458b-99b6-7b4ad3cccb8e",
+          "source_id": "3e9c744833869a0bb3ab9752e712d50f6a73cb1e",
+          "decision": "APPROVED_FOR_USE",
+          "reviewed_artifact_type": "acquisition_manifest",
+          "reviewed_artifact_sha256": "3cb1de1ad89d26f09a1b6bdc6dc10527dbde0a3bea20455d4935d09c3574efa5",
+          "reviewer_id": "e2e-operator",
+          "note": "zx",
+          "revision": 4,
+          "previous_decision": "APPROVED_FOR_USE",
+          "occurred_at": "2026-10-16T14:33:12.100298+00:00",
+          "idempotency_key": "1f02d16f-4721-475c-97b6-295deb43a5c5"
+        }
+      },
+      {
+        "kind": "REVIEW",
+        "date": {
+          "original": "2026-10-16T14:33:15.607386+00:00",
+          "utc": "2026-10-16T14:33:15.607386+00:00",
+          "precision": "TIMESTAMP",
+          "timezone": "UTC"
+        },
+        "source_id": "3e9c744833869a0bb3ab9752e712d50f6a73cb1e",
+        "claim_id": null,
+        "language": "en",
+        "passage": null,
+        "original_url": "https://www.pib.gov.in/PressReleaseIframePage.aspx?PRID=2323814&lang=2&reg=48",
+        "review": {
+          "history_id": "4580a42d-e849-4c57-9d64-f88f376d51e2",
+          "job_id": "dfe0b173-d9ff-458b-99b6-7b4ad3cccb8e",
+          "source_id": "3e9c744833869a0bb3ab9752e712d50f6a73cb1e",
+          "decision": "APPROVED_FOR_USE",
+          "reviewed_artifact_type": "acquisition_manifest",
+          "reviewed_artifact_sha256": "3cb1de1ad89d26f09a1b6bdc6dc10527dbde0a3bea20455d4935d09c3574efa5",
+          "reviewer_id": "e2e-operator",
+          "note": "zx",
+          "revision": 5,
+          "previous_decision": "APPROVED_FOR_USE",
+          "occurred_at": "2026-10-16T14:33:15.607386+00:00",
+          "idempotency_key": "4b78e138-2e8c-4359-9419-bf88bda54a65"
+        }
+      },
+      {
+        "kind": "REVIEW",
+        "date": {
+          "original": "2026-10-16T14:33:19.060340+00:00",
+          "utc": "2026-10-16T14:33:19.060340+00:00",
+          "precision": "TIMESTAMP",
+          "timezone": "UTC"
+        },
+        "source_id": "3e9c744833869a0bb3ab9752e712d50f6a73cb1e",
+        "claim_id": null,
+        "language": "en",
+        "passage": null,
+        "original_url": "https://www.pib.gov.in/PressReleaseIframePage.aspx?PRID=2323814&lang=2&reg=48",
+        "review": {
+          "history_id": "51dc5362-d81e-4bd6-9839-7b2e7ad024d3",
+          "job_id": "dfe0b173-d9ff-458b-99b6-7b4ad3cccb8e",
+          "source_id": "3e9c744833869a0bb3ab9752e712d50f6a73cb1e",
+          "decision": "APPROVED_FOR_USE",
+          "reviewed_artifact_type": "acquisition_manifest",
+          "reviewed_artifact_sha256": "3cb1de1ad89d26f09a1b6bdc6dc10527dbde0a3bea20455d4935d09c3574efa5",
+          "reviewer_id": "e2e-operator",
+          "note": "zx",
+          "revision": 6,
+          "previous_decision": "APPROVED_FOR_USE",
+          "occurred_at": "2026-10-16T14:33:19.060340+00:00",
+          "idempotency_key": "ac477b4b-2023-4a3e-9777-cb5b8a08364f"
+        }
+      },
+      {
+        "kind": "REVIEW",
+        "date": {
+          "original": "2026-10-16T14:33:28.497104+00:00",
+          "utc": "2026-10-16T14:33:28.497104+00:00",
+          "precision": "TIMESTAMP",
+          "timezone": "UTC"
+        },
+        "source_id": "3e9c744833869a0bb3ab9752e712d50f6a73cb1e",
+        "claim_id": null,
+        "language": "en",
+        "passage": null,
+        "original_url": "https://www.pib.gov.in/PressReleaseIframePage.aspx?PRID=2323814&lang=2&reg=48",
+        "review": {
+          "history_id": "55c01e2c-2bab-41ae-9c9c-27588d991855",
+          "job_id": "dfe0b173-d9ff-458b-99b6-7b4ad3cccb8e",
+          "source_id": "3e9c744833869a0bb3ab9752e712d50f6a73cb1e",
+          "decision": "APPROVED_FOR_USE",
+          "reviewed_artifact_type": "acquisition_manifest",
+          "reviewed_artifact_sha256": "3cb1de1ad89d26f09a1b6bdc6dc10527dbde0a3bea20455d4935d09c3574efa5",
+          "reviewer_id": "e2e-operator",
+          "note": "hi",
+          "revision": 7,
+          "previous_decision": "APPROVED_FOR_USE",
+          "occurred_at": "2026-10-16T14:33:28.497104+00:00",
+          "idempotency_key": "6f3a60d1-928f-4739-9ee0-fb1b69da6275"
+        }
+      },
+      {
+        "kind": "REVIEW",
+        "date": {
+          "original": "2026-10-16T14:33:34.016980+00:00",
+          "utc": "2026-10-16T14:33:34.016980+00:00",
+          "precision": "TIMESTAMP",
+          "timezone": "UTC"
+        },
+        "source_id": "3e9c744833869a0bb3ab9752e712d50f6a73cb1e",
+        "claim_id": null,
+        "language": "en",
+        "passage": null,
+        "original_url": "https://www.pib.gov.in/PressReleaseIframePage.aspx?PRID=2323814&lang=2&reg=48",
+        "review": {
+          "history_id": "91b4c6d2-0204-47f2-a16b-3a8653234d42",
+          "job_id": "dfe0b173-d9ff-458b-99b6-7b4ad3cccb8e",
+          "source_id": "3e9c744833869a0bb3ab9752e712d50f6a73cb1e",
+          "decision": "APPROVED_FOR_USE",
+          "reviewed_artifact_type": "acquisition_manifest",
+          "reviewed_artifact_sha256": "3cb1de1ad89d26f09a1b6bdc6dc10527dbde0a3bea20455d4935d09c3574efa5",
+          "reviewer_id": "e2e-operator",
+          "note": "hi",
+          "revision": 8,
+          "previous_decision": "APPROVED_FOR_USE",
+          "occurred_at": "2026-10-16T14:33:34.016980+00:00",
+          "idempotency_key": "1e9ce37b-fb04-4fab-899b-4d07063161a8"
+        }
+      },
+      {
+        "kind": "CLAIM_PUBLICATION",
+        "date": {
+          "original": "2026-10-15",
+          "utc": null,
+          "precision": "DATE_ONLY",
+          "timezone": null
+        },
+        "source_id": "3e9c744833869a0bb3ab9752e712d50f6a73cb1e",
+        "claim_id": "claim-021ac40f59f7fbd0",
+        "language": "en",
+        "passage": {
+          "artifact_uri": "jobs/dfe0b173-d9ff-458b-99b6-7b4ad3cccb8e/research/sources/3e9c744833869a0bb3ab9752e712d50f6a73cb1e/content.html",
+          "end_offset": 5167,
+          "kind": "TEXT_SPAN",
+          "source_id": "3e9c744833869a0bb3ab9752e712d50f6a73cb1e",
+          "start_offset": 4984,
+          "text": "Equipped with advanced maneuvering capabilities, it is capable of engaging enemy submarines at long ranges, thereby enhancing the anti-submarine warfare capability of the Indian Navy.",
+          "timestamp_end": null,
+          "timestamp_start": null
+        },
+        "original_url": "https://www.pib.gov.in/PressReleaseIframePage.aspx?PRID=2323814&lang=2&reg=48"
+      },
+      {
+        "kind": "CLAIM_PUBLICATION",
+        "date": {
+          "original": "2026-10-15",
+          "utc": null,
+          "precision": "DATE_ONLY",
+          "timezone": null
+        },
+        "source_id": "3e9c744833869a0bb3ab9752e712d50f6a73cb1e",
+        "claim_id": "claim-035fb086945a882a",
+        "language": "en",
+        "passage": {
+          "artifact_uri": "jobs/dfe0b173-d9ff-458b-99b6-7b4ad3cccb8e/research/sources/3e9c744833869a0bb3ab9752e712d50f6a73cb1e/content.html",
+          "end_offset": 473,
+          "kind": "TEXT_SPAN",
+          "source_id": "3e9c744833869a0bb3ab9752e712d50f6a73cb1e",
+          "start_offset": 219,
+          "text": "The Ministry of Defence has signed contracts worth a total of approximately Rs 4,106 crore for the acquisition of a dedicated communication satellite capability, GSAT-7C for the Indian Air Force, and Varunastra Heavy Weight Torpedoes for the Indian Navy.",
+          "timestamp_end": null,
+          "timestamp_start": null
+        },
+        "original_url": "https://www.pib.gov.in/PressReleaseIframePage.aspx?PRID=2323814&lang=2&reg=48"
+      },
+      {
+        "kind": "CLAIM_PUBLICATION",
+        "date": {
+          "original": "2026-10-15",
+          "utc": null,
+          "precision": "DATE_ONLY",
+          "timezone": null
+        },
+        "source_id": "3e9c744833869a0bb3ab9752e712d50f6a73cb1e",
+        "claim_id": "claim-0a5a49221bc77747",
+        "language": "en",
+        "passage": {
+          "artifact_uri": "jobs/dfe0b173-d9ff-458b-99b6-7b4ad3cccb8e/research/sources/3e9c744833869a0bb3ab9752e712d50f6a73cb1e/content.html",
+          "end_offset": 1214,
+          "kind": "TEXT_SPAN",
+          "source_id": "3e9c744833869a0bb3ab9752e712d50f6a73cb1e",
+          "start_offset": 1031,
+          "text": "Equipped with advanced maneuvering capabilities, it is capable of engaging enemy submarines at long ranges, thereby enhancing the anti-submarine warfare capability of the Indian Navy.",
+          "timestamp_end": null,
+          "timestamp_start": null
+        },
+        "original_url": "https://www.pib.gov.in/PressReleaseIframePage.aspx?PRID=2323814&lang=2&reg=48"
+      },
+      {
+        "kind": "CLAIM_PUBLICATION",
+        "date": {
+          "original": "2026-10-15",
+          "utc": null,
+          "precision": "DATE_ONLY",
+          "timezone": null
+        },
+        "source_id": "3e9c744833869a0bb3ab9752e712d50f6a73cb1e",
+        "claim_id": "claim-131a80ad288d910b",
+        "language": "en",
+        "passage": {
+          "artifact_uri": "jobs/dfe0b173-d9ff-458b-99b6-7b4ad3cccb8e/research/sources/3e9c744833869a0bb3ab9752e712d50f6a73cb1e/content.html",
+          "end_offset": 3150,
+          "kind": "TEXT_SPAN",
+          "source_id": "3e9c744833869a0bb3ab9752e712d50f6a73cb1e",
+          "start_offset": 2977,
+          "text": "The contracts were signed in the presence of Additional Secretary and Director General (Acquisition), Department of Defence Shri A Anbarasu in New Delhi on October 15, 2026.",
+          "timestamp_end": null,
+          "timestamp_start": null
+        },
+        "original_url": "https://www.pib.gov.in/PressReleaseIframePage.aspx?PRID=2323814&lang=2&reg=48"
+      },
+      {
+        "kind": "CLAIM_PUBLICATION",
+        "date": {
+          "original": "2026-10-15",
+          "utc": null,
+          "precision": "DATE_ONLY",
+          "timezone": null
+        },
+        "source_id": "3e9c744833869a0bb3ab9752e712d50f6a73cb1e",
+        "claim_id": "claim-23eb31cf575157a6",
+        "language": "en",
+        "passage": {
+          "artifact_uri": "jobs/dfe0b173-d9ff-458b-99b6-7b4ad3cccb8e/research/sources/3e9c744833869a0bb3ab9752e712d50f6a73cb1e/content.html",
+          "end_offset": 1929,
+          "kind": "TEXT_SPAN",
+          "source_id": "3e9c744833869a0bb3ab9752e712d50f6a73cb1e",
+          "start_offset": 1822,
+          "text": "MoD inks Rs 4,106 crore contracts for GSAT-7C communication satellite and Varunastra Heavy Weight Torpedoes",
+          "timestamp_end": null,
+          "timestamp_start": null
+        },
+        "original_url": "https://www.pib.gov.in/PressReleaseIframePage.aspx?PRID=2323814&lang=2&reg=48"
+      },
+      {
+        "kind": "CLAIM_PUBLICATION",
+        "date": {
+          "original": "2026-10-15",
+          "utc": null,
+          "precision": "DATE_ONLY",
+          "timezone": null
+        },
+        "source_id": "3e9c744833869a0bb3ab9752e712d50f6a73cb1e",
+        "claim_id": "claim-3b18dea9a86db622",
+        "language": "en",
+        "passage": {
+          "artifact_uri": "jobs/dfe0b173-d9ff-458b-99b6-7b4ad3cccb8e/research/sources/3e9c744833869a0bb3ab9752e712d50f6a73cb1e/content.html",
+          "end_offset": 3405,
+          "kind": "TEXT_SPAN",
+          "source_id": "3e9c744833869a0bb3ab9752e712d50f6a73cb1e",
+          "start_offset": 3151,
+          "text": "Both contracts mark a significant step towards advancing the development of domestic defence manufacturing capabilities while promoting self-reliance in critical technologies in line with the Government\u2019s \u2018Aatmanirbhar Bharat\u2019 and \u2018Make-in-India\u2019 vision.",
+          "timestamp_end": null,
+          "timestamp_start": null
+        },
+        "original_url": "https://www.pib.gov.in/PressReleaseIframePage.aspx?PRID=2323814&lang=2&reg=48"
+      },
+      {
+        "kind": "CLAIM_PUBLICATION",
+        "date": {
+          "original": "2026-10-15",
+          "utc": null,
+          "precision": "DATE_ONLY",
+          "timezone": null
+        },
+        "source_id": "3e9c744833869a0bb3ab9752e712d50f6a73cb1e",
+        "claim_id": "claim-4331c452f56d9f18",
+        "language": "en",
+        "passage": {
+          "artifact_uri": "jobs/dfe0b173-d9ff-458b-99b6-7b4ad3cccb8e/research/sources/3e9c744833869a0bb3ab9752e712d50f6a73cb1e/content.html",
+          "end_offset": 2563,
+          "kind": "TEXT_SPAN",
+          "source_id": "3e9c744833869a0bb3ab9752e712d50f6a73cb1e",
+          "start_offset": 2339,
+          "text": "This indigenously designed, developed & manufactured satellite will enhance the secure, resilient & seamless communication capabilities for the assets of the Indian Air Force, thereby strengthening operational effectiveness.",
+          "timestamp_end": null,
+          "timestamp_start": null
+        },
+        "original_url": "https://www.pib.gov.in/PressReleaseIframePage.aspx?PRID=2323814&lang=2&reg=48"
+      },
+      {
+        "kind": "CLAIM_PUBLICATION",
+        "date": {
+          "original": "2026-10-15",
+          "utc": null,
+          "precision": "DATE_ONLY",
+          "timezone": null
+        },
+        "source_id": "3e9c744833869a0bb3ab9752e712d50f6a73cb1e",
+        "claim_id": "claim-5a16079dad332d5c",
+        "language": "en",
+        "passage": {
+          "artifact_uri": "jobs/dfe0b173-d9ff-458b-99b6-7b4ad3cccb8e/research/sources/3e9c744833869a0bb3ab9752e712d50f6a73cb1e/content.html",
+          "end_offset": 2975,
+          "kind": "TEXT_SPAN",
+          "source_id": "3e9c744833869a0bb3ab9752e712d50f6a73cb1e",
+          "start_offset": 2792,
+          "text": "Equipped with advanced maneuvering capabilities, it is capable of engaging enemy submarines at long ranges, thereby enhancing the anti-submarine warfare capability of the Indian Navy.",
+          "timestamp_end": null,
+          "timestamp_start": null
+        },
+        "original_url": "https://www.pib.gov.in/PressReleaseIframePage.aspx?PRID=2323814&lang=2&reg=48"
+      },
+      {
+        "kind": "CLAIM_PUBLICATION",
+        "date": {
+          "original": "2026-10-15",
+          "utc": null,
+          "precision": "DATE_ONLY",
+          "timezone": null
+        },
+        "source_id": "3e9c744833869a0bb3ab9752e712d50f6a73cb1e",
+        "claim_id": "claim-667cf87909eb12d5",
+        "language": "en",
+        "passage": {
+          "artifact_uri": "jobs/dfe0b173-d9ff-458b-99b6-7b4ad3cccb8e/research/sources/3e9c744833869a0bb3ab9752e712d50f6a73cb1e/content.html",
+          "end_offset": 2234,
+          "kind": "TEXT_SPAN",
+          "source_id": "3e9c744833869a0bb3ab9752e712d50f6a73cb1e",
+          "start_offset": 1980,
+          "text": "The Ministry of Defence has signed contracts worth a total of approximately Rs 4,106 crore for the acquisition of a dedicated communication satellite capability, GSAT-7C for the Indian Air Force, and Varunastra Heavy Weight Torpedoes for the Indian Navy.",
+          "timestamp_end": null,
+          "timestamp_start": null
+        },
+        "original_url": "https://www.pib.gov.in/PressReleaseIframePage.aspx?PRID=2323814&lang=2&reg=48"
+      },
+      {
+        "kind": "CLAIM_PUBLICATION",
+        "date": {
+          "original": "2026-10-15",
+          "utc": null,
+          "precision": "DATE_ONLY",
+          "timezone": null
+        },
+        "source_id": "3e9c744833869a0bb3ab9752e712d50f6a73cb1e",
+        "claim_id": "claim-680430151d1c0555",
+        "language": "en",
+        "passage": {
+          "artifact_uri": "jobs/dfe0b173-d9ff-458b-99b6-7b4ad3cccb8e/research/sources/3e9c744833869a0bb3ab9752e712d50f6a73cb1e/content.html",
+          "end_offset": 2338,
+          "kind": "TEXT_SPAN",
+          "source_id": "3e9c744833869a0bb3ab9752e712d50f6a73cb1e",
+          "start_offset": 2236,
+          "text": "The contract for GSAT-7C, valued at Rs 2,563 crore, was inked with New Space India Limited, Bengaluru.",
+          "timestamp_end": null,
+          "timestamp_start": null
+        },
+        "original_url": "https://www.pib.gov.in/PressReleaseIframePage.aspx?PRID=2323814&lang=2&reg=48"
+      },
+      {
+        "kind": "CLAIM_PUBLICATION",
+        "date": {
+          "original": "2026-10-15",
+          "utc": null,
+          "precision": "DATE_ONLY",
+          "timezone": null
+        },
+        "source_id": "3e9c744833869a0bb3ab9752e712d50f6a73cb1e",
+        "claim_id": "claim-7f0da7ec8b6acc1f",
+        "language": "en",
+        "passage": {
+          "artifact_uri": "jobs/dfe0b173-d9ff-458b-99b6-7b4ad3cccb8e/research/sources/3e9c744833869a0bb3ab9752e712d50f6a73cb1e/content.html",
+          "end_offset": 4274,
+          "kind": "TEXT_SPAN",
+          "source_id": "3e9c744833869a0bb3ab9752e712d50f6a73cb1e",
+          "start_offset": 4042,
+          "text": "This indigenously designed, developed &amp; manufactured satellite will enhance the secure, resilient &amp; seamless communication capabilities for the assets of the Indian Air Force, thereby strengthening operational effectiveness.",
+          "timestamp_end": null,
+          "timestamp_start": null
+        },
+        "original_url": "https://www.pib.gov.in/PressReleaseIframePage.aspx?PRID=2323814&lang=2&reg=48"
+      },
+      {
+        "kind": "CLAIM_PUBLICATION",
+        "date": {
+          "original": "2026-10-15",
+          "utc": null,
+          "precision": "DATE_ONLY",
+          "timezone": null
+        },
+        "source_id": "3e9c744833869a0bb3ab9752e712d50f6a73cb1e",
+        "claim_id": "claim-7f8906d238ad3e5a",
+        "language": "en",
+        "passage": {
+          "artifact_uri": "jobs/dfe0b173-d9ff-458b-99b6-7b4ad3cccb8e/research/sources/3e9c744833869a0bb3ab9752e712d50f6a73cb1e/content.html",
+          "end_offset": 1389,
+          "kind": "TEXT_SPAN",
+          "source_id": "3e9c744833869a0bb3ab9752e712d50f6a73cb1e",
+          "start_offset": 1216,
+          "text": "The contracts were signed in the presence of Additional Secretary and Director General (Acquisition), Department of Defence Shri A Anbarasu in New Delhi on October 15, 2026.",
+          "timestamp_end": null,
+          "timestamp_start": null
+        },
+        "original_url": "https://www.pib.gov.in/PressReleaseIframePage.aspx?PRID=2323814&lang=2&reg=48"
+      },
+      {
+        "kind": "CLAIM_PUBLICATION",
+        "date": {
+          "original": "2026-10-15",
+          "utc": null,
+          "precision": "DATE_ONLY",
+          "timezone": null
+        },
+        "source_id": "3e9c744833869a0bb3ab9752e712d50f6a73cb1e",
+        "claim_id": "claim-836b80783f429fbb",
+        "language": "en",
+        "passage": {
+          "artifact_uri": "jobs/dfe0b173-d9ff-458b-99b6-7b4ad3cccb8e/research/sources/3e9c744833869a0bb3ab9752e712d50f6a73cb1e/content.html",
+          "end_offset": 802,
+          "kind": "TEXT_SPAN",
+          "source_id": "3e9c744833869a0bb3ab9752e712d50f6a73cb1e",
+          "start_offset": 578,
+          "text": "This indigenously designed, developed & manufactured satellite will enhance the secure, resilient & seamless communication capabilities for the assets of the Indian Air Force, thereby strengthening operational effectiveness.",
+          "timestamp_end": null,
+          "timestamp_start": null
+        },
+        "original_url": "https://www.pib.gov.in/PressReleaseIframePage.aspx?PRID=2323814&lang=2&reg=48"
+      },
+      {
+        "kind": "CLAIM_PUBLICATION",
+        "date": {
+          "original": "2026-10-15",
+          "utc": null,
+          "precision": "DATE_ONLY",
+          "timezone": null
+        },
+        "source_id": "3e9c744833869a0bb3ab9752e712d50f6a73cb1e",
+        "claim_id": "claim-86b07584ede71644",
+        "language": "en",
+        "passage": {
+          "artifact_uri": "jobs/dfe0b173-d9ff-458b-99b6-7b4ad3cccb8e/research/sources/3e9c744833869a0bb3ab9752e712d50f6a73cb1e/content.html",
+          "end_offset": 1644,
+          "kind": "TEXT_SPAN",
+          "source_id": "3e9c744833869a0bb3ab9752e712d50f6a73cb1e",
+          "start_offset": 1390,
+          "text": "Both contracts mark a significant step towards advancing the development of domestic defence manufacturing capabilities while promoting self-reliance in critical technologies in line with the Government\u2019s \u2018Aatmanirbhar Bharat\u2019 and \u2018Make-in-India\u2019 vision.",
+          "timestamp_end": null,
+          "timestamp_start": null
+        },
+        "original_url": "https://www.pib.gov.in/PressReleaseIframePage.aspx?PRID=2323814&lang=2&reg=48"
+      },
+      {
+        "kind": "CLAIM_PUBLICATION",
+        "date": {
+          "original": "2026-10-15",
+          "utc": null,
+          "precision": "DATE_ONLY",
+          "timezone": null
+        },
+        "source_id": "3e9c744833869a0bb3ab9752e712d50f6a73cb1e",
+        "claim_id": "claim-ba13805b0d929b9d",
+        "language": "en",
+        "passage": {
+          "artifact_uri": "jobs/dfe0b173-d9ff-458b-99b6-7b4ad3cccb8e/research/sources/3e9c744833869a0bb3ab9752e712d50f6a73cb1e/content.html",
+          "end_offset": 6107,
+          "kind": "TEXT_SPAN",
+          "source_id": "3e9c744833869a0bb3ab9752e712d50f6a73cb1e",
+          "start_offset": 5823,
+          "text": "Both contracts mark a significant step towards advancing the development of domestic defence manufacturing capabilities while promoting self-reliance in critical technologies in line with the Government&rsquo;s &lsquo;Aatmanirbhar Bharat&rsquo; and &lsquo;Make-in-India&rsquo; vision.",
+          "timestamp_end": null,
+          "timestamp_start": null
+        },
+        "original_url": "https://www.pib.gov.in/PressReleaseIframePage.aspx?PRID=2323814&lang=2&reg=48"
+      },
+      {
+        "kind": "CLAIM_PUBLICATION",
+        "date": {
+          "original": "2026-10-15",
+          "utc": null,
+          "precision": "DATE_ONLY",
+          "timezone": null
+        },
+        "source_id": "3e9c744833869a0bb3ab9752e712d50f6a73cb1e",
+        "claim_id": "claim-bb24e64887e7073d",
+        "language": "en",
+        "passage": {
+          "artifact_uri": "jobs/dfe0b173-d9ff-458b-99b6-7b4ad3cccb8e/research/sources/3e9c744833869a0bb3ab9752e712d50f6a73cb1e/content.html",
+          "end_offset": 577,
+          "kind": "TEXT_SPAN",
+          "source_id": "3e9c744833869a0bb3ab9752e712d50f6a73cb1e",
+          "start_offset": 475,
+          "text": "The contract for GSAT-7C, valued at Rs 2,563 crore, was inked with New Space India Limited, Bengaluru.",
+          "timestamp_end": null,
+          "timestamp_start": null
+        },
+        "original_url": "https://www.pib.gov.in/PressReleaseIframePage.aspx?PRID=2323814&lang=2&reg=48"
+      },
+      {
+        "kind": "CLAIM_PUBLICATION",
+        "date": {
+          "original": "2026-10-15",
+          "utc": null,
+          "precision": "DATE_ONLY",
+          "timezone": null
+        },
+        "source_id": "3e9c744833869a0bb3ab9752e712d50f6a73cb1e",
+        "claim_id": "claim-fb8ebbaa4ee68a26",
+        "language": "en",
+        "passage": {
+          "artifact_uri": "jobs/dfe0b173-d9ff-458b-99b6-7b4ad3cccb8e/research/sources/3e9c744833869a0bb3ab9752e712d50f6a73cb1e/content.html",
+          "end_offset": 168,
+          "kind": "TEXT_SPAN",
+          "source_id": "3e9c744833869a0bb3ab9752e712d50f6a73cb1e",
+          "start_offset": 61,
+          "text": "MoD inks Rs 4,106 crore contracts for GSAT-7C communication satellite and Varunastra Heavy Weight Torpedoes",
+          "timestamp_end": null,
+          "timestamp_start": null
+        },
+        "original_url": "https://www.pib.gov.in/PressReleaseIframePage.aspx?PRID=2323814&lang=2&reg=48"
+      },
+      {
+        "kind": "PUBLICATION",
+        "date": {
+          "original": "2026-10-15",
+          "utc": null,
+          "precision": "DATE_ONLY",
+          "timezone": null
+        },
+        "source_id": "3e9c744833869a0bb3ab9752e712d50f6a73cb1e",
+        "claim_id": null,
+        "language": "en",
+        "passage": null,
+        "original_url": "https://www.pib.gov.in/PressReleaseIframePage.aspx?PRID=2323814&lang=2&reg=48"
+      }
+    ],
+    "limitations": [
+      "Source 3e9c744833869a0bb3ab9752e712d50f6a73cb1e: publisher unknown",
+      "Source support and human approval do not establish historical truth.",
+      "Duplicate groups and textual similarity are not independent corroboration."
+    ],
+    "blockers": [
+      "Automated policy: insufficient currently eligible claims after human exceptions",
+      "Automated policy: insufficient supporting sources after human exceptions",
+      "Automated policy: min_accepted_claims required 8 got 0; acquire more allowlisted sources for this topic or change the owner policy threshold",
+      "Automated policy: min_accepted_sources required 2 got 0; enable and acquire additional sources in config/source_policy.json that cover the topic",
+      "Automated policy: required_source_categories_any required ['RESEARCH_INSTITUTION', 'GOVERNMENT_OFFICIAL', 'OFFICIAL_TECHNICAL', 'INDEPENDENT_REPORTING'] got []; include an accepted source from a required category",
+      "No approved claims with approved source support"
+    ],
+    "eligible_claim_ids": [],
+    "ready": false,
+    "status": "DRAFT",
+    "approval": null,
+    "automated_decisions": {
+      "policy_version": "defence-studio.evidence-policy.v1",
+      "run_id": "23b5ca4d76d1f91c",
+      "acquisition_sha256": "3cb1de1ad89d26f09a1b6bdc6dc10527dbde0a3bea20455d4935d09c3574efa5",
+      "analysis_sha256": "d7566bf1274563bf88d93270e95a985a3d7250b87896353e4bddc196bd5c225d",
+      "claims": {
+        "claim-fb8ebbaa4ee68a26": {
+          "state": "REJECTED",
+          "score": 30.0,
+          "claim_class": "QUANTITATIVE",
+          "independent_groups": 0
+        },
+        "claim-035fb086945a882a": {
+          "state": "REJECTED",
+          "score": 30.0,
+          "claim_class": "QUANTITATIVE",
+          "independent_groups": 0
+        },
+        "claim-bb24e64887e7073d": {
+          "state": "REJECTED",
+          "score": 30.0,
+          "claim_class": "QUANTITATIVE",
+          "independent_groups": 0
+        },
+        "claim-836b80783f429fbb": {
+          "state": "REJECTED",
+          "score": 35.0,
+          "claim_class": "OPERATIONAL",
+          "independent_groups": 0
+        },
+        "claim-0a5a49221bc77747": {
+          "state": "REJECTED",
+          "score": 35.0,
+          "claim_class": "DESCRIPTIVE",
+          "independent_groups": 0
+        },
+        "claim-7f8906d238ad3e5a": {
+          "state": "REJECTED",
+          "score": 35.0,
+          "claim_class": "DESCRIPTIVE",
+          "independent_groups": 0
+        },
+        "claim-86b07584ede71644": {
+          "state": "REJECTED",
+          "score": 35.0,
+          "claim_class": "DESCRIPTIVE",
+          "independent_groups": 0
+        },
+        "claim-23eb31cf575157a6": {
+          "state": "REJECTED",
+          "score": 30.0,
+          "claim_class": "QUANTITATIVE",
+          "independent_groups": 0
+        },
+        "claim-667cf87909eb12d5": {
+          "state": "REJECTED",
+          "score": 30.0,
+          "claim_class": "QUANTITATIVE",
+          "independent_groups": 0
+        },
+        "claim-680430151d1c0555": {
+          "state": "REJECTED",
+          "score": 30.0,
+          "claim_class": "QUANTITATIVE",
+          "independent_groups": 0
+        },
+        "claim-4331c452f56d9f18": {
+          "state": "REJECTED",
+          "score": 35.0,
+          "claim_class": "OPERATIONAL",
+          "independent_groups": 0
+        },
+        "claim-5a16079dad332d5c": {
+          "state": "REJECTED",
+          "score": 35.0,
+          "claim_class": "DESCRIPTIVE",
+          "independent_groups": 0
+        },
+        "claim-131a80ad288d910b": {
+          "state": "REJECTED",
+          "score": 35.0,
+          "claim_class": "DESCRIPTIVE",
+          "independent_groups": 0
+        },
+        "claim-3b18dea9a86db622": {
+          "state": "REJECTED",
+          "score": 35.0,
+          "claim_class": "DESCRIPTIVE",
+          "independent_groups": 0
+        },
+        "claim-7f0da7ec8b6acc1f": {
+          "state": "REJECTED",
+          "score": 35.0,
+          "claim_class": "OPERATIONAL",
+          "independent_groups": 0
+        },
+        "claim-021ac40f59f7fbd0": {
+          "state": "REJECTED",
+          "score": 35.0,
+          "claim_class": "DESCRIPTIVE",
+          "independent_groups": 0
+        },
+        "claim-ba13805b0d929b9d": {
+          "state": "REJECTED",
+          "score": 35.0,
+          "claim_class": "DESCRIPTIVE",
+          "independent_groups": 0
+        }
+      },
+      "sources": {
+        "3e9c744833869a0bb3ab9752e712d50f6a73cb1e": {
+          "state": "REJECTED"
+        }
+      }
+    }
+  },
+  "revision": "57b158b0111b770f656b8f583ce7a2f23dbe1b1b175bf1e62f79a0827e5d4350",
+  "approvals": [],
+  "current_approval": null
+}

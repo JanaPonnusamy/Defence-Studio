@@ -11,6 +11,10 @@ hashes match the current artifacts).
 from __future__ import annotations
 
 import json
+import hashlib
+from pathlib import Path
+
+ASSESSOR_VERSION = "deterministic-evidence-policy.v2"
 
 DDL = (
     """CREATE TABLE IF NOT EXISTS evidence_policy_decisions (
@@ -63,6 +67,16 @@ def latest_run(connection, job_id: str, acquisition_sha256: str, analysis_sha256
         d["reasons"] = json.loads(d.pop("reasons_json"))
         d["components"] = json.loads(d.pop("components_json") or "null")
         d["evidence"] = json.loads(d.pop("evidence_json") or "null")
+        meta = d["evidence"] or {}
+        if meta.get("assessor_version") != ASSESSOR_VERSION:
+            return []
+        if meta.get("default_configuration"):
+            from defence_studio.acquisition.source_policy import default_policy
+            cfg = json.loads((Path(__file__).resolve().parents[2] / "config" / "evidence_policy.json").read_text(encoding="utf-8"))
+            encoded = json.dumps(cfg, sort_keys=True, ensure_ascii=False, separators=(",", ":"), allow_nan=False).encode()
+            if (meta.get("configuration_sha256") != hashlib.sha256(encoded).hexdigest() or
+                    meta.get("registry_sha256") != hashlib.sha256(str(default_policy()).encode()).hexdigest()):
+                return []
         out.append(d)
     return out
 

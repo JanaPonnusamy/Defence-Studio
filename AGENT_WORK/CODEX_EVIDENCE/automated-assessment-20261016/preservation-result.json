@@ -1,0 +1,13 @@
+{
+  "claim_reviews": true,
+  "source_reviews": true,
+  "claim_review_history": true,
+  "source_review_history": true,
+  "evidence_packages": true,
+  "other_workflow_jobs": true,
+  "other_workflow_stages": true,
+  "other_workflow_transitions": true,
+  "other_workflow_artifacts": true,
+  "other_worker_claims": true,
+  "existing_artifact_bytes": true
+}

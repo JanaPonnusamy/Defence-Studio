@@ -64,7 +64,7 @@ def build_discovery_handler(store: ArtifactStore, registry: DiscoveryProviderReg
 
         result = service.run(request, cancel=cancel)
 
-        result_uri = f"jobs/{context.job_id}/{DISCOVERY_RESULT_URI_SUFFIX}"
+        result_uri = f"jobs/{context.job_id}/research/attempts/{context.claim_id}/discovery_result.json"
         data = json.dumps(result_to_dict(result), indent=2, sort_keys=True).encode("utf-8")
         stored = store.write_bytes(context.job_id, result_uri, data, "application/json")
         return [{

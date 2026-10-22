@@ -1,33 +1,40 @@
 // Evidence timeline and immutable package approval. All authority lives on the server.
 import { escapeHtml as esc } from "../components/status-badge.js";
 import { textFieldHtml } from "../components/text-field.js";
-import { confirmDialog } from "../components/confirm-dialog.js";
-import { newIdempotencyKey } from "../api.js";
 
 export async function mountEvidence({ api, jobId, list, detail, filters, isCurrent }) {
   list.innerHTML = '<p class="loading-state">Loading evidence package…</p>';
   detail.innerHTML = "";
   detail.classList.remove("detail-overlay");
-  filters.innerHTML = '<p>Review approval permits use; it does not establish truth.</p>';
+  filters.innerHTML = '<p>Evidence packages approve automatically when policy checks pass. No manual package approval is required.</p>';
   const showError = (error) => {
     if (isCurrent()) detail.innerHTML = `<p role="alert" class="error-state">${esc(error.message)}</p>`;
   };
   try {
-    const result = await api.evidencePackage(jobId);
+    const [result, assessment] = await Promise.all([
+      api.evidencePackage(jobId), api.request("GET", `/jobs/${encodeURIComponent(jobId)}/evidence/policy`).catch(error => {
+        if (error.status === 404) return null;
+        throw error;
+      }),
+    ]);
     if (!isCurrent()) return;
     const pkg = result.package;
     list.innerHTML = `<h2>Evidence package</h2>
-      <p><strong>${result.current_approval ? "Approved current revision" : pkg.ready ? "Ready for human package approval" : "Draft — not approved"}</strong></p>
+      <p><strong>${result.current_approval ? "Approved current revision" : pkg.ready ? "Ready for policy package assessment" : "Draft — evidence requirements not met"}</strong></p>
       <p class="meta">Revision ${esc(result.revision)}</p>
       <p>${pkg.sources.length} sources · ${pkg.claims.length} claims · ${pkg.eligible_claim_ids.length} eligible claims</p>
-      <h3>Required review</h3>${pkg.blockers.length ? `<ul>${pkg.blockers.map(b => `<li>${esc(b)}</li>`).join("")}</ul>` : '<p>No blocking issues in current revision.</p>'}
+      <section aria-label="Automated assessment"><h3>Automated evidence assessment</h3>
+      <p>${assessment ? esc(assessment.ready_for_generation ? "Policy requirements satisfied" : assessment.explanation || "Additional evidence required") : "Assessment has not run yet."}</p>
+      <p>Deterministic source support and policy checks; no AI truth verification. Human decisions remain explicit exceptions.</p>
+      <ul>${(assessment?.policy_criteria_failed || []).map(f => `<li>${esc(f.criterion)}: required ${esc(String(f.required))}, observed ${esc(String(f.actual))}. ${esc(f.action)}</li>`).join("")}</ul>
+      <button type="button" id="run-assessment">${assessment ? "Reassess current evidence" : "Assess current evidence"}</button></section>
+      <h3>Evidence requirements</h3>${pkg.blockers.length ? `<ul>${pkg.blockers.map(b => `<li>${esc(b)}</li>`).join("")}</ul>` : '<p>No blocking issues in current revision.</p>'}
       <details><summary>Limitations and missing evidence</summary><ul>${pkg.limitations.map(b => `<li>${esc(b)}</li>`).join("")}</ul></details>
       <details><summary>Conflicts (${pkg.conflicts.length})</summary>${pkg.conflicts.map(c => `<p>${esc(c.explanation)}</p><div class="conflict-pair">${[c.claim_id_a,c.claim_id_b].map(id => {
         const claim = pkg.claims.find(x => x.claim_id === id);
         return `<div><a href="#/claims/${encodeURIComponent(id)}">${esc(id)}</a><p>${esc(claim?.claim_text || "Missing claim")}</p><p>${esc(claim?.source_id || "")} · ${esc(claim?.review?.decision || "PENDING")}</p></div>`;
       }).join("")}</div>`).join("")}</details>
-      ${textFieldHtml({id:"package-note",label:"Package approval explanation",multiline:true,maxLength:4000})}
-      <button type="button" id="approve-package" ${!pkg.ready || result.current_approval ? "disabled" : ""}>Approve this revision</button>
+      <p>Approval is automatic once the evidence requirements are satisfied.</p>
       <button type="button" id="export-approved" ${!result.current_approval ? "disabled" : ""}>Export approved JSON</button>
       <button type="button" id="export-draft">Download unapproved draft</button>
       <div id="package-action-status" role="status"></div>
@@ -60,16 +67,15 @@ export async function mountEvidence({ api, jobId, list, detail, filters, isCurre
       renderTimeline(Object.fromEntries(["start","end","source_id","claim_id","language"].map(k => [k,detail.querySelector(`#timeline-${k}`).value.trim()])));
     });
     const actionStatus = list.querySelector("#package-action-status");
-    list.querySelector("#approve-package").addEventListener("click", async event => {
-      const note = list.querySelector("#package-note").value.trim();
-      if (!note) { actionStatus.textContent = "Enter an approval explanation."; return; }
-      if (!await confirmDialog({title:"Approve evidence package",message:"Approve this exact revision, including its disclosed limitations and excluded evidence?"})) return;
-      if (!isCurrent()) return;
+    list.querySelector("#run-assessment").addEventListener("click", async event => {
       event.target.disabled = true;
       try {
-        await api.approveEvidence(jobId, result.revision, note, newIdempotencyKey());
-        if (isCurrent()) await mountEvidence({api,jobId,list,detail,filters,isCurrent});
-      } catch (error) { if (isCurrent()) { actionStatus.textContent = error.message + " Reload the Evidence tab before retrying."; event.target.disabled = false; } }
+        await api.request("POST", `/jobs/${encodeURIComponent(jobId)}/evidence/policy/run`);
+        if (isCurrent()) await mountEvidence({api, jobId, list, detail, filters, isCurrent});
+      } catch (error) {
+        actionStatus.textContent = error.message;
+        event.target.disabled = false;
+      }
     });
     for (const [id, draft] of [["export-approved",false],["export-draft",true]]) {
       list.querySelector(`#${id}`).addEventListener("click", async () => {

@@ -110,6 +110,20 @@ class ReviewService:
         except JobNotFound as exc:
             raise ReviewNotFound(str(exc)) from None
 
+    def _automated(self, connection, job_id, kind):
+        from defence_studio.repositories import policy_decisions
+        acq = self._latest_artifact(connection, job_id, ACQUISITION_RESULT_ARTIFACT)
+        ana = self._latest_artifact(connection, job_id, ANALYSIS_RESULT_ARTIFACT)
+        if not acq or not ana:
+            return {}
+        rows = policy_decisions.latest_run(connection, job_id, acq["sha256"], ana["sha256"])
+        return {r["subject_id"]: {"outcome": (r.get("evidence") or {}).get("assessment_outcome", r["state"]),
+                "policy_state": r["state"], "reasons": r["reasons"], "evidence": r["evidence"],
+                "run_id": r["run_id"], "policy_version": r["policy_version"],
+                "assessor_version": (r.get("evidence") or {}).get("assessor_version"),
+                "analysis_sha256": r["analysis_sha256"], "created_at": r["created_at"]}
+                for r in rows if r["subject_type"] == kind}
+
     # -- claims -------------------------------------------------------------
 
     def list_claims(self, job_id: str, owner_id: str, status: str | None = None,
@@ -130,6 +144,7 @@ class ReviewService:
             for conflict in analysis.get("conflicts", []):
                 conflicted.add(conflict.get("claim_id_a"))
                 conflicted.add(conflict.get("claim_id_b"))
+            assessed = self._automated(connection, job_id, "CLAIM")
             claims = []
             for claim in analysis.get("claims", []):
                 if source_id and claim.get("source_id") != source_id:
@@ -143,6 +158,7 @@ class ReviewService:
                 stale = bool(review) and review["reviewed_artifact_sha256"] != latest_ref["sha256"]
                 claims.append({
                     **claim,
+                    "assessment": assessed.get(claim.get("claim_id")),
                     "has_conflict": claim.get("claim_id") in conflicted,
                     "review": self._record_from_row(review, "claim_id"),
                     "review_status": current_status,
@@ -242,6 +258,7 @@ class ReviewService:
                 duplicate_groups = analysis.get("duplicate_groups", [])
             repo = ReviewRepository(connection)
             reviews = {row["source_id"]: row for row in repo.list_source_reviews(job_id)}
+            assessed = self._automated(connection, job_id, "SOURCE")
             sources = []
             for source in acquisition.get("sources", []):
                 sid = source.get("source_id")
@@ -251,6 +268,7 @@ class ReviewService:
                     continue
                 sources.append({
                     **source,
+                    "assessment": assessed.get(sid),
                     "normalized": normalized_by_id.get(sid),
                     "duplicate_groups": [g for g in duplicate_groups
                                         if sid in (g.get("member_source_ids") or [])],

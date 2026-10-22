@@ -75,6 +75,15 @@ def validate_revision_body(revision: dict, approved_package: dict) -> dict:
             if not evidence.get("qualification", "").strip():
                 issues.append(dict(code="MISSING_QUALIFICATION", severity="WARNING", section_id=sid,
                                    detail="A factual section has no qualification note for human review"))
+        source_ids = evidence.get("source_ids") or []
+        if source_ids and not isinstance(source_ids, list):
+            issues.append(dict(code="UNKNOWN_SOURCE_REFERENCE", severity="ERROR", section_id=sid,
+                               detail="evidence.source_ids must be a list of approved source ids"))
+        elif isinstance(source_ids, list):
+            unknown_sources = [s for s in source_ids if s not in sources_by_id]
+            if unknown_sources:
+                issues.append(dict(code="UNKNOWN_SOURCE_REFERENCE", severity="ERROR", section_id=sid,
+                                   detail=f"References source(s) not present in the approved package: {unknown_sources}"))
         # Citation IDs must never be spoken aloud in narration.
         for cid in claim_ids:
             if cid and cid in narration:

@@ -40,7 +40,7 @@ ANALYSIS_STAGE = "extraction_validation_normalization_deduplication"
 
 # Deterministic processor versions. These are recorded on every output so a
 # reviewer can tell exactly which logic produced a result and re-derive it.
-NORMALIZER_VERSION = "defence-studio.normalizer.v2"
+NORMALIZER_VERSION = "defence-studio.normalizer.v3"
 EXTRACTOR_VERSION = "defence-studio.claim-extractor.deterministic.v2"
 DEDUP_VERSION = "defence-studio.dedup.v1"
 

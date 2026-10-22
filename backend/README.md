@@ -35,3 +35,73 @@ Phase 1A adds `defence_studio.discovery` (providers, ranking, orchestration serv
 Submit a topic with `POST /api/jobs/{job_id}/discovery/requests` (`{"topic": "...", "language": "en"}`) while the job is still `DRAFT`, then queue it as usual. Two providers ship: `rss_feed` (works without credentials once `DEFENCE_STUDIO_DISCOVERY_RSS_FEEDS` lists feed URLs per language, e.g. `en:https://example.com/feed.xml,ta:https://example.com/ta-feed.xml`) and `configured_search_api` (requires `DEFENCE_STUDIO_DISCOVERY_SEARCH_API_URL` + `DEFENCE_STUDIO_DISCOVERY_SEARCH_API_KEY`; reports `UNAVAILABLE_MISSING_CREDENTIALS` and makes no network call when unset). Both reuse F3's SSRF-guarded fetcher.
 
 Browse ranked candidates with `GET /api/jobs/{job_id}/discovery/candidates` (filters: `language`, `source_type`, `provider`, `min_score`, `query`), then confirm a subset with `POST /api/jobs/{job_id}/discovery/selection` — this writes an `acquisition_request` artifact that F3's own worker handler consumes unmodified, so approved candidates flow straight into F3 acquisition with no separate translation step. See `CONTRACTS.md` ("Phase 1A feed discovery contract") for the full field-level contract.
+
+
+## Local research consumer and empty-run recovery
+
+The web launcher serves API/UI only. In a second persistent PowerShell terminal,
+run `powershell -ExecutionPolicy Bypass -File scripts\run_research_worker.ps1`
+from the repository root. It loads the same ignored `backend/.env.local` and
+uses the existing Python environment, database, storage and durable worker.
+Do not start another consumer when this one is already running. Research stops
+at evidence review; later stages require their established approval gates.
+
+The optional search integration is a deployment-supplied compatible endpoint,
+not a bundled vendor account. Set `DEFENCE_STUDIO_DISCOVERY_SEARCH_API_URL` and
+`DEFENCE_STUDIO_DISCOVERY_SEARCH_API_KEY` in ignored `backend/.env.local` without
+putting the key in a URL, source file, command argument or report. The endpoint
+must accept GET `q` and `lang` with `Authorization: Bearer <key>` and return
+`{"results":[{"url":"https://...","title":"...","snippet":"...","published_at":"..."}]}`.
+Its exact host/path must also be permitted by the controlled source registry;
+private addresses and redirects remain guarded. Restart the API and consumer
+after configuration changes. An absent URL/key reports unavailable, making no
+network call. There is no configured vendor URL to infer or invent.
+
+Four verified default RSS endpoints are enabled with exact host/path rules in
+`backend/config/source_policy.json`. This permits feed discovery only; linked
+article URLs need their own existing registry permission. General RSS matching
+uses the topic/search terms, not AI semantic search.
+
+`POST /api/jobs/{job_id}/discovery/retry-empty` is an authenticated same-job
+recovery operation, distinct from `/discovery/rerun` (which creates a new job).
+Supply a stable `Idempotency-Key` and the existing discovery-request JSON shape,
+retaining the job topic/language. Verified `seed_urls` and search terms may be
+supplied. It queues only a completely empty research run at its first evidence
+review boundary, with no reviews, approvals, active claims, selections or
+later-stage work. Attempts remain bounded. Prior artifacts and transition
+history remain; new worker results use claim-specific paths. The endpoint
+rejects populated/reviewed runs rather than discarding evidence. Replaying the
+same key/request returns the existing result without queueing again.
+
+
+## Automated evidence assessment (normal research path)
+
+After the durable research worker commits analysis, it invokes the existing
+EvidencePolicyService. No per-item human decisions are needed for policy-qualified
+sources/claims. A restart reconciles awaiting jobs without a current assessment.
+The authenticated POST /api/jobs/{job_id}/evidence/policy/run also reassesses an
+existing job; it performs no discovery or external model call.
+
+The existing append-only evidence_policy_decisions ledger stores policy outcomes
+separately from human reviews. Versioned evidence_json metadata and immutable run
+artifacts include SUPPORTED, CONTRADICTED, INSUFFICIENT_EVIDENCE,
+NEEDS_MORE_SOURCES or ASSESSMENT_FAILED, reasons, source/passage references,
+assessor version, configuration fingerprints, exact analysis/acquisition hashes
+and timestamps. No schema migration is required. SUPPORTED means source-backed
+under deterministic configured checks, never verified factual truth.
+
+Integrity failures, unresolved conflicts, unknown required evidence, stale inputs
+or failed policy criteria block progression. Shared numbers alone do not establish
+corroboration; the configured textual similarity check must also pass. Readiness
+counts independent source groups, not multiple pages from one publisher.
+Existing human records/history remain unchanged and take precedence as explicit
+exceptions; they cannot erase the automated readiness criteria for an assessed job.
+Only a fully ready policy run may create an AUTOMATED_POLICY package approval.
+Script provider execution remains behind the existing explicit generation endpoint.
+
+Sources/Claims show automated outcomes and reasons with human exception controls
+collapsed. Evidence shows failed criteria and Reassess current evidence. Existing
+populated jobs are not reset or duplicated to acquire more sources: where supported
+research continuation is unavailable, assessment stops with missing-evidence actions.
+Search credentials are independent of this offline assessor. No external AI provider
+is needed for deterministic assessment or silently substituted for script generation.

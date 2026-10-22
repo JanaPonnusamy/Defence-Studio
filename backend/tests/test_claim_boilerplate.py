@@ -7,6 +7,7 @@ Fixtures reproduce the boilerplate observed in the 2026-10-15 S-400 acquisition
 from defence_studio.analysis.claims import _sentence_spans, extract_claims
 from defence_studio.analysis.normalize import normalize_html
 from defence_studio.contracts.analysis import AnalysisLimits
+import pytest
 
 TOPIC = "S-400 Triumf air defence system"
 
@@ -86,3 +87,32 @@ def test_extraction_never_marks_claims_approved_or_eligible():
                             artifact_uri=None, source_published_at=None, acquisition_timestamp=None,
                             topic=TOPIC, limits=AnalysisLimits()):
         assert not hasattr(c, "approved") and not getattr(c, "eligible", False)
+
+
+def test_server_form_keeps_article_but_excludes_hidden_print_copy_and_attributes():
+    sentence = "The S-400 system reportedly entered service in 2007."
+    page = f'''<html><body><form id="form1">
+      <p>{sentence}</p><div style="DISPLAY : none !important"><p>{sentence}</p></div>
+      <div style="visibility: hidden">The S-400 allegedly entered service in 2008.</div>
+      <input type="hidden" value="&lt;p&gt;The S-400 entered service in 2009.&lt;/p&gt;">
+      <button>The S-400 site has 20 sharing options.</button>
+      <div hidden>The S-400 entered service in 2010.</div>
+    </form></body></html>'''
+    text = normalize_html(page).text
+    assert text == sentence
+    assert _claims(text) == [sentence]
+
+
+@pytest.mark.parametrize("container", ['<div hidden>', '<div aria-hidden="true">',
+                                         '<div style="display:none">', '<nav>'])
+def test_hidden_only_page_does_not_restore_excluded_text(container):
+    closing = "nav" if container == "<nav>" else "div"
+    page = f"{container}The S-400 system entered service in 2007.</{closing}>"
+    assert normalize_html(page).text == ""
+
+
+def test_hidden_article_does_not_turn_later_page_header_into_content():
+    page = ('<article hidden>Hidden print copy.</article>'
+            '<header>Site navigation and sharing links.</header>'
+            '<article><p>The S-400 reportedly entered service in 2007.</p></article>')
+    assert normalize_html(page).text == "The S-400 reportedly entered service in 2007."

@@ -95,7 +95,9 @@ def approved(tmp_path):
     evidence.approve(job, OWNER, draft["revision"], "Evidence reviewed", "evidence-approve")
     claim_id = draft["package"]["eligible_claim_ids"][0]
     provider = FakeProvider(body_factory=lambda _p: _default_body(claim_id))
-    service = ScriptService(db, root, provider=provider)
+    # Preserve coverage of the legacy human-review API independently of the
+    # default automatic path, exercised in test_script_auto_approval.py.
+    service = ScriptService(db, root, provider=provider, auto_approve=False)
     return dict(db=db, root=root, jobs=jobs, store=store, job=job, evidence=evidence,
                 service=service, provider=provider, claim_id=claim_id)
 
@@ -187,6 +189,9 @@ def test_cross_owner_generation_and_reads_are_denied(approved):
     with pytest.raises(ReviewNotFound):
         s["service"].generate(s["job"], "someone-else", GOOD_CONFIG, "gen-x")
     revision = s["service"].generate(s["job"], OWNER, GOOD_CONFIG, "gen-ok")
+    # A known idempotency key must not bypass ownership via the replay branch.
+    with pytest.raises(ReviewNotFound):
+        s["service"].generate(s["job"], "someone-else", GOOD_CONFIG, "gen-ok")
     with pytest.raises(ReviewNotFound):
         s["service"].get_revision(s["job"], "someone-else", "ta", revision["version"])
     with pytest.raises(ReviewNotFound):
@@ -250,6 +255,17 @@ def test_missing_evidence_reference_fails_validation(approved):
     sha = s["service"].list_revisions(s["job"], OWNER)["revisions"][0]["revision_sha256"]
     with pytest.raises(ScriptValidationError):
         s["service"].approve(s["job"], OWNER, "ta", revision["version"], sha, "note", "approve-fail")
+
+
+def test_invented_source_id_fails_validation(approved):
+    s = approved
+    body = _default_body(s["claim_id"])
+    body["sections"][0]["evidence"]["source_ids"] = ["source-not-in-package"]
+    s["provider"].body_factory = lambda _p: body
+    revision = s["service"].generate(s["job"], OWNER, GOOD_CONFIG, "gen-bad-source")
+    assert revision["status"] == "VALIDATION_FAILED"
+    assert any(i["code"] == "UNKNOWN_SOURCE_REFERENCE" for i in revision["validation"]["issues"])
+    assert revision["approval"] is None
 
 
 def test_unapproved_or_unknown_claim_reference_fails_validation(approved):

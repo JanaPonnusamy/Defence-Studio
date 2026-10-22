@@ -64,7 +64,7 @@ def approved_script(tmp_path):
     claim_id = draft["package"]["eligible_claim_ids"][0]
 
     provider = FakeProvider(body_factory=lambda _p: _multi_section_body(claim_id))
-    script = ScriptService(db, root, provider=provider)
+    script = ScriptService(db, root, provider=provider, auto_approve=False)
     revision = script.generate(job, OWNER, GOOD_CONFIG, "gen-1")
     script.approve(job, OWNER, "ta", revision["version"],
                    _rev_sha(script, job, revision["version"]), "Script approved", "script-approve-1")

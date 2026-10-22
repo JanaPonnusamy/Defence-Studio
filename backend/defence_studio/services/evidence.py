@@ -214,6 +214,19 @@ class EvidenceService(ReviewService):
             limitations.append("Analysis reports failures; inspect referenced analysis artifact")
         limitations.extend(["Source support and human approval do not establish historical truth.",
                             "Duplicate groups and textual similarity are not independent corroboration."])
+        if policy_rows:
+            assessment_meta = policy_rows[0].get("evidence") or {}
+            for failure in assessment_meta.get("policy_criteria_failed", []):
+                blockers.append(f"Automated policy: {failure['criterion']} required {failure['required']} got {failure['actual']}; {failure['action']}")
+            requirements = assessment_meta.get("readiness_policy") or {}
+            if requirements:
+                supporting = {c["source_id"] for c in claims if c["claim_id"] in eligible}
+                if len(eligible) < requirements["min_accepted_claims"]:
+                    blockers.append("Automated policy: insufficient currently eligible claims after human exceptions")
+                groups_by_source = {r["subject_id"]: (r.get("evidence") or {}).get("independence_group") or r["subject_id"]
+                                    for r in policy_rows if r["subject_type"] == "SOURCE"}
+                if len({groups_by_source.get(sid, sid) for sid in supporting}) < requirements["min_accepted_sources"]:
+                    blockers.append("Automated policy: insufficient supporting sources after human exceptions")
         selected = [t["target_id"] for t in payloads.get("acquisition_request", {}).get("targets", [])]
         if selected and set(selected) != {s.get("target_id") for s in sources}:
             blockers.append("Acquisition coverage does not match selected targets")

@@ -1,0 +1,152 @@
+{
+  "job_id": "ff16816c-7af1-477a-b5f7-888ebd42f21a",
+  "discovery_result_sha256": "3fdcf09d896b7cd0e2552c168e84e0d6d72312fba87cd62cd953dd10474979c5",
+  "discovery_result_uri": "jobs/ff16816c-7af1-477a-b5f7-888ebd42f21a/research/attempts/f41a2e5a-045d-4594-a571-e7a2989224fa/discovery_result.json",
+  "topic": "India defence developments: INS Samarthak commissioning",
+  "language": "en",
+  "status": "COMPLETED",
+  "providers": [
+    {
+      "candidates_returned": 2,
+      "duration_ms": 936,
+      "filters_applied": [
+        "seed_urls"
+      ],
+      "filters_not_supported": [],
+      "http_attempts": 2,
+      "message": "Fetched 2 seed URL(s); HTTP 200 shows reachability only.",
+      "optional_dependency": false,
+      "provider": "manual_url",
+      "rate_limited": false,
+      "requires_credentials": false,
+      "status": "OK",
+      "truncated": false
+    }
+  ],
+  "dedup_notes": [],
+  "warnings": [],
+  "candidates": [
+    {
+      "candidate_id": "12f889a1d38a791b79d8dafeb0e3bdf8c060ab92",
+      "canonical_url": "https://www.pib.gov.in/PressReleasePage.aspx?PRID=2324581&lang=1&reg=3",
+      "category": "INDIAN_DEFENCE",
+      "category_basis": "KEYWORD_RULE",
+      "declared_metadata": {
+        "language": "en",
+        "language_status": "COLLECTED",
+        "published_at": "2026-10-16",
+        "published_at_status": "COLLECTED",
+        "publisher": "www.pib.gov.in",
+        "publisher_status": "COLLECTED",
+        "title": "INDIAN NAVY COMMISSIONS INS SAMARTHAK, THE FIRST INDIGENOUS MULTI-PURPOSE VESSEL",
+        "title_status": "COLLECTED"
+      },
+      "discovered_at": "2026-10-17T09:55:18.550339+00:00",
+      "filter_flags": [],
+      "merged_from_providers": [],
+      "original_metadata": {
+        "declared_canonical_url": null,
+        "fetch_status": "REACHABLE",
+        "final_url": "https://www.pib.gov.in/PressReleasePage.aspx?PRID=2324581&lang=1&reg=3",
+        "http_status": 200,
+        "media_type": "text/html",
+        "publisher_declared": false,
+        "reachability_only": true,
+        "seed_url": "https://www.pib.gov.in/PressReleasePage.aspx?PRID=2324581&lang=1&reg=3",
+        "text_chars": 6435,
+        "text_sha256": "2e3824142642ceffff74ea6cfc6515488379cfbd1ce8d3caa832301d816f4668"
+      },
+      "provider": "manual_url",
+      "provider_rank": null,
+      "provider_version": "0.1.0",
+      "ranking": {
+        "explanation": [
+          "Title shares 2/6 topic token(s).",
+          "Published 1 day(s) ago.",
+          "Candidate language matches the requested language 'en'.",
+          "No source-type preference was set."
+        ],
+        "language_match_score": 1.0,
+        "recency_score": 0.9973,
+        "relevance_score": 0.3333,
+        "source_type_score": 1.0,
+        "total_score": 0.6661
+      },
+      "region_basis": "KEYWORD_RULE",
+      "regions": [
+        "INDIA"
+      ],
+      "requested_url": "https://www.pib.gov.in/PressReleasePage.aspx?PRID=2324581&lang=1&reg=3",
+      "retrieved_at": "2026-10-17T09:55:18.550339+00:00",
+      "snippet": "Press Release Page | Press Information Bureau Ministry of Defence INDIAN NAVY COMMISSIONS INS SAMARTHAK, THE FIRST INDIGENOUS MULTI-PURPOSE VESSEL Posted On: 16 OCT 2026 9:09PM by PIB Delhi Indian Naval Ship Samarthak, the first of class Multi-Purpose Vessels (MPVs) , was commissioned into the Indian Navy on 16 Oct 2026 . The ceremony was presided over by the Hon\u2019ble Vice President of India, Shri Chandrapuram Ponnusamy Radhakrishnan , in the presence of Adm Krishna Swaminathan, Chief of the Nava",
+      "source_class": "UNKNOWN",
+      "source_type": "web_page",
+      "warnings": [],
+      "selected": true
+    },
+    {
+      "candidate_id": "26a9d035e38e459b0ac5a3df57aeaafaad658489",
+      "canonical_url": "https://www.pib.gov.in/PressReleasePage.aspx?PRID=2324319&lang=1&reg=3",
+      "category": "INDIAN_DEFENCE",
+      "category_basis": "KEYWORD_RULE",
+      "declared_metadata": {
+        "language": "en",
+        "language_status": "COLLECTED",
+        "published_at": "2026-10-16",
+        "published_at_status": "COLLECTED",
+        "publisher": "www.pib.gov.in",
+        "publisher_status": "COLLECTED",
+        "title": "Vice-President Shri C. P. Radhakrishnan Commissions Indian Navy\u2019s First Indigenous Multi-Purpose Vessel INS Samarthak at Karwar",
+        "title_status": "COLLECTED"
+      },
+      "discovered_at": "2026-10-17T09:55:18.550339+00:00",
+      "filter_flags": [],
+      "merged_from_providers": [],
+      "original_metadata": {
+        "declared_canonical_url": null,
+        "fetch_status": "REACHABLE",
+        "final_url": "https://www.pib.gov.in/PressReleasePage.aspx?PRID=2324319&lang=1&reg=3",
+        "http_status": 200,
+        "media_type": "text/html",
+        "publisher_declared": false,
+        "reachability_only": true,
+        "seed_url": "https://www.pib.gov.in/PressReleasePage.aspx?PRID=2324319&lang=1&reg=3",
+        "text_chars": 9497,
+        "text_sha256": "6d5ffd75a3300774b676fbf36064b8152403d0852bd79222b260e2f19c08d1f6"
+      },
+      "provider": "manual_url",
+      "provider_rank": null,
+      "provider_version": "0.1.0",
+      "ranking": {
+        "explanation": [
+          "Title shares 2/6 topic token(s).",
+          "Published 1 day(s) ago.",
+          "Candidate language matches the requested language 'en'.",
+          "No source-type preference was set."
+        ],
+        "language_match_score": 1.0,
+        "recency_score": 0.9973,
+        "relevance_score": 0.3333,
+        "source_type_score": 1.0,
+        "total_score": 0.6661
+      },
+      "region_basis": "KEYWORD_RULE",
+      "regions": [
+        "INDIA"
+      ],
+      "requested_url": "https://www.pib.gov.in/PressReleasePage.aspx?PRID=2324319&lang=1&reg=3",
+      "retrieved_at": "2026-10-17T09:55:18.550339+00:00",
+      "snippet": "Press Release Page | Press Information Bureau Vice President's Secretariat Vice-President Shri C. P. Radhakrishnan Commissions Indian Navy\u2019s First Indigenous Multi-Purpose Vessel INS Samarthak at Karwar INS Samarthak, with over 75 per cent indigenous content, reflects India\u2019s growing self-reliance in defence manufacturing: Vice-President \u201cIndian Navy Stands Ever-Vigilant and Combat-Ready to Safeguard India\u2019s Maritime Interests\u201d: Vice-President \u201cINS Samarthak Reflects the Growing Role of India\u2019s ",
+      "source_class": "UNKNOWN",
+      "source_type": "web_page",
+      "warnings": [],
+      "selected": true
+    }
+  ],
+  "total_count": 2,
+  "next_cursor": null,
+  "page_size": 50,
+  "result_schema_version": "defence-studio.discovery-result.v2",
+  "discovered_at": "2026-10-17T09:55:18.550339+00:00",
+  "coverage_note": "Results come only from the providers listed above; absence of a result does not mean the web has none."
+}

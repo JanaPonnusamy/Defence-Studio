@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { renderMonitorHtml, renderExplorerHtml, renderClaimDetailHtml, filterClaims, formatDuration, mountResearch }
+import { renderMonitorHtml, renderExplorerHtml, renderClaimDetailHtml, filterClaims, formatDuration, mountResearch, createResearchSubmission, startFormHtml, renderResearchDiscoveryHtml }
   from "../js/views/research-view.js";
 
 const claim = (o = {}) => ({
@@ -11,6 +11,41 @@ const claim = (o = {}) => ({
   corroboration: { applicable: true, quantities: ["400"], independent_groups: ["csis", "rusi"] },
   contradicting: [], contradicted: false, single_source: false, quantitative: true, high_impact: true,
   analysis_sha256: "abc", policy_version: "pv", scoring_policy_version: "sv", ...o,
+});
+
+test("research exposes search failure and the review-to-draft handoff", () => {
+  const html = renderResearchDiscoveryHtml({candidates: [], providers: [
+    {provider: "rss_feed", status: "ERROR", message: "SOURCE_NOT_ALLOWLISTED <unsafe>", candidates_returned: 0}]});
+  assert.match(html, /No candidate sources/);
+  assert.match(html, /SOURCE_NOT_ALLOWLISTED/);
+  assert.ok(!html.includes("<unsafe>"));
+  assert.match(html, /#\/evidence/);
+  assert.match(html, /after evidence approval/);
+});
+
+test("research submits verified URLs, fences double submit and retries the existing job", async (t) => {
+  const previousWindow = globalThis.window;
+  globalThis.window = { crypto: globalThis.crypto };
+  t.after(() => { globalThis.window = previousWindow; });
+  const calls = []; let release; let fail = true;
+  const barrier = new Promise(resolve => { release = resolve; });
+  const api = {
+    createJob: async (...args) => { calls.push(["job", ...args]); await barrier; return { job_id: "saved-job" }; },
+    createDiscoveryRequest: async (...args) => { calls.push(["research", ...args]); },
+    queueJob: async id => { calls.push(["queue", id]); if (fail) throw new Error("dispatch unavailable"); },
+  };
+  let opened;
+  const submit = createResearchSubmission(api, id => { opened = id; });
+  const payload = { topic: "GSAT-7C and Varunastra", language: "en", seed_urls: ["https://www.pib.gov.in/PressReleaseIframePage.aspx?PRID=2323814"] };
+  const first = submit(payload);
+  assert.equal(await submit(payload), false);
+  release(); await assert.rejects(first, /dispatch unavailable/);
+  fail = false; await submit(payload);
+  assert.equal(calls.filter(c => c[0] === "job").length, 1);
+  assert.equal(calls.filter(c => c[0] === "research").length, 1);
+  assert.deepEqual(calls.find(c => c[0] === "research")[2].seed_urls, payload.seed_urls);
+  assert.equal(opened, "saved-job");
+  assert.match(startFormHtml(), /id="rs-sources"/);
 });
 const monitor = (o = {}) => ({
   topic: "<img onerror=1>", job_status: "RUNNING", display_state: "WAITING_RETRY", stages_done: 2, stages_total: 13,
@@ -56,6 +91,17 @@ test("claim detail renders passage context, components, unknown date; unsafe URL
 });
 test("duration formatting is Unknown for missing values", () => {
   assert.equal(formatDuration(null), "Unknown"); assert.equal(formatDuration(75), "1m 15s");
+});
+
+test("review and paused jobs do not show a countdown to completion", () => {
+  for (const [status, label] of [["AWAITING_REVIEW", "Awaiting evidence requirements"],
+                                ["PAUSED", "Paused; awaiting next action"]]) {
+    const html = renderMonitorHtml({ topic: "India defence", job_status: status, display_state: status,
+      stages_done: 4, stages_total: 13, stages: [], sources: [], counts: {},
+      estimate: { remaining_seconds: 180, basis: "default", confidence: "low" } });
+    assert.ok(html.includes(label));
+    assert.ok(!html.includes("3m 0s"));
+  }
 });
 test("start form validates the topic and never calls the API with an empty topic", async () => {
   const handlers = {}; const err = { hidden: true, textContent: "" };

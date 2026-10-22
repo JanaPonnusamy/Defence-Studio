@@ -65,7 +65,7 @@ export function renderInspectionHtml(rec) {
   const usage = raw.usage;
   const http = raw.http;
   const verdict = rec.script_accepted
-    ? '<p class="inline-ok" role="status">Accepted for human review (not approved).</p>'
+    ? `<p class="inline-ok" role="status">${rec.outcome === "APPROVED" ? "Automatically approved after validation." : "Accepted draft from the earlier review workflow; not approved."}</p>`
     : `<p class="inline-blocked" role="alert"><strong>Not an accepted script:</strong> ${esc(rec.outcome)}${rec.outcome_detail ? " - " + esc(rec.outcome_detail) : ""}</p>`;
   const rawBlock = raw.available
     ? dl([["http status", http && http.http_status], ["provider request id", http && http.provider_request_id],

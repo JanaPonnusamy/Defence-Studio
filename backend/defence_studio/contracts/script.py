@@ -41,12 +41,12 @@ LANGUAGES = ("ta", "en")
 SCRIPT_REVIEW_DECISIONS = ("CHANGES_REQUESTED", "APPROVED")
 
 # A script revision moves through these statuses. Each is an explicit, auditable
-# state; approval is never implied by generation, validation, or export.
+# state; automatic approval is recorded explicitly after validation and freshness checks.
 SCRIPT_STATUSES = (
     "VALIDATION_FAILED",     # generated but failed evidence/structural validation
-    "AWAITING_REVIEW",       # passed validation, waiting for a human decision
+    "AWAITING_REVIEW",       # legacy/manual-mode draft awaiting a decision
     "CHANGES_REQUESTED",     # a reviewer asked for changes; regenerate a new revision
-    "APPROVED",              # explicitly approved by a human, bound to this revision hash
+    "APPROVED",              # approved by validation policy or human, bound to this revision hash
     "SUPERSEDED",            # a newer approval or a changed package invalidated it
 )
 
@@ -205,6 +205,8 @@ class ScriptApprovalV1(StrictModel):
     reviewer_id: str = Field(min_length=1)
     note: str = Field(min_length=1, max_length=4000)
     approved_at: str = Field(min_length=1)
+    approval_kind: Literal["HUMAN", "AUTOMATED_VALIDATION"] = "HUMAN"
+    policy_version: str | None = None
 
 
 class ScriptRevisionV1(StrictModel):

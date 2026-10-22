@@ -201,6 +201,45 @@ def test_search_api_provider_returns_candidates_when_configured():
     assert candidates[0].requested_url == "https://wire.example/rafale"
 
 
+def _search_provider(handler):
+    def factory(**kw):
+        return httpx.Client(transport=httpx.MockTransport(handler), **kw)
+
+    return ConfiguredSearchApiProvider(
+        api_url="https://search.example/api", api_key="k", client_factory=factory, sleep=lambda _s: None,
+    )
+
+
+def test_search_api_empty_results_are_not_success_with_candidates():
+    provider = _search_provider(lambda request: httpx.Response(200, json={"results": []}))
+    outcome, candidates = provider.discover(_context())
+    assert outcome.status.value == "COMPLETED_NO_RESULTS"
+    assert candidates == []
+    assert outcome.http_attempts == 1
+
+
+def test_search_api_malformed_json_and_missing_results_are_errors():
+    bad = _search_provider(lambda request: httpx.Response(200, content=b"not-json"))
+    outcome, candidates = bad.discover(_context())
+    assert outcome.status.value == "ERROR" and candidates == []
+    assert "not valid JSON" in outcome.message
+    missing = _search_provider(lambda request: httpx.Response(200, json={"items": []}))
+    outcome, candidates = missing.discover(_context())
+    assert outcome.status.value == "ERROR" and "results" in outcome.message
+    assert candidates == []
+
+
+def test_search_api_timeout_is_an_error_after_bounded_retries():
+    def handler(request):
+        raise httpx.ReadTimeout("slow", request=request)
+
+    provider = _search_provider(handler)
+    outcome, candidates = provider.discover(_context())
+    assert outcome.status.value == "ERROR" and candidates == []
+    assert outcome.http_attempts == 3
+    assert "timed out" in outcome.message or "timeout" in outcome.message.lower()
+
+
 # ---------------------------------------------------------------------------
 # 3. Deterministic ranking and missing metadata
 # ---------------------------------------------------------------------------

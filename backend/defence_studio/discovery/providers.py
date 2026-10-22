@@ -552,6 +552,9 @@ def extract_page(content: bytes, base_url: str, content_type: str = "") -> dict:
     published = next((parser.meta[k] for k in _DATE_META_KEYS if k in parser.meta), None)
     if not published and parser.time_values:
         published = parser.time_values[0]
+    if not published:
+        from defence_studio.acquisition.source_dates import pib_publication_date
+        published = pib_publication_date(decode_html(content, content_type), base_url)
     canonical = None
     if parser.canonical:
         try:
