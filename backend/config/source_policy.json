@@ -68,7 +68,8 @@
       "include_subdomains": false,
       "url_patterns": [
         "^/PressReleasePage\\.aspx\\?PRID=\\d+",
-        "^/PressReleseDetail\\.aspx\\?PRID=\\d+"
+        "^/PressReleseDetail\\.aspx\\?PRID=\\d+",
+        "^/PressReleaseIframePage\\.aspx\\?PRID=\\d+(?:&(?:lang|reg)=\\d+)*$"
       ],
       "category": "GOVERNMENT_OFFICIAL",
       "publisher": "Press Information Bureau, Government of India",
@@ -137,6 +138,120 @@
       "allowed_content_types": [
         "text/html",
         "application/pdf"
+      ]
+    },
+    {
+      "id": "bbc-world-feed",
+      "domain": "feeds.bbci.co.uk",
+      "include_subdomains": false,
+      "url_patterns": [
+        "^/news/world/rss\\.xml$"
+      ],
+      "category": "INDEPENDENT_REPORTING",
+      "publisher": "BBC News",
+      "independence_group": "bbc",
+      "trust": {
+        "descriptive_claims": false,
+        "quantitative_claims": "ATTRIBUTED_ONLY"
+      },
+      "enabled": true,
+      "allowed_content_types": [
+        "text/xml",
+        "application/xml",
+        "application/rss+xml",
+        "application/atom+xml"
+      ]
+    },
+    {
+      "id": "defensenews-feed",
+      "domain": "www.defensenews.com",
+      "include_subdomains": false,
+      "url_patterns": [
+        "^/arc/outboundfeeds/rss/\\?outputType=xml$"
+      ],
+      "category": "INDEPENDENT_REPORTING",
+      "publisher": "Defense News",
+      "independence_group": "defensenews",
+      "trust": {
+        "descriptive_claims": false,
+        "quantitative_claims": "ATTRIBUTED_ONLY"
+      },
+      "enabled": true,
+      "allowed_content_types": [
+        "text/xml",
+        "application/xml",
+        "application/rss+xml",
+        "application/atom+xml"
+      ]
+    },
+    {
+      "id": "breakingdefense-feed",
+      "domain": "breakingdefense.com",
+      "include_subdomains": false,
+      "url_patterns": [
+        "^/feed/$"
+      ],
+      "category": "INDEPENDENT_REPORTING",
+      "publisher": "Breaking Defense",
+      "independence_group": "breakingdefense",
+      "trust": {
+        "descriptive_claims": false,
+        "quantitative_claims": "ATTRIBUTED_ONLY"
+      },
+      "enabled": true,
+      "allowed_content_types": [
+        "text/xml",
+        "application/xml",
+        "application/rss+xml",
+        "application/atom+xml"
+      ]
+    },
+    {
+      "id": "thehindu-national-feed",
+      "domain": "www.thehindu.com",
+      "include_subdomains": false,
+      "url_patterns": [
+        "^/news/national/feeder/default\\.rss$"
+      ],
+      "category": "INDEPENDENT_REPORTING",
+      "publisher": "The Hindu",
+      "independence_group": "thehindu",
+      "trust": {
+        "descriptive_claims": false,
+        "quantitative_claims": "ATTRIBUTED_ONLY"
+      },
+      "enabled": true,
+      "allowed_content_types": [
+        "text/xml",
+        "application/xml",
+        "application/rss+xml",
+        "application/atom+xml"
+      ]
+    },
+    {
+      "id": "thehindu-gsat7c-varunastra-20261015",
+      "domain": "www.thehindu.com",
+      "include_subdomains": false,
+      "url_patterns": [
+        "^/news/national/mod-signs-4106-crore-contracts-for-iaf-communication-satellite-navy-torpedoes/article71588378\\.ece$"
+      ],
+      "category": "INDEPENDENT_REPORTING",
+      "publisher": "The Hindu",
+      "independence_group": "thehindu",
+      "trust": {
+        "descriptive_claims": true,
+        "quantitative_claims": "ATTRIBUTED_ONLY"
+      },
+      "enabled": true,
+      "supported_subjects": [
+        "INDIA_DEFENCE",
+        "DEFENCE_POLICY"
+      ],
+      "allowed_content_types": [
+        "text/html"
+      ],
+      "provenance_requirements": [
+        "published_at"
       ]
     }
   ]
