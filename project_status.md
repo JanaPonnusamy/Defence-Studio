@@ -54,6 +54,8 @@ Source of truth for current phase status: `DEFENCE_ERA_PHASE_STATUS.md` (27 rows
 
 **Voice engines (2026-10-15):** Voice Analyzer + Voice Generation engines (`components/voice-engine/`, registry EXT-03) are integrated via schema v12, `workflow_jobs`, `/api/voice/*` and a Voice tab (`docs/voice_engine/INTEGRATION.md`). IMPLEMENTED + TESTED (standalone 59, integration `test_voice_integration` 20, frontend `voice` 5); real local English speech via Windows SAPI exercised once end to end. Tamil narration BLOCKED/UNVERIFIED (no Tamil provider; `DEFENCE_ERA_FEMALE_001` NOT_PROVISIONED); forced alignment DEPENDENCY_MISSING; reference YouTube source NOT acquired; browser pass NOT_STARTED. Voice files are uncommitted.
 
+**Content Search → final content pipeline reconciliation (2026-10-22, documentation audit; no runtime verification):** requirement matrix and new gaps G1–G6 registered in `DEFENCE_ERA_PENDING_WORK.md` §G. Findings: X trends/social/YouTube-search providers do not exist (G1); automatic evidence approval is implemented (`services/evidence_policy.py`) but unspecified and lacks recorded owner authorization (G2); the research package has no images/rights or explicit gaps list (G3); the 900–1,300-word range is not implemented — only `target_words` with a ±25% warning (G4). No gate changed.
+
 ---
 ## Historical record
 
