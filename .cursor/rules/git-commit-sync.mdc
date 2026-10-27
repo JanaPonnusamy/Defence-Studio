@@ -3,4 +3,4 @@ description: Mandatory end-of-task git commit and sync procedure
 alwaysApply: true
 ---
 
-At the end of every coding task, follow the permanent Git Commit and Sync Rule in `automation/GIT_COMMIT_SYNC_RULE.md` (authoritative; read it). Work on `develop` and push to both remotes `origin` (JanaPonnusamy) and `axythic` (axythic-dev, push-only: never pull or merge from it). Never use `git add -A` or `python -m automation github sync`. Its safety rules and any task-specific "do not commit" instruction override it.
+At the end of every coding task, follow the permanent Git Commit and Sync Rule in `automation/GIT_COMMIT_SYNC_RULE.md` (authoritative; read it). Work on `develop` and push to both remotes `origin` (JanaPonnusamy) and `axythic` (axythic-dev); pull from and push to both, kept identical. Never use `git add -A` or `python -m automation github sync`. Its safety rules and any task-specific "do not commit" instruction override it.
