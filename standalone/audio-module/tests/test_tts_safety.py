@@ -22,11 +22,32 @@ def test_invalid_request_cannot_silently_synthesize(monkeypatch, tmp_path, langu
         runAndWait=lambda: None, stop=lambda: None,
     )
     monkeypatch.setitem(sys.modules, 'pyttsx3', SimpleNamespace(init=lambda: engine))
+    from app.tts import pyttsx3_worker
     from app.tts.pyttsx3_worker import run
+    monkeypatch.setattr(pyttsx3_worker, 'onecore_tokens', lambda: [])   # no OS voices from the real machine
     monkeypatch.setattr(LocalPyttsx3Adapter, '_call', lambda self, payload, folder: run(payload))
     with pytest.raises(ValueError):
         LocalPyttsx3Adapter().synthesize(TTSRequest(text, voice, language), tmp_path / 'bad.wav')
     assert not calls
+
+
+def test_onecore_voice_is_used_only_for_its_own_language(monkeypatch):
+    engine = SimpleNamespace(
+        getProperty=lambda key: [SimpleNamespace(id='zira', name='Zira', languages=['en-US'])],
+        setProperty=lambda *args: None, save_to_file=lambda *args: None,
+        runAndWait=lambda: None, stop=lambda: None,
+    )
+    monkeypatch.setitem(sys.modules, 'pyttsx3', SimpleNamespace(init=lambda: engine))
+    from app.tts import pyttsx3_worker
+    tamil = {'id': 'valluvar', 'name': 'Microsoft Valluvar - Tamil (India)', 'languages': ['ta-in'], 'engine': 'onecore'}
+    spoken = []
+    monkeypatch.setattr(pyttsx3_worker, 'onecore_tokens', lambda: [(tamil, 'token')])
+    monkeypatch.setattr(pyttsx3_worker, 'speak_onecore', lambda token, payload: spoken.append(token))
+    base = {'voice_id': None, 'rate': 180, 'volume': 1.0, 'output': 'x.wav', 'text': 'செய்தி'}
+    assert pyttsx3_worker.run({**base, 'language': 'ta'})['voice']['id'] == 'valluvar' and spoken == ['token']
+    with pytest.raises(ValueError):
+        pyttsx3_worker.run({**base, 'language': 'hi'})                  # no Hindi voice anywhere: fail closed
+    assert pyttsx3_worker.run({**base, 'language': 'en'})['voice']['id'] == 'zira'   # SAPI5 still preferred
 
 
 @pytest.mark.parametrize('controls', [{'pitch_semitones': 4}, {'rate_wpm': 0},

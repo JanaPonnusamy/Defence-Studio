@@ -141,6 +141,20 @@ def test_stat_graphic_only_when_number_matches(client, project):
     assert stat_shots[-1]["status"] == "GAP"  # 55 != 40: the card is never reused for a different figure
 
 
+def test_photo_fallback_for_data_intents_is_opt_in_and_strictly_relevant(client, project):
+    import_png(client, project, seed=1111, title="warships photo", meta={"tags": ["warships", "deployed"]})
+    import_png(client, project, seed=1112, title="mountain", meta={"tags": ["mountain", "snow"]})
+    _scenes(client, project, "Officials say 40 warships have been deployed.")
+    shots, _ = _build(client, project)
+    assert shots[0]["intent"] == "STATISTIC" and shots[0]["status"] == "GAP"   # default: no fake stat visual
+    shots, _ = _build(client, project, photo_fallback_for_data_intents=True)
+    assert shots[0]["status"] == "READY" and shots[0]["visual_type"] == "SOURCE_PHOTO"
+    assert client.get(f"/assets/{shots[0]['asset_id']}").json()["title"] == "warships photo"
+    _scenes(client, project, "Officials say 40 tanks have been counted.")              # no relevant photo
+    shots, _ = _build(client, project, photo_fallback_for_data_intents=True)
+    assert shots[0]["status"] == "GAP"                                               # unrelated photo never used
+
+
 # ------------------------------------------------------------------ timing, narration-driven changes, reuse, motion
 def test_shot_timing_is_contiguous_and_anchored(client, project):
     import_png(client, project, seed=1201, title="fleet photo", meta={"tags": ["fleet", "missile", "talon", "system"]})

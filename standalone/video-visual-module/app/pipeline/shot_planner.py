@@ -90,6 +90,13 @@ class PlanOptions:
     output_width: int | None = None                  # renderer output frame (optional; recorded in the timeline)
     output_height: int | None = None
     frame_rate: float | None = None
+    # Opt-in: a statistic/timeline/comparison beat with no sourced graphic may show a
+    # strictly relevant rights-cleared photo instead of a GAP (never AI, never a fake chart).
+    photo_fallback_for_data_intents: bool = False
+
+
+DATA_INTENTS = ("STATISTIC", "TIMELINE", "COMPARISON")
+PHOTO_TYPES = ["SOURCE_PHOTO", "IMAGE"]
 
 
 @dataclass
@@ -144,10 +151,26 @@ def build_beats(scene: Scene, is_first_scene: bool) -> list[Beat]:
     return beats
 
 
-def _select_with_fallback(index: AssetIndex, info: dict, allow_unknown: bool, avoid: set[str]) -> SelectionResult:
+def _select_with_fallback(index: AssetIndex, info: dict, allow_unknown: bool, avoid: set[str],
+                          photo_fallback: bool = False) -> SelectionResult:
     """Try the primary intent, then the sentence's secondary intents (spec §14 fallback, e.g. a
     claim 'according to monitors' about a location falls back from DOCUMENT to MAP). The beat-level
     `ai_allowed` flag is kept, so a fallback can never open the door to AI imagery for evidence."""
+    sel = _select_by_intents(index, info, allow_unknown, avoid)
+    primary = info["primary_intent"]
+    if sel.asset is None and photo_fallback and primary in DATA_INTENTS:
+        # Keeps the data intent's strict-relevance rule: only a photo matching this narration qualifies.
+        photo = select_asset(index, {**info, "preferred_visuals": PHOTO_TYPES},
+                             allow_unknown_rights=allow_unknown, avoid_asset_ids=avoid)
+        if photo.asset is not None and photo.relevance > 0:
+            photo.editorial_reason = (f"No sourced {primary.lower()} graphic exists; showing a relevant "
+                                      "rights-cleared photo while the figure is narrated (owner option "
+                                      "photo_fallback_for_data_intents). The photo illustrates, it is not the data.")
+            return photo
+    return sel
+
+
+def _select_by_intents(index: AssetIndex, info: dict, allow_unknown: bool, avoid: set[str]) -> SelectionResult:
     first: SelectionResult | None = None
     primary = info["primary_intent"]
     for intent in info["intents"][:3]:
@@ -231,7 +254,8 @@ def plan_project(
                                           "Continuation of the same subject: same asset, new framing (spec §11).")
         else:
             b.selection = _select_with_fallback(index, info, options.allow_unknown_rights,
-                                                {prev_asset_id} if prev_asset_id else set())
+                                                {prev_asset_id} if prev_asset_id else set(),
+                                                options.photo_fallback_for_data_intents)
         aid = b.selection.asset.asset_id if b.selection.asset else None
         run = run + 1 if aid and aid == prev_asset_id else 1
         prev_asset_id = aid
@@ -289,7 +313,8 @@ def plan_project(
         # remaining illustrative gaps reuse generated images (generate once, reuse intelligently)
         for b in beats:
             if b.selection and b.selection.needs_generation:
-                b.selection = _select_with_fallback(index, b.merged_info(), options.allow_unknown_rights, set())
+                b.selection = _select_with_fallback(index, b.merged_info(), options.allow_unknown_rights, set(),
+                                                    options.photo_fallback_for_data_intents)
                 if b.selection.asset:
                     index.usage[b.selection.asset.asset_id] += 1
         if len(targets) > cap:

@@ -36,6 +36,9 @@ class PlanBuildOptions(BaseModel):
     output_width: int | None = Field(default=None, ge=16, le=8192)
     output_height: int | None = Field(default=None, ge=16, le=8192)
     frame_rate: float | None = Field(default=None, gt=0, le=240)
+    photo_fallback_for_data_intents: bool = Field(
+        default=False, description="Show a strictly relevant rights-cleared photo instead of a GAP when a "
+                                   "statistic/timeline/comparison beat has no sourced graphic.")
 
 
 class PlanBuildRequest(BaseModel):
