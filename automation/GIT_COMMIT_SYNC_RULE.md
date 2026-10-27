@@ -8,29 +8,27 @@ Discovered via `CLAUDE.md` (Claude) and `AGENTS.md` (Codex, Cursor). Do not copy
 
 ## Dual-remote, develop-branch rule (standing user instruction, 2026-10-27)
 
-All code is maintained in **both** GitHub repositories, kept identical:
+All code is pushed to **both** GitHub repositories, which are maintained **separately**:
 
 | Remote name | URL | Role |
 |---|---|---|
-| `origin` | `https://github.com/JanaPonnusamy/Defence-Studio.git` | personal |
-| `axythic` | `https://github.com/axythic-dev/Defence-Studio.git` | office (axythic-dev) |
+| `origin` | `https://github.com/JanaPonnusamy/Defence-Studio.git` | personal — source of truth; pull/fetch from here only |
+| `axythic` | `https://github.com/axythic-dev/Defence-Studio.git` | office (axythic-dev) — **push-only** target |
+
+- **`axythic` is push-only (user instruction, 2026-10-27):** never `git pull`, `git merge`, `git rebase` or cherry-pick from `axythic`, and never merge the two repos with each other. Only `git push axythic <branch>`. (`git fetch axythic` is allowed solely for the verification count below.)
+- If a push to `axythic` is rejected as non-fast-forward (someone changed it directly), **stop and report** — do not pull, merge or force-push.
 
 - **Working branch is `develop`.** Commit all new work on `develop`. `main` only changes when the user explicitly asks to merge/release.
 - **Every push goes to both remotes:** `git push origin develop` and `git push axythic develop` (when `main` is updated, push it to both too).
 - **Verify both:** after `git fetch origin` and `git fetch axythic`, both `git rev-list --left-right --count origin/develop...HEAD` and `git rev-list --left-right --count axythic/develop...HEAD` must be `0 0`.
 - If one remote fails (auth/network/protection), still push the other, record the exact blocker in the register, and report it. Never force-push either remote to make them match.
-- **Any machine (home or office) setup**, once after cloning from either repo:
+- **Any machine (home or office) setup**, once — always clone from the personal repo:
   ```
-  git remote -v                      # check the names
-  # if cloned from axythic, rename it and add the personal repo:
-  #   git remote rename origin axythic
-  #   git remote add origin https://github.com/JanaPonnusamy/Defence-Studio.git
-  # if cloned from JanaPonnusamy, add the office repo:
-  #   git remote add axythic https://github.com/axythic-dev/Defence-Studio.git
-  git fetch --all
+  git clone https://github.com/JanaPonnusamy/Defence-Studio.git .
+  git remote add axythic https://github.com/axythic-dev/Defence-Studio.git
   git switch develop                 # tracks origin/develop
   ```
-  Before starting work: `git pull origin develop` and `git pull axythic develop` (fast-forward only; stop and report on conflicts).
+  Before starting work: `git pull --ff-only origin develop` only (never pull from `axythic`; stop and report on conflicts).
 
 ## Mandatory end-of-task workflow
 
@@ -68,3 +66,4 @@ All code is maintained in **both** GitHub repositories, kept identical:
 | 2026-10-22 | Cursor | Owner-approved narrow The Hindu article allowlist + policy tests | `backend/config/source_policy.json`, `backend/tests/test_source_policy_hindu_article.py`, `automation/GIT_COMMIT_SYNC_RULE.md` | `tests/test_source_policy_hindu_article.py` + `test_default_registry_file_loads...` + allowlist unit: 5 passed | `e63219d` / register `aa5b0ed` | Pushed `d778cc6..aa5b0ed` to origin/main; fetch confirms `0 0` (2026-10-22) | Disposable job acquisition stayed in temp DB. Policy file also included previously uncommitted PIB iframe + RSS entries already in that working file. Other concurrent paths unstaged. |
 | 2026-10-22 | Claude | Content Search → final content pipeline audit/reconciliation (docs only) | `DEFENCE_ERA_PENDING_WORK.md`, `project_status.md`, `automation/GIT_COMMIT_SYNC_RULE.md` | None run (documentation audit) | `ffaca40` | Pushed to origin/main; fetch `0 0` (2026-10-22) | other agents' uncommitted work untouched |
 | 2026-10-27 | Claude | Add `axythic` remote (axythic-dev/Defence-Studio), create `develop`, dual-remote rule | `automation/GIT_COMMIT_SYNC_RULE.md`, `CLAUDE.md`, `AGENTS.md`, `.cursor/rules/git-commit-sync.mdc` | Docs only | `247d42c` (on `develop`) | Pushed new branch `develop` to origin (2026-10-27). axythic push **failed**: `403 Permission to axythic-dev/Defence-Studio.git denied to JanaPonnusamy` | BLOCKER: JanaPonnusamy needs Write access on axythic-dev/Defence-Studio (or sign in with an axythic-dev account), then push `develop` and `main` to axythic |
+| 2026-10-27 | Claude | Make `axythic` push-only (no pull/merge; repos maintained separately) | `automation/GIT_COMMIT_SYNC_RULE.md`, `CLAUDE.md`, `AGENTS.md`, `.cursor/rules/git-commit-sync.mdc` | Docs only | see git log (on `develop`) | origin: pushed; axythic: see final report | — |
