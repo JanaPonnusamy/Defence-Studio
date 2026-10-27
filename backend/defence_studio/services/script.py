@@ -41,6 +41,7 @@ from defence_studio.services.script_prompt import (
     DRAFT_SCHEMA_NAME, draft_response_schema, system_prompt, user_prompt,
 )
 from defence_studio.services.script_validation import validate_revision_body
+from defence_studio.services.stage_sync import complete_stage_locked
 from defence_studio.services.factcheck import FactcheckError, factcheck_staleness, script_gate
 from defence_studio.services.script_integrity import (
     compare_revisions, corroboration_count, repetition_against,
@@ -859,6 +860,7 @@ class ScriptService(EvidenceService):
             "INSERT INTO script_review_history VALUES(?,?,?,?,?,?,?,?,?)",
             (str(uuid.uuid4()), job_id, language, version, "APPROVED", actor, note, now, idempotency_key),
         )
+        complete_stage_locked(connection, job_id, "script_generation_and_approval", now)
         return dict(connection.execute(
             "SELECT * FROM script_revisions WHERE job_id=? AND language=? AND version=?",
             (job_id, language, version),
