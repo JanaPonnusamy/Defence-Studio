@@ -6,6 +6,32 @@ Discovered via `CLAUDE.md` (Claude) and `AGENTS.md` (Codex, Cursor). Do not copy
 **Do not use `python -m automation github sync` for this workflow.** The NDF script stages *every* change
 (including other agents' work and the dev database) and targets NEXORA config. Use explicit, path-limited git commands.
 
+## Dual-remote, develop-branch rule (standing user instruction, 2026-10-27)
+
+All code is maintained in **both** GitHub repositories, kept identical:
+
+| Remote name | URL | Role |
+|---|---|---|
+| `origin` | `https://github.com/JanaPonnusamy/Defence-Studio.git` | personal |
+| `axythic` | `https://github.com/axythic-dev/Defence-Studio.git` | office (axythic-dev) |
+
+- **Working branch is `develop`.** Commit all new work on `develop`. `main` only changes when the user explicitly asks to merge/release.
+- **Every push goes to both remotes:** `git push origin develop` and `git push axythic develop` (when `main` is updated, push it to both too).
+- **Verify both:** after `git fetch origin` and `git fetch axythic`, both `git rev-list --left-right --count origin/develop...HEAD` and `git rev-list --left-right --count axythic/develop...HEAD` must be `0 0`.
+- If one remote fails (auth/network/protection), still push the other, record the exact blocker in the register, and report it. Never force-push either remote to make them match.
+- **Any machine (home or office) setup**, once after cloning from either repo:
+  ```
+  git remote -v                      # check the names
+  # if cloned from axythic, rename it and add the personal repo:
+  #   git remote rename origin axythic
+  #   git remote add origin https://github.com/JanaPonnusamy/Defence-Studio.git
+  # if cloned from JanaPonnusamy, add the office repo:
+  #   git remote add axythic https://github.com/axythic-dev/Defence-Studio.git
+  git fetch --all
+  git switch develop                 # tracks origin/develop
+  ```
+  Before starting work: `git pull origin develop` and `git pull axythic develop` (fast-forward only; stop and report on conflicts).
+
 ## Mandatory end-of-task workflow
 
 1. Finish the implementation; run the relevant tests.
@@ -13,8 +39,8 @@ Discovered via `CLAUDE.md` (Claude) and `AGENTS.md` (Codex, Cursor). Do not copy
 3. Add a row to the register below (task, files, tests, commit, sync, blockers).
 4. Stage only this task's files by explicit path. Never `git add -A` / `git add .` / `git commit -a`.
 5. Commit only when verified, safe, and appropriate. Descriptive message.
-6. Push to the configured upstream using the existing authorized authentication (git credential setup). Never request, print, or write the token anywhere.
-7. Verify: `git fetch origin` then `git rev-list --left-right --count origin/<branch>...HEAD` must be `0 0`.
+6. Push `develop` to **both** remotes (`origin` and `axythic`, see the dual-remote rule above) using the existing authorized authentication (git credential setup). Never request, print, or write the token anywhere.
+7. Verify both: `git fetch origin` / `git fetch axythic`, then `git rev-list --left-right --count <remote>/develop...HEAD` must be `0 0` for each.
 8. Update the register row with the real commit hash, push result, timestamp, final status. Same commit if practical; otherwise a clearly linked follow-up commit, also pushed.
 9. Report task, tests, commit hash, sync result, and anything left uncommitted.
 
@@ -31,7 +57,7 @@ Discovered via `CLAUDE.md` (Claude) and `AGENTS.md` (Codex, Cursor). Do not copy
 
 ## Prompt reference (include in task prompts)
 
-> Follow the permanent Git Commit and Sync Rule registered under `automation` (`automation/GIT_COMMIT_SYNC_RULE.md`). At task completion, verify tests and diffs, update the commit/sync register, commit only the verified task-specific changes, synchronize with the configured upstream using the existing authorized credentials, and verify the final result. Follow all safety exceptions and never claim success without evidence.
+> Follow the permanent Git Commit and Sync Rule registered under `automation` (`automation/GIT_COMMIT_SYNC_RULE.md`). At task completion, verify tests and diffs, update the commit/sync register, commit only the verified task-specific changes on `develop`, push to both remotes (`origin` and `axythic`) using the existing authorized credentials, and verify the final result. Follow all safety exceptions and never claim success without evidence.
 
 ## Commit / Sync Register (append-only)
 
@@ -41,3 +67,4 @@ Discovered via `CLAUDE.md` (Claude) and `AGENTS.md` (Codex, Cursor). Do not copy
 | 2026-10-22 | Claude | Cursor rule discovery (Cursor 3.24.18 installed; AGENTS.md auto-load not verifiable locally, so explicit rule added) | `.cursor/rules/git-commit-sync.mdc`, `automation/GIT_COMMIT_SYNC_RULE.md` | Docs only | `d889c55` | Pushed `78033e6..d889c55`; fetch `0 0` (2026-10-22) | ~92 unrelated paths untouched |
 | 2026-10-22 | Cursor | Owner-approved narrow The Hindu article allowlist + policy tests | `backend/config/source_policy.json`, `backend/tests/test_source_policy_hindu_article.py`, `automation/GIT_COMMIT_SYNC_RULE.md` | `tests/test_source_policy_hindu_article.py` + `test_default_registry_file_loads...` + allowlist unit: 5 passed | `e63219d` / register `aa5b0ed` | Pushed `d778cc6..aa5b0ed` to origin/main; fetch confirms `0 0` (2026-10-22) | Disposable job acquisition stayed in temp DB. Policy file also included previously uncommitted PIB iframe + RSS entries already in that working file. Other concurrent paths unstaged. |
 | 2026-10-22 | Claude | Content Search → final content pipeline audit/reconciliation (docs only) | `DEFENCE_ERA_PENDING_WORK.md`, `project_status.md`, `automation/GIT_COMMIT_SYNC_RULE.md` | None run (documentation audit) | `ffaca40` | Pushed to origin/main; fetch `0 0` (2026-10-22) | other agents' uncommitted work untouched |
+| 2026-10-27 | Claude | Add `axythic` remote (axythic-dev/Defence-Studio), create `develop`, dual-remote rule | `automation/GIT_COMMIT_SYNC_RULE.md`, `CLAUDE.md`, `AGENTS.md`, `.cursor/rules/git-commit-sync.mdc` | Docs only | this commit (on `develop`) | `develop` pushed to origin + axythic; `main` (`7aacc18`) mirrored to axythic | none |
