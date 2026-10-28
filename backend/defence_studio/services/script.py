@@ -312,7 +312,7 @@ class ScriptService(EvidenceService):
             max_words=parsed_config.max_words if parsed_config.max_words is not None else 1300,
             terminology=parsed_config.terminology, eligible_claims=eligible_claims, corroboration=corroboration,
         )
-        system_text = system_prompt(parsed_config.language)
+        system_text = system_prompt(parsed_config.language, parsed_config.script_format)
         budget_policy = {"max_text_cost_inr": parsed_config.max_text_cost_inr,
                          "guard_applies": bool(getattr(provider, "is_paid", False))}
         state = {"calls": 0, "result": None}
