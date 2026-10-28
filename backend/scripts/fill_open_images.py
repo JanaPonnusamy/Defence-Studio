@@ -119,13 +119,16 @@ def main() -> int:
                             "documented_origin": "Wikimedia Commons file page (licence from file metadata)"})
         up.raise_for_status()
         aid = up.json()["asset_id"]
-        api.post(f"/jobs/{job}/assets/{aid}/rights", headers={"Idempotency-Key": key + "-rights"},
-                 json=f["rights"]).raise_for_status()
+        # Re-posting rights (even identical) invalidates an approval, so set them only once.
+        if not api.get(f"/jobs/{job}/assets/{aid}").raise_for_status().json().get("rights_sha256"):
+            api.post(f"/jobs/{job}/assets/{aid}/rights", headers={"Idempotency-Key": key + "-rights"},
+                     json=f["rights"]).raise_for_status()
         cur = api.get(f"/jobs/{job}/assets/{aid}").raise_for_status().json()
         if cur.get("review_status") != "APPROVED":
-            api.post(f"/jobs/{job}/assets/{aid}/review", headers={"Idempotency-Key": key + "-review"}, json={
+            revision = len(api.get(f"/jobs/{job}/assets/{aid}/history").raise_for_status().json())
+            api.post(f"/jobs/{job}/assets/{aid}/review", headers={"Idempotency-Key": f"{key}-review-{revision}"}, json={
                 "decision": "APPROVED", "reviewed_asset_sha256": cur["asset_sha256"],
-                "reviewed_rights_sha256": cur["rights_sha256"], "expected_revision": cur.get("revision") or 0,
+                "reviewed_rights_sha256": cur["rights_sha256"], "expected_revision": revision,
                 "note": f"Approved under owner open-licence policy (2026-10-28): {f['rights']['licence_name']} "
                         f"per Wikimedia Commons metadata, {f['page']}"}).raise_for_status()
         assets.append({**f, "asset_id": aid, "words": words(f["query"] + " " + f["title"])})
@@ -146,11 +149,12 @@ def main() -> int:
         ranked = sorted(assets, key=lambda a: (-len(a["words"] & sw), (assets.index(a) - i) % len(assets)))
         picks.append([ranked[0]["asset_id"]] + ([ranked[1]["asset_id"]] if len(ranked) > 1 else []))
     for lang in args.lang:
-        scenes = sorted(approved(lang)["scenes"], key=lambda s: s["order"])
+        plan = approved(lang)   # scene ids repeat across plan versions, so the key carries the version
+        scenes = sorted(plan["scenes"], key=lambda s: s["order"])
         for i, scene in enumerate(scenes):
             for aid in picks[min(i, len(picks) - 1)]:
                 api.post(f"/jobs/{job}/scenes/{scene['scene_id']}/assets",
-                         headers={"Idempotency-Key": f"assign-{lang}-{scene['scene_id']}-{aid[:16]}"},
+                         headers={"Idempotency-Key": f"assign-{lang}-v{plan['version']}-{scene['scene_id']}-{aid[:16]}"},
                          json={"language": lang, "asset_id": aid}).raise_for_status()
         print(f"{lang}: assigned images to {len(scenes)} scene(s)")
     return 0

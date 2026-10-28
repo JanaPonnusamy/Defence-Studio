@@ -19,6 +19,11 @@ SHORT_TARGET_WORDS = 300
 _LANGUAGE_INSTRUCTIONS = {
     "ta": (
         "Write natural, clear spoken Tamil narration suitable for voice narration. "
+        "Sound like a Tamil TV news anchor speaking to ordinary viewers: everyday words people "
+        "actually use (for example கொள்முதல், ஒப்புதல் கொடுத்தது, பாதுகாப்பு அமைச்சர்), not bookish, "
+        "Sanskritised or word-for-word translated phrasing. Keep sentences short (about 8 to 14 words), "
+        "each one complete, with commas only at natural breathing pauses. Never abbreviate: write "
+        "ரூபாய் in full after the amount (2,12,000 கோடி ரூபாய்), never ரூ. or Rs. "
         "Preserve English technical terms, acronyms, equipment names, unit names, "
         "model designations, and organization names exactly as given when translating "
         "them would reduce accuracy. Avoid awkward literal translation, unnecessary "
