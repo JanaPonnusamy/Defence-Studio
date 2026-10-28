@@ -88,6 +88,9 @@ class DiscoveryFilters:
     source_classes: tuple[str, ...] = ()
 
 
+VIDEO_FORMATS = ("standard", "short")
+
+
 @dataclass(frozen=True)
 class DiscoveryRequestV1:
     job_id: str
@@ -99,6 +102,8 @@ class DiscoveryRequestV1:
     schema_version: str = DISCOVERY_REQUEST_SCHEMA
     # Operator-supplied source URLs (manual_url provider); empty keeps old behaviour.
     seed_urls: tuple[str, ...] = ()
+    # "short" (<= ~90 s video) selects the evidence policy's short readiness profile.
+    video_format: str = "standard"
 
 
 # ---------------------------------------------------------------------------
@@ -306,9 +311,14 @@ def request_from_dict(payload: dict, job_id: str | None = None) -> DiscoveryRequ
         if norm not in seeds:
             seeds.append(norm)
 
+    video_format = payload.get("video_format", "standard")
+    if video_format not in VIDEO_FORMATS:
+        raise RequestValidationError(f"video_format must be one of {list(VIDEO_FORMATS)}")
+
     return DiscoveryRequestV1(
         job_id=effective_job_id, topic=topic, language=language.strip(),
         search_terms=tuple(terms), filters=filters, limits=limits, seed_urls=tuple(seeds),
+        video_format=video_format,
     )
 
 

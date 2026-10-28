@@ -23,6 +23,11 @@ def validate_policy_config(cfg: dict) -> dict:
     for key in ("min_accepted_claims", "min_accepted_sources"):
         if not isinstance(rd.get(key), int) or isinstance(rd.get(key), bool) or rd[key] < 1:
             raise PolicyConfigError(f"readiness.{key} must be an integer >= 1")
+    for name, profile in rd.get("profiles", {}).items():
+        for key in ("min_accepted_claims", "min_accepted_sources"):
+            value = profile.get(key, rd[key])
+            if not isinstance(value, int) or isinstance(value, bool) or value < 1:
+                raise PolicyConfigError(f"readiness.profiles.{name}.{key} must be an integer >= 1")
     if not isinstance(rd.get("required_source_categories_any", []), list):
         raise PolicyConfigError("readiness.required_source_categories_any must be a list")
     cor = cfg["corroboration"]

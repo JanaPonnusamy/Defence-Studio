@@ -352,7 +352,7 @@ class ScriptService(EvidenceService):
             if "max_output_tokens" in inspect.signature(provider.generate).parameters:
                 call["max_output_tokens"] = max_output_tokens
             if "response_schema" in inspect.signature(provider.generate).parameters:
-                call["response_schema"] = draft_response_schema()
+                call["response_schema"] = draft_response_schema(parsed_config.target_words)
                 call["response_schema_name"] = DRAFT_SCHEMA_NAME
             try:
                 outcome = provider.generate(**call)

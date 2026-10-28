@@ -32,6 +32,20 @@ MAX_AI_BUDGET_USD = 10.0
 _AI_AUTH_KEYS = ("ai_cost_authorized", "ai_budget_usd")
 
 
+def _letter_words(text: str) -> list[str]:
+    """Runs of letters plus their combining marks (Tamil vowel signs are not regex word characters)."""
+    import unicodedata
+    out, cur = [], ""
+    for c in text + " ":
+        if unicodedata.category(c)[0] == "L" or (cur and unicodedata.category(c)[0] == "M"):
+            cur += c
+        else:
+            if cur:
+                out.append(cur)
+            cur = ""
+    return out
+
+
 class VisualService(IntegrationService):
     def __init__(self, database_file, storage_root, *, provider=None, visual_client=None):
         super().__init__(database_file, storage_root, provider=provider)
@@ -176,14 +190,13 @@ class VisualService(IntegrationService):
                              detail=f"internal: {type(exc).__name__}: {exc}")
 
     def _asset_upload(self, job_id: str, a: dict, scene_text: dict) -> dict:
-        import re
         d, r = a["descriptor"], a.get("rights") or {}
         data = self.store.read_bytes(job_id, a["uri"])
         if hashlib.sha256(data).hexdigest() != d["content"]["content_sha256"]:
             raise IntegrationValidationError(f"Asset {a['asset_id'][:12]} failed its integrity check")
         basis = r.get("rights_basis", "unknown")
         open_basis = basis in ("public_domain", "cc_by", "cc_by_sa")
-        words = {w for sid in a["scene_ids"] for w in re.findall(r"[^\W\d_]{4,}", scene_text.get(sid, "").lower())}
+        words = {w for sid in a["scene_ids"] for w in _letter_words(scene_text.get(sid, "").lower()) if len(w) >= 4}
         ext = d["content"]["media_type"].split("/")[-1].replace("jpeg", "jpg")
         prov = d.get("provenance") or {}
         return {

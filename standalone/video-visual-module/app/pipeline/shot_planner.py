@@ -31,7 +31,7 @@ from app.config import get_settings
 from app.db.models import Asset, Scene, Shot
 from app.errors import VideoModuleError
 from app.pipeline.intent import INTENT_VISUALS, classify_segment
-from app.pipeline.motion import compute_crop, ladder_for, plan_motion
+from app.pipeline.motion import FILL_PHOTO_LADDER, compute_crop, fill_crop, ladder_for, plan_motion
 from app.pipeline.selector import AssetIndex, SelectionResult, select_asset
 
 MAX_SAME_ASSET_BEATS = 3
@@ -93,6 +93,8 @@ class PlanOptions:
     # Opt-in: a statistic/timeline/comparison beat with no sourced graphic may show a
     # strictly relevant rights-cleared photo instead of a GAP (never AI, never a fake chart).
     photo_fallback_for_data_intents: bool = False
+    # Opt-in: photos fill the output frame (cover crop) and start with motion instead of STATIC.
+    fill_frame_photos: bool = False
 
 
 DATA_INTENTS = ("STATISTIC", "TIMELINE", "COMPARISON")
@@ -334,7 +336,9 @@ def plan_project(
         sel = b.selection
         asset = sel.asset if sel else None
         d = b.end - b.start
-        ladder = ladder_for(asset.asset_type) if asset else [("wide", "STATIC")]
+        fill = bool(options.fill_frame_photos and asset is not None and asset.asset_type in PHOTO_TYPES
+                    and asset.width and asset.height and options.output_width and options.output_height)
+        ladder = (FILL_PHOTO_LADDER if fill else ladder_for(asset.asset_type)) if asset else [("wide", "STATIC")]
         n = 1
         if asset is not None and len(ladder) > 1:
             n = max(1, math.ceil(d / max_shot))
@@ -361,6 +365,9 @@ def plan_project(
                 if composition == "region":
                     region_counter[asset.asset_id] += 1
                 crop = compute_crop(composition, meta, ridx)
+                if fill:
+                    crop = fill_crop(crop, asset.width, asset.height, options.output_width,
+                                     options.output_height, meta.get("protected_regions") or [])
                 motion = plan_motion(asset.asset_type, motion_type, crop, dur, meta)
                 if asset.asset_type == "VIDEO_CLIP":
                     clip = meta.get("clip") or {"in_point": 0.0, "out_point": asset.duration or dur}

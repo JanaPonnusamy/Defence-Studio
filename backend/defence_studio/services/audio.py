@@ -32,6 +32,8 @@ from defence_studio.services.script import _now
 
 AUDIO_KIND = "audio_set"
 AUDIO_SCHEMA = "defence-studio.audio-set.v1"
+# Audio-module providers whose rate/pitch controls are applied natively.
+NATIVE_CONTROL_PROVIDERS = ("local-pyttsx3", "edge-neural")
 
 
 class AudioService(IntegrationService):
@@ -50,14 +52,14 @@ class AudioService(IntegrationService):
         rate = float(direction.get("rate", 1.0))
         if rate != 1.0:
             rate_wpm = round(170 * rate)
-            if provider == "local-pyttsx3" and 80 <= rate_wpm <= 260:
+            if provider in NATIVE_CONTROL_PROVIDERS and 80 <= rate_wpm <= 260:
                 controls["rate_wpm"] = rate_wpm
             else:
                 unsupported.append("rate")
         pitch = float(direction.get("pitch", 1.0))
         if pitch != 1.0:
             pitch_semitones = round(12 * math.log2(pitch), 2)
-            if provider == "local-pyttsx3" and -3 <= pitch_semitones <= 3:
+            if provider in NATIVE_CONTROL_PROVIDERS and -3 <= pitch_semitones <= 3:
                 controls["pitch_semitones"] = pitch_semitones
             else:
                 unsupported.append("pitch")

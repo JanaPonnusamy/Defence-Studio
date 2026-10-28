@@ -90,3 +90,20 @@ def test_existing_output_is_never_overwritten(tmp_path):
     with pytest.raises(ValueError, match='already exists'):
         LocalPyttsx3Adapter().synthesize(TTSRequest('Briefing.', None, 'en'), path)
     assert path.read_bytes() == b'original'
+
+
+def test_edge_neural_fails_closed_on_language_mismatch(monkeypatch, tmp_path):
+    from app.tts.edge_neural import EdgeNeuralAdapter, select_voice
+    calls = []
+    monkeypatch.setattr(EdgeNeuralAdapter, '_fetch', lambda self, *args: calls.append(args))
+    assert select_voice(None, 'ta') == 'ta-IN-PallaviNeural'
+    for voice, language in [('ta-IN-PallaviNeural', 'en'), ('missing-voice', 'ta'), (None, 'fr')]:
+        with pytest.raises(ValueError):
+            EdgeNeuralAdapter().synthesize(TTSRequest('தமிழ் செய்தி', voice, language), tmp_path / 'bad.wav')
+    assert not calls
+
+
+def test_edge_neural_maps_controls_to_native_prosody():
+    from app.tts.edge_neural import prosody
+    assert prosody({'rate_wpm': 176, 'volume': 1.0, 'pitch_semitones': 0}) == \
+        {'rate': '+10%', 'volume': '+0%', 'pitch': '+0Hz'}

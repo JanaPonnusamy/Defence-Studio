@@ -10,6 +10,7 @@ maps/locations, timelines or comparisons).
 from __future__ import annotations
 
 import re
+import unicodedata
 
 VISUAL_INTENTS = [
     "GEOGRAPHIC_CONTEXT", "ENTITY_INTRODUCTION", "EVENT_EXPLANATION", "TIMELINE",
@@ -83,7 +84,21 @@ _NUMBER_RE = re.compile(r"(?<![\w.\-])(\d{1,3}(?:,\d{3})+|\d+(?:\.\d+)?)(?:\s?(%
 # Phase 2 matching: Unicode-aware tokens (any script), accent folding, and a synonym/variant table that maps
 # equivalent words (incl. plural forms and a few non-English equivalents) to a shared concept token "~concept".
 # For plain-ASCII English text the base tokens are identical to v1.0; concept tokens are added on top.
-_TOKEN_RE = re.compile(r"[^\W\d_](?:[^\W\d_]|-){2,}")
+def _word_tokens(text: str) -> list[str]:
+    """Words of >= 3 characters: a letter, then letters, combining marks or hyphens. Marks matter for
+    Indic scripts (Tamil vowel signs are not regex word characters and would split every word)."""
+    out, cur = [], ""
+    for c in text + " ":
+        cat = unicodedata.category(c)
+        if cat[0] == "L" or (cur and (cat[0] == "M" or c == "-")):
+            cur += c
+        else:
+            if len(cur) >= 3:
+                out.append(cur)
+            cur = ""
+    return out
+
+
 SYNONYMS: dict[str, list[str]] = {
     "missile": ["missile", "missiles", "rocket", "rockets", "misil", "misiles", "rakete", "raketen", "ракета", "ракеты"],
     "warship": ["warship", "warships", "frigate", "frigates", "destroyer", "destroyers", "corvette", "corvettes",
@@ -123,7 +138,7 @@ for _concept, _words in SYNONYMS.items():
 def content_tokens(text: str) -> set[str]:
     """Normalized matching tokens: folded lowercase words (any script, >=3 letters, no stopwords) plus
     shared concept tokens from the synonym table."""
-    words = {w for w in _TOKEN_RE.findall(_fold((text or "").lower())) if w not in _STOP}
+    words = {w for w in _word_tokens(_fold((text or "").lower())) if w not in _STOP}
     concepts = {_SYN_INDEX[w] for w in words if w in _SYN_INDEX}
     return words | concepts
 

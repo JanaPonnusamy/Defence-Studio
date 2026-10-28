@@ -219,3 +219,16 @@ def test_coverage_service_path_uses_stored_artifacts(ran):  # noqa: F811
     assert cov["unique_urls_attempted"] == 3
     assert cov["sources_normalized"] >= 1 and cov["claims_extracted"] >= 1
     assert mon.monitor(job, POLICY_OWNER)["coverage"]["sources_fetched"] == 2
+
+
+def test_short_target_relaxes_long_form_minimums_only():
+    from defence_studio.services.script_prompt import draft_response_schema, user_prompt
+    long, short = draft_response_schema(), draft_response_schema(110)
+    assert long["properties"]["sections"]["minItems"] == 6
+    assert long["properties"]["sections"]["items"]["properties"]["narration"]["minLength"] == 700
+    assert short["properties"]["sections"]["minItems"] == 3
+    assert short["properties"]["opening_hook"]["minLength"] < 100
+    args = dict(topic="DAC approvals", language="ta", audience="general", tone="neutral",
+                script_format="narration", terminology={}, eligible_claims=[])
+    assert "news bulletin" in user_prompt(target_words=110, min_words=90, max_words=140, **args)
+    assert "at least eight body sections" in user_prompt(target_words=1100, **args)

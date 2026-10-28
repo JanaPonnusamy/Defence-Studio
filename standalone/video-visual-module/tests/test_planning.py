@@ -246,3 +246,26 @@ def test_documents_and_stat_cards_use_non_distorting_motion():
 def test_build_without_scenes_fails_explicitly(client, project):
     r = client.post("/visual-plans/build", json={"project_id": project})
     assert r.status_code == 422 and r.json()["error_code"] == "MISSING_NARRATION_ANCHOR"
+
+
+def test_tamil_words_keep_vowel_signs_and_match_assigned_keywords():
+    from app.pipeline.intent import content_tokens
+    narration = content_tokens("இந்த ஒப்புதலின் 82 சதவீதம் இந்திய தொழில்துறையிலிருந்து")
+    assert len(narration) >= 4 and all(len(t) >= 3 for t in narration)
+    assert narration & content_tokens("சதவீதம் தொழில்துறையிலிருந்து")
+    assert content_tokens("café u-boat S-400") == content_tokens("cafe u-boat S-400")
+
+
+def test_fill_crop_matches_output_aspect_and_respects_protected_regions():
+    from app.pipeline.motion import FILL_PHOTO_LADDER, compute_crop, fill_crop, plan_motion
+    full = compute_crop("wide", {})
+    # 4:3 photo into a 16:9 frame: full width, reduced height, centred
+    c = fill_crop(full, 1600, 1200, 1920, 1080, [])
+    assert c["fill"] and c["w"] == 1.0 and abs((c["w"] * 1600) / (c["h"] * 1200) - 16 / 9) < 0.01
+    assert abs(c["y"] - (1 - c["h"]) / 2) < 1e-3
+    # a protected caption at the very top would be cut -> keep the full frame
+    assert fill_crop(full, 1600, 1200, 1920, 1080, [{"x": 0.1, "y": 0.0, "w": 0.3, "h": 0.05}]) == full
+    # already 16:9 -> unchanged; and every fill-ladder step moves
+    assert fill_crop(full, 1920, 1080, 1920, 1080, []) == full
+    assert all(m != "STATIC" for _, m in FILL_PHOTO_LADDER)
+    assert plan_motion("SOURCE_PHOTO", "SLOW_ZOOM_IN", c, 4.0)["type"] == "SLOW_ZOOM_IN"

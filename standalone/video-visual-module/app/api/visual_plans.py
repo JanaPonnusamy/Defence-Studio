@@ -39,6 +39,9 @@ class PlanBuildOptions(BaseModel):
     photo_fallback_for_data_intents: bool = Field(
         default=False, description="Show a strictly relevant rights-cleared photo instead of a GAP when a "
                                    "statistic/timeline/comparison beat has no sourced graphic.")
+    fill_frame_photos: bool = Field(
+        default=False, description="Crop photos to the output aspect (no black bars) and open every photo "
+                                   "shot with gentle motion; protected regions still force the full frame.")
 
 
 class PlanBuildRequest(BaseModel):

@@ -88,6 +88,8 @@ def main() -> int:
     ap.add_argument("--base", default="http://127.0.0.1:8011/api")
     ap.add_argument("--token")
     ap.add_argument("--dry-run", action="store_true")
+    ap.add_argument("--by-order", action="store_true",
+                    help="scene N gets the images of query N (no English plan needed)")
     args = ap.parse_args()
     api = httpx.Client(base_url=args.base, timeout=120,
                        headers={"Authorization": f"Bearer {args.token}"} if args.token else {})
@@ -129,15 +131,17 @@ def main() -> int:
         assets.append({**f, "asset_id": aid, "words": words(f["query"] + " " + f["title"])})
         print(f"  approved {aid[:12]} {f['title']}")
 
-    # Score scenes on the English plan (Tamil scenes are matched by order).
+    # Score scenes on the English plan (Tamil scenes are matched by order), or follow query order.
     plans = {lang: api.get(f"/jobs/{job}/scene/plans", params={"language": lang}).raise_for_status().json()
-             for lang in set(args.lang) | {"en"}}
+             for lang in set(args.lang) | (set() if args.by_order else {"en"})}
     def approved(lang):
         rows = [p for p in plans[lang]["plans"] if p["status"] == "APPROVED"]
         return api.get(f"/jobs/{job}/scene/plans/{lang}/{rows[-1]['version']}").raise_for_status().json()
-    en_scenes = sorted(approved("en")["scenes"], key=lambda s: s["order"])
     picks = []
-    for i, scene in enumerate(en_scenes):
+    if args.by_order:
+        picks = [[a["asset_id"] for a in assets if a["query"] == q][:2] for q in args.query]
+        picks = [p for p in picks if p]
+    for i, scene in enumerate([] if args.by_order else sorted(approved("en")["scenes"], key=lambda s: s["order"])):
         sw = words(scene["narration"])
         ranked = sorted(assets, key=lambda a: (-len(a["words"] & sw), (assets.index(a) - i) % len(assets)))
         picks.append([ranked[0]["asset_id"]] + ([ranked[1]["asset_id"]] if len(ranked) > 1 else []))

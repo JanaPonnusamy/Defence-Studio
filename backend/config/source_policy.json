@@ -253,6 +253,32 @@
       "provenance_requirements": [
         "published_at"
       ]
+    },
+    {
+      "id": "indiatvnews-dac-212-lakh-crore-20261026",
+      "domain": "www.indiatvnews.com",
+      "include_subdomains": false,
+      "url_patterns": [
+        "^/news/india/dac-clears-rs-2-12-lakh-crore-defence-procurement-proposals-82-percent-to-be-sourced-from-indian-industry-latest-updates-2026-10-26-1057958$"
+      ],
+      "category": "INDEPENDENT_REPORTING",
+      "publisher": "India TV News",
+      "independence_group": "indiatv",
+      "trust": {
+        "descriptive_claims": true,
+        "quantitative_claims": "ATTRIBUTED_ONLY"
+      },
+      "enabled": true,
+      "supported_subjects": [
+        "INDIA_DEFENCE",
+        "DEFENCE_POLICY"
+      ],
+      "allowed_content_types": [
+        "text/html"
+      ],
+      "provenance_requirements": [
+        "published_at"
+      ]
     }
   ]
 }
