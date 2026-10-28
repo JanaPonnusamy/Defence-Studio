@@ -255,6 +255,34 @@
       ]
     },
     {
+      "id": "indiatvnews-akash-op-sindoor-202505",
+      "domain": "www.indiatvnews.com",
+      "include_subdomains": false,
+      "url_patterns": [
+        "^/explainers/operation-sindoor-how-india-s-four-layered-robust-air-defence-system-foiled-pakistan-attacks-from-may-7-to-10-2025-05-13-990113$",
+        "^/news/india/india-pakistan-war-akash-surface-to-air-missile-system-key-in-repelling-pakistani-drone-attacks-along-loc-defence-officials-operation-sindoor-2025-05-09-989454$"
+      ],
+      "category": "INDEPENDENT_REPORTING",
+      "publisher": "India TV News",
+      "independence_group": "indiatv",
+      "trust": {
+        "descriptive_claims": true,
+        "quantitative_claims": "ATTRIBUTED_ONLY"
+      },
+      "enabled": true,
+      "supported_subjects": [
+        "INDIA_DEFENCE",
+        "AIR_DEFENCE_MISSILES",
+        "CONFLICT_OPERATIONS"
+      ],
+      "allowed_content_types": [
+        "text/html"
+      ],
+      "provenance_requirements": [
+        "published_at"
+      ]
+    },
+    {
       "id": "indiatvnews-dac-212-lakh-crore-20261026",
       "domain": "www.indiatvnews.com",
       "include_subdomains": false,
