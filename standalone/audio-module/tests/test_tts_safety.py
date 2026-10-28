@@ -96,11 +96,27 @@ def test_edge_neural_fails_closed_on_language_mismatch(monkeypatch, tmp_path):
     from app.tts.edge_neural import EdgeNeuralAdapter, select_voice
     calls = []
     monkeypatch.setattr(EdgeNeuralAdapter, '_fetch', lambda self, *args: calls.append(args))
-    assert select_voice(None, 'ta') == 'ta-IN-PallaviNeural'
+    assert select_voice(None, 'ta') == 'ta-IN-ValluvarNeural'
     for voice, language in [('ta-IN-PallaviNeural', 'en'), ('missing-voice', 'ta'), (None, 'fr')]:
         with pytest.raises(ValueError):
             EdgeNeuralAdapter().synthesize(TTSRequest('தமிழ் செய்தி', voice, language), tmp_path / 'bad.wav')
     assert not calls
+
+
+def test_edge_neural_returns_service_sentence_boundaries(monkeypatch, tmp_path):
+    import numpy as np
+    import soundfile as sf
+    from app.tts.edge_neural import EdgeNeuralAdapter
+    marks = [{'text': 'முதல் வாக்கியம்.', 'start': 0.1, 'end': 0.9}, {'text': 'இரண்டாவது.', 'start': 1.0, 'end': 1.8}]
+
+    def fake_fetch(self, text, voice, params, mp3_path):
+        tone = 0.3 * np.sin(np.linspace(0, 2000 * np.pi, 48000)).astype('float32')
+        sf.write(mp3_path, tone, 24000, format='WAV')  # soundfile reads it back by content
+        return marks
+    monkeypatch.setattr(EdgeNeuralAdapter, '_fetch', fake_fetch)
+    result = EdgeNeuralAdapter().synthesize(TTSRequest('முதல் வாக்கியம். இரண்டாவது.', None, 'ta'), tmp_path / 'ok.wav')
+    assert result.voice == 'ta-IN-ValluvarNeural'
+    assert result.provider_metadata['sentence_boundaries'] == marks
 
 
 def test_edge_neural_maps_controls_to_native_prosody():

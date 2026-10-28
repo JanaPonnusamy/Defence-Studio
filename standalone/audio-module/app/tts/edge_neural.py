@@ -16,8 +16,10 @@ import uuid
 from app.tts.base import TTSAdapter, TTSRequest, TTSResult
 from app.tts.controls import PROFILE, resolve_controls
 
-# Language -> default voice. Pallavi is a young, clear Indian Tamil female voice.
-DEFAULT_VOICES = {'ta': 'ta-IN-PallaviNeural', 'en': 'en-IN-NeerjaNeural'}
+# Language -> default voice. Valluvar (neural, male) chosen 2026-10-28 by an ASR round-trip of the same
+# Tamil sample: both ta-IN voices read plain Tamil and numbers well, but Pallavi mispronounced
+# English acronyms (DRDO, IAF) in every written form tried; Valluvar read them correctly.
+DEFAULT_VOICES = {'ta': 'ta-IN-ValluvarNeural', 'en': 'en-IN-NeerjaNeural'}
 VOICES = {
     'ta-IN-PallaviNeural': 'ta-in', 'ta-LK-SaranyaNeural': 'ta-lk', 'ta-SG-VenbaNeural': 'ta-sg',
     'ta-MY-KaniNeural': 'ta-my', 'ta-IN-ValluvarNeural': 'ta-in',
@@ -60,8 +62,20 @@ class EdgeNeuralAdapter(TTSAdapter):
         return result
 
     def _fetch(self, text, voice, params, mp3_path):
+        """Write the MP3 and return the service's own sentence boundaries (seconds)."""
         import edge_tts
-        asyncio.run(edge_tts.Communicate(text, voice, **params).save(str(mp3_path)))
+
+        async def run():
+            marks = []
+            with open(mp3_path, 'wb') as fh:
+                async for chunk in edge_tts.Communicate(text, voice, boundary='SentenceBoundary', **params).stream():
+                    if chunk['type'] == 'audio':
+                        fh.write(chunk['data'])
+                    elif chunk['type'] == 'SentenceBoundary':
+                        marks.append({'text': chunk['text'], 'start': chunk['offset'] / 1e7,
+                                      'end': (chunk['offset'] + chunk['duration']) / 1e7})
+            return marks
+        return asyncio.run(run())
 
     def synthesize(self, request: TTSRequest, dest_path: Path):
         if not isinstance(request.text, str) or not request.text.strip() or len(request.text) > 20000:
@@ -77,7 +91,7 @@ class EdgeNeuralAdapter(TTSAdapter):
         dest_path.parent.mkdir(parents=True, exist_ok=True)
         with tempfile.TemporaryDirectory(dir=dest_path.parent, prefix='.tts-') as folder:
             mp3, raw = Path(folder) / 'speech.mp3', Path(folder) / 'speech.wav'
-            self._fetch(unicodedata.normalize('NFC', request.text), voice, params, mp3)
+            boundaries = self._fetch(unicodedata.normalize('NFC', request.text), voice, params, mp3) or []
             import soundfile as sf
             data, sr = sf.read(mp3, dtype='float32')
             if data.ndim != 1:
@@ -94,4 +108,6 @@ class EdgeNeuralAdapter(TTSAdapter):
                          provider_metadata={'voice': {'id': voice, 'languages': [VOICES[voice]]},
                                             'prosody': params, 'controls': controls, 'is_mock': False,
                                             'network': True, 'cost_kind': 'free_online_service',
-                                            'profile_sha256': PROFILE['sha256']})
+                                            'profile_sha256': PROFILE['sha256'],
+                                            # Real timing reported by the speech service, not an estimate.
+                                            'sentence_boundaries': boundaries})
