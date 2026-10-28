@@ -7,20 +7,20 @@ __pycache__/
 *.sqlite3
 *.sqlite3-shm
 *.sqlite3-wal
-# ...but the ONE intended development database is explicitly allowlisted so the
-# second PC gets the same starting state. Its WAL side-files stay ignored above.
-!data/defence_studio.sqlite3
+*.sqlite3-journal
+# The live development database (data/defence_studio.sqlite3) is NOT tracked:
+# it holds mutable job history. Transfer it between PCs with a backup-API
+# snapshot, not Git. A fresh clone bootstraps an empty schema on startup.
 # Timestamped DB backups produced by db_tool/snapshots stay local.
 data/*.bak-*
 data/*.sqlite3.bak-*
 data/local-backup.sqlite3
 
-# Ignore the data dir broadly, but un-ignore the intended DB, docs, and ONLY
-# the target job's artifact tree. (A re-included path under an ignored dir
-# needs every ancestor directory un-ignored too, hence the nested re-includes.)
+# Ignore the data dir broadly, but un-ignore docs and ONLY the target job's
+# artifact tree. (A re-included path under an ignored dir needs every ancestor
+# directory un-ignored too, hence the nested re-includes.)
 data/*
 !data/
-!data/defence_studio.sqlite3
 !data/README.md
 !data/storage/
 data/storage/*
