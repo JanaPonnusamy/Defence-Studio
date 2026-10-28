@@ -17,6 +17,11 @@ Honesty rules enforced here:
   the actual audio. Supported rate/pitch directions are passed through the
   documented API and marked applied only when provider metadata confirms them.
   Tone remains unsupported, and requested pauses are applied by the renderer.
+* Tamil text is prepared deterministically for the voice (``tts_text``); the
+  spoken form and every substitution are recorded, the approved narration is
+  kept unchanged for subtitles. When the provider reports real sentence
+  boundaries that match the script's sentences, they are stored as
+  ``sentence_timing`` for subtitle cues.
 """
 from __future__ import annotations
 
@@ -25,6 +30,8 @@ import math
 import os
 
 from defence_studio.integrations.audio_module import AudioModuleClient, AudioModuleError, provider_languages
+from defence_studio.integrations.subtitles import _sentences
+from defence_studio.services import tts_text
 from defence_studio.services.integration import (
     IntegrationService, IntegrationStale, IntegrationValidationError,
 )
@@ -34,6 +41,10 @@ AUDIO_KIND = "audio_set"
 AUDIO_SCHEMA = "defence-studio.audio-set.v1"
 # Audio-module providers whose rate/pitch controls are applied natively.
 NATIVE_CONTROL_PROVIDERS = ("local-pyttsx3", "edge-neural")
+# Provider used when a request names none. Tamil uses the neural voice: the legacy OneCore
+# Valluvar voice behind local-pyttsx3 produced robotic ~55 wpm narration (job 9b61429f).
+DEFAULT_PROVIDERS = {"ta": "edge-neural"}
+FALLBACK_PROVIDER = "local-pyttsx3"
 
 
 class AudioService(IntegrationService):
@@ -65,6 +76,23 @@ class AudioService(IntegrationService):
                 unsupported.append("pitch")
         return controls, unsupported
 
+    @staticmethod
+    def _sentence_timing(narration: str, boundaries, duration) -> dict | None:
+        """Pair the script's sentences with the provider's measured sentence spans, in order.
+
+        Used only when the counts match and the starts increase inside the clip; otherwise
+        subtitles keep the proportional estimate.
+        """
+        sentences = _sentences(narration)
+        if not boundaries or len(boundaries) != len(sentences) or not duration:
+            return None
+        starts = [float(b["start"]) for b in boundaries]
+        if any(b <= a for a, b in zip(starts, starts[1:])) or starts[0] < 0 or starts[-1] >= float(duration):
+            return None
+        return {"source": "provider_sentence_boundaries", "is_approximate": False,
+                "sentences": [{"text": text, "start": round(float(b["start"]), 3), "end": round(float(b["end"]), 3)}
+                              for text, b in zip(sentences, boundaries)]}
+
     # -- policy ---------------------------------------------------------------
 
     @staticmethod
@@ -87,8 +115,9 @@ class AudioService(IntegrationService):
     # -- operations -----------------------------------------------------------
 
     def start_audio(self, job_id: str, owner_id: str, language: str, idempotency_key: str, *,
-                    provider: str = "local-pyttsx3", voice_id: str | None = None, align: bool = True,
+                    provider: str | None = None, voice_id: str | None = None, align: bool = True,
                     allow_mock: bool = False, background: bool = True) -> dict:
+        provider = provider or DEFAULT_PROVIDERS.get(language, FALLBACK_PROVIDER)
         row, plan = self._approved_plan(job_id, owner_id, language)
         self.check_provider_policy(provider, language, allow_mock)
         binding = {"scene_plan_sha256": row["plan_sha256"], "scene_plan_version": row["version"],
@@ -118,13 +147,15 @@ class AudioService(IntegrationService):
             self._transition(job_id, language, AUDIO_KIND, version, "RUNNING", detail="Starting synthesis",
                              progress=0.02, allowed_from=("QUEUED",))
             client = self._client()
+            lexicon = tts_text.load_lexicon() if language == "ta" else None
             scenes, total = [], len(plan["scenes"])
             for index, scene in enumerate(plan["scenes"]):
                 self._transition(job_id, language, AUDIO_KIND, version, "RUNNING",
                                  detail=f"Synthesizing scene {index + 1}/{total}",
                                  progress=round(0.05 + 0.9 * index / total, 3))
                 controls, unsupported = self._tts_controls(scene, binding["provider"])
-                result = client.synthesize(scene["narration"], provider=binding["provider"],
+                prepared = tts_text.prepare(scene["narration"], language, lexicon)
+                result = client.synthesize(prepared["spoken"], provider=binding["provider"],
                                            language=language, voice_id=binding.get("voice_id"), controls=controls)
                 sha = hashlib.sha256(result["audio_bytes"]).hexdigest()
                 if sha != result["audio_sha256"]:
@@ -153,6 +184,10 @@ class AudioService(IntegrationService):
                                         "note": "Rate/pitch are applied only when confirmed by provider metadata; "
                                                 "tone is not implemented, and pause_after_ms is applied by the renderer."},
                     "alignment": None,
+                    "tts_text": prepared["spoken"],
+                    "text_preparation": {k: prepared[k] for k in ("replacements", "warnings", "lexicon_sha256")},
+                    "sentence_timing": self._sentence_timing(scene["narration"], meta.get("sentence_boundaries"),
+                                                             result.get("duration")),
                 }
                 if not entry["duration_seconds"] or entry["validation_status"] != "PASSED":
                     raise AudioModuleError("audio_invalid", f"Scene {scene['scene_id']}: audio failed validation "

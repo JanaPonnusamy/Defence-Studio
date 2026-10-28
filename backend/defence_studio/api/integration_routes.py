@@ -19,7 +19,8 @@ class VisualPlanBody(BaseModel):
 
 class AudioBody(BaseModel):
     model_config = ConfigDict(extra="forbid")
-    provider: str = Field(default="local-pyttsx3", min_length=1, max_length=100)
+    # None: the per-language default (AudioService.DEFAULT_PROVIDERS).
+    provider: str | None = Field(default=None, min_length=1, max_length=100)
     voice_id: str | None = Field(default=None, max_length=200)
     align: bool = True
     allow_mock: bool = False

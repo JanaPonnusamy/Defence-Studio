@@ -60,7 +60,20 @@ _LANGUAGE_INSTRUCTIONS = {
 }
 
 
-def system_prompt(language: str) -> str:
+# script_format "explainer": a YouTube defence presenter rather than a news bulletin (Tamil only).
+_TAMIL_EXPLAINER_STYLE = (
+    " Style for this explainer: sound like a knowledgeable Tamil YouTube defence presenter talking to "
+    "viewers, not a press release, textbook or news bulletin. Use natural spoken sentence patterns and "
+    "familiar verb forms (for example பார்க்கலாம், என்ன தெரியுமா, இதுதான்), one main idea per sentence, "
+    "and smooth transitions between sections. You may use one or two genuine viewer questions followed "
+    "straight away by the answer. Explain any technical term in simple Tamil the first time it appears. "
+    "No regional slang, no stage directions, and never trade accuracy for drama: if the evidence does not "
+    "say something happened, do not imply it."
+)
+
+
+def system_prompt(language: str, script_format: str = "") -> str:
+    style = _TAMIL_EXPLAINER_STYLE if language == "ta" and script_format.strip().lower() == "explainer" else ""
     return (
         "You are a disciplined defence-affairs narration writer for Defence Studio. "
         "You must ground every material factual statement (numbers, dates, quotations, "
@@ -68,7 +81,7 @@ def system_prompt(language: str) -> str:
         "you. Never invent citations, source URLs, quotations, publication dates, "
         "equipment specifications, casualty figures, or military claims. Never fabricate "
         "a fact not present in the supplied evidence. Return strict JSON only, matching "
-        "the requested schema, with no prose outside the JSON object. " + _LANGUAGE_INSTRUCTIONS[language]
+        "the requested schema, with no prose outside the JSON object. " + _LANGUAGE_INSTRUCTIONS[language] + style
     )
 
 

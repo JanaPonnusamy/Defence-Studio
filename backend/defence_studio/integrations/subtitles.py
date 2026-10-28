@@ -145,21 +145,42 @@ def _chunks(text: str, max_words: int, max_chars: int = MAX_CUE_CHARS) -> list[s
     return [c for c in out if c]
 
 
+def _timed_pieces(scene: dict, max_words: int) -> list[tuple[str, float, float]]:
+    """(text, start, end) blocks to spread cues over: measured sentence spans when the
+    audio set carries them, else the whole scene (proportional estimate)."""
+    start = float(scene["start"])
+    end_scene = start + float(scene["duration"])
+    timing = (scene.get("sentence_timing") or {}).get("sentences")
+    if not timing:
+        return [(scene["text"], start, end_scene)]
+    pieces = []
+    for i, sentence in enumerate(timing):
+        lo = start if i == 0 else min(start + float(sentence["start"]), end_scene)
+        # Hold each sentence on screen until the next one starts (covers the pause between them).
+        hi = end_scene if i == len(timing) - 1 else min(start + float(timing[i + 1]["start"]), end_scene)
+        pieces.append((sentence["text"], lo, max(hi, lo)))
+    return pieces
+
+
 def build_cues(scenes: list[dict], max_words: int = 9) -> list[dict]:
-    """``scenes``: ``[{scene_id, text, start, duration}]`` (seconds, measured)."""
+    """``scenes``: ``[{scene_id, text, start, duration, sentence_timing?}]`` (seconds, measured).
+
+    ``sentence_timing.sentences`` (offsets within the scene, from the TTS provider) pins
+    each sentence's cues to when it is actually spoken; long sentences are still split
+    into chunks spread over that sentence's span by length.
+    """
     cues: list[dict] = []
     for scene in scenes:
-        chunks = _chunks(scene["text"], max_words)
-        weights = [max(len(c), 1) for c in chunks]
-        total = float(sum(weights))
-        t = float(scene["start"])
-        end_scene = float(scene["start"]) + float(scene["duration"])
-        for i, (chunk, weight) in enumerate(zip(chunks, weights)):
-            span = float(scene["duration"]) * weight / total
-            end = end_scene if i == len(chunks) - 1 else min(t + span, end_scene)
-            cues.append({"index": len(cues) + 1, "scene_id": scene["scene_id"], "start": round(t, 3),
-                         "end": round(end, 3), "text": chunk})
-            t = end
+        for text, lo, hi in _timed_pieces(scene, max_words):
+            chunks = _chunks(text, max_words)
+            weights = [max(len(c), 1) for c in chunks]
+            total = float(sum(weights))
+            t = lo
+            for i, (chunk, weight) in enumerate(zip(chunks, weights)):
+                end = hi if i == len(chunks) - 1 else min(t + (hi - lo) * weight / total, hi)
+                cues.append({"index": len(cues) + 1, "scene_id": scene["scene_id"], "start": round(t, 3),
+                             "end": round(end, 3), "text": chunk})
+                t = end
     return cues
 
 
