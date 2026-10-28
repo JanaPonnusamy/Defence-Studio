@@ -1002,3 +1002,15 @@ progress { width:100%; max-width:420px; }
 .inspect-dl { display: grid; grid-template-columns: max-content 1fr; gap: .15rem .75rem; margin: .5rem 0; }
 .inspect-dl dt { font-weight: 600; }
 .inspect-dl dd { margin: 0; overflow-wrap: anywhere; }
+
+/* Studio view: ordered stage rail */
+.studio-rail { list-style: none; margin: .5rem 0; padding: 0; display: grid; gap: .35rem; }
+.studio-stage button { width: 100%; display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; text-align: left;
+  padding: .55rem .7rem; border: 1px solid var(--border); border-radius: var(--r-md); background: var(--surface-1); color: var(--text); }
+.studio-stage button[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-soft); }
+.studio-stage--current button { box-shadow: inset 3px 0 0 var(--accent); }
+.studio-stage--done .studio-step { background: var(--approved-bg); color: var(--approved); }
+.studio-stage[data-state="STALE"] .chip, .studio-stage[data-state="FAILED"] .chip { background: var(--rejected-bg); color: var(--rejected); }
+.studio-step { display: inline-grid; place-items: center; width: 1.6rem; height: 1.6rem; border-radius: 50%;
+  background: var(--surface-3); font-size: .8rem; font-weight: 600; flex: none; }
+.studio-title { font-weight: 600; flex: 1 1 8rem; min-width: 0; overflow-wrap: anywhere; }

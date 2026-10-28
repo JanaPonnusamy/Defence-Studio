@@ -6,6 +6,7 @@ import { mountScript } from "./views/script-view.js";
 import { mountInspector } from "./views/inspector-view.js";
 import { mountScene } from "./views/scene-view.js";
 import { mountProduction } from "./views/production-view.js";
+import { mountStudio } from "./views/studio-view.js";
 import { mountFactcheck } from "./views/factcheck-view.js";
 import { mountVoice } from "./views/voice-view.js";
 import { mountResearch } from "./views/research-view.js";
@@ -259,6 +260,8 @@ function parseHash() {
     state.tab = "scene";
   } else if (parts[0] === "production") {
     state.tab = "production";
+  } else if (parts[0] === "studio") {
+    state.tab = "studio";
   } else if (parts[0] === "voice") {
     state.tab = "voice";
   } else if (parts[0] === "factcheck") {
@@ -317,6 +320,7 @@ function renderTabs() {
     </button>`;
   el.tabs.innerHTML = `
     ${tab("dashboard", "grid", "Dashboard")}
+    ${tab("studio", "layers", "Studio")}
     ${tab("research", "radar", "Search & Evidence")}
     ${tab("discovery", "radar", "Discovery")}
     ${tab("sources", "layers", "Sources")}
@@ -336,7 +340,7 @@ function renderTabs() {
 }
 
 function renderFilters() {
-  if (state.tab === "evidence" || state.tab === "research" || state.tab === "factcheck" || state.tab === "script" || state.tab === "inspector" || state.tab === "scene" || state.tab === "production" || state.tab === "voice" || state.tab === "dashboard") { el.filters.innerHTML = ""; return; }
+  if (state.tab === "evidence" || state.tab === "research" || state.tab === "factcheck" || state.tab === "script" || state.tab === "inspector" || state.tab === "scene" || state.tab === "production" || state.tab === "studio" || state.tab === "voice" || state.tab === "dashboard") { el.filters.innerHTML = ""; return; }
   const statusOptions = ["", "PENDING", "APPROVED_FOR_USE", "REJECTED", "NEEDS_MORE_EVIDENCE", "CONFLICT_UNRESOLVED"];
   const optionHtml = (value) => `<option value="${value}">${value || "All statuses"}</option>`;
   if (state.tab === "discovery") {
@@ -859,6 +863,13 @@ function dispatchTab() {
     const jobId = state.jobId;
     mountProduction({api, jobId, list:el.list, detail:el.detail, filters:el.filters,
       isCurrent:() => state.tab === "production" && state.jobId === jobId});
+  }
+  else if (state.tab === "studio") {
+    if (!requireJob()) return;
+    const jobId = state.jobId;
+    mountStudio({api, jobId, list:el.list, detail:el.detail, filters:el.filters,
+      onOpenTab:(tab) => setHash(tab, null),
+      isCurrent:() => !!state.token && state.tab === "studio" && state.jobId === jobId});
   }
   else if (state.tab === "factcheck") {
     if (!requireJob()) return;
