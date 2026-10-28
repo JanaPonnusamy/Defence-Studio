@@ -24,11 +24,34 @@ These requirements are mandatory defaults, not optional style suggestions.
 ### 2. Natural Spoken Tamil
 
 1. Write in natural, standard spoken-narration Tamil with correct grammar and familiar vocabulary.
-2. Prefer clear, contemporary Tamil that a professional Tamil newsreader can pronounce naturally.
+2. Prefer clear, contemporary Tamil that a Tamil YouTube presenter can speak naturally (see §2A).
 3. Avoid awkward literal translations from English, machine-translated phrasing, unnatural word order and unnecessarily complicated literary Tamil.
 4. Preserve the intended meaning, facts, names, technical terminology and degree of certainty.
 5. Do not use colloquial slang, dialect-specific expressions or exaggerated dramatic language unless explicitly requested.
 6. Use a consistent Tamil register throughout each script.
+
+### 2A. Tamil YouTube Presenter Style (mandatory, adopted 2026-10-28)
+
+Every Tamil script uses natural, conversational Tamil, like a Tamil YouTube presenter explaining a story directly to viewers. When the user provides a Tamil YouTube reference, match its general conversational rhythm, sentence formation, vocabulary and audience connection, never its exact sentences, catchphrases or wording.
+
+1. **Write for the ear, not the page.** No newspaper editorials, government press releases or literal English-to-Tamil translations unless explicitly requested.
+2. **Use natural spoken Tamil:** familiar sentence patterns, everyday vocabulary, natural verb endings. Constructions such as “என்ன நடந்தது தெரியுமா?”, “இதில் முக்கியமான விஷயம் என்னனா…”, “அதற்குப் பிறகு என்ன நடந்தது?”, “இதனால் என்ன மாற்றம் வரும்?” are examples to use where they fit, not phrases to repeat.
+3. **Avoid artificial formal Tamil** such as “இதன் காரணமாக”, “மேற்கண்ட நிகழ்வானது”, “குறிப்பிடத்தக்க தாக்கத்தை ஏற்படுத்தியுள்ளது”, “விரிவான தகவல்களை காண்போம்” when a simpler spoken form says the same thing.
+4. **Form complete, natural sentences:** correct grammar and spoken word order; no broken phrases, missing verbs, awkward translations, needless repetition or bullet-point sentences.
+5. **Control sentence length:** one clear idea per sentence, natural pauses, short paragraphs. Never cut words or sentences arbitrarily for TTS.
+6. **Talk to the viewer:** introduce context, explain unfamiliar facts simply, use relevant questions and logical storytelling to build curiosity. No forced excitement, exaggerated drama or repetitive rhetorical questions.
+7. **Handle English naturally:** keep recognised names, military designations and technical terms; explain unfamiliar terms in conversational Tamil; never mistranslate names or acronyms.
+8. **Regional forms:** follow the reference's level of colloquial speech without inventing slang or mixing dialects; default to a consistent, broadly understandable register.
+9. **Factual integrity:** conversational wording never changes facts, invents details, removes uncertainty or turns allegations into confirmed events. Keep reporting, analysis and speculation distinct.
+10. **Original scripts only:** the reference guides style; never reproduce its transcript or unique expressions.
+11. **Spoken review:** read the script aloud as if presenting; rewrite anything that sounds like formal translated prose, incomplete speech or an AI-generated announcement.
+12. **Writing and synthesis stay separate:** TTS segmentation, pronunciation dictionaries and audio processing must not alter the script text (see §9, §11).
+
+| Too formal / robotic | Natural YouTube narration |
+|---|---|
+| இந்தச் சம்பவமானது உலகளாவிய பாதுகாப்புச் சூழலில் குறிப்பிடத்தக்க தாக்கத்தை ஏற்படுத்தியுள்ளது. | இந்தச் சம்பவத்தால் உலக நாடுகளின் பாதுகாப்பு நிலைமையில் என்ன மாற்றம் வரப்போகிறது தெரியுமா? |
+| இதன் காரணமாக அந்நாட்டின் இராணுவ நடவடிக்கைகள் தீவிரமடைந்துள்ளன. | இதற்குப் பிறகு அந்த நாடு தனது ராணுவ நடவடிக்கைகளை இன்னும் தீவிரப்படுத்தியிருக்கிறது. |
+| இதுகுறித்த விரிவான தகவல்களை இப்போது காண்போம். | அடுத்து என்ன நடந்தது, இதனால் யாருக்கு என்ன பாதிப்பு என்பதைப் பார்ப்போம். |
 
 ### 3. Complete Sentence Formation
 
@@ -138,7 +161,7 @@ Do not mark narration as successful merely because an audio file was created.
 
 Unless the user explicitly requests a different language or style:
 
-- Write Tamil content in natural, complete, professional narration Tamil.
+- Write Tamil content as natural, engaging, conversational YouTube narration (§2A), not formal literary Tamil.
 - Prefer clarity and correct pronunciation over unnecessarily elaborate vocabulary.
 - Preserve factual accuracy and technical meaning.
 - Keep every sentence complete and every Tamil word intact.
