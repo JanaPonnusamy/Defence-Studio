@@ -6,6 +6,7 @@ from contextlib import asynccontextmanager
 from pathlib import Path
 
 from fastapi import Depends, FastAPI, Header, HTTPException, Query, Request
+from fastapi import Path as PathParam
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field, ConfigDict
@@ -21,6 +22,7 @@ from defence_studio.services.worker import WorkerService
 from defence_studio.services.evidence import EvidenceService
 from defence_studio.services.pipeline_trace import PipelineTraceService
 from defence_studio.services.script import ScriptService
+from defence_studio.services.studio import build_studio_state
 from defence_studio.services.scene import SceneService
 from defence_studio.services.visual import VisualService
 from defence_studio.services.audio import AudioService
@@ -542,6 +544,12 @@ def create_app(
     def script_staleness(job_id: str, language: str | None = Query(default=None),
                          owner_id: str = Depends(require_owner)):
         return scripts.revision_staleness(job_id, owner_id, language)
+
+    @app.get("/api/jobs/{job_id}/studio/{language}")
+    def studio_state(job_id: str, language: str = PathParam(pattern="^[a-z]{2}$"),
+                     owner_id: str = Depends(require_owner)):
+        overview = yt.pipeline_overview(job_id, owner_id, language)  # ownership checked here
+        return build_studio_state(overview, scripts.revision_staleness(job_id, owner_id, language))
 
     @app.get("/api/jobs/{job_id}/script/compare/{language}")
     def compare_script_revisions(job_id: str, language: str, old: int = Query(gt=0), new: int = Query(gt=0),
