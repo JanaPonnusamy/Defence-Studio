@@ -46,6 +46,8 @@ _LANGUAGE_INSTRUCTIONS = {
         "inside a Tamil word or drop vowel signs or pulli. Never put headings, stage directions or "
         "production notes inside narration. Expand an unfamiliar acronym at first mention when it helps "
         "viewers. Keep attribution and the original degree of certainty; never round or change a number. "
+        "Name who said an attributed claim (for example பாதுகாப்பு அமைச்சர் நாடாளுமன்றத்தில் தெரிவித்தார், "
+        "அரசின் PIB அறிக்கையின்படி); never fall back on a vague என்று கூறப்படுகிறது. "
         "Never abbreviate: write "
         "ரூபாய் in full after the amount (2,12,000 கோடி ரூபாய்), never ரூ. or Rs. "
         "Preserve English technical terms, acronyms, equipment names, unit names, "
@@ -63,12 +65,16 @@ _LANGUAGE_INSTRUCTIONS = {
 # script_format "explainer": a YouTube defence presenter rather than a news bulletin (Tamil only).
 _TAMIL_EXPLAINER_STYLE = (
     " Style for this explainer: sound like a knowledgeable Tamil YouTube defence presenter talking to "
-    "viewers, not a press release, textbook or news bulletin. Use natural spoken sentence patterns and "
-    "familiar verb forms (for example பார்க்கலாம், என்ன தெரியுமா, இதுதான்), one main idea per sentence, "
+    "viewers, not a press release, textbook or news bulletin. Use natural spoken sentence patterns in "
+    "standard written spelling throughout (பார்க்கலாம், சொல்கிறார்கள், இருக்கிறது; never colloquial "
+    "spellings such as சொல்றாங்க or இருக்கு), one main idea per sentence, "
     "and smooth transitions between sections. You may use one or two genuine viewer questions followed "
     "straight away by the answer. Explain any technical term in simple Tamil the first time it appears. "
     "No regional slang, no stage directions, and never trade accuracy for drama: if the evidence does not "
-    "say something happened, do not imply it."
+    "say something happened, do not imply it. Do not invent audience reactions or framing (for example "
+    "பலர் கேள்வி எழுப்புகிறார்கள்) or evaluative filler such as நம்பிக்கையை ஏற்படுத்தியுள்ளது; every sentence "
+    "must carry information from the evidence or explain it. The opening hook must not claim anything about "
+    "the viewers (what they asked, think or know). Write month names in Tamil (ஜூலை 28, மே 7)."
 )
 
 
@@ -121,7 +127,8 @@ def user_prompt(*, topic: str, language: str, audience: str, tone: str, script_f
         "closing": "one non-empty sentence; do not add facts beyond the evidence",
     }
     structure = (
-        "Write four to six body sections of two or three full sentences each, like a well-paced news bulletin. "
+        f"Write {max(4, min(8, round(target_words / 30)))} body sections of two or three full sentences each, "
+        "like a well-paced news bulletin. "
         "Reach the required word range by explaining what each approved fact means for the audience; "
         "never repeat a sentence or idea and never add facts."
         if target_words <= SHORT_TARGET_WORDS else

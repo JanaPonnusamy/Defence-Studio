@@ -43,6 +43,7 @@ PRICING_SOURCE = "defence-studio.openai-pricing.manual.v1"
 _PRICING_USD_PER_1K = {
     "gpt-4o-mini": {"input": 0.00015, "output": 0.0006},
     "gpt-4o": {"input": 0.0025, "output": 0.01},
+    "gpt-4.1": {"input": 0.002, "output": 0.008},
 }
 _DEFAULT_USD_TO_INR = 88.0
 
