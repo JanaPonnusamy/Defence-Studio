@@ -29,7 +29,7 @@ class ReportsMixin:
             def one(sql, *p):
                 r = c.execute(sql, p).fetchone()
                 return dict(r) if r else None
-            workflow = one("SELECT status FROM workflow_jobs WHERE job_id=?", job_id)
+            workflow = one("SELECT status FROM workflow_jobs WHERE job_id=?", job_id) or {"status": "NONE"}
             workflow_stages = [dict(r) for r in c.execute(
                 "SELECT stage_key,status FROM workflow_stages WHERE job_id=? ORDER BY ordinal", (job_id,))]
             workflow["stages_completed"] = sum(s["status"] in ("COMPLETED", "SKIPPED") for s in workflow_stages)
@@ -65,9 +65,33 @@ class ReportsMixin:
              "registered": (assets or {}).get("n") or 0, "approved": int((assets or {}).get("ok") or 0),
              "scenes_with_assignment": (assigned or {}).get("n") or 0},
         ]
+        # Same freshness rules the per-stage services apply (audio/visual/render
+        # bind to the approved plan hash; a package binds to the approved
+        # render+QC). Kinds with no such rule carry no "stale" key.
+        try:
+            plan_sha = self._approved_plan(job_id, owner_id, language)[0]["plan_sha256"]
+        except Exception:
+            plan_sha = None
+        try:
+            gate = self.approved_render(job_id, owner_id, language)
+        except Exception:
+            gate = None
+
+        def stale(kind, row):
+            b = row["input_binding"]
+            if kind in ("audio_set", "visual_timeline", "render"):
+                return plan_sha is None or b.get("scene_plan_sha256") != plan_sha
+            if kind == "publish_package":
+                return gate is None or b.get("qc_version") != gate["qc_version"] \
+                    or b.get("render_version") != gate["render_version"]
+            return None
+
         for kind in ("audio_set", "visual_timeline", "render", "qc_report", "final_approval", "publish_package"):
             row = latest(kind)
-            stages.append({"stage": kind, **(view(row) or {"status": "NONE"})})
+            entry = {"stage": kind, **(view(row) or {"status": "NONE"})}
+            if row is not None and stale(kind, row) is not None:
+                entry["stale"] = stale(kind, row)
+            stages.append(entry)
         stages.append({"stage": "publishing", "status": publish[0]["state"] if publish else "NONE",
                        "jobs": publish})
         blocked = [s["stage"] for s in stages if s["status"] in
