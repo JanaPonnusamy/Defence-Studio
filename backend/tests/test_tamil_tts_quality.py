@@ -12,7 +12,7 @@ LEX = ({"DRDO": "டிஆர்டிஓ", "S-400": "எஸ்-400"}, "sha")
 
 def test_prepare_applies_lexicon_and_units_and_keeps_digits():
     out = tts_text.prepare("இதை DRDO உருவாக்கியது. S-400 அமைப்பு 25 km வரை, 96% உள்நாட்டு. ரூ. 2,12,000 கோடி.",
-                           "ta", LEX)
+                           "ta", LEX, designations={})
     assert out["spoken"] == ("இதை டிஆர்டிஓ உருவாக்கியது. எஸ்-400 அமைப்பு 25 கிலோமீட்டர் வரை, "
                              "96 சதவீதம் உள்நாட்டு. ரூபாய் 2,12,000 கோடி.")
     assert {r.get("from") or r.get("rule") for r in out["replacements"]} == {"DRDO", "S-400", "km", "percent",
