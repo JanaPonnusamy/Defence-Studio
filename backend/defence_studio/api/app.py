@@ -249,7 +249,7 @@ def create_app(
         logger.error("storage path too long [error_id=%s]: %s", error_id, exc)
         return JSONResponse(status_code=500, content={
             "detail": "Server storage is misconfigured: its folder path is too long for Windows. "
-                      f"Nothing was saved. Ask the operator to set a shorter DEFENCE_STUDIO_STORAGE_ROOT "
+                      f"Nothing was saved. Ask the operator to set a shorter DEFENCE_STUDIO_STORAGE_PATH "
                       f"and restart the server. (Reference {error_id})",
             "error_code": "STORAGE_PATH_TOO_LONG", "error_id": error_id})
 

@@ -1,6 +1,6 @@
 """Start research error contract: server faults answer in JSON and leave no orphan job.
 
-Regression for 2026-10-29: a too-deep DEFENCE_STUDIO_STORAGE_ROOT made the
+Regression for 2026-10-29: a too-deep DEFENCE_STUDIO_STORAGE_PATH made the
 discovery-request write raise StoragePathError after POST /api/jobs had already
 created the job. Starlette answered with a plain-text 500, the UI showed
 "unreadable response", and every retry left another DRAFT job.
@@ -57,7 +57,7 @@ def test_too_deep_storage_root_is_refused_before_any_job_exists(lenient_client, 
     assert response.headers["content-type"].startswith("application/json")
     body = response.json()
     assert body["error_code"] == "STORAGE_PATH_TOO_LONG"
-    assert "DEFENCE_STUDIO_STORAGE_ROOT" in body["detail"] and body["error_id"] in body["detail"]
+    assert "DEFENCE_STUDIO_STORAGE_PATH" in body["detail"] and body["error_id"] in body["detail"]
     assert lenient_client.get("/api/jobs", headers=auth_headers).json()["jobs"] == []
 
 

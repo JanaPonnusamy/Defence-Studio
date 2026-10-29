@@ -105,7 +105,7 @@ class ArtifactStore:
         if os.name == "nt" and len(str(target)) > MAX_WINDOWS_PATH:
             raise StoragePathTooLong(
                 f"Artifact path is {len(str(target))} characters, over the Windows limit of {MAX_WINDOWS_PATH}; "
-                "use a shorter DEFENCE_STUDIO_STORAGE_ROOT")
+                "use a shorter DEFENCE_STUDIO_STORAGE_PATH")
         return uri, target
 
     def write_bytes(
