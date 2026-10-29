@@ -51,7 +51,8 @@ core backend **500 passed / 8 skipped** · core frontend **42 passed** · voice 
 - Dev auth bypass (`DEFENCE_STUDIO_DEV_MODE` + `DEV_AUTH_BYPASS`) is loopback-only and must never be enabled outside a dev box.
 - `data/defence_studio.sqlite3` is tracked on purpose; real owner data would be committed with it. Two-PC rule: snapshot, never text-merge.
 - FFmpeg build in use is GPLv3 (user-supplied, called as subprocess); legal and font-redistribution review outstanding. OS (SAPI) voice commercial/YouTube terms unverified.
-- Windows paths: keep storage roots short (guard fails writes > 240 chars).
+- Windows paths: keep storage roots short (guard fails writes > 240 chars). A root longer than 118 characters fails `POST /api/jobs` up front with `STORAGE_PATH_TOO_LONG` (a preflight added 2026-10-29), so no orphan DRAFT job is left. Test servers must not use a session scratchpad as `DEFENCE_STUDIO_STORAGE_ROOT`; use a short path such as `C:\t\...`.
+- API error contract: every `/api` failure answers in JSON with `detail`, and server faults also carry `error_code` and `error_id`. Unexpected exceptions return a generic message and are logged with the same `error_id`, never with internals in the response. The UI reports an unreadable (non-JSON) reply with its HTTP status, and reports network failures separately.
 - Tamil is the primary language goal but Tamil narration is unproven end to end (subtitle shaping verified visually).
 - "Mocked" and "live-verified" are not interchangeable; trackers must keep the distinction.
 

@@ -1,4 +1,5 @@
 import asyncio
+import logging
 import os
 import uuid
 import threading
@@ -18,6 +19,7 @@ from defence_studio.services.discovery import DiscoveryApiService, DiscoveryErro
 from defence_studio.services.jobs import JobError, JobService
 from defence_studio.services.review import ReviewError, ReviewService
 from defence_studio.services.worker import WorkerService
+from defence_studio.storage.artifacts import StoragePathTooLong
 from defence_studio.services.evidence import EvidenceService
 from defence_studio.services.pipeline_trace import PipelineTraceService
 from defence_studio.services.script import ScriptService
@@ -136,6 +138,9 @@ class AssetReviewBody(BaseModel):
     note: str = Field(min_length=1, max_length=4000)
 
 
+logger = logging.getLogger(__name__)
+
+
 def create_app(
     database_file: Path | None = None,
     signing_secret: str | None = None,
@@ -236,6 +241,28 @@ def create_app(
     async def discovery_error_handler(_request, exc: DiscoveryError):
         return JSONResponse(status_code=exc.status_code, content={"detail": str(exc)})
 
+    # Server faults must still answer in JSON: the UI cannot read Starlette's
+    # plain-text 500 and would show a generic "unreadable response".
+    @app.exception_handler(StoragePathTooLong)
+    async def storage_path_too_long_handler(_request, exc: StoragePathTooLong):
+        error_id = uuid.uuid4().hex[:12]
+        logger.error("storage path too long [error_id=%s]: %s", error_id, exc)
+        return JSONResponse(status_code=500, content={
+            "detail": "Server storage is misconfigured: its folder path is too long for Windows. "
+                      f"Nothing was saved. Ask the operator to set a shorter DEFENCE_STUDIO_STORAGE_ROOT "
+                      f"and restart the server. (Reference {error_id})",
+            "error_code": "STORAGE_PATH_TOO_LONG", "error_id": error_id})
+
+    @app.exception_handler(Exception)
+    async def unhandled_error_handler(request, exc: Exception):
+        error_id = uuid.uuid4().hex[:12]
+        logger.error("unhandled error on %s %s [error_id=%s]", request.method, request.url.path, error_id,
+                     exc_info=exc)
+        return JSONResponse(status_code=500, content={
+            "detail": f"Internal server error. Nothing further was changed by this request step. "
+                      f"(Reference {error_id})",
+            "error_code": "INTERNAL_ERROR", "error_id": error_id})
+
     # ScriptError is not a distinct base: ScriptService raises the ReviewError
     # family (ScriptGenerationFailed/ScriptNotFound/ScriptValidationError/
     # ScriptStaleRevision all derive from ReviewError or its subclasses), so
@@ -272,6 +299,7 @@ def create_app(
         idempotency_key: str = Header(min_length=1, max_length=200, alias="Idempotency-Key"),
         owner_id: str = Depends(require_owner),
     ):
+        discovery.preflight_storage()
         return jobs.create(owner_id, idempotency_key, body.topic, body.language)
 
     @app.get("/api/jobs")

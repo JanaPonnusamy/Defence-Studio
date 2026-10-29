@@ -33,6 +33,10 @@ class StoragePathError(ValueError):
     """A URI would escape the job's storage directory or is malformed."""
 
 
+class StoragePathTooLong(StoragePathError):
+    """The storage root is too deep for Windows paths: a server configuration fault, not bad input."""
+
+
 @dataclass(frozen=True)
 class StoredArtifact:
     uri: str
@@ -95,14 +99,19 @@ class ArtifactStore:
             raise StoragePathError("Resolved artifact path escapes the job directory")
         return pure.as_posix(), target
 
+    def ensure_path_fits(self, job_id: str, relative_uri: str) -> tuple[str, Path]:
+        """Resolve the URI and reject it if Windows could not create the file."""
+        uri, target = self._resolve(job_id, relative_uri)
+        if os.name == "nt" and len(str(target)) > MAX_WINDOWS_PATH:
+            raise StoragePathTooLong(
+                f"Artifact path is {len(str(target))} characters, over the Windows limit of {MAX_WINDOWS_PATH}; "
+                "use a shorter DEFENCE_STUDIO_STORAGE_ROOT")
+        return uri, target
+
     def write_bytes(
         self, job_id: str, relative_uri: str, data: bytes, media_type: str
     ) -> StoredArtifact:
-        uri, target = self._resolve(job_id, relative_uri)
-        if os.name == "nt" and len(str(target)) > MAX_WINDOWS_PATH:
-            raise StoragePathError(
-                f"Artifact path is {len(str(target))} characters, over the Windows limit of {MAX_WINDOWS_PATH}; "
-                "use a shorter DEFENCE_STUDIO_STORAGE_ROOT")
+        uri, target = self.ensure_path_fits(job_id, relative_uri)
         target.parent.mkdir(parents=True, exist_ok=True)
         fd, tmp_name = tempfile.mkstemp(dir=str(target.parent), suffix=".part")
         tmp_path = Path(tmp_name)

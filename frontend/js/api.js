@@ -19,13 +19,23 @@ async function handle(response) {
   const text = await response.text();
   let body;
   try { body = text ? JSON.parse(text) : null; }
-  catch { throw new ApiError(response.status, "The server returned an unreadable response. Reload or try again."); }
+  catch {
+    // A proxy page or a framework's plain-text 500 is not our API contract. Keep
+    // the raw reply in the console for diagnosis; tell the user what failed.
+    console.error(`Unreadable API response (HTTP ${response.status})`, text.slice(0, 500));
+    const where = response.ok ? "" : ` with an error (HTTP ${response.status})`;
+    throw new ApiError(response.status,
+      `The server returned an unreadable response${where}. Your request may not have been completed; reload or try again.`);
+  }
   if (!response.ok) {
     const detail = body?.detail;
     const message = Array.isArray(detail)
       ? detail.map(item => `${(item.loc || []).join(".")}: ${item.msg || "Invalid value"}`).join("; ")
-      : typeof detail === "string" ? detail : response.statusText;
-    throw new ApiError(response.status, message);
+      : typeof detail === "string" ? detail : (response.statusText || `Request failed (HTTP ${response.status})`);
+    const error = new ApiError(response.status, message);
+    error.code = body?.error_code;
+    error.errorId = body?.error_id;
+    throw error;
   }
   return body;
 }
@@ -37,7 +47,12 @@ export function createApiClient(getToken, onUnauthorized = () => {}) {
     if (url !== `${base}/dev/session` && !sentAuthorization) {
       throw new ApiError(401, "Sign in to continue.");
     }
-    const response = await fetch(url, options);
+    let response;
+    try { response = await fetch(url, options); }
+    catch (cause) {
+      console.error("API request did not reach the server", url, cause);
+      throw new ApiError(0, "Could not reach the Defence Studio server. Check that it is running, then try again.");
+    }
     // Only invalidate the session used by this request. A delayed failure from
     // an older token must not sign out a newly authenticated session.
     if (response.status === 401 && sentAuthorization &&

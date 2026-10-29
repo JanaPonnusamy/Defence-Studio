@@ -91,6 +91,19 @@ class DiscoveryApiService:
 
     # -- requests -------------------------------------------------------------
 
+    @staticmethod
+    def _request_uri(job_id: str, content_sha256: str) -> str:
+        return f"jobs/{job_id}/discovery/{content_sha256}.json"
+
+    def preflight_storage(self) -> None:
+        """Raise StoragePathTooLong before a job exists if its request artifact could not be written.
+
+        Start research creates the job first; without this check a too-deep
+        storage root fails the next call and leaves an orphan DRAFT job.
+        """
+        placeholder_job = str(uuid.UUID(int=0))
+        self.store.ensure_path_fits(placeholder_job, self._request_uri(placeholder_job, "0" * 64))
+
     def create_request(self, job_id: str, owner_id: str, payload: dict) -> dict:
         job = self._check_ownership(job_id, owner_id)
         try:
@@ -108,7 +121,7 @@ class DiscoveryApiService:
         body = json.dumps(request_to_dict(request), ensure_ascii=False, sort_keys=True,
                           separators=(",", ":")).encode("utf-8")
         content_sha256 = hashlib.sha256(body).hexdigest()
-        uri = f"jobs/{job_id}/discovery/{content_sha256}.json"
+        uri = self._request_uri(job_id, content_sha256)
 
         existing = self._latest_artifact(job, DISCOVERY_REQUEST_ARTIFACT_TYPE)
         if existing is not None and existing["sha256"] == content_sha256:
@@ -425,7 +438,7 @@ class DiscoveryApiService:
         body = json.dumps(acquisition_request, ensure_ascii=False, sort_keys=True,
                           separators=(",", ":")).encode("utf-8")
         content_sha256 = hashlib.sha256(body).hexdigest()
-        uri = f"jobs/{job_id}/discovery/{content_sha256}.json"
+        uri = self._request_uri(job_id, content_sha256)
 
         existing = self._latest_artifact(job, ACQUISITION_REQUEST_ARTIFACT_TYPE)
         if existing is not None and existing["sha256"] == content_sha256:
