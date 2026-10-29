@@ -5,6 +5,7 @@ import uuid
 import threading
 from contextlib import asynccontextmanager
 from pathlib import Path
+from typing import Literal
 
 from fastapi import Depends, FastAPI, Header, HTTPException, Query, Request
 from fastapi.responses import JSONResponse
@@ -36,14 +37,19 @@ from defence_studio.api.monitor_routes import register_monitor_routes
 from defence_studio.services.voice import VoiceService
 from defence_studio.services.factcheck import FactcheckService, FactcheckError
 from defence_studio.services.assets import AssetService
+from defence_studio.contracts.discovery import SUPPORTED_LANGUAGES
 from defence_studio.contracts.evidence import ApprovalBody
 from defence_studio.contracts.script import GenerationConfigV1
 from defence_studio.contracts.scene import ScenePlanConfigV1
 
+# Research entry accepts only the languages the pipeline can produce; anything
+# else is a 422 before a job is created or a request is saved.
+ResearchLanguage = Literal[SUPPORTED_LANGUAGES]
+
 
 class CreateJobBody(BaseModel):
     topic: str = Field(min_length=1, max_length=1000)
-    language: str = Field(default="ta", min_length=2, max_length=20)
+    language: ResearchLanguage = "ta"
 
 
 class StageTransitionBody(BaseModel):
@@ -69,7 +75,7 @@ class ReviewDecisionBody(BaseModel):
 
 class DiscoveryRequestBody(BaseModel):
     topic: str = Field(min_length=1, max_length=1000)
-    language: str = Field(default="en", min_length=2, max_length=20)
+    language: ResearchLanguage = "en"
     search_terms: list[str] = Field(default_factory=list)
     filters: dict = Field(default_factory=dict)
     limits: dict = Field(default_factory=dict)

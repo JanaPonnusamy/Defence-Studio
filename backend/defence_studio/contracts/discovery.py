@@ -41,7 +41,10 @@ DISCOVERY_PREDECESSOR_STAGE = "application_foundation"
 
 SUPPORTED_PROVIDERS = ("rss_feed", "configured_search_api", "manual_url")
 MAX_SEED_URLS = 20
-SUPPORTED_LANGUAGES_HINT = ("en", "ta")  # documentation only; any 2-20 char tag is accepted
+# Enforced at the API boundary (job creation and new discovery requests). The
+# parser below stays lenient (any 2-20 char tag) so requests already stored
+# with another tag can still be read by the worker and retry paths.
+SUPPORTED_LANGUAGES = ("en", "ta")
 
 
 class ProviderStatus(str, Enum):

@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import { createApiClient, ApiError } from "../js/api.js";
 import { renderClaimDetail } from "../js/views/claims-view.js";
 import { renderDecisionPanelHtml } from "../js/views/decision-panel.js";
+import { startFormHtml } from "../js/views/research-view.js";
 
 test("evidence API authenticates without putting credentials in URLs", async () => {
   const originalFetch = globalThis.fetch;
@@ -37,6 +38,27 @@ test("failed approvals and validation errors never become successful UI response
     await assert.rejects(client.evidencePackage("job"), /body.note: Required/);
     globalThis.fetch = async () => new Response("<html>Proxy unavailable</html>",{status:503});
     await assert.rejects(client.exportEvidence("job"), /unreadable response/);
+  } finally { globalThis.fetch = originalFetch; }
+});
+
+test("research language: the form offers only supported codes and a rejected code reads clearly", async () => {
+  const offered = [...startFormHtml().matchAll(/<option value="([^"]*)"/g)].map(m => m[1]).sort();
+  assert.deepEqual(offered, ["en", "ta"]);
+  const originalFetch = globalThis.fetch;
+  const calls = [];
+  const client = createApiClient(() => "test");
+  try {
+    globalThis.fetch = async (url, options) => {
+      calls.push(JSON.parse(options.body));
+      return new Response(JSON.stringify({detail:[{loc:["body","language"],msg:"Input should be 'en' or 'ta'"}]}), {status:422});
+    };
+    for (const language of ["fr", "EN", "", undefined]) {
+      await assert.rejects(client.createJob("t", language, "k"),
+        e => e instanceof ApiError && e.status === 422 && e.message === "body.language: Input should be 'en' or 'ta'");
+    }
+    assert.deepEqual(calls.map(c => c.language), ["fr", "EN", "", undefined]);  // sent as typed, never rewritten
+    globalThis.fetch = async (url, options) => new Response(JSON.stringify({job_id:"j", language:JSON.parse(options.body).language}), {status:201});
+    for (const language of ["en", "ta"]) assert.equal((await client.createJob("t", language, "k")).language, language);
   } finally { globalThis.fetch = originalFetch; }
 });
 
