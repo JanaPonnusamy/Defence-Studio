@@ -45,6 +45,13 @@ NATIVE_CONTROL_PROVIDERS = ("local-pyttsx3", "edge-neural")
 # Valluvar voice behind local-pyttsx3 produced robotic ~55 wpm narration (job 9b61429f).
 DEFAULT_PROVIDERS = {"ta": "edge-neural"}
 FALLBACK_PROVIDER = "local-pyttsx3"
+# Voice the UI preselects for evaluation runs; always sent explicitly. A request that names no voice
+# still gets the audio module's own default (Valluvar for Tamil).
+EVALUATION_VOICES = {("edge-neural", "ta"): "ta-IN-PallaviNeural"}
+# The edge-neural endpoint is Microsoft's consumer read-aloud service, not Azure AI Speech: no published
+# terms cover commercial/YouTube use, so its output is for authorized evaluation only.
+PROVIDER_TERMS = {"edge-neural": "EVALUATION_ONLY: unofficial Microsoft Edge read-aloud endpoint; commercial and "
+                                 "YouTube-monetization terms unresolved. Not accepted for monetized production."}
 
 
 class AudioService(IntegrationService):
@@ -114,12 +121,30 @@ class AudioService(IntegrationService):
 
     # -- operations -----------------------------------------------------------
 
+    def provider_voices(self, language: str) -> dict:
+        """Voices the audio module itself declares for ``language`` (its /tts/providers report)."""
+        try:
+            described = self._client().providers()
+        except Exception as exc:  # module down: report it, never invent a voice list
+            return {"voices": [], "error": f"{type(exc).__name__}: {exc}"[:200]}
+        voices = [{"provider": p.get("provider"), "voice_id": v["id"], "locale": (v.get("languages") or [""])[0],
+                   "available": bool(p.get("available", True)), "network": bool(p.get("network", False))}
+                  for p in described for v in (p.get("voices") or [])
+                  if any(str(l).lower().split("-")[0] == language for l in v.get("languages") or [])]
+        return {"voices": voices, "error": None}
+
     def start_audio(self, job_id: str, owner_id: str, language: str, idempotency_key: str, *,
                     provider: str | None = None, voice_id: str | None = None, align: bool = True,
                     allow_mock: bool = False, background: bool = True) -> dict:
         provider = provider or DEFAULT_PROVIDERS.get(language, FALLBACK_PROVIDER)
         row, plan = self._approved_plan(job_id, owner_id, language)
         self.check_provider_policy(provider, language, allow_mock)
+        if voice_id:
+            listed = self.provider_voices(language)
+            if listed["error"] is None and voice_id not in {v["voice_id"] for v in listed["voices"]
+                                                            if v["provider"] == provider}:
+                raise IntegrationValidationError(
+                    f"VOICE_UNSUPPORTED: provider {provider!r} declares no {language!r} voice {voice_id!r}")
         binding = {"scene_plan_sha256": row["plan_sha256"], "scene_plan_version": row["version"],
                    "script_revision_sha256": row["script_revision_sha256"], "provider": provider,
                    "voice_id": voice_id, "align": bool(align), "language": language}
@@ -237,8 +262,13 @@ class AudioService(IntegrationService):
         for it in items:
             it["stale"] = current_sha is None or it["input_binding"].get("scene_plan_sha256") != current_sha
         providers = {name: list(langs) for name, langs in provider_languages().items()}
+        listed = self.provider_voices(language)
+        default_provider = DEFAULT_PROVIDERS.get(language, FALLBACK_PROVIDER)
         return {"job_id": job_id, "language": language, "current_scene_plan_sha256": current_sha,
-                "items": items, "provider_languages": providers}
+                "items": items, "provider_languages": providers, "default_provider": default_provider,
+                "voices": listed["voices"], "voices_error": listed["error"],
+                "suggested_voice": EVALUATION_VOICES.get((default_provider, language)),
+                "provider_terms": PROVIDER_TERMS}
 
     def verify_audio_set(self, job_id: str, owner_id: str, language: str, version: int) -> dict:
         """Re-hash every stored scene file against the artifact (never trust)."""

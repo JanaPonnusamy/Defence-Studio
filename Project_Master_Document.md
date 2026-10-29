@@ -54,6 +54,22 @@ core backend **500 passed / 8 skipped** · core frontend **42 passed** · voice 
 - Windows paths: keep storage roots short (guard fails writes > 240 chars).
 - Tamil is the primary language goal but Tamil narration is unproven end to end (subtitle shaping verified visually).
 - "Mocked" and "live-verified" are not interchangeable; trackers must keep the distinction.
+- Tamil narration (2026-10-29): the integrated `edge-neural` provider uses Microsoft's unofficial Edge read-aloud endpoint; no published terms cover commercial/YouTube use, so it is **evaluation only** (reported as `EVALUATION_ONLY`). Monetized production needs a licensed provider (e.g. Azure AI Speech, same Tamil voices) and owner acceptance of its terms. Evidence: `AGENT_WORK/DEFENCE_STUDIO_COMPONENT_CHECKLIST.md`.
+
+## 4A. Mandatory session-start Git sync and completion workflow
+
+Every session (any agent, either PC) follows these steps. Commands, remotes and the register live in `automation/GIT_COMMIT_SYNC_RULE.md`; this list is the order, not a copy.
+
+1. Read this document, `CLAUDE.md` and `automation/GIT_COMMIT_SYNC_RULE.md`.
+2. Check the branch, remotes (`git remote -v`) and working tree (`git status --short`, `git stash list`, `git worktree list`).
+3. Fetch every configured remote and compare local vs remote history (`git rev-list --left-right --count <remote>/<branch>...HEAD`); stop on divergence instead of merging blindly.
+4. Preserve local work and databases: never reset, clean, or overwrite another session's changes; never stage `*.sqlite3`, WAL/SHM, `.env*`, credentials, venvs or generated media. Uncommitted foreign work stays where it is (use a separate `git worktree` if the tree is busy).
+5. Work on an isolated feature branch (or `develop` when the owner says so); never push straight to `main`.
+6. Run the relevant tests and inspect the final diff (`git diff`, `git diff --check`).
+7. Stage explicit paths only (no `git add -A` / `.` / `commit -a`).
+8. Commit and push the authorized branch to each configured remote; never force-push.
+9. Verify the remote commit (`git fetch` then `git rev-parse <remote>/<branch>` equals the local commit).
+10. Report the commands, test counts, commit hash, push verification and remaining blockers; append the register row.
 
 ## 5. Design intent carried from the 2026-10-10 discovery (not yet implemented, unresolved)
 

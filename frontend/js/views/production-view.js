@@ -218,6 +218,34 @@ registerSection({
 
 // -- Audio section (RM-4) --------------------------------------------------------
 
+// Provider + voice come from what the server/audio module actually declare; nothing is hard-coded here.
+export function renderVoicePickerHtml(status) {
+  const declared = Object.keys((status && status.provider_languages) || {});
+  const def = (status && status.default_provider) || declared[0] || "";
+  const names = declared.includes(def) || !def ? declared : [def, ...declared];
+  const voices = (status && status.voices) || [];
+  const suggested = status && status.suggested_voice;
+  const terms = (status && status.provider_terms) || {};
+  const options = (provider) => {
+    const own = voices.filter((v) => v.provider === provider);
+    return `<option value="">Provider default voice</option>${own.map((v) => `<option value="${esc(v.voice_id)}"
+      ${v.voice_id === suggested ? "selected" : ""} ${v.available ? "" : "disabled"}>${esc(v.voice_id)} (${esc(v.locale)})${
+      v.available ? "" : " — unavailable"}</option>`).join("")}`;
+  };
+  return `<div class="voice-picker">
+    <label>Provider <select id="audio-provider">${names.map((n) =>
+      `<option value="${esc(n)}" ${n === def ? "selected" : ""}>${esc(n)}</option>`).join("")}</select></label>
+    <label>Voice <select id="audio-voice">${options(def)}</select></label>
+    <p class="meta" id="audio-selected" aria-live="polite"></p>
+    ${status && status.voices_error ? `<p class="inline-warn">Voice list unavailable: ${esc(status.voices_error)}</p>` : ""}
+    ${Object.entries(terms).map(([n, t]) => `<p class="inline-warn" data-terms-for="${esc(n)}">${esc(n)}: ${esc(t)}</p>`).join("")}
+  </div>`;
+}
+
+export function voiceOptionsFor(status, provider) {
+  return ((status && status.voices) || []).filter((v) => v.provider === provider);
+}
+
 export function renderAudioHtml(status, setBody, { canGenerate = false, staleReason = "" } = {}) {
   const items = (status && status.items) || [];
   const providers = Object.entries((status && status.provider_languages) || {});
@@ -244,7 +272,7 @@ export function renderAudioHtml(status, setBody, { canGenerate = false, staleRea
     <p class="meta">Voices available by provider: ${providerNote || "none reported"}. A language a provider is not
     declared to support is refused rather than spoken with the wrong voice. Word timing is approximate; scene durations
     are measured from the audio.</p>
-    <label>Provider <input type="text" id="audio-provider" value="local-pyttsx3"></label>
+    ${renderVoicePickerHtml(status)}
     <button type="button" data-act="generate-audio" ${canGenerate ? "" : "disabled"}>Generate narration audio</button>
     ${canGenerate ? "" : `<p class="meta">${staleReason
         ? `The approved scene plan is no longer current (${esc(staleReason)}). Re-sync/regenerate it before generating audio.`
@@ -280,12 +308,27 @@ registerSection({
   },
   wire(ctx, node) {
     const job = encodeURIComponent(ctx.jobId);
+    const providerSel = node.querySelector("#audio-provider"), voiceSel = node.querySelector("#audio-voice");
+    const showSelected = () => {
+      const label = node.querySelector("#audio-selected");
+      if (label) label.textContent = `Selected: provider ${providerSel.value || "none"} · voice ${voiceSel.value || "provider default"}`;
+    };
+    if (providerSel && voiceSel) {
+      providerSel.addEventListener("change", () => {
+        voiceSel.innerHTML = '<option value="">Provider default voice</option>' + voiceOptionsFor(ctx.audio, providerSel.value)
+          .map((v) => `<option value="${esc(v.voice_id)}" ${v.available ? "" : "disabled"}>${esc(v.voice_id)} (${esc(v.locale)})</option>`).join("");
+        showSelected();
+      });
+      voiceSel.addEventListener("change", showSelected);
+      showSelected();
+    }
     node.querySelectorAll("[data-act]").forEach((btn) => btn.addEventListener("click", async () => {
       const act = btn.dataset.act;
       if (act === "generate-audio") {
-        const provider = node.querySelector("#audio-provider").value.trim() || "local-pyttsx3";
+        const provider = node.querySelector("#audio-provider").value;
+        const voice_id = node.querySelector("#audio-voice").value || null;
         runAction(ctx, node, "Starting", () => ctx.api.request("POST", `/jobs/${job}/audio/${ctx.language}/generate`,
-          { body: { provider }, idempotencyKey: newIdempotencyKey() }));
+          { body: { provider, voice_id }, idempotencyKey: newIdempotencyKey() }));
       } else if (act === "retry-audio") {
         runAction(ctx, node, "Retrying", () => ctx.api.request(
           "POST", `/jobs/${job}/audio/${ctx.language}/${btn.dataset.version}/retry`,
