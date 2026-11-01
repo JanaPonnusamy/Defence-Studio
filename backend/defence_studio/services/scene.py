@@ -62,6 +62,7 @@ from defence_studio.services.review import (
     ReviewNotFound, ReviewValidationError, RevisionConflict, StaleRevision,
 )
 from defence_studio.services.script import ScriptService, ScriptStaleRevision
+from defence_studio.services.stage_sync import complete_stage_locked
 
 __all__ = [
     "SceneService", "SceneNotFound", "SceneValidationError",
@@ -538,6 +539,7 @@ class SceneService(ScriptService):
                 "INSERT INTO scene_plan_review_history VALUES(?,?,?,?,?,?,?,?,?)",
                 (str(uuid.uuid4()), job_id, language, version, "APPROVED", owner_id, note, now, idempotency_key),
             )
+            complete_stage_locked(connection, job_id, "scene_creation_and_voice_direction", now)
             connection.commit()
             return dict(connection.execute(
                 "SELECT * FROM scene_plans WHERE job_id=? AND language=? AND version=?",

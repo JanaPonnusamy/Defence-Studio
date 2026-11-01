@@ -25,6 +25,7 @@ from defence_studio.services.script import ScriptService
 from test_review_f5 import (ACQUISITION_STAGE, ANALYSIS_STAGE, OWNER, _advance, _complete, _setup, _source,
                             _store_acquisition)
 from test_script_phase3 import GOOD_CONFIG, FakeProvider
+from human_approval_helpers import approve_package_as_human
 
 TOPIC = "S-400 Triumf air defence system"
 REGISTRY = {
@@ -163,8 +164,14 @@ def test_policy_dispositions_provenance_and_readiness(tmp_path):
     assert bib and bib[0]["state"] == REJECTED and "bibliography" in bib[0]["reasons"][0]
     dup = [c for c in r["claims"] if c["state"] == REJECTED and c["reasons"][0].startswith("duplicate of")]
     assert len(dup) == 1
-    assert r["ready_for_generation"] and r["package_approval"]["approval_kind"] == "AUTOMATED_POLICY"
-    assert r["package_approval"]["reviewer_id"] == "AUTOMATED_POLICY"      # never a person's identity
+    # Decision C: the policy recommends; it never approves. A person must approve the package.
+    assert not r["ready_for_generation"] and r["package_approval"] is None
+    assert r["awaiting_human_review"] and r["recommendation"] == "RECOMMEND_HUMAN_APPROVAL"
+    assert EvidenceService(db, root).draft(job, OWNER)["approvals"] == []
+    approve_package_as_human(db, root, job, OWNER)
+    r = svc.run(job, OWNER)
+    assert r["ready_for_generation"] and r["recommendation"] == "HUMAN_APPROVED"
+    assert r["package_approval"]["approval_kind"] == "HUMAN" and r["package_approval"]["reviewer_id"] == OWNER
     # provenance: every accepted claim keeps its exact passage and source
     for c in r["claims"]:
         assert c["source_id"] and c["passage"]["start"] is not None
@@ -183,7 +190,7 @@ def test_policy_dispositions_provenance_and_readiness(tmp_path):
                                (by_text["The deployment status of the S-400 40N6 missile is unclear."]["claim_id"],)).fetchone()
     assert unresolved["state"] == NEEDS_REVIEW and "uncertainty" in unresolved["reasons_json"]
     appr = EvidenceService(db, root).export(job, OWNER)["approval"]
-    assert appr["approval_kind"] == "AUTOMATED_POLICY" and appr["reviewer_id"] is None and appr["policy_version"]
+    assert appr["approval_kind"] == "HUMAN" and appr["reviewer_id"] == OWNER
 
 
 def test_single_source_figure_is_not_accepted(tmp_path):
@@ -240,7 +247,7 @@ def test_policy_run_is_idempotent_and_owner_scoped(tmp_path):
     svc = policy_service(db, root, tmp_path)
     a, b = svc.run(job, OWNER), svc.run(job, OWNER)
     assert a["run_id"] == b["run_id"] and a["result_sha256"] == b["result_sha256"]
-    assert len(EvidenceService(db, root).draft(job, OWNER)["approvals"]) == 1
+    assert len(EvidenceService(db, root).draft(job, OWNER)["approvals"]) == 0      # policy never approves
     with pytest.raises(Exception):
         svc.run(job, "someone-else")
     assert svc.latest(job, OWNER)["result_sha256"] == a["result_sha256"]
@@ -272,6 +279,7 @@ def test_cleanup_after_terminal_states_keeps_durable_outputs(tmp_path, terminal)
     db, root, _, job = make_job(tmp_path)
     svc = policy_service(db, root, tmp_path)
     result = svc.run(job, OWNER)
+    approve_package_as_human(db, root, job, OWNER)
     ws = svc.workspace
     path = ws.job_dir(job)
     assert path.exists() and any(path.rglob("*.json"))

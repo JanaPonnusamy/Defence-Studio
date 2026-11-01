@@ -69,9 +69,10 @@ class VisualModuleClient:
 
     def build_timeline(self, project_name: str, scenes: list[dict], options: dict | None = None,
                        idempotency_key: str | None = None, on_progress=None,
-                       assets: list[dict] | None = None) -> dict:
+                       assets: list[dict] | None = None, ai_budget_usd: float | None = None) -> dict:
         """``scenes``: ``[{scene_id, text, start, end}]`` in order. Returns
-        ``{project_id, visual_plan_id, job_id, module_version, scenes, timeline}``."""
+        ``{project_id, visual_plan_id, job_id, module_version, scenes, timeline}``.
+        ``ai_budget_usd`` sets the module project's AI image spending cap."""
         if not scenes:
             raise VisualModuleError("no_scenes", "At least one scene is required")
         for s in scenes:
@@ -79,7 +80,10 @@ class VisualModuleClient:
                 raise VisualModuleError("scene_id_too_long", f"scene_id {s['scene_id']!r} exceeds {SCENE_ID_MAX} chars")
         with self._factory(timeout=self.request_timeout) as client:
             health = self._request(client, "GET", "/health")
-            project = self._request(client, "POST", "/projects", json={"name": project_name[:200]})
+            project_body = {"name": project_name[:200]}
+            if ai_budget_usd is not None:
+                project_body["ai_image_budget_usd"] = ai_budget_usd
+            project = self._request(client, "POST", "/projects", json=project_body)
             pid = project["project_id"]
             imported: dict[str, str] = {}  # module asset_id -> core asset_id
             for a in assets or []:

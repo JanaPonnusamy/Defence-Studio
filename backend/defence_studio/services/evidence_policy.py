@@ -4,7 +4,7 @@ Reads the job's current acquisition manifest + analysis result, evaluates every 
 against ``config/evidence_policy.json`` and the controlled source registry, records one disposition
 per subject in the dedicated append-only ``evidence_policy_decisions`` table (policy version + run
 id, never a reviewer identity; the human review ledger is never written) and, only when the explicit
-readiness criteria pass, records an AUTOMATED_POLICY package approval through the evidence service. Nothing here is a truth test: ``AUTO_ACCEPTED`` means "passed every
+readiness criteria pass, RECOMMENDS human approval (it never approves a package; decision C, 2026-11-01). Nothing here is a truth test: ``AUTO_ACCEPTED`` means "passed every
 mandatory deterministic check", and every non-accepted claim stays out of the usable set.
 
 Safety rules:
@@ -27,6 +27,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from defence_studio.acquisition.source_policy import SourcePolicy, default_policy
+from defence_studio.services.human_approval import is_human_record
 from defence_studio.contracts.evidence import canonical
 from defence_studio.database import connect
 from defence_studio.repositories.jobs import JobRepository
@@ -114,9 +115,13 @@ class EvidencePolicyService:
                 raise ReviewNotFound("Workflow job not found")
             acq_ref = ReviewService._latest_artifact(c, job_id, ACQUISITION_RESULT_ARTIFACT)
             ana_ref = ReviewService._latest_artifact(c, job_id, ANALYSIS_RESULT_ARTIFACT)
+            req_ref = ReviewService._latest_artifact(c, job_id, "discovery_request")
+        job = dict(job)
+        job["video_format"] = (self.review._read_json_artifact(job_id, req_ref).get("video_format")
+                               if req_ref is not None else None) or "standard"
         if acq_ref is None or ana_ref is None:
             raise ReviewValidationError("Acquisition and analysis results must exist before the evidence policy runs")
-        return (dict(job), acq_ref, ana_ref,
+        return (job, acq_ref, ana_ref,
                 self.review._read_json_artifact(job_id, acq_ref), self.review._read_json_artifact(job_id, ana_ref))
 
     def _anchors(self, topic: str) -> list[str]:
@@ -155,7 +160,7 @@ class EvidencePolicyService:
             raise ReviewValidationError("Analysis does not reference the current acquisition revision")
         anchors = self._anchors(job["topic"])
         subjects = self.subject_categories(job["topic"])
-        cfg = self.policy
+        cfg = self.effective_policy(job["video_format"])
         normalized = {n["source_id"]: n for n in ana.get("normalized_sources", []) if n.get("status") == "NORMALIZED"}
 
         # ---- sources
@@ -455,8 +460,15 @@ class EvidencePolicyService:
                 "acquisition_sha256": acq_ref["sha256"], "analysis_sha256": ana_ref["sha256"],
                 "sources": source_out, "claims": claim_out,
                 "counts": {"claims": counts, "sources": scounts},
-                "policy_criteria_failed": failed}
+                "policy_criteria_failed": failed, "video_format": job["video_format"],
+                "readiness_policy": cfg["readiness"]}
         return body
+
+    def effective_policy(self, video_format: str) -> dict:
+        """The policy with ``readiness.profiles[video_format]`` overlaid (thresholds only)."""
+        readiness = dict(self.policy["readiness"])
+        profile = readiness.pop("profiles", {}).get(video_format) or {}
+        return {**self.policy, "readiness": {**readiness, **profile}}
 
     @staticmethod
     def _assessment_outcome(row):
@@ -550,7 +562,10 @@ class EvidencePolicyService:
             return {**result, "result_uri": uri, "result_sha256": sha}
 
     # -- apply ---------------------------------------------------------------
-    def run(self, job_id: str, owner_id: str, *, approve_package: bool = True) -> dict:
+    def run(self, job_id: str, owner_id: str) -> dict:
+        """Assess, record decisions and RECOMMEND. Never approves (decision C, 2026-11-01):
+        when the readiness criteria pass, the package waits for a human approval through
+        ``POST /api/jobs/{id}/package/approve``."""
         body = self.evaluate(job_id, owner_id)
         with closing(connect(self.database_file)) as history:
             human_snapshot = [dict(r) for table in ("source_reviews", "claim_reviews")
@@ -580,7 +595,7 @@ class EvidencePolicyService:
         for row in rows:
             row["evidence"].update(default_configuration=self.default_configuration,
                 configuration_sha256=self.configuration_sha256, registry_sha256=self.registry_sha256,
-                policy_criteria_failed=body["policy_criteria_failed"], readiness_policy=self.policy["readiness"])
+                policy_criteria_failed=body["policy_criteria_failed"], readiness_policy=body["readiness_policy"])
         with closing(connect(self.database_file)) as c:
             c.execute("BEGIN IMMEDIATE")
             if self.default_configuration and (
@@ -599,23 +614,22 @@ class EvidencePolicyService:
         draft = self.evidence.draft(job_id, owner_id)
         pkg = draft["package"]
         blockers = list(pkg["blockers"])
-        approval = None
         ready = not blockers and not body["policy_criteria_failed"]
-        if ready:
-            existing = draft.get("current_approval")
-            if existing:
-                approval = self._approval_view(existing)
-            elif approve_package:
-                row = self.evidence.approve(
-                    job_id, owner_id, draft["revision"],
-                    f"[AUTO-POLICY {self.policy['version']}] readiness criteria satisfied: "
-                    f"{body['counts']['claims'][AUTO_ACCEPTED]} claims accepted", f"policy-approve-{run_id}-r{draft['revision']}",
-                    automated={"policy_version": self.policy["version"], "run_id": run_id})
-                approval = self._approval_view(row)
+        existing = draft.get("current_approval")          # human approvals only (EvidenceService.draft)
+        approval = self._approval_view(existing) if ready and existing else None
+        missing = [f"{f['criterion']}: required {f['required']}, got {f['actual']}" for f in body["policy_criteria_failed"]]
         result = {**body, "run_id": run_id, "package_blockers": blockers, "human_decisions_preserved": skipped_human,
                   "package_ready": not blockers, "ready_for_generation": ready and approval is not None,
-                  "package_approval": approval}
-        if not result["ready_for_generation"]:
+                  "package_approval": approval,
+                  "recommendation": ("HUMAN_APPROVED" if approval else
+                                     "RECOMMEND_HUMAN_APPROVAL" if ready else "NOT_READY"),
+                  "awaiting_human_review": ready and approval is None,
+                  "missing_information": missing + blockers,
+                  "legacy_automated_approval_ignored": bool(draft.get("legacy_automated_approval"))}
+        if result["awaiting_human_review"]:
+            result["explanation"] = ("Evidence criteria are met. Generation waits for a human to review and "
+                                     "approve the evidence package; automated validation cannot approve it.")
+        elif not result["ready_for_generation"]:
             result["explanation"] = ("Generation is stopped: " + "; ".join(
                 [f"{f['criterion']} required {f['required']} got {f['actual']}" for f in body["policy_criteria_failed"]]
                 + blockers[:5]) or "package not approved")
@@ -638,7 +652,7 @@ class EvidencePolicyService:
         row = dict(row)
         return {"version": row.get("version"), "revision": row.get("revision"),
                 "reviewer_id": row.get("reviewer_id"), "approval_kind":
-                    "AUTOMATED_POLICY" if row.get("reviewer_id") == "AUTOMATED_POLICY" else "HUMAN",
+                    "HUMAN" if is_human_record(row.get("reviewer_id")) else "LEGACY_AUTOMATED",
                 "approved_at": row.get("approved_at") or row.get("created_at")}
 
     def latest(self, job_id: str, owner_id: str) -> dict | None:

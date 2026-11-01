@@ -28,10 +28,14 @@ from defence_studio.services.render import RenderService
 from defence_studio.services.youtube import YouTubeService
 from defence_studio.api.integration_routes import register_integration_routes
 from defence_studio.api.voice_routes import register_voice_routes
+from defence_studio.api.image_research_routes import register_image_research_routes
+from defence_studio.api.storage_routes import register_storage_routes
 from defence_studio.api.factcheck_routes import register_factcheck_routes
 from defence_studio.api.evidence_policy_routes import register_evidence_policy_routes
 from defence_studio.api.monitor_routes import register_monitor_routes
 from defence_studio.services.voice import VoiceService
+from defence_studio.image_research.service import ImageResearchService
+from defence_studio.storage.lifecycle import StorageLifecycleService, default_observed_roots
 from defence_studio.services.factcheck import FactcheckService, FactcheckError
 from defence_studio.services.assets import AssetService
 from defence_studio.contracts.evidence import ApprovalBody
@@ -175,7 +179,11 @@ def create_app(
                            visual_client=clients.get("visual"))
 
     voice = VoiceService(db_path, store_root)
+    image_research = ImageResearchService(db_path, store_root)
+    storage_lifecycle = StorageLifecycleService(db_path, store_root, observed_roots=default_observed_roots(PROJECT_ROOT))
     factcheck = FactcheckService(db_path, store_root)
+    from defence_studio.voice_lab.service import VoiceLabService  # Voice Lab (Agent A)
+    voice_lab = VoiceLabService(db_path, store_root)
 
     @asynccontextmanager
     async def lifespan(_app):
@@ -183,6 +191,7 @@ def create_app(
         worker_service.recover_expired()
         voice.purge_stale_uploads()
         yt.recover_interrupted()  # integration artifacts + publishing jobs, audited
+        voice_lab.reconcile()  # Voice Lab rows left active by an interrupted run
         stop = threading.Event()
         if os.environ.get("DEFENCE_STUDIO_VOICE_WORKER") == "1":
             from defence_studio.services.worker import Worker
@@ -216,6 +225,7 @@ def create_app(
                 await asyncio.to_thread(_app.state.research_worker_thread.join)
             if getattr(_app.state, "voice_worker", None):
                 _app.state.voice_worker.shutdown()
+            voice_lab.shutdown()
 
     app = FastAPI(title="Defence Studio API", version="0.1.0", lifespan=lifespan)
     app.state.database_file = db_path
@@ -753,11 +763,21 @@ def create_app(
         return assets.assignment_readiness(job_id, owner_id, language)
 
     register_voice_routes(app, require_owner, voice)
+    from defence_studio.api.voice_lab_gpu_routes import register_voice_lab_gpu_routes
+    register_voice_lab_gpu_routes(app, require_owner)
+    from defence_studio.api.voice_lab_routes import register_voice_lab_routes
+    register_voice_lab_routes(app, require_owner, voice_lab)
+    app.state.voice_lab = voice_lab
+    register_image_research_routes(app, require_owner, image_research)
+    register_storage_routes(app, require_owner, storage_lifecycle)
     register_factcheck_routes(app, require_owner, factcheck)
     from defence_studio.services.evidence_policy import EvidencePolicyService
     register_evidence_policy_routes(app, require_owner, EvidencePolicyService(db_path, store_root))
     from defence_studio.services.research_monitor import ResearchMonitorService
     register_monitor_routes(app, require_owner, ResearchMonitorService(db_path, store_root))
+    from defence_studio.api.script_studio_routes import register_script_studio_routes
+    from defence_studio.services.script_studio import ScriptStudioService
+    register_script_studio_routes(app, require_owner, ScriptStudioService(db_path, store_root))
     register_integration_routes(app, require_owner, {"visual": visual, "audio": audio, "render": render, "qc": qc, "package": package, "yt": yt})
 
     frontend_dir = PROJECT_ROOT / "frontend"

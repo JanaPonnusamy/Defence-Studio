@@ -114,7 +114,7 @@ def test_tamil_on_english_only_voice_fails_closed_before_any_call(approved_scrip
     s["scene"].approve(s["job"], OWNER, "ta", plan["version"], _plan_sha(s["scene"], s["job"], plan["version"]), "ok", "p-ta")
     fake = FakeAudioModule()
     with pytest.raises(IntegrationValidationError, match="LANGUAGE_UNSUPPORTED"):
-        _service(s, fake).start_audio(s["job"], OWNER, "ta", "a-1", background=False)
+        _service(s, fake).start_audio(s["job"], OWNER, "ta", "a-1", provider="local-pyttsx3", background=False)
     assert fake.synth_calls == 0
 
 

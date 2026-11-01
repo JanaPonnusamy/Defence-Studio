@@ -7,7 +7,8 @@ appears in successive shots, so reuse always means a meaningfully different
 frame (wide -> slow zoom -> close crop -> pan -> highlighted region ...).
 
 All crop rectangles are normalized to the SOURCE image (x, y, w, h in 0..1)
-and always have w == h, i.e. the source aspect ratio is preserved -- motion
+and have w == h, i.e. the source aspect ratio is preserved (except the opt-in
+fill_frame_photos cover crop, which matches the output aspect instead) -- motion
 never stretches or distorts factual content. Protected regions (text, logos,
 faces, markings, evidence details) supplied in asset metadata are always kept
 fully inside the crop and inside the final frame of any zoom/pan; if a motion
@@ -39,6 +40,9 @@ FRAMING_LADDERS: dict[str, list[tuple[str, str]]] = {
     "VIDEO_CLIP": [("wide", "STATIC")],
     "TRANSITION": [("wide", "STATIC")],
 }
+# fill_frame_photos: every photo shot moves; reuse still walks through distinct framings
+FILL_PHOTO_LADDER = [("wide", "SLOW_ZOOM_IN"), ("medium", "PAN_RIGHT"), ("wide", "SLOW_ZOOM_OUT"),
+                     ("medium", "PAN_LEFT"), ("close", "SLOW_ZOOM_IN"), ("medium", "PAN_UP")]
 # gentler zoom on data graphics / documents so nothing is pushed off-frame
 _ZOOM_AMOUNT = {"STAT_CARD": 1.04, "CHART": 1.04, "TITLE_CARD": 1.04, "DOCUMENT": 1.04}
 _SIZES = {"wide": 1.0, "medium": 0.8, "close": 0.55, "subject": 0.6, "region": None}
@@ -104,6 +108,22 @@ def compute_crop(composition: str, asset_meta: dict, region_index: int = 0) -> d
     return crop
 
 
+def fill_crop(crop: dict, src_w: int, src_h: int, out_w: int, out_h: int, protected: list[dict]) -> dict:
+    """Narrow ``crop`` to the output aspect in pixels (a cover crop: no letterbox bars), centred on it.
+    Returns the crop unchanged when that would cut a protected region."""
+    cw, ch = crop["w"] * src_w, crop["h"] * src_h
+    target = out_w / out_h
+    if abs(cw / ch - target) < 1e-3:
+        return crop
+    w, h = (crop["w"] * (ch * target) / cw, crop["h"]) if cw / ch > target else (crop["w"], crop["h"] * (cw / target) / ch)
+    cx, cy = crop["x"] + crop["w"] / 2, crop["y"] + crop["h"] / 2
+    rect = {"x": round(min(max(0.0, cx - w / 2), 1.0 - w), 4), "y": round(min(max(0.0, cy - h / 2), 1.0 - h), 4),
+            "w": round(w, 4), "h": round(h, 4)}
+    if not all(_contains(rect, r) for r in protected):
+        return crop
+    return {**crop, **rect, "fill": True}
+
+
 def _windows(crop: dict, motion: dict) -> list[dict]:
     """Visible windows (normalized to source) at the start and end of the motion."""
     anchor = motion.get("anchor") or {"x": crop["x"] + crop["w"] / 2, "y": crop["y"] + crop["h"] / 2}
@@ -111,9 +131,9 @@ def _windows(crop: dict, motion: dict) -> list[dict]:
     for scale_key, off_key in (("from_scale", "from_offset"), ("to_scale", "to_offset")):
         scale = motion.get(scale_key, motion.get("scale", 1.0))
         off = motion.get(off_key) or {"x": 0.0, "y": 0.0}
-        w = crop["w"] / scale
+        w, h = crop["w"] / scale, crop["h"] / scale
         cx, cy = anchor["x"] + off["x"] * crop["w"], anchor["y"] + off["y"] * crop["h"]
-        out.append({"x": cx - w / 2, "y": cy - w / 2, "w": w, "h": w})
+        out.append({"x": cx - w / 2, "y": cy - h / 2, "w": w, "h": h})
     return out
 
 

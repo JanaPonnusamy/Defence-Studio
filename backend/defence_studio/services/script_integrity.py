@@ -238,6 +238,19 @@ def compare_revisions(old: dict, new: dict) -> dict:
         "claims_removed": sorted(old_claims - new_claims),
         "package_changed": old.get("package_sha256") != new.get("package_sha256"),
         "word_delta": (new.get("word_count") or {}).get("words", 0) - (old.get("word_count") or {}).get("words", 0),
+        # Script Studio: evidence changes per section, ordering and lineage of the newer revision.
+        "section_evidence_changes": [
+            {"section_id": sid,
+             "claims_added": sorted(set((new_sections[sid].get("evidence") or {}).get("claim_ids", []))
+                                    - set((old_sections[sid].get("evidence") or {}).get("claim_ids", []))),
+             "claims_removed": sorted(set((old_sections[sid].get("evidence") or {}).get("claim_ids", []))
+                                      - set((new_sections[sid].get("evidence") or {}).get("claim_ids", [])))}
+            for sid in new_sections if sid in old_sections
+            and set((new_sections[sid].get("evidence") or {}).get("claim_ids", []))
+            != set((old_sections[sid].get("evidence") or {}).get("claim_ids", []))],
+        "order_changed": [s["section_id"] for s in old.get("sections", []) if s["section_id"] in new_sections]
+                         != [s["section_id"] for s in new.get("sections", []) if s["section_id"] in old_sections],
+        "new_lineage": new.get("lineage"),
     }
 
 

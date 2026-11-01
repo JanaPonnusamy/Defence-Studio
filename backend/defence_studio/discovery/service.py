@@ -25,7 +25,7 @@ import hashlib
 import threading
 from datetime import datetime, timezone
 
-from defence_studio.acquisition.url_guard import UrlGuard, UrlValidationError, normalize_url
+from defence_studio.acquisition.url_guard import UrlGuard, UrlValidationError, canonical_url
 from defence_studio.contracts.acquisition import MetadataStatus
 from defence_studio.contracts.discovery import (
     DeclaredCandidateMetadata,
@@ -144,7 +144,7 @@ class DiscoveryService:
     def _merge_candidate(self, merged, raw, provider_name, provider_version, discovered_at,
                          request: DiscoveryRequestV1, warnings, dedup_notes):
         try:
-            canonical = normalize_url(raw.requested_url)
+            canonical = canonical_url(raw.requested_url)
         except UrlValidationError as exc:
             warnings.append(f"{provider_name}: discarded candidate with invalid URL: {exc}")
             return

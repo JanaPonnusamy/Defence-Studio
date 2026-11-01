@@ -1,0 +1,16 @@
+{
+  "_comment": "Military designation -> English spoken form, sent to Tamil TTS only (services/tts_text.py). Subtitles, scripts and labels keep the canonical designation. The hyphen inside a designation is not spoken. Spoken forms avoid hyphens and digits so the voice cannot read 'minus' or Tamil numerals. 'verified' stays false until a listening check on the production voice (docs/TAMIL_SCRIPT_RULES.md section 6.8).",
+  "designations": {
+    "Su-57": {"spoken": "Su fifty seven", "verified": false},
+    "Su-57E": {"spoken": "Su fifty seven E", "verified": false},
+    "Su-30MKI": {"spoken": "Su thirty MKI", "verified": false},
+    "S-400": {"spoken": "S four hundred", "verified": false},
+    "S-300": {"spoken": "S three hundred", "verified": false},
+    "MiG-29": {"spoken": "MiG twenty nine", "verified": false},
+    "F-35": {"spoken": "F thirty five", "verified": false}
+  },
+  "_suffix_comment": "Reviewed speech-only rewrites for a Tamil case suffix attached to a designation, so the suffix is not spoken as a separate token after the English form. The script and subtitles keep the canonical form (Su-57-ல்). A suffixed designation not listed here is left with the suffix separated and reported for review.",
+  "suffix_rewrites": {
+    "Su-57-ல்": {"designation": "Su-57", "suffix": "ல்", "spoken": "Su fifty seven விமானத்தில்", "verified": false}
+  }
+}

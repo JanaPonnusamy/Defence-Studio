@@ -92,34 +92,95 @@ def ffmpeg_binary(name: str = "ffmpeg") -> str:
 # -- cues --------------------------------------------------------------------
 
 
-def _chunks(text: str, max_words: int) -> list[str]:
-    sentences = [s.strip() for s in re.split(r"(?<=[.!?।])\s+", text.strip()) if s.strip()]
+# A period after these is an abbreviation, not a sentence end ("ரூ. 2,12,000" must stay together).
+_ABBREVIATIONS = ("ரூ.", "rs.", "dr.", "mr.", "mrs.", "ms.", "lt.", "gen.", "col.", "no.", "st.", "vs.")
+MAX_CUE_CHARS = 84   # two subtitle lines of ~42 visible characters
+MAX_CUE_CODEPOINTS = 110   # QC's SUBTITLE_OVERFLOW limit (raw length)
+
+
+def _visible_len(text: str) -> int:
+    """Displayed characters: combining marks (Tamil vowel signs, virama) add no width of their own."""
+    import unicodedata
+    return sum(1 for c in text if not unicodedata.category(c).startswith("M"))
+
+
+def _sentences(text: str) -> list[str]:
     out: list[str] = []
-    for sentence in sentences or [text.strip()]:
-        words = sentence.split()
-        if len(words) <= max_words:
+    for piece in (s.strip() for s in re.split(r"(?<=[.!?।])\s+", text.strip())):
+        if not piece:
+            continue
+        if out and out[-1].lower().endswith(_ABBREVIATIONS):
+            out[-1] += " " + piece
+        else:
+            out.append(piece)
+    return out
+
+
+def _chunks(text: str, max_words: int, max_chars: int = MAX_CUE_CHARS) -> list[str]:
+    def fits(t):
+        return _visible_len(t) <= max_chars and len(t) <= MAX_CUE_CODEPOINTS
+
+    out: list[str] = []
+    for sentence in _sentences(text) or [text.strip()]:
+        if len(sentence.split()) <= max_words and len(sentence) <= MAX_CUE_CODEPOINTS or fits(sentence):
             out.append(sentence)
             continue
-        n = -(-len(words) // -(-len(words) // max_words))  # balanced chunk size
-        out.extend(" ".join(words[i:i + n]) for i in range(0, len(words), n))
+        # Prefer clause boundaries; pack whole clauses up to the cue length.
+        cur = ""
+        for clause in (c.strip() for c in re.split(r"(?<=[,;:])\s+", sentence)):
+            joined = f"{cur} {clause}".strip()
+            if cur and not fits(joined):
+                out.append(cur)
+                cur = clause
+            else:
+                cur = joined
+        if cur:
+            out.append(cur)
+        # A single clause still too long: balanced word split as the last resort.
+        for i in range(len(out) - 1, -1, -1):
+            words = out[i].split()
+            if not fits(out[i]) and len(words) > 1:
+                n = -(-len(words) // -(-len(words) // max_words))  # balanced chunk size
+                out[i:i + 1] = [" ".join(words[j:j + n]) for j in range(0, len(words), n)]
     return [c for c in out if c]
 
 
+def _timed_pieces(scene: dict, max_words: int) -> list[tuple[str, float, float]]:
+    """(text, start, end) blocks to spread cues over: measured sentence spans when the
+    audio set carries them, else the whole scene (proportional estimate)."""
+    start = float(scene["start"])
+    end_scene = start + float(scene["duration"])
+    timing = (scene.get("sentence_timing") or {}).get("sentences")
+    if not timing:
+        return [(scene["text"], start, end_scene)]
+    pieces = []
+    for i, sentence in enumerate(timing):
+        lo = start if i == 0 else min(start + float(sentence["start"]), end_scene)
+        # Hold each sentence on screen until the next one starts (covers the pause between them).
+        hi = end_scene if i == len(timing) - 1 else min(start + float(timing[i + 1]["start"]), end_scene)
+        pieces.append((sentence["text"], lo, max(hi, lo)))
+    return pieces
+
+
 def build_cues(scenes: list[dict], max_words: int = 9) -> list[dict]:
-    """``scenes``: ``[{scene_id, text, start, duration}]`` (seconds, measured)."""
+    """``scenes``: ``[{scene_id, text, start, duration, sentence_timing?}]`` (seconds, measured).
+
+    ``sentence_timing.sentences`` (offsets within the scene, from the TTS provider) pins
+    each sentence's cues to when it is actually spoken; long sentences are still split
+    into chunks spread over that sentence's span by length.
+    """
     cues: list[dict] = []
     for scene in scenes:
-        chunks = _chunks(scene["text"], max_words)
-        weights = [max(len(c), 1) for c in chunks]
-        total = float(sum(weights))
-        t = float(scene["start"])
-        end_scene = float(scene["start"]) + float(scene["duration"])
-        for i, (chunk, weight) in enumerate(zip(chunks, weights)):
-            span = float(scene["duration"]) * weight / total
-            end = end_scene if i == len(chunks) - 1 else min(t + span, end_scene)
-            cues.append({"index": len(cues) + 1, "scene_id": scene["scene_id"], "start": round(t, 3),
-                         "end": round(end, 3), "text": chunk})
-            t = end
+        for text, lo, hi in _timed_pieces(scene, max_words):
+            chunks = _chunks(text, max_words)
+            weights = [max(len(c), 1) for c in chunks]
+            total = float(sum(weights))
+            t = lo
+            for i, (chunk, weight) in enumerate(zip(chunks, weights)):
+                end = hi if i == len(chunks) - 1 else min(t + (hi - lo) * weight / total, hi)
+                cues.append({"index": len(cues) + 1, "scene_id": scene["scene_id"], "start": round(t, 3),
+                             "end": round(end, 3), "text": chunk})
+                t = end
     return cues
 
 
@@ -185,7 +246,7 @@ def to_ass(cues: list[dict], width: int, height: int, family: str) -> str:
         "[V4+ Styles]\nFormat: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, "
         "Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, "
         "Alignment, MarginL, MarginR, MarginV, Encoding\n"
-        "Style: Default,%s,%d,&H00FFFFFF,&H000000FF,&H00000000,&H80000000,0,0,0,0,100,100,0,0,1,2.2,0,2,%d,%d,%d,1\n\n"
+        "Style: Default,%s,%d,&H00FFFFFF,&H000000FF,&H00000000,&H80000000,-1,0,0,0,100,100,0,0,1,3,1.2,2,%d,%d,%d,1\n\n"
         "[Events]\nFormat: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text\n"
     ) % (width, height, family, size, int(width * 0.06), int(width * 0.06), margin_v)
     lines = []

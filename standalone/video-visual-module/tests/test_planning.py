@@ -141,6 +141,20 @@ def test_stat_graphic_only_when_number_matches(client, project):
     assert stat_shots[-1]["status"] == "GAP"  # 55 != 40: the card is never reused for a different figure
 
 
+def test_photo_fallback_for_data_intents_is_opt_in_and_strictly_relevant(client, project):
+    import_png(client, project, seed=1111, title="warships photo", meta={"tags": ["warships", "deployed"]})
+    import_png(client, project, seed=1112, title="mountain", meta={"tags": ["mountain", "snow"]})
+    _scenes(client, project, "Officials say 40 warships have been deployed.")
+    shots, _ = _build(client, project)
+    assert shots[0]["intent"] == "STATISTIC" and shots[0]["status"] == "GAP"   # default: no fake stat visual
+    shots, _ = _build(client, project, photo_fallback_for_data_intents=True)
+    assert shots[0]["status"] == "READY" and shots[0]["visual_type"] == "SOURCE_PHOTO"
+    assert client.get(f"/assets/{shots[0]['asset_id']}").json()["title"] == "warships photo"
+    _scenes(client, project, "Officials say 40 tanks have been counted.")              # no relevant photo
+    shots, _ = _build(client, project, photo_fallback_for_data_intents=True)
+    assert shots[0]["status"] == "GAP"                                               # unrelated photo never used
+
+
 # ------------------------------------------------------------------ timing, narration-driven changes, reuse, motion
 def test_shot_timing_is_contiguous_and_anchored(client, project):
     import_png(client, project, seed=1201, title="fleet photo", meta={"tags": ["fleet", "missile", "talon", "system"]})
@@ -232,3 +246,26 @@ def test_documents_and_stat_cards_use_non_distorting_motion():
 def test_build_without_scenes_fails_explicitly(client, project):
     r = client.post("/visual-plans/build", json={"project_id": project})
     assert r.status_code == 422 and r.json()["error_code"] == "MISSING_NARRATION_ANCHOR"
+
+
+def test_tamil_words_keep_vowel_signs_and_match_assigned_keywords():
+    from app.pipeline.intent import content_tokens
+    narration = content_tokens("இந்த ஒப்புதலின் 82 சதவீதம் இந்திய தொழில்துறையிலிருந்து")
+    assert len(narration) >= 4 and all(len(t) >= 3 for t in narration)
+    assert narration & content_tokens("சதவீதம் தொழில்துறையிலிருந்து")
+    assert content_tokens("café u-boat S-400") == content_tokens("cafe u-boat S-400")
+
+
+def test_fill_crop_matches_output_aspect_and_respects_protected_regions():
+    from app.pipeline.motion import FILL_PHOTO_LADDER, compute_crop, fill_crop, plan_motion
+    full = compute_crop("wide", {})
+    # 4:3 photo into a 16:9 frame: full width, reduced height, centred
+    c = fill_crop(full, 1600, 1200, 1920, 1080, [])
+    assert c["fill"] and c["w"] == 1.0 and abs((c["w"] * 1600) / (c["h"] * 1200) - 16 / 9) < 0.01
+    assert abs(c["y"] - (1 - c["h"]) / 2) < 1e-3
+    # a protected caption at the very top would be cut -> keep the full frame
+    assert fill_crop(full, 1600, 1200, 1920, 1080, [{"x": 0.1, "y": 0.0, "w": 0.3, "h": 0.05}]) == full
+    # already 16:9 -> unchanged; and every fill-ladder step moves
+    assert fill_crop(full, 1920, 1080, 1920, 1080, []) == full
+    assert all(m != "STATIC" for _, m in FILL_PHOTO_LADDER)
+    assert plan_motion("SOURCE_PHOTO", "SLOW_ZOOM_IN", c, 4.0)["type"] == "SLOW_ZOOM_IN"

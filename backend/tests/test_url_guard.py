@@ -82,3 +82,33 @@ def test_valid_public_host_passes():
     assert validated.host == "example.com"
     assert validated.port == 443
     assert validated.addresses == ("93.184.216.34",)
+
+
+# --- canonical_url: tracking-parameter removal (dedup level 2) -------------
+
+from defence_studio.acquisition.url_guard import canonical_url, normalize_url
+
+
+def test_canonical_url_strips_utm_and_click_ids():
+    url = "https://Example.com/news/a?utm_source=x&id=7&fbclid=abc&UTM_Medium=y#top"
+    assert canonical_url(url) == "https://example.com/news/a?id=7"
+
+
+def test_canonical_url_drops_query_when_only_tracking():
+    assert canonical_url("https://example.com/a?gclid=1&utm_campaign=z") == "https://example.com/a"
+
+
+def test_canonical_url_is_identical_to_normalize_url_without_tracking():
+    # Keeps source/candidate ids stable for every URL that has no tracking parameters.
+    for url in ("https://example.com/a?b=%20x&a=1", "https://example.com/a?q=a+b", "https://example.com/a",
+                "https://example.com/a?utmost=1"):
+        assert canonical_url(url) == normalize_url(url)
+
+
+def test_canonical_url_keeps_order_and_encoding_of_real_params():
+    assert canonical_url("https://e.com/p?z=%2F1&utm_term=t&a=b+c") == "https://e.com/p?z=%2F1&a=b+c"
+
+
+def test_canonical_url_still_rejects_credentials():
+    with pytest.raises(UrlValidationError):
+        canonical_url("https://user:pw@example.com/a?utm_source=x")

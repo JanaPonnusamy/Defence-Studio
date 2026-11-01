@@ -101,6 +101,12 @@
   "readiness": {
     "min_accepted_claims": 8,
     "min_accepted_sources": 2,
+    "profiles": {
+      "short": {
+        "min_accepted_claims": 5,
+        "_note": "Owner decision 2026-10-28: a <= 90 s video (discovery video_format 'short') narrates about five facts; sources, corroboration and conflict rules are unchanged."
+      }
+    },
     "required_source_categories_any": [
       "RESEARCH_INSTITUTION",
       "GOVERNMENT_OFFICIAL",

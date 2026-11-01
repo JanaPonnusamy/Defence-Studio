@@ -159,7 +159,8 @@ class RenderService(IntegrationService):
                 silence = int(round(pause * p[2]))
                 frames_out.append(b"\x00" * (silence * p[0] * p[1]))
             spans.append({"scene_id": s["scene_id"], "text": s["text"], "start": round(cursor, 3),
-                          "duration": round(duration, 3), "span": round(duration + pause, 3)})
+                          "duration": round(duration, 3), "span": round(duration + pause, 3),
+                          "sentence_timing": s.get("sentence_timing")})
             cursor += duration + pause
         with wave.open(str(out_path), "wb") as w:
             w.setnchannels(params[0]); w.setsampwidth(params[1]); w.setframerate(params[2])
@@ -274,7 +275,8 @@ class RenderService(IntegrationService):
 
     def _subtitle_step(self, job_id, language, spans, duration, plain_uri, profile) -> tuple[dict, dict]:
         cues = subs.build_cues([{"scene_id": s["scene_id"], "text": s["text"], "start": s["start"],
-                                 "duration": s["duration"]} for s in spans])
+                                 "duration": s["duration"], "sentence_timing": s.get("sentence_timing")}
+                                for s in spans])
         problems = subs.check_cues(cues, [{"scene_id": s["scene_id"], "start": s["start"], "duration": s["duration"]}
                                           for s in spans], duration)
         if problems:

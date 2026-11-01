@@ -23,7 +23,7 @@ from __future__ import annotations
 import ipaddress
 import socket
 from dataclasses import dataclass
-from urllib.parse import urlsplit, urlunsplit
+from urllib.parse import unquote_plus, urlsplit, urlunsplit
 
 
 DEFAULT_ALLOWED_SCHEMES = ("http", "https")
@@ -73,6 +73,50 @@ def normalize_url(url: str) -> str:
     return urlunsplit((scheme, netloc, parts.path or "", parts.query, ""))
 
 
+# Query parameters that only identify the click or campaign, never the document.
+# Deliberately short: an unknown parameter is kept, because removing a real one
+# could merge two different pages.
+_TRACKING_PARAMS = frozenset({
+    "fbclid", "gclid", "dclid", "gbraid", "wbraid", "msclkid", "yclid",
+    "mc_cid", "mc_eid", "igshid", "_ga", "_gl",
+})
+
+
+def _is_tracking_param(segment: str) -> bool:
+    key = unquote_plus(segment.split("=", 1)[0]).strip().lower()
+    return key.startswith("utm_") or key in _TRACKING_PARAMS
+
+
+# BBC appends its own analytics parameters (``at_medium=RSS&at_campaign=...``) to feed links.
+# Removed only on BBC hosts, where every ``at_*`` parameter is analytics, never the document.
+_HOST_TRACKING_PREFIXES = (("bbc.com", "at_"), ("bbc.co.uk", "at_"))
+
+
+def _is_host_tracking_param(host: str, segment: str) -> bool:
+    key = unquote_plus(segment.split("=", 1)[0]).strip().lower()
+    return any((host == d or host.endswith("." + d)) and key.startswith(prefix)
+               for d, prefix in _HOST_TRACKING_PREFIXES)
+
+
+def canonical_url(url: str) -> str:
+    """``normalize_url`` plus removal of click/campaign tracking parameters.
+
+    Used as the dedup key and source/candidate id. The surviving query segments
+    keep their original order and encoding, so a URL without tracking
+    parameters returns exactly ``normalize_url(url)`` and its id is unchanged.
+    """
+    normalized = normalize_url(url)
+    parts = urlsplit(normalized)
+    if not parts.query:
+        return normalized
+    segments = parts.query.split("&")
+    host = (parts.hostname or "").lower()
+    kept = [s for s in segments if s and not _is_tracking_param(s) and not _is_host_tracking_param(host, s)]
+    if len(kept) == len(segments):
+        return normalized
+    return urlunsplit((parts.scheme, parts.netloc, parts.path, "&".join(kept), ""))
+
+
 def _is_default_port(scheme: str, port: int) -> bool:
     return (scheme == "http" and port == 80) or (scheme == "https" and port == 443)
 
@@ -106,12 +150,14 @@ def _default_resolver(host: str, port: int) -> list[str]:
 
 
 class UrlGuard:
-    def __init__(self, allowed_schemes=DEFAULT_ALLOWED_SCHEMES, resolver=None, policy=None):
+    def __init__(self, allowed_schemes=DEFAULT_ALLOWED_SCHEMES, resolver=None, policy=None, purpose=None):
         self.allowed_schemes = tuple(s.lower() for s in allowed_schemes)
         self._resolve = resolver or _default_resolver
         # Optional controlled source registry (acquisition.source_policy.SourcePolicy). When set,
         # EVERY validated URL — the initial request and each redirect hop — must be allowlisted.
         self.policy = policy
+        # Registry purpose ("article" for acquisition, None = any): feed-only entries are not acquirable.
+        self.purpose = purpose
 
     def validate(self, url: str) -> ValidatedUrl:
         normalized = normalize_url(url)
@@ -124,7 +170,7 @@ class UrlGuard:
         if self.policy is not None:
             from defence_studio.acquisition.source_policy import SourcePolicyError
             try:
-                self.policy.require(normalized)
+                self.policy.require(normalized, self.purpose)
             except SourcePolicyError as exc:
                 raise UrlValidationError(f"SOURCE_NOT_ALLOWLISTED: {exc}") from None
 

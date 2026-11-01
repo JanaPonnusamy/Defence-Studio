@@ -33,6 +33,9 @@ from defence_studio.contracts.script import (
 from defence_studio.database import connect
 from defence_studio.providers.openai_text import ProviderError, output_token_limit
 from defence_studio.services.evidence import EvidenceService
+from defence_studio.services.human_approval import (
+    APPROVAL_POLICY_VERSION, HUMAN_REVIEWER_SQL, is_human_record, require_human,
+)
 from defence_studio.services.review import (
     ReviewError, ReviewNotFound, ReviewValidationError, RevisionConflict, StaleRevision,
 )
@@ -41,6 +44,7 @@ from defence_studio.services.script_prompt import (
     DRAFT_SCHEMA_NAME, draft_response_schema, system_prompt, user_prompt,
 )
 from defence_studio.services.script_validation import validate_revision_body
+from defence_studio.services.stage_sync import complete_stage_locked
 from defence_studio.services.factcheck import FactcheckError, factcheck_staleness, script_gate
 from defence_studio.services.script_integrity import (
     compare_revisions, corroboration_count, repetition_against,
@@ -147,10 +151,13 @@ class ScriptService(EvidenceService):
     """Extends `EvidenceService` to reuse its ownership checks, artifact store,
     and package assembly rather than re-implementing them."""
 
-    def __init__(self, database_file, storage_root, *, provider=None, auto_approve=True):
+    def __init__(self, database_file, storage_root, *, provider=None, auto_approve=False):
         super().__init__(database_file, storage_root)
         self._provider = provider  # injected for tests; real provider built lazily otherwise
-        self.auto_approve = auto_approve
+        # Decision C (2026-11-01): scripts are approved only by a human through approve().
+        if auto_approve:
+            raise ValueError("Automatic script approval is not permitted; approval is human-only")
+        self.auto_approve = False
 
     def _resolve_provider(self, owner_id: str | None = None):
         if self._provider is not None:
@@ -187,8 +194,8 @@ class ScriptService(EvidenceService):
                 query += " AND language=?"
                 params.append(language)
             rows = [dict(r) for r in connection.execute(query + " ORDER BY language, version", params)]
-        return {"job_id": job_id, "revisions": rows,
-                "approval_mode": "AUTOMATIC" if self.auto_approve else "MANUAL"}
+        return {"job_id": job_id, "revisions": rows, "approval_mode": "HUMAN_ONLY",
+                "approval_policy": APPROVAL_POLICY_VERSION}
 
     def get_revision(self, job_id: str, owner_id: str, language: str, version: int) -> dict:
         self._check_ownership(job_id, owner_id)
@@ -251,8 +258,8 @@ class ScriptService(EvidenceService):
 
     def generate(self, job_id: str, owner_id: str, config: dict, idempotency_key: str) -> dict:
         """Explicit, authorized generation action. Fails closed on a stale,
-        unapproved, or invalid package. Valid drafts receive an audited automatic
-        approval in the same transaction that persists the revision."""
+        unapproved, or invalid package. A valid draft is stored AWAITING_REVIEW;
+        only a human approval (approve()) makes it production-eligible."""
         parsed_config = GenerationConfigV1.model_validate(config)
         idempotency_key = self._validate_idempotency_key(idempotency_key)
         cleared = None
@@ -311,7 +318,7 @@ class ScriptService(EvidenceService):
             max_words=parsed_config.max_words if parsed_config.max_words is not None else 1300,
             terminology=parsed_config.terminology, eligible_claims=eligible_claims, corroboration=corroboration,
         )
-        system_text = system_prompt(parsed_config.language)
+        system_text = system_prompt(parsed_config.language, parsed_config.script_format)
         budget_policy = {"max_text_cost_inr": parsed_config.max_text_cost_inr,
                          "guard_applies": bool(getattr(provider, "is_paid", False))}
         state = {"calls": 0, "result": None}
@@ -351,7 +358,7 @@ class ScriptService(EvidenceService):
             if "max_output_tokens" in inspect.signature(provider.generate).parameters:
                 call["max_output_tokens"] = max_output_tokens
             if "response_schema" in inspect.signature(provider.generate).parameters:
-                call["response_schema"] = draft_response_schema()
+                call["response_schema"] = draft_response_schema(parsed_config.target_words)
                 call["response_schema_name"] = DRAFT_SCHEMA_NAME
             try:
                 outcome = provider.generate(**call)
@@ -521,15 +528,7 @@ class ScriptService(EvidenceService):
                 (job_id, parsed_config.language, version, revision_sha, uri, sha, package_sha, request_sha,
                  canonical_body["status"], owner_id, now, idempotency_key),
             )
-            if self.auto_approve and validation["passed"]:
-                try:
-                    self._approve_locked(connection, job_id, owner_id, parsed_config.language, version,
-                        revision_sha, "Passed script validation and current evidence checks.",
-                        f"auto-approve-{revision_sha}", automated=True)
-                except ScriptStaleRevision as exc:
-                    connection.rollback()
-                    record("STALE_EVIDENCE", str(exc), validation=validation, version=version)
-                    raise
+            # No automatic approval: a passing revision stays AWAITING_REVIEW for a human.
             saved = self._materialize(job_id, dict(connection.execute(
                 "SELECT * FROM script_revisions WHERE job_id=? AND language=? AND version=?",
                 (job_id, parsed_config.language, version),
@@ -767,13 +766,15 @@ class ScriptService(EvidenceService):
         if not current["ready"]:
             raise ScriptStaleRevision("Script generation requires a ready, currently approved evidence package")
         record = connection.execute(
-            "SELECT * FROM evidence_packages WHERE job_id=? AND revision=?",
+            f"SELECT * FROM evidence_packages WHERE job_id=? AND revision=? AND {HUMAN_REVIEWER_SQL}",
             (job_id, digest(current)),
         ).fetchone()
         if not record:
-            raise ScriptStaleRevision("No approval exists for the current evidence and review revision")
+            raise ScriptStaleRevision("No human approval exists for the current evidence and review revision; "
+                                      "a person must review and approve the evidence package first")
         value = self._read_json_artifact(job_id, dict(record))
-        if value["status"] != "APPROVED" or (value.get("approval") or {}).get("revision") != record["revision"]:
+        if value["status"] != "APPROVED" or (value.get("approval") or {}).get("revision") != record["revision"] \
+                or (value.get("approval") or {}).get("approval_kind") != "HUMAN":
             raise ReviewValidationError("Package approval does not match ledger")
         return current
 
@@ -795,14 +796,14 @@ class ScriptService(EvidenceService):
             return row
 
     def _approve_locked(self, connection, job_id, owner_id, language, version,
-                        revision_sha256, note, idempotency_key, *, automated=False):
-        """One approval boundary for automatic and legacy human decisions.
+                        revision_sha256, note, idempotency_key):
+        """The only script approval boundary: a human reviewer (decision C, 2026-11-01).
 
         The caller holds BEGIN IMMEDIATE, so freshness, approval history and
-        supersession commit atomically with a newly generated revision.
+        supersession commit atomically.
         """
+        actor = require_human(owner_id)
         self._check_ownership_locked(connection, job_id, owner_id)
-        actor = "AUTOMATED_VALIDATION" if automated else owner_id
         replay = connection.execute(
             "SELECT 1 FROM script_review_history WHERE job_id=? AND language=? AND version=? "
             "AND reviewer_id=? AND idempotency_key=?",
@@ -818,31 +819,40 @@ class ScriptService(EvidenceService):
             return dict(row)
         if row["revision_sha256"] != revision_sha256:
             raise ScriptStaleRevision("revision_sha256 does not match the current revision; reload before approving")
-        if row["status"] == "APPROVED":
-            raise ScriptStaleRevision("This revision is already approved")
         if row["status"] == "SUPERSEDED":
             raise ScriptStaleRevision("A superseded revision cannot be approved; generate a new one")
         body = self._read_json_artifact(job_id, dict(row))
+        if row["status"] == "APPROVED" and (body.get("approval") or {}).get("approval_kind") == "HUMAN":
+            raise ScriptStaleRevision("This revision is already approved")
+        # A legacy AUTOMATED_VALIDATION approval is not an approval: a human may approve that revision.
         if not body["validation"]["passed"]:
             raise ScriptValidationError("A revision that failed validation cannot be approved")
         current_draft = self._snapshot(connection, job_id, owner_id)
         if not current_draft["ready"] or digest(current_draft) != body["package_sha256"]:
             raise ScriptStaleRevision("The evidence package has changed since this revision was generated; regenerate before approval")
         ledger_record = connection.execute(
-            "SELECT 1 FROM evidence_packages WHERE job_id=? AND revision=?",
+            f"SELECT version, sha256, reviewer_id FROM evidence_packages WHERE job_id=? AND revision=? "
+            f"AND {HUMAN_REVIEWER_SQL} ORDER BY version DESC LIMIT 1",
             (job_id, body["package_sha256"]),
         ).fetchone()
         if not ledger_record:
-            raise ScriptStaleRevision("The evidence package is no longer currently approved; regenerate before approval")
+            raise ScriptStaleRevision("The evidence package has no current human approval; a person must approve "
+                                      "the evidence package before the script can be approved")
         stale_factcheck = factcheck_staleness(connection, job_id, language, version)
         if stale_factcheck:
             raise ScriptStaleRevision(stale_factcheck)
         now = _now()
         body["status"] = "APPROVED"
         body["approval"] = {"revision_sha256": revision_sha256, "version": version, "reviewer_id": actor,
-                            "note": note, "approved_at": now,
-                            "approval_kind": "AUTOMATED_VALIDATION" if automated else "HUMAN",
-                            "policy_version": body["validation"]["validator_version"] if automated else None}
+                            "note": note, "approved_at": now, "approval_kind": "HUMAN", "policy_version": None,
+                            "decision": "APPROVED",
+                            "evidence_package_version": ledger_record["version"],
+                            "evidence_package_sha256": body["package_sha256"],
+                            "audit": {"approval_policy": APPROVAL_POLICY_VERSION, "actor_kind": "HUMAN",
+                                      "authenticated_subject": actor, "idempotency_key": idempotency_key,
+                                      "evidence_package_reviewer": ledger_record["reviewer_id"],
+                                      "evidence_package_artifact_sha256": ledger_record["sha256"],
+                                      "validator_version": body["validation"]["validator_version"]}}
         data = canonical(validate_revision(body))
         sha = hashlib.sha256(data).hexdigest()
         uri = f"jobs/{job_id}/scripts/{language}/{sha}-approved.json"
@@ -859,6 +869,7 @@ class ScriptService(EvidenceService):
             "INSERT INTO script_review_history VALUES(?,?,?,?,?,?,?,?,?)",
             (str(uuid.uuid4()), job_id, language, version, "APPROVED", actor, note, now, idempotency_key),
         )
+        complete_stage_locked(connection, job_id, "script_generation_and_approval", now)
         return dict(connection.execute(
             "SELECT * FROM script_revisions WHERE job_id=? AND language=? AND version=?",
             (job_id, language, version),
@@ -923,9 +934,13 @@ class ScriptService(EvidenceService):
             if row is None:
                 raise ScriptStaleRevision("No approved script revision exists for this job/language")
             body = self._read_json_artifact(job_id, dict(row))
+            if (body.get("approval") or {}).get("approval_kind") != "HUMAN" or \
+                    not is_human_record((body.get("approval") or {}).get("reviewer_id")):
+                raise ScriptStaleRevision("The approved script carries a legacy automated approval; a human must "
+                                          "review and approve it before production")
             current_draft = self._snapshot(connection, job_id, owner_id)
             ledger_record = connection.execute(
-                "SELECT 1 FROM evidence_packages WHERE job_id=? AND revision=?",
+                f"SELECT 1 FROM evidence_packages WHERE job_id=? AND revision=? AND {HUMAN_REVIEWER_SQL}",
                 (job_id, body["package_sha256"]),
             ).fetchone()
             if not current_draft["ready"] or digest(current_draft) != body["package_sha256"] or not ledger_record:

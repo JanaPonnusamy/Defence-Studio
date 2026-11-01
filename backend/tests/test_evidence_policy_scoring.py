@@ -160,6 +160,24 @@ def test_readiness_fails_with_exact_reasons_under_default_thresholds(tmp_path):
     assert out["package_approval"] is None and "Generation is stopped" in out["explanation"]
 
 
+def test_short_profile_relaxes_only_its_own_thresholds(tmp_path):
+    from defence_studio.contracts.discovery import RequestValidationError, request_from_dict
+    from defence_studio.services.evidence_readiness import PolicyConfigError, validate_policy_config
+    svc, job, *_ = two_groups(tmp_path)
+    svc.policy = load_evidence_policy()
+    out = svc.evaluate(job, OWNER)   # no discovery request recorded -> standard thresholds
+    assert out["video_format"] == "standard" and out["readiness_policy"]["min_accepted_claims"] == 8
+    short = svc.effective_policy("short")["readiness"]
+    assert short["min_accepted_claims"] == 5 and short["min_accepted_sources"] == 2 and "profiles" not in short
+    assert svc.effective_policy("standard")["corroboration"] == svc.policy["corroboration"]
+    bad = copy.deepcopy(svc.policy)
+    bad["readiness"]["profiles"]["short"]["min_accepted_claims"] = 0
+    with pytest.raises(PolicyConfigError):
+        validate_policy_config(bad)
+    with pytest.raises(RequestValidationError):
+        request_from_dict({"topic": "DAC approvals", "video_format": "tiny"}, job_id=job)
+
+
 def test_run_records_policy_actor_idempotently_and_preserves_human_history(tmp_path):
     svc, job, review, db, _ = two_groups(tmp_path)
     claim = by_text(svc.evaluate(job, OWNER), "400 km")[0]

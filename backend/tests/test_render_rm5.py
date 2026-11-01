@@ -48,7 +48,9 @@ def make_mp4(path: Path, seconds: float, size="320x180") -> None:
 
 
 def test_cues_are_contiguous_within_scene_and_cover_every_scene():
-    scenes = [{"scene_id": "a", "text": "One two three four five six seven eight nine ten eleven twelve. Short one.",
+    # Over two subtitle lines, so it must split (a sentence that fits stays one cue).
+    scenes = [{"scene_id": "a", "text": "Seventeen eighteen nineteen twenty twentyone twentytwo twentythree "
+                                        "twentyfour twentyfive twentysix twentyseven twentyeight. Short one.",
                "start": 0.0, "duration": 6.0},
               {"scene_id": "b", "text": "அதிகாரிகள் தெரிவித்த தகவலின்படி நிலைமை தொடர்கிறது.", "start": 6.0, "duration": 3.0}]
     cues = subs.build_cues(scenes, max_words=6)
@@ -532,3 +534,14 @@ def test_real_end_to_end_audio_visual_render_subtitles(approved_script):
     out = Path(__import__("tempfile").gettempdir()) / "ds_rm5_e2e.mp4"
     data, _ = render.render_file(s["job"], OWNER, "en", r["version"], "subtitled")
     out.write_bytes(data)
+
+
+def test_cues_never_break_after_abbreviations_and_prefer_commas():
+    from defence_studio.integrations.subtitles import MAX_CUE_CODEPOINTS, _chunks
+    cues = _chunks("இந்த ஒப்புதலின் மூலம், பாதுகாப்பு படைகளுக்கான ரூ. 2,12,000 கோடி வழங்கப்பட்டது.", 9)
+    assert len(cues) == 1 and "ரூ. 2,12,000" in cues[0]
+    long = ("கண்காணிப்பு மற்றும் தாக்குதல் திறன்களை மேம்படுத்த, ஒருங்கிணைந்த கண்காணிப்பு மற்றும் "
+            "தாக்குதல் முறைமைக்கு ஒப்புதல் வழங்கப்பட்டுள்ளது.")
+    parts = _chunks(long, 9)
+    assert parts[0].endswith(",") and all(len(p) <= MAX_CUE_CODEPOINTS for p in parts)
+    assert _chunks("It cleared Rs. 2,000 crore. Then it ended.", 9) == ["It cleared Rs. 2,000 crore.", "Then it ended."]

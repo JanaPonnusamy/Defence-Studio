@@ -40,7 +40,7 @@ class Settings(BaseSettings):
 
     # --- TTS ---
     default_tts_provider: str = "mock-tts"
-    enabled_tts_providers: list[str] = ["local-pyttsx3", "mock-tts"]
+    enabled_tts_providers: list[str] = ["edge-neural", "local-pyttsx3", "mock-tts"]
 
     # --- Limits ---
     max_upload_bytes: int = 200 * 1024 * 1024  # 200 MB

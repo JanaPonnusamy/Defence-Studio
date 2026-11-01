@@ -27,6 +27,23 @@ VISUAL_KIND = "visual_timeline"
 VISUAL_SCHEMA = "defence-studio.visual-timeline.v1"
 DEFAULT_OPTIONS = {"generate_ai": False, "allow_unknown_rights": False, "output_width": 1920,
                    "output_height": 1080, "frame_rate": 30}
+# Hard ceiling for one owner-authorized AI image budget (the module enforces it per project).
+MAX_AI_BUDGET_USD = 10.0
+_AI_AUTH_KEYS = ("ai_cost_authorized", "ai_budget_usd")
+
+
+def _letter_words(text: str) -> list[str]:
+    """Runs of letters plus their combining marks (Tamil vowel signs are not regex word characters)."""
+    import unicodedata
+    out, cur = [], ""
+    for c in text + " ":
+        if unicodedata.category(c)[0] == "L" or (cur and unicodedata.category(c)[0] == "M"):
+            cur += c
+        else:
+            if cur:
+                out.append(cur)
+            cur = ""
+    return out
 
 
 class VisualService(IntegrationService):
@@ -77,9 +94,15 @@ class VisualService(IntegrationService):
         row, plan = self._approved_plan(job_id, owner_id, language)
         opts = {**DEFAULT_OPTIONS, **(options or {})}
         if opts.get("generate_ai"):
-            raise IntegrationValidationError(
-                "AI image generation is not enabled from this endpoint; it is a separately budgeted, "
-                "approved action (cost must be authorized first).")
+            # A separately budgeted action: the caller must authorize the cost and name the cap.
+            budget = opts.get("ai_budget_usd")
+            if (opts.get("ai_cost_authorized") is not True or isinstance(budget, bool)
+                    or not isinstance(budget, (int, float)) or not 0 < budget <= MAX_AI_BUDGET_USD):
+                raise IntegrationValidationError(
+                    "AI image generation is a separately budgeted action: pass ai_cost_authorized=true and "
+                    f"ai_budget_usd (0 < budget <= {MAX_AI_BUDGET_USD:g}) to authorize its cost.")
+        else:
+            opts = {k: v for k, v in opts.items() if k not in _AI_AUTH_KEYS}
         audio = None
         assigned = self.assigned_assets(job_id, language, row["plan_sha256"])
         binding = {"scene_plan_sha256": row["plan_sha256"], "scene_plan_version": row["version"],
@@ -130,9 +153,11 @@ class VisualService(IntegrationService):
 
             scene_text = {s["scene_id"]: s["narration"] for s in plan["scenes"]}
             uploads = [self._asset_upload(job_id, a, scene_text) for a in (assigned or [])]
+            module_options = {k: v for k, v in options.items() if k not in _AI_AUTH_KEYS}
             result = self._client().build_timeline(
-                f"{job_id}:{language}:v{version}", segments, options,
-                idempotency_key=f"ds-{job_id}-{language}-{version}", on_progress=progress, assets=uploads)
+                f"{job_id}:{language}:v{version}", segments, module_options,
+                idempotency_key=f"ds-{job_id}-{language}-{version}", on_progress=progress, assets=uploads,
+                ai_budget_usd=options.get("ai_budget_usd") if options.get("generate_ai") else None)
             timeline = result["timeline"]
             shots = timeline.get("shots", [])
             gaps = [s for s in shots if s.get("status") == "GAP"]
@@ -165,14 +190,13 @@ class VisualService(IntegrationService):
                              detail=f"internal: {type(exc).__name__}: {exc}")
 
     def _asset_upload(self, job_id: str, a: dict, scene_text: dict) -> dict:
-        import re
         d, r = a["descriptor"], a.get("rights") or {}
         data = self.store.read_bytes(job_id, a["uri"])
         if hashlib.sha256(data).hexdigest() != d["content"]["content_sha256"]:
             raise IntegrationValidationError(f"Asset {a['asset_id'][:12]} failed its integrity check")
         basis = r.get("rights_basis", "unknown")
         open_basis = basis in ("public_domain", "cc_by", "cc_by_sa")
-        words = {w for sid in a["scene_ids"] for w in re.findall(r"[^\W\d_]{4,}", scene_text.get(sid, "").lower())}
+        words = {w for sid in a["scene_ids"] for w in _letter_words(scene_text.get(sid, "").lower()) if len(w) >= 4}
         ext = d["content"]["media_type"].split("/")[-1].replace("jpeg", "jpg")
         prov = d.get("provenance") or {}
         return {

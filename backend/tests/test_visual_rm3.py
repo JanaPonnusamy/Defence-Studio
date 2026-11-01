@@ -29,12 +29,13 @@ class FakeVisualModule:
 
     def __init__(self, fail_build=False, drop_scene=False, timeline_version="1.1"):
         self.fail_build, self.drop_scene, self.timeline_version = fail_build, drop_scene, timeline_version
-        self.calls, self.segments, self.polls = [], [], 0
+        self.calls, self.segments, self.polls, self.bodies = [], [], 0, {}
 
     def handler(self, request: httpx.Request) -> httpx.Response:
         path, method = request.url.path, request.method
         self.calls.append((method, path))
         body = json.loads(request.content) if request.content else {}
+        self.bodies[path] = body
         if path == "/health":
             return httpx.Response(200, json={"status": "ok", "version": "1.1.0"})
         if path == "/projects":
@@ -146,13 +147,35 @@ def test_incomplete_coverage_and_unsupported_timeline_fail_explicitly(approved_s
     assert old["status"] == "FAILED" and "unsupported_timeline" in old["detail"]
 
 
-def test_ai_generation_is_not_enabled_from_this_stage(approved_script):
+def test_ai_generation_requires_an_explicitly_authorized_budget(approved_script):
     s = approved_script
     _approved_plan(s)
     from defence_studio.services.integration import IntegrationValidationError
-    with pytest.raises(IntegrationValidationError):
-        _service(s, FakeVisualModule()).start_visual_plan(
-            s["job"], OWNER, "ta", "ai-1", {"generate_ai": True}, background=False)
+    for i, bad in enumerate(({"generate_ai": True},
+                             {"generate_ai": True, "ai_budget_usd": 1.0},                              # not authorized
+                             {"generate_ai": True, "ai_cost_authorized": "yes", "ai_budget_usd": 1.0},  # not literally true
+                             {"generate_ai": True, "ai_cost_authorized": True},                        # no cap
+                             {"generate_ai": True, "ai_cost_authorized": True, "ai_budget_usd": 0},
+                             {"generate_ai": True, "ai_cost_authorized": True, "ai_budget_usd": 10.01})):
+        with pytest.raises(IntegrationValidationError):
+            _service(s, FakeVisualModule()).start_visual_plan(s["job"], OWNER, "ta", f"ai-{i}", bad, background=False)
+
+
+def test_authorized_ai_budget_caps_the_module_project_and_is_not_forwarded_as_an_option(approved_script):
+    s = approved_script
+    _approved_plan(s)
+    fake = FakeVisualModule()
+    row = _service(s, fake).start_visual_plan(
+        s["job"], OWNER, "ta", "ai-ok", {"generate_ai": True, "ai_cost_authorized": True, "ai_budget_usd": 0.5,
+                                         "max_ai_images": 10}, background=False)
+    assert row["status"] == "SUCCEEDED"
+    assert fake.bodies["/projects"]["ai_image_budget_usd"] == 0.5
+    sent = fake.bodies["/visual-plans/build"]["options"]
+    assert sent["generate_ai"] is True and sent["max_ai_images"] == 10
+    assert "ai_cost_authorized" not in sent and "ai_budget_usd" not in sent
+    plain = FakeVisualModule()
+    _service(s, plain).start_visual_plan(s["job"], OWNER, "ta", "no-ai", {"ai_budget_usd": 3}, background=False)
+    assert "ai_image_budget_usd" not in plain.bodies["/projects"]                 # no AI -> module default cap
 
 
 def test_changed_script_makes_timeline_stale_and_unexportable(approved_script):

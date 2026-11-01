@@ -1,0 +1,7 @@
+{
+  "_comment": "Spoken forms sent to Tamil TTS only; subtitles keep the approved script. Add a term only after an ASR round-trip or listening check on the production voice (docs/TAMIL_SCRIPT_RULES.md section 6.8).",
+  "terms": {
+    "DRDO": {"spoken": "டிஆர்டிஓ", "verified": "2026-10-28 ta-IN-ValluvarNeural ASR round-trip"},
+    "S-400": {"spoken": "எஸ்-400", "verified": "2026-10-28 ta-IN-ValluvarNeural and PallaviNeural ASR round-trip; Latin form was read digit by digit"}
+  }
+}

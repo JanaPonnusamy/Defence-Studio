@@ -81,6 +81,7 @@ def test_retry_rejects_wrong_owner_key_change_and_nonempty_evidence(tmp_path):
 @pytest.mark.parametrize("url", [
     "https://feeds.bbci.co.uk/news/world/rss.xml",
     "https://www.defensenews.com/arc/outboundfeeds/rss/?outputType=xml",
+    "https://www.defensenews.com/feed/",  # the old feed URL now redirects here (observed 2026-11-01)
     "https://breakingdefense.com/feed/",
     "https://www.thehindu.com/news/national/feeder/default.rss",
 ])
