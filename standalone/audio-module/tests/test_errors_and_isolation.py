@@ -42,6 +42,19 @@ def test_tts_unknown_provider_rejected():
     raise AssertionError("job did not complete in time")
 
 
+def test_tts_controls_accepted_only_for_providers_that_apply_them(monkeypatch):
+    from types import SimpleNamespace
+    from app.api import tts as tts_api
+    submitted = []
+    monkeypatch.setattr(tts_api, "get_job_queue", lambda: SimpleNamespace(submit=lambda *a: submitted.append(a)))
+    body = {"text": "வணக்கம்", "language": "ta", "controls": {"rate_wpm": 140}}
+    bad = client.post("/tts/synthesize", json={**body, "provider": "mock-tts"})
+    assert bad.status_code == 422 and "edge-neural" in bad.json()["error"]["message"]
+    ok = client.post("/tts/synthesize", json={**body, "provider": "edge-neural"})
+    assert ok.status_code == 200 and len(submitted) == 1  # queued, not run: no network call in tests
+    assert submitted[0][2]["controls"] == {"rate_wpm": 140}
+
+
 def test_url_ingestion_disabled_by_default():
     from pathlib import Path
     from app.pipeline.ingest import ingest_url

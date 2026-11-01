@@ -30,8 +30,9 @@ def synthesize(req: TTSSynthesizeRequest, db: Session = Depends(get_session)):
     performance_plan = []
     if req.output_format != 'wav':
         raise ValidationFailedError('Only WAV output is supported')
-    if req.controls and req.provider != 'local-pyttsx3':
-        raise ValidationFailedError('Delivery controls require local-pyttsx3')
+    # Providers that validate and apply rate/volume/pitch controls themselves (resolve_controls).
+    if req.controls and req.provider not in ('local-pyttsx3', 'edge-neural'):
+        raise ValidationFailedError('Delivery controls require local-pyttsx3 or edge-neural')
     if req.performance_plan_id:
         plan = db.get(PerformancePlan, req.performance_plan_id)
         if plan:

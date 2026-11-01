@@ -26,6 +26,34 @@ class AudioBody(BaseModel):
     allow_mock: bool = False
 
 
+class VoiceControls(BaseModel):
+    # Ranges are enforced against what the provider itself reports (VoiceLabMixin).
+    model_config = ConfigDict(extra="forbid")
+    rate_wpm: float | None = None
+    volume: float | None = None
+    pitch_semitones: float | None = None
+
+    def given(self) -> dict:
+        return {k: v for k, v in self.model_dump().items() if v is not None}
+
+
+class VoiceConfigBody(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    provider: str = Field(min_length=1, max_length=100)
+    voice_id: str = Field(min_length=1, max_length=200)
+    controls: VoiceControls = Field(default_factory=VoiceControls)
+
+
+class VoicePreviewBody(VoiceConfigBody):
+    text: str = Field(min_length=1, max_length=400)
+
+
+class VoiceReviewBody(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    decision: str = Field(pattern="^(APPROVED|REJECTED)$")
+    note: str = Field(min_length=1, max_length=500)
+
+
 class RenderBody(BaseModel):
     model_config = ConfigDict(extra="forbid")
     audio_version: int = Field(gt=0)
@@ -177,6 +205,40 @@ def register_integration_routes(app: FastAPI, require_owner, services: dict) -> 
     ):
         return audio.start_audio(job_id, owner_id, language, idempotency_key, provider=body.provider,
                                  voice_id=body.voice_id, align=body.align, allow_mock=body.allow_mock)
+
+    # -- Studio Phase 2: Voice Lab ---------------------------------------------
+
+    @app.get("/api/jobs/{job_id}/voice-lab/{language}")
+    def voice_lab_state(job_id: str, language: str, owner_id: str = Depends(require_owner)):
+        return audio.voice_lab_state(job_id, owner_id, language)
+
+    @app.post("/api/jobs/{job_id}/voice-lab/{language}/previews")
+    def create_voice_preview(
+        job_id: str, language: str, body: VoicePreviewBody,
+        idempotency_key: str = Header(min_length=1, max_length=200, alias="Idempotency-Key"),
+        owner_id: str = Depends(require_owner),
+    ):
+        return audio.create_voice_preview(job_id, owner_id, language, idempotency_key, provider=body.provider,
+                                          voice_id=body.voice_id, controls=body.controls.given(), text=body.text)
+
+    @app.get("/api/jobs/{job_id}/voice-lab/{language}/previews/{version}/file")
+    def voice_preview_file(job_id: str, language: str, version: int, owner_id: str = Depends(require_owner)):
+        return Response(content=audio.voice_preview_audio(job_id, owner_id, language, version),
+                        media_type="audio/wav", headers={"X-Content-Type-Options": "nosniff"})
+
+    @app.post("/api/jobs/{job_id}/voice-lab/{language}/profiles", status_code=201)
+    def create_voice_profile(
+        job_id: str, language: str, body: VoiceConfigBody,
+        idempotency_key: str = Header(min_length=1, max_length=200, alias="Idempotency-Key"),
+        owner_id: str = Depends(require_owner),
+    ):
+        return audio.create_voice_profile(job_id, owner_id, language, idempotency_key, provider=body.provider,
+                                          voice_id=body.voice_id, controls=body.controls.given())
+
+    @app.post("/api/jobs/{job_id}/voice-lab/{language}/profiles/{version}/review")
+    def review_voice_profile(job_id: str, language: str, version: int, body: VoiceReviewBody,
+                             owner_id: str = Depends(require_owner)):
+        return audio.review_voice_profile(job_id, owner_id, language, version, body.decision, body.note)
 
     @app.post("/api/jobs/{job_id}/audio/{language}/{version}/retry", status_code=202)
     def retry_audio(

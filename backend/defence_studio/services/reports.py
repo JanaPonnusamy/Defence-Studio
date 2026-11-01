@@ -77,8 +77,14 @@ class ReportsMixin:
         except Exception:
             gate = None
 
+        from defence_studio.services.audio import voice_profile_changed
+        from defence_studio.services.voice_lab import PROFILE_KIND, approved_profile
+        voice = approved_profile(self._integration_rows(job_id, language, PROFILE_KIND))
+
         def stale(kind, row):
             b = row["input_binding"]
+            if kind == "audio_set" and voice_profile_changed(b, voice):
+                return True
             if kind in ("audio_set", "visual_timeline", "render"):
                 return plan_sha is None or b.get("scene_plan_sha256") != plan_sha
             if kind == "publish_package":

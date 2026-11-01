@@ -119,6 +119,13 @@ def test_edge_neural_returns_service_sentence_boundaries(monkeypatch, tmp_path):
     assert result.provider_metadata['sentence_boundaries'] == marks
 
 
+def test_edge_neural_describes_its_own_controls():
+    from app.tts.controls import PROFILE
+    from app.tts.edge_neural import CONTROLS
+    assert {k: v['range'] for k, v in CONTROLS.items()} == {k: v['range'] for k, v in PROFILE['controls'].items()}
+    assert 'librosa' not in str(CONTROLS) and 'SSML' in CONTROLS['pitch_semitones']['kind']
+
+
 def test_edge_neural_maps_controls_to_native_prosody():
     from app.tts.edge_neural import prosody
     assert prosody({'rate_wpm': 176, 'volume': 1.0, 'pitch_semitones': 0}) == \

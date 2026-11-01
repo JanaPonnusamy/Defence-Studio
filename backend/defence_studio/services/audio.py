@@ -36,6 +36,7 @@ from defence_studio.services.integration import (
     IntegrationService, IntegrationStale, IntegrationValidationError,
 )
 from defence_studio.services.script import _now
+from defence_studio.services.voice_lab import PROFILE_KIND, VoiceLabMixin, approved_profile
 
 AUDIO_KIND = "audio_set"
 AUDIO_SCHEMA = "defence-studio.audio-set.v1"
@@ -47,7 +48,14 @@ DEFAULT_PROVIDERS = {"ta": "edge-neural"}
 FALLBACK_PROVIDER = "local-pyttsx3"
 
 
-class AudioService(IntegrationService):
+def voice_profile_changed(binding: dict, approved: dict | None) -> bool:
+    """True when a voice profile is approved and this audio was not made with it."""
+    if approved is None:
+        return False
+    return (binding.get("voice_profile") or {}).get("config_sha256") != approved["input_binding"]["config_sha256"]
+
+
+class AudioService(VoiceLabMixin, IntegrationService):
     def __init__(self, database_file, storage_root, *, provider=None, audio_client=None):
         super().__init__(database_file, storage_root, provider=provider)
         self._audio_client = audio_client
@@ -56,24 +64,30 @@ class AudioService(IntegrationService):
         return self._audio_client or AudioModuleClient()
 
     @staticmethod
-    def _tts_controls(scene: dict, provider: str) -> tuple[dict, list[str]]:
-        """Map only verified local-engine controls; surface the rest explicitly."""
+    def _tts_controls(scene: dict, provider: str, base: dict | None = None) -> tuple[dict, list[str]]:
+        """Map only verified local-engine controls; surface the rest explicitly.
+
+        ``base`` is an approved voice profile's controls; the scene's direction
+        scales the rate and shifts the pitch relative to it."""
         direction = scene.get("voice_direction") or {}
+        base = base or {}
         controls, unsupported = {}, ["tone"]
         rate = float(direction.get("rate", 1.0))
-        if rate != 1.0:
-            rate_wpm = round(170 * rate)
+        if rate != 1.0 or "rate_wpm" in base:
+            rate_wpm = round(base.get("rate_wpm", 170) * rate)
             if provider in NATIVE_CONTROL_PROVIDERS and 80 <= rate_wpm <= 260:
                 controls["rate_wpm"] = rate_wpm
             else:
                 unsupported.append("rate")
         pitch = float(direction.get("pitch", 1.0))
-        if pitch != 1.0:
-            pitch_semitones = round(12 * math.log2(pitch), 2)
+        if pitch != 1.0 or "pitch_semitones" in base:
+            pitch_semitones = round(base.get("pitch_semitones", 0) + (12 * math.log2(pitch) if pitch != 1.0 else 0), 2)
             if provider in NATIVE_CONTROL_PROVIDERS and -3 <= pitch_semitones <= 3:
                 controls["pitch_semitones"] = pitch_semitones
             else:
                 unsupported.append("pitch")
+        if "volume" in base:
+            controls["volume"] = base["volume"]
         return controls, unsupported
 
     @staticmethod
@@ -117,12 +131,20 @@ class AudioService(IntegrationService):
     def start_audio(self, job_id: str, owner_id: str, language: str, idempotency_key: str, *,
                     provider: str | None = None, voice_id: str | None = None, align: bool = True,
                     allow_mock: bool = False, background: bool = True) -> dict:
+        # An explicit provider/voice in the request wins; otherwise the approved
+        # Voice Lab profile is used and recorded in the binding.
+        profile = self.approved_voice_profile(job_id, language) if provider is None and voice_id is None else None
+        if profile is not None:
+            provider, voice_id = profile["provider"], profile["voice_id"]
         provider = provider or DEFAULT_PROVIDERS.get(language, FALLBACK_PROVIDER)
         row, plan = self._approved_plan(job_id, owner_id, language)
         self.check_provider_policy(provider, language, allow_mock)
         binding = {"scene_plan_sha256": row["plan_sha256"], "scene_plan_version": row["version"],
                    "script_revision_sha256": row["script_revision_sha256"], "provider": provider,
                    "voice_id": voice_id, "align": bool(align), "language": language}
+        if profile is not None:
+            binding["voice_profile"] = {"version": profile["version"], "config_sha256": profile["config_sha256"]}
+            binding["base_controls"] = profile["controls"]
         item, created = self._create_row(job_id, owner_id, language, AUDIO_KIND, binding, idempotency_key)
         if created:
             self._launch(lambda: self._run(job_id, language, item["version"], plan, binding), background)
@@ -153,7 +175,7 @@ class AudioService(IntegrationService):
                 self._transition(job_id, language, AUDIO_KIND, version, "RUNNING",
                                  detail=f"Synthesizing scene {index + 1}/{total}",
                                  progress=round(0.05 + 0.9 * index / total, 3))
-                controls, unsupported = self._tts_controls(scene, binding["provider"])
+                controls, unsupported = self._tts_controls(scene, binding["provider"], binding.get("base_controls"))
                 prepared = tts_text.prepare(scene["narration"], language, lexicon)
                 result = client.synthesize(prepared["spoken"], provider=binding["provider"],
                                            language=language, voice_id=binding.get("voice_id"), controls=controls)
@@ -234,8 +256,9 @@ class AudioService(IntegrationService):
         except Exception:
             current_sha = None
         items = self._integration_rows(job_id, language, AUDIO_KIND)
+        voice = approved_profile(self._integration_rows(job_id, language, PROFILE_KIND))
         for it in items:
-            it["stale"] = current_sha is None or it["input_binding"].get("scene_plan_sha256") != current_sha
+            it["stale"] = current_sha is None or it["input_binding"].get("scene_plan_sha256") != current_sha                 or voice_profile_changed(it["input_binding"], voice)
         providers = {name: list(langs) for name, langs in provider_languages().items()}
         return {"job_id": job_id, "language": language, "current_scene_plan_sha256": current_sha,
                 "items": items, "provider_languages": providers}

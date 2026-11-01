@@ -1014,3 +1014,15 @@ progress { width:100%; max-width:420px; }
 .studio-step { display: inline-grid; place-items: center; width: 1.6rem; height: 1.6rem; border-radius: 50%;
   background: var(--surface-3); font-size: .8rem; font-weight: 600; flex: none; }
 .studio-title { font-weight: 600; flex: 1 1 8rem; min-width: 0; overflow-wrap: anywhere; }
+
+/* Voice Lab */
+.vl-control { display: grid; grid-template-columns: minmax(10rem, max-content) minmax(6rem, 1fr) 7rem; gap: .25rem .75rem;
+  align-items: center; margin: .5rem 0; }
+.vl-control .meta { grid-column: 1 / -1; }
+.vl-control label { display: flex; align-items: center; gap: .45rem; margin: 0; }
+.vl-control input[type="checkbox"] { width: 1.1rem; height: 1.1rem; min-height: 0; padding: 0; margin: 0; flex: none; }
+.vl-control input[type="range"] { width: 100%; }
+.vl-actions, .vl-review { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; margin: .5rem 0; }
+.vl-review input[type="text"] { flex: 1 1 12rem; min-width: 0; }
+[data-voice-form] textarea { width: 100%; box-sizing: border-box; }
+@media (max-width: 520px) { .vl-control { grid-template-columns: 1fr; } }

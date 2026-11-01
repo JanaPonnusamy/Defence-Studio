@@ -27,6 +27,16 @@ VOICES = {
 }
 BASE_WPM = 160  # rate_wpm that maps to the voice's native (0%) speaking rate
 CAPABILITIES = ['native_rate_control', 'native_volume_control', 'native_pitch_approximation']
+# Same ranges as PROFILE['controls'] (resolve_controls enforces them); descriptions say how *this*
+# provider applies each one (see prosody()).
+CONTROLS = {
+    'rate_wpm': {'range': PROFILE['controls']['rate_wpm']['range'],
+                 'kind': f'native SSML rate, relative to {BASE_WPM} wpm = voice default; measure output'},
+    'volume': {'range': PROFILE['controls']['volume']['range'], 'kind': 'native SSML volume, 1.0 = voice default'},
+    'pitch_semitones': {'range': PROFILE['controls']['pitch_semitones']['range'],
+                        'kind': 'native SSML pitch offset of 13 Hz per step; approximate, a larger '
+                                'semitone shift on lower voices'},
+}
 
 
 def select_voice(voice_id, language):
@@ -51,7 +61,7 @@ class EdgeNeuralAdapter(TTSAdapter):
 
     def describe(self):
         result = {'provider': self.provider_name, 'model': 'edge-read-aloud-neural', 'is_mock': False,
-                  'capabilities': CAPABILITIES, 'output_format': 'wav', 'controls': PROFILE['controls'],
+                  'capabilities': CAPABILITIES, 'output_format': 'wav', 'controls': CONTROLS,
                   'network': True, 'notes': 'Online: text is sent to Microsoft read-aloud service.',
                   'voices': [{'id': v, 'languages': [l]} for v, l in VOICES.items()]}
         try:

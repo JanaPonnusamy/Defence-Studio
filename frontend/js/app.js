@@ -7,6 +7,7 @@ import { mountInspector } from "./views/inspector-view.js";
 import { mountScene } from "./views/scene-view.js";
 import { mountProduction } from "./views/production-view.js";
 import { mountStudio } from "./views/studio-view.js";
+import { mountVoiceLab } from "./views/voice-lab-view.js";
 import { mountFactcheck } from "./views/factcheck-view.js";
 import { mountVoice } from "./views/voice-view.js";
 import { mountResearch } from "./views/research-view.js";
@@ -262,6 +263,8 @@ function parseHash() {
     state.tab = "production";
   } else if (parts[0] === "studio") {
     state.tab = "studio";
+  } else if (parts[0] === "voicelab") {
+    state.tab = "voicelab";
   } else if (parts[0] === "voice") {
     state.tab = "voice";
   } else if (parts[0] === "factcheck") {
@@ -330,6 +333,7 @@ function renderTabs() {
     ${tab("script", "script", "Script")}
     ${tab("scene", "scene", "Scene")}
     ${tab("production", "layers", "Production")}
+    ${tab("voicelab", "script", "Voice Lab")}
     ${tab("voice", "script", "Voice")}
     ${tab("inspector", "shield", "Inspector")}`;
   el.tabs.querySelectorAll("[data-tab]").forEach((btn) => {
@@ -340,7 +344,7 @@ function renderTabs() {
 }
 
 function renderFilters() {
-  if (state.tab === "evidence" || state.tab === "research" || state.tab === "factcheck" || state.tab === "script" || state.tab === "inspector" || state.tab === "scene" || state.tab === "production" || state.tab === "studio" || state.tab === "voice" || state.tab === "dashboard") { el.filters.innerHTML = ""; return; }
+  if (state.tab === "evidence" || state.tab === "research" || state.tab === "factcheck" || state.tab === "script" || state.tab === "inspector" || state.tab === "scene" || state.tab === "production" || state.tab === "studio" || state.tab === "voicelab" || state.tab === "voice" || state.tab === "dashboard") { el.filters.innerHTML = ""; return; }
   const statusOptions = ["", "PENDING", "APPROVED_FOR_USE", "REJECTED", "NEEDS_MORE_EVIDENCE", "CONFLICT_UNRESOLVED"];
   const optionHtml = (value) => `<option value="${value}">${value || "All statuses"}</option>`;
   if (state.tab === "discovery") {
@@ -870,6 +874,12 @@ function dispatchTab() {
     mountStudio({api, jobId, list:el.list, detail:el.detail, filters:el.filters,
       onOpenTab:(tab) => setHash(tab, null),
       isCurrent:() => !!state.token && state.tab === "studio" && state.jobId === jobId});
+  }
+  else if (state.tab === "voicelab") {
+    if (!requireJob()) return;
+    const jobId = state.jobId;
+    mountVoiceLab({api, jobId, list:el.list, detail:el.detail, filters:el.filters,
+      isCurrent:() => !!state.token && state.tab === "voicelab" && state.jobId === jobId});
   }
   else if (state.tab === "factcheck") {
     if (!requireJob()) return;
