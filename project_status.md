@@ -15,6 +15,7 @@ Source of truth for current phase status: `DEFENCE_ERA_PHASE_STATUS.md` (27 rows
 | Phase 4 scene planning, Phase 5 asset service | PARTIAL — contract+service TESTED, no UI, not integrated with Visual Module |
 | Standalone Audio / Visual / Renderer | TESTED standalone; NOT INTEGRATED with core; now source-tracked (RM-0) |
 | Standalone Asset-Rights Engine / Alignment engine | TESTED standalone (140+116 subtests / 76 passed); NOT INTEGRATED with core; consolidated under `components/` (2026-10-14), registry EXT-01/EXT-02 |
+| Voice Lab (VL-0..VL-9, 2026-11-01) | Backend IMPLEMENTED + TESTED (27 tests); real CPU inference LIVE-VERIFIED with the ungated English evaluation model (warm RTF ≈ 12.5); Tamil Indic Parler-TTS BLOCKED (HF gate + token); training BLOCKED (no CUDA GPU); UI by Agent B not yet wired to server projects. Detail: `docs/voice_lab/VOICE_LAB_STATUS.md` |
 | Phase 8 QC, Phase 9 branding/publish, YouTube, Phase 10, orchestration (X1), per-user credentials (X2), history (X3) | NOT_STARTED / BLOCKED on prerequisites |
 
 **RM ledger** (machine-readable copy: `DEFENCE_ERA_PHASE_LEDGER.json`):

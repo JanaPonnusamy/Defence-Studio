@@ -182,6 +182,8 @@ def create_app(
     image_research = ImageResearchService(db_path, store_root)
     storage_lifecycle = StorageLifecycleService(db_path, store_root, observed_roots=default_observed_roots(PROJECT_ROOT))
     factcheck = FactcheckService(db_path, store_root)
+    from defence_studio.voice_lab.service import VoiceLabService  # Voice Lab (Agent A)
+    voice_lab = VoiceLabService(db_path, store_root)
 
     @asynccontextmanager
     async def lifespan(_app):
@@ -189,6 +191,7 @@ def create_app(
         worker_service.recover_expired()
         voice.purge_stale_uploads()
         yt.recover_interrupted()  # integration artifacts + publishing jobs, audited
+        voice_lab.reconcile()  # Voice Lab rows left active by an interrupted run
         stop = threading.Event()
         if os.environ.get("DEFENCE_STUDIO_VOICE_WORKER") == "1":
             from defence_studio.services.worker import Worker
@@ -222,6 +225,7 @@ def create_app(
                 await asyncio.to_thread(_app.state.research_worker_thread.join)
             if getattr(_app.state, "voice_worker", None):
                 _app.state.voice_worker.shutdown()
+            voice_lab.shutdown()
 
     app = FastAPI(title="Defence Studio API", version="0.1.0", lifespan=lifespan)
     app.state.database_file = db_path
@@ -759,6 +763,11 @@ def create_app(
         return assets.assignment_readiness(job_id, owner_id, language)
 
     register_voice_routes(app, require_owner, voice)
+    from defence_studio.api.voice_lab_gpu_routes import register_voice_lab_gpu_routes
+    register_voice_lab_gpu_routes(app, require_owner)
+    from defence_studio.api.voice_lab_routes import register_voice_lab_routes
+    register_voice_lab_routes(app, require_owner, voice_lab)
+    app.state.voice_lab = voice_lab
     register_image_research_routes(app, require_owner, image_research)
     register_storage_routes(app, require_owner, storage_lifecycle)
     register_factcheck_routes(app, require_owner, factcheck)

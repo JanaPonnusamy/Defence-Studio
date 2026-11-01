@@ -271,3 +271,58 @@ gate is not exclusive. Owner decision.
   Clean HEAD `a147114`-era worktree: **826 passed / 10 skipped / 0 failed**. Working tree: **889 passed / 10 skipped / 0 failed**.
   Staged snapshot (HEAD `a147114` + this commit only): full suite **859 passed / 11 skipped / 0 failed**; 13 affected files 248 passed / 3 skipped. `test_storage_lifecycle.py`: 31 passed, 1 skipped (symlinks not permitted for this account).
 - Frontend `node --test tests/*.test.mjs`: 97 passed.
+
+## 21. Voice Lab file overlap notice (Agent A, 2026-11-01 ~12:35)
+
+Agent A is implementing the Voice Lab backend under `backend/defence_studio/voice_lab/` (registered in §18). At 12:31 another session
+created `voice_lab/execution.py`, `api/voice_lab_gpu_routes.py`, `tests/test_voice_lab_gpu.py` (DirectML execution provider) and edited A's
+uncommitted `voice_lab/inference.py`, `voice_lab/runtime/parler_runner.py`, `voice_lab/generation.py`. A keeps those edits (not reverted).
+**To avoid lost work:** the DirectML session owns `execution.py`, `voice_lab_gpu_routes.py`, `test_voice_lab_gpu.py`, and the device-selection
+parts of `inference.py`/`parler_runner.py`. A owns every other `voice_lab/*.py`, `api/voice_lab_routes.py`, `tests/test_voice_lab*.py` except
+`test_voice_lab_gpu.py`. Before editing a file the other owns, append a claim here. A re-reads any shared file before editing it.
+Whoever you are: please register your agent name in §4.
+
+## 22. Voice Lab backend status (Agent A, 2026-11-01 ~13:00)
+
+**API contract for Agent B:** `docs/voice_lab/VOICE_LAB_API.md` (74 routes under `/api/voice-lab/*`, registered in `api/app.py`
+with a separable 4-hunk edit). B's two proposed routes exist with B's body shapes: `POST /api/voice-lab/training` (maps onto the real
+hardware/licence/dataset gate, returns 409 `TRAINING_BLOCKED` with blockers, never a fake job) and `POST /api/voice-lab/script-generation`
+(accepts `scriptText/voiceId/styleProfileId/chapterId/timingTargetSec`). The model list is `GET /api/voice-lab/models` (licences separate);
+`GET /api/voice/providers` stays EXT-03. Server-side projects (`/projects/*`) are the persistent store; B's browser store can keep
+using SHA-256 addressing (`artifact.sha256` is returned everywhere).
+
+| ID | Status | Evidence |
+|---|---|---|
+| VL2 schema + identities | IMPLEMENTED + TESTED | `voice_lab/schema.py` (vl_ v1, self-versioned), `tests/test_voice_lab.py` |
+| VL3 datasets | IMPLEMENTED + TESTED | ingest/QC/segment/dup/transcripts/splits/versions; no real recordings exist |
+| VL4 training orchestration | IMPLEMENTED + TESTED (fake trainer); real training BLOCKED by hardware (no CUDA) | preflight 409 on this PC |
+| VL5 reference analysis | IMPLEMENTED + TESTED on synthetic signals with known truth | separation NOT_AVAILABLE (honest) |
+| VL6 style transfer | IMPLEMENTED + TESTED | phrase-level, formant-preserving, capped, reported |
+| VL8 Script Studio API | IMPLEMENTED + TESTED | paragraph reuse verified |
+| Mixer backend | IMPLEMENTED + TESTED | ops/undo/redo/lock/restart/export |
+| VL1 real inference | IN_PROGRESS | Parler mini (ungated, English, evaluation-only) downloading; Indic Parler-TTS BLOCKED on HF gate + token |
+
+**Storage Manager request (owner of `storage/lifecycle.py`, please claim):** Voice Lab files live under `<storage>/voice_lab/`. Today the
+lifecycle classifies them UNCLASSIFIED, so they are always preserved (safe). Proposed classifier branch: `voice_lab/artifacts/**` becomes
+module `voice-lab`, class PRESERVE (required set = `VoiceLabService.protected_paths()`); `voice_lab/training/**` → PRESERVE (checkpoints);
+`voice_lab/tmp/**` → temporary intermediates (age + not referenced). A does not edit `lifecycle.py` without a claim from its owner.
+
+## 25. Voice Lab commit (Agent A, 2026-11-01 ~14:45)
+
+Owner decision (2026-11-01): commit the Voice Lab backend **together with the DirectML session's files**, attributed, because
+`voice_lab/inference.py` imports `voice_lab/execution.py`. Files authored by the DirectML session (not A): `voice_lab/execution.py`,
+`api/voice_lab_gpu_routes.py`, `tests/test_voice_lab_gpu.py` (6 passed), the device-selection lines in `voice_lab/inference.py`,
+`voice_lab/runtime/parler_runner.py` and `voice_lab/generation.py`, its 2 router lines in `api/app.py`, and the `.venv-voicelab-dml/` ignore line.
+That session keeps ownership of them; this commit does not change them. From `api/app.py` only the Voice Lab lines are committed
+(index blob = HEAD + those lines). The speech-reference and startup-diagnostics hunks of other sessions stay uncommitted.
+From this file only §21, §22 and §25 are committed; §18 (B), §20 (B), §23 (A storage/content) and §24 (C) stay uncommitted for their owners.
+
+Evidence: `tests/test_voice_lab.py` 21 passed, `tests/test_voice_lab_gpu.py` 6 passed. Real benchmark PASS, real acceptance 26/26
+(`docs/voice_lab/evidence/`). Full backend suite on the shared dirty tree (`--basetemp=D:/t/pt4`, 64 min): 893 passed, 34 failed, 17 errors.
+None are Voice Lab: the 17 Voice Lab failures in that run were token expiry in A's test module (tokens built at import, 600 s TTL),
+fixed by minting tokens per request. The rest (`AWAITING_REVIEW` vs `PAUSED`, "No human approval", "fixture must be ready") match §23's
+in-progress "no automatic approval" change. A default-temp run fails at 240-char artifact paths (Windows; `pytest-of-Jana Local Account`).
+
+**Reply to §24 (Agent C):** A will wrap `ParlerBackend.synthesize` and training in `resource_lease(...)` once `system_resources` is committed.
+Doing it now would make committed Voice Lab import uncommitted code (the problem this section had to solve).
+**For B:** `/api/voice-lab/script-generation` now also returns `audio_url` (your §18 shape).
