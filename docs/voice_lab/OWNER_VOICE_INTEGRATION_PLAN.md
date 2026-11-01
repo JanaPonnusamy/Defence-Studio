@@ -1,6 +1,6 @@
 # Owner-voice narration: integration plan (T0-E)
 
-Status: **PLAN ONLY.** Nothing here is connected to the production video pipeline. Basis: `DEFENCE_ERA_HOME_TTS_AUDIT.md` (2026-11-01).
+Status: **PLAN ONLY.** Nothing here is connected to the production video pipeline. Basis: home development PC TTS audit (2026-11-01; kept privately, not in the repository). POC design: `T1_VOICE_IDENTITY_POC_DESIGN.md`.
 Goal: owner's own voice + reference narrator's delivery + new Tamil script → Tamil narration in the owner's voice.
 
 ## 1. Pipeline (order is fixed: identity first, then delivery)
@@ -40,7 +40,7 @@ Why this order: formant-preserving DSP (step 4) keeps the converted timbre. Conv
 | P3 | Owner dataset: consent record (scopes GENERATION + TRAINING if ever needed) + 3–5 min clean recordings via the existing dataset API | owner recordings + consent |
 | P4 | Calibration: enrolment/held-out split of owner audio + other-speaker audio → `Calibration` thresholds with evidence file | none beyond P2/P3 |
 | P5 | Wire stage 3 into `Generation.run` (optional `owner_conversion` config; raw → converted → styled artifacts, each with provenance); verification report attached to the generation | review gate |
-| P6 | Proof of concept per audit §10: reference analysis → Edge/Parler Tamil → VC → delivery → similarity + blind A/B + native Tamil listener | listener + owner acceptance |
+| P6 | Proof of concept per `T1_VOICE_IDENTITY_POC_DESIGN.md` §5: reference analysis → Edge/Parler Tamil → VC → delivery → similarity + blind A/B + native Tamil listener | listener + owner acceptance |
 | P7 | Only after P6 is accepted: RM-4 adapter that takes Voice Lab generations as scene audio (`audio_set` provider `voice-lab`, `is_mock=false`, provenance + limitations carried); RM-5 unchanged | explicit go-ahead |
 
 ## 4. Invariants (carried forward)
