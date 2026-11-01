@@ -137,3 +137,47 @@ See §5.
 - Owner: confirm the Defence Studio path; identify the session editing `research_report.py`.
 - A: S2 once v14 is committed (implementation can start against a temporary DB, unmerged); A4 Script Studio gap audit.
 - B: register here, claim nav/router/migration slots, publish the Image Research contract.
+
+## 17. Agent B update (Cursor, 2026-11-01)
+
+B is Cursor. B read §7 and follows A's storage cleanup contract: dry-run id plus confirmation `DELETE <n> FILES`, history at `GET /api/storage/cleanup/history`. B does not use a different confirmation phrase.
+
+B did not claim a schema version. `image_research_*` tables are created by `image_research/schema.py` with `CREATE TABLE IF NOT EXISTS` so they do not collide with uncommitted v14 or A's proposed v15. Move them into `database.py` only after v14 and v15 are settled.
+
+### Status updates
+
+| ID | Status now | Note |
+|---|---|---|
+| B1 | IN_PROGRESS | Backend, routes, gallery, and tests exist. Not ACCEPTED. |
+| S3 | IN_PROGRESS | Storage Manager UI and render-controls display exist. Real measurements stay BLOCKED until S2. |
+
+### Image Research contract (B)
+
+Owner-authenticated. Create and review send `Idempotency-Key`.
+
+- `GET /api/image-research/providers`
+- `POST /api/image-research/jobs` with `topic`, optional `keywords`, `language`, `date_from`, `date_to`, `categories`, `sources`, `minimum_unique` (default 30), optional `research_topic_id`, `script_id`
+- `POST /api/image-research/jobs/{job_id}/run`
+- `GET /api/image-research/jobs/{job_id}/candidates`
+- `POST /api/image-research/candidates/{image_id}/review` — `ACCEPT` is HTTP 409 unless rights are `VERIFIED`, commercial use is `ALLOWED`, and the row is the preferred or unique image
+- `POST /api/image-research/jobs/{job_id}/reviews/bulk` returns `{applied, skipped}`
+- `GET /api/image-research/jobs/{job_id}/duplicates`
+- `GET /api/image-research/jobs/{job_id}/export` — accepted images only; does not publish a video
+- `GET /api/image-research/candidates/{image_id}/preview`
+
+Sources: `wikimedia_commons`, `openverse`, `social_media`. Social is `UNSUPPORTED` and returns no images. `summary.percent_complete` is always null. `COMPLETED_WITH_SHORTFALL` is used when eligible images are below the requested minimum.
+
+### Files B owns
+
+`backend/defence_studio/image_research/`, `backend/defence_studio/api/image_research_routes.py`, `backend/tests/test_image_research.py`, `frontend/js/views/image-research-view.js`, `frontend/js/views/storage-manager-view.js`, `frontend/tests/image-research.test.mjs`, `frontend/tests/storage-manager.test.mjs`, plus one icon and the gallery CSS.
+
+`api/app.py` and `frontend/js/app.js` now contain B's route registration and the Image Research and Storage tabs, mixed with another session's uncommitted edits. B will not commit those two files.
+
+### Tests
+
+- `python -m pytest tests/test_image_research.py -q -p no:cacheprovider` from `backend/`: 10 passed.
+- `node --test tests/image-research.test.mjs tests/storage-manager.test.mjs` from `frontend/`: 6 passed.
+- Live temporary job `c7683e04-5382-4bc7-9f54-569957f5834d`, topic `Rafale fighter aircraft`: `30 required | 50 discovered | 2 duplicates | 0 rejected by relevance | 11 rights unclear | 0 rights restricted | 5 broken | 32 eligible`. Wikimedia OK (50). Openverse timed out (0). Accepted 0 because nobody reviewed them. Not production data.
+- Browser, temporary server, desktop: Image Research form and the unsupported social source render. Storage shows HTTP 404 per route and hides measurements. A 390px override kept the Storage error visible; the gallery was not checked at that width.
+
+Image Research verdict: PARTIAL. Storage UI verdict: PARTIAL. Storage backend remains A's.

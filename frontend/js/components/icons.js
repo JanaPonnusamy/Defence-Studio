@@ -20,6 +20,7 @@ const PATHS = {
   scene: '<rect x="3" y="6" width="18" height="12" rx="1.5"/><path d="M7 6v12M17 6v12"/><circle cx="12" cy="12" r="2.2"/>',
   // Dashboard: tiled overview
   grid: '<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>',
+  image: '<rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="10" r="1.6"/><path d="m21 15-5-4-4 3-2-2-7 6"/>',
   // Sign out
   exit: '<path d="M15 4h4v16h-4"/><path d="M10 8l-4 4 4 4"/><path d="M6 12h9"/>',
   // Dismiss / clear
