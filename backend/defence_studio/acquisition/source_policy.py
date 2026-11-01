@@ -5,8 +5,14 @@ it. ``SourcePolicy.check`` is called by :class:`UrlGuard` for the initial URL an
 redirect hop, so a redirect to a non-allowlisted destination is refused exactly like a private
 address. An allowlisted domain says where we may *fetch* from; it never says a statement is true.
 
-Not implemented here (documented limitation): robots.txt and per-site rate-limit negotiation.
-Fetch volume is already bounded by the acquisition limits (max sources, bytes, redirects, timeout).
+Access kinds (owner decision 2026-11-01): an entry declares ``access`` = ``feed_discovery`` and/or
+``article``. A feed-only entry can be read by discovery but never acquired as a source; acquisition
+asks for purpose ``article``. Entries without ``access`` keep the old behaviour (both). ``https_only``
+entries refuse plain-HTTP URLs, so a redirect that downgrades to HTTP is rejected at that hop.
+``respect_robots`` entries are checked against the host's robots.txt by the guarded fetcher, and
+``min_article_words`` makes the page provider refuse a page whose visible text is too short to be the
+article (paywall stub, consent wall, script-only shell). Per-site rate-limit negotiation is not
+implemented; fetch volume is bounded by the acquisition limits.
 """
 
 from __future__ import annotations
@@ -23,6 +29,7 @@ _DEFAULT_FILE = Path(__file__).resolve().parents[2] / "config" / "source_policy.
 CATEGORIES = frozenset({"GOVERNMENT_OFFICIAL", "OFFICIAL_TECHNICAL", "RESEARCH_INSTITUTION",
                         "INDEPENDENT_REPORTING", "MANUFACTURER"})
 QUANT_TRUST = frozenset({"CORROBORATION_REQUIRED", "ATTRIBUTED_ONLY", "NOT_TRUSTED"})
+ACCESS_KINDS = ("feed_discovery", "article")
 
 
 class SourcePolicyError(ValueError):
@@ -46,6 +53,15 @@ class SourceEntry:
     exclusions: tuple = ()                  # compiled path regexes that are never fetched from this source
     acquisition_limits: dict = field(default_factory=dict)   # e.g. {"max_bytes": 2000000}
     provenance_requirements: tuple = ()     # e.g. ("published_at",): recorded as UNKNOWN when absent
+    access: tuple = ACCESS_KINDS            # purposes this entry may be fetched for
+    https_only: bool = False
+    respect_robots: bool = False
+    min_article_words: int = 0
+
+    def permits(self, scheme: str, purpose: str | None) -> bool:
+        if self.https_only and scheme != "https":
+            return False
+        return purpose is None or purpose in self.access
 
     def matches_host(self, host: str) -> bool:
         host = host.lower().rstrip(".")
@@ -74,6 +90,12 @@ class SourcePolicy:
                 for key in ("supported_subjects", "allowed_content_types", "exclusions", "provenance_requirements"):
                     if not isinstance(raw.get(key, []), list):
                         raise TypeError(f"{key} must be a list")
+                access = raw.get("access", list(ACCESS_KINDS))
+                if not isinstance(access, list) or not access or any(a not in ACCESS_KINDS for a in access):
+                    raise TypeError(f"access must be a non-empty list of {ACCESS_KINDS}")
+                min_words = raw.get("min_article_words", 0)
+                if not isinstance(min_words, int) or isinstance(min_words, bool) or min_words < 0:
+                    raise TypeError("min_article_words must be a non-negative integer")
                 limits = raw.get("acquisition_limits", {})
                 if not isinstance(limits, dict) or any(
                         (not isinstance(v, int) or isinstance(v, bool) or v < 1) for v in limits.values()):
@@ -99,7 +121,9 @@ class SourcePolicy:
                 allowed_content_types=tuple(str(x).lower() for x in raw.get("allowed_content_types", [])),
                 exclusions=exclusions,
                 acquisition_limits=dict(raw.get("acquisition_limits", {})),
-                provenance_requirements=tuple(str(x) for x in raw.get("provenance_requirements", []))))
+                provenance_requirements=tuple(str(x) for x in raw.get("provenance_requirements", [])),
+                access=tuple(access), https_only=bool(raw.get("https_only", False)),
+                respect_robots=bool(raw.get("respect_robots", False)), min_article_words=min_words))
         return cls(version=data["version"], entries=tuple(entries))
 
     @classmethod
@@ -113,8 +137,8 @@ class SourcePolicy:
             raise SourcePolicyError(f"cannot read source policy {file}: {exc}") from None
 
     # -- matching ------------------------------------------------------------
-    def entry_for(self, url: str) -> SourceEntry | None:
-        """Return the enabled entry that permits ``url`` or None (never raises)."""
+    def entry_for(self, url: str, purpose: str | None = None) -> SourceEntry | None:
+        """Return the enabled entry that permits ``url`` (for ``purpose``) or None (never raises)."""
         try:
             parts = urlsplit(url)
         except ValueError:
@@ -125,17 +149,19 @@ class SourcePolicy:
         if parts.query:
             target += "?" + parts.query
         for e in self.entries:
-            if e.enabled and e.matches_host(parts.hostname) and any(p.match(target) for p in e.patterns) \
+            if e.enabled and e.permits(parts.scheme.lower(), purpose) and e.matches_host(parts.hostname) \
+                    and any(p.match(target) for p in e.patterns) \
                     and not any(x.search(target) for x in e.exclusions):
                 return e
         return None
 
-    def require(self, url: str) -> SourceEntry:
-        entry = self.entry_for(url)
+    def require(self, url: str, purpose: str | None = None) -> SourceEntry:
+        entry = self.entry_for(url, purpose)
         if entry is None:
             host = urlsplit(url).hostname or "(none)"
+            what = f" for {purpose}" if purpose else ""
             raise SourcePolicyError(
-                f"URL host/path is not permitted by the source registry (host {host}); "
+                f"URL host/path is not permitted{what} by the source registry (host {host}); "
                 "add an enabled entry to config/source_policy.json to allow it")
         return entry
 
@@ -145,7 +171,9 @@ class SourcePolicy:
              "publisher": e.publisher, "independence_group": e.independence_group,
              "quantitative_trust": e.quantitative_trust, "supported_subjects": list(e.supported_subjects),
              "allowed_content_types": list(e.allowed_content_types),
-             "acquisition_limits": e.acquisition_limits} for e in self.entries]}
+             "acquisition_limits": e.acquisition_limits, "access": list(e.access),
+             "https_only": e.https_only, "respect_robots": e.respect_robots,
+             "min_article_words": e.min_article_words} for e in self.entries]}
 
 
 def default_policy() -> SourcePolicy | None:

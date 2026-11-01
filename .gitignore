@@ -74,3 +74,11 @@ node_modules/
 
 # job-scoped temporary workspaces (auto-removed at terminal state)
 /tmp/
+
+# Voice Lab (Agent A, 2026-11-01): isolated inference env, model weights, third-party source. Only manifests are tracked.
+.venv-voicelab*/
+.venv-voicelab-dml/
+models/voice_lab/*
+!models/voice_lab/MANIFEST.json
+third_party/voice_lab/*
+!third_party/voice_lab/MANIFEST.json

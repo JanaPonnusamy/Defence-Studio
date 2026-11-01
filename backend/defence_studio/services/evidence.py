@@ -17,6 +17,9 @@ from defence_studio.contracts.evidence import (
 from defence_studio.database import connect
 from defence_studio.repositories.jobs import JobRepository
 from defence_studio.services.review import ReviewService, ReviewNotFound, ReviewValidationError, StaleRevision
+from defence_studio.services.human_approval import (
+    APPROVAL_POLICY_VERSION, HUMAN_REVIEWER_SQL, is_human_record, require_human,
+)
 
 
 class EvidenceService(ReviewService):
@@ -261,10 +264,19 @@ class EvidenceService(ReviewService):
             revision = digest(body)
             history = [dict(r) for r in connection.execute(
                 "SELECT * FROM evidence_packages WHERE job_id=? ORDER BY version", (job_id,))]
+            for row in history:
+                row["approval_kind"] = "HUMAN" if is_human_record(row["reviewer_id"]) else "LEGACY_AUTOMATED"
+                row["counts_for_production"] = row["approval_kind"] == "HUMAN"
+            same = [r for r in history if r["revision"] == revision]
+            # Only a human approval is a current approval; a legacy automated row is history only.
             return {"package": body, "revision": revision, "approvals": history,
-                    "current_approval": next((r for r in history if r["revision"] == revision), None)}
+                    "current_approval": next((r for r in same if r["counts_for_production"]), None),
+                    "legacy_automated_approval": next((r for r in same if not r["counts_for_production"]), None),
+                    "approval_policy": APPROVAL_POLICY_VERSION}
 
-    def approve(self, job_id, owner_id, revision, note, idempotency_key, automated=None):
+    def approve(self, job_id, owner_id, revision, note, idempotency_key):
+        """Human-only package approval (decision C). There is no automated variant."""
+        reviewer = require_human(owner_id)
         note = self._validate_note(note)
         if not note:
             raise ReviewValidationError("An approval explanation is required")
@@ -282,27 +294,21 @@ class EvidenceService(ReviewService):
                 raise StaleRevision("Evidence or review state changed; reload before approval")
             if body["blockers"]:
                 raise StaleRevision("Package is not ready: " + "; ".join(body["blockers"]))
-            existing = connection.execute("SELECT * FROM evidence_packages WHERE job_id=? AND revision=?", (job_id, revision)).fetchone()
+            existing = connection.execute(f"SELECT * FROM evidence_packages WHERE job_id=? AND revision=? AND {HUMAN_REVIEWER_SQL}",
+                                          (job_id, revision)).fetchone()
             if existing:
                 return dict(existing)
             version = connection.execute("SELECT COALESCE(MAX(version),0)+1 FROM evidence_packages WHERE job_id=?", (job_id,)).fetchone()[0]
             now = datetime.now(timezone.utc).isoformat(timespec="microseconds")
             body["status"] = "APPROVED"
-            if automated:
-                # Automated approval never carries a person's identity.
-                body["approval"] = {"revision": revision, "version": version, "approval_kind": "AUTOMATED_POLICY",
-                                    "reviewer_id": None, "approved_by": "AUTOMATED_POLICY",
-                                    "policy_version": automated["policy_version"], "run_id": automated["run_id"],
-                                    "note": note, "approved_at": now}
-            else:
-                body["approval"] = {"revision": revision, "version": version, "approval_kind": "HUMAN",
-                                    "reviewer_id": owner_id, "note": note, "approved_at": now}
+            body["approval"] = {"revision": revision, "version": version, "approval_kind": "HUMAN",
+                                "reviewer_id": reviewer, "note": note, "approved_at": now}
             data = canonical(validate_package(body))
             sha = hashlib.sha256(data).hexdigest()
             uri = f"jobs/{job_id}/evidence/{sha}.json"
             self.store.write_bytes(job_id, uri, data, "application/json")
             connection.execute("INSERT INTO evidence_packages VALUES(?,?,?,?,?,?,?,?,?)",
-                               (job_id, version, revision, uri, sha, "AUTOMATED_POLICY" if automated else owner_id, note, now, idempotency_key))
+                               (job_id, version, revision, uri, sha, reviewer, note, now, idempotency_key))
             stage_key = "evidence_analysis_and_review"
             stage = connection.execute("SELECT status FROM workflow_stages WHERE job_id=? AND stage_key=?", (job_id, stage_key)).fetchone()
             if connection.execute("SELECT 1 FROM worker_claims WHERE job_id=? AND stage_key=? AND status='ACTIVE'", (job_id, stage_key)).fetchone():
@@ -330,14 +336,15 @@ class EvidenceService(ReviewService):
             current = self._snapshot(connection, job_id, owner_id)
             if draft:
                 return current
-            record = connection.execute("SELECT * FROM evidence_packages WHERE job_id=? AND revision=?",
+            record = connection.execute(f"SELECT * FROM evidence_packages WHERE job_id=? AND revision=? AND {HUMAN_REVIEWER_SQL}",
                                         (job_id, digest(current))).fetchone()
             if not record or not current["ready"]:
-                raise StaleRevision("No approval for the current evidence and review revision")
+                raise StaleRevision("No human approval for the current evidence and review revision")
             value = self._read_json_artifact(job_id, dict(record))
             validate_package(value)
             approved = value.get("approval", {})
-            if value["status"] != "APPROVED" or approved.get("revision") != record["revision"]:
+            if value["status"] != "APPROVED" or approved.get("revision") != record["revision"] \
+                    or approved.get("approval_kind") != "HUMAN":
                 raise ReviewValidationError("Package approval does not match ledger")
             unsigned = {**value, "status": "DRAFT", "approval": None}
             if digest(unsigned) != record["revision"]:

@@ -1,0 +1,224 @@
+{
+ "schema": "defence-studio.voice-lab-benchmark.v1",
+ "started_at": "2026-11-01T07:33:36.869400+00:00",
+ "model_id": "parler-tts-mini-v1.1",
+ "weights_repo": "parler-tts/parler-tts-mini-v1.1",
+ "weights_revision": "fbb2dd281092c5b414ef29cf9d8895f386f1feef",
+ "code_commit": "d108732cd57788ec86bc857d99a6cabd66663d68",
+ "commercial_status": "EVALUATION_ONLY",
+ "language": "en",
+ "text": "The squadron took off before dawn. Radar picked up the formation over the sea.",
+ "description": "A female speaker delivers a clear, calm narration with moderate speed and pitch. The recording is very high quality with no background noise.",
+ "seed": 1234,
+ "install": {
+  "model_dir": "D:\\jana soft\\DefenceEra\\models\\voice_lab\\parler-tts-mini-v1.1@fbb2dd281092",
+  "weights_present": true,
+  "venv_present": true,
+  "download_manifest": {
+   "model_id": "parler-tts-mini-v1.1",
+   "repo": "parler-tts/parler-tts-mini-v1.1",
+   "revision": "fbb2dd281092c5b414ef29cf9d8895f386f1feef",
+   "weights_licence": "Apache-2.0",
+   "code_commit": "d108732cd57788ec86bc857d99a6cabd66663d68",
+   "downloaded_at": "2026-11-01T07:24:21Z",
+   "seconds": 1228.4,
+   "files": [
+    {
+     "path": "config.json",
+     "bytes": 7311,
+     "sha256": "4c244b86830bcd2b092c69d07740182f927a6449f369ae1cf3dc7fef35b58611"
+    },
+    {
+     "path": "generation_config.json",
+     "bytes": 223,
+     "sha256": "86d035c0fd9589d60fb763aad1feafeee2040fb9cf51515a0144816cec4d029d"
+    },
+    {
+     "path": "model.safetensors",
+     "bytes": 3751321772,
+     "sha256": "f85ed0a4953b28f0bd9d3cec9f0e035df2936ba97646f315f54b42bf6ba6d0f9"
+    },
+    {
+     "path": "preprocessor_config.json",
+     "bytes": 206,
+     "sha256": "c7d295758ce5777d6d88fef1996e94adc8ef3e2237ddfc5ecc24d1407aaddd7d"
+    },
+    {
+     "path": "README.md",
+     "bytes": 7323,
+     "sha256": "13b4243eccc7669a320287eea220cd49e22167db3cf7cdfc41427973a5cdae16"
+    },
+    {
+     "path": "special_tokens_map.json",
+     "bytes": 552,
+     "sha256": "4859e5dbde90e059988a0a2136d8df3f2773d4d2fc4c4543690028f0b2166e7f"
+    },
+    {
+     "path": "tokenizer.json",
+     "bytes": 10272460,
+     "sha256": "8b5f3a5080f95e5333930b57181cd2a9bf387632bd7b277af5d4fea59acb58de"
+    },
+    {
+     "path": "tokenizer.model",
+     "bytes": 1795391,
+     "sha256": "bc8fa773221597d09cfadb23a2b1bd717488a0481505469ea56d42cb044de9b5"
+    },
+    {
+     "path": "tokenizer_config.json",
+     "bytes": 990,
+     "sha256": "47baa70cba964a32daa581a4af50b4f2c77edaa18bec2257660133ab204ca36f"
+    }
+   ],
+   "licence_files": [
+    "README.md"
+   ],
+   "total_bytes": 3763406228
+  },
+  "installed": true
+ },
+ "host": {
+  "python": "3.13.15"
+ },
+ "runs": [
+  {
+   "label": "cold_first_run",
+   "wall_s": 690.04,
+   "load_s": 40.73,
+   "model_cached": false,
+   "gen_s": 494.327,
+   "audio_s": 4.458,
+   "rtf": 110.88,
+   "sample_rate": 44100,
+   "execution": {
+    "provider": "cpu",
+    "device": "cpu",
+    "fallback_reason": null,
+    "gpu_workload_verified": false
+   },
+   "runner_pid": 22340,
+   "runner_cpu_s_during_run": 0.0,
+   "runner_rss_bytes": 4366336,
+   "runner_peak_rss_bytes": 4403200,
+   "validation": {
+    "valid": true,
+    "duration_ms": 4458,
+    "speech_ms": 3910,
+    "peak_dbfs": -0.21,
+    "clipping_ratio": 0.0,
+    "sha256": "526c3c690be3a66d679e59643f57303a0d5e338fe0871071de06f7cfae81d86c",
+    "bytes": 393260
+   },
+   "artifact_id": "art_f009543340e7467abc2f",
+   "artifact_rel_path": "voice_lab/artifacts/52/526c3c690be3a66d679e59643f57303a0d5e338fe0871071de06f7cfae81d86c.wav"
+  },
+  {
+   "label": "warm_repeat",
+   "wall_s": 55.76,
+   "load_s": 0.0,
+   "model_cached": true,
+   "gen_s": 55.619,
+   "audio_s": 4.458,
+   "rtf": 12.476,
+   "sample_rate": 44100,
+   "execution": {
+    "provider": "cpu",
+    "device": "cpu",
+    "fallback_reason": null,
+    "gpu_workload_verified": false
+   },
+   "runner_pid": 22340,
+   "runner_cpu_s_during_run": 0.0,
+   "runner_rss_bytes": 4382720,
+   "runner_peak_rss_bytes": 4403200,
+   "validation": {
+    "valid": true,
+    "duration_ms": 4458,
+    "speech_ms": 3910,
+    "peak_dbfs": -0.21,
+    "clipping_ratio": 0.0,
+    "sha256": "526c3c690be3a66d679e59643f57303a0d5e338fe0871071de06f7cfae81d86c",
+    "bytes": 393260
+   },
+   "artifact_id": "art_d25c2ce7834c48278415",
+   "artifact_rel_path": "voice_lab/artifacts/52/526c3c690be3a66d679e59643f57303a0d5e338fe0871071de06f7cfae81d86c.wav"
+  },
+  {
+   "label": "after_runner_restart",
+   "wall_s": 304.26,
+   "load_s": 23.252,
+   "model_cached": false,
+   "gen_s": 271.655,
+   "audio_s": 4.458,
+   "rtf": 60.933,
+   "sample_rate": 44100,
+   "execution": {
+    "provider": "cpu",
+    "device": "cpu",
+    "fallback_reason": null,
+    "gpu_workload_verified": false
+   },
+   "runner_pid": 13912,
+   "runner_cpu_s_during_run": 0.0,
+   "runner_rss_bytes": 4186112,
+   "runner_peak_rss_bytes": 4317184,
+   "validation": {
+    "valid": true,
+    "duration_ms": 4458,
+    "speech_ms": 3910,
+    "peak_dbfs": -0.21,
+    "clipping_ratio": 0.0,
+    "sha256": "526c3c690be3a66d679e59643f57303a0d5e338fe0871071de06f7cfae81d86c",
+    "bytes": 393260
+   },
+   "artifact_id": "art_0ce89b3ed2004568bb64",
+   "artifact_rel_path": "voice_lab/artifacts/52/526c3c690be3a66d679e59643f57303a0d5e338fe0871071de06f7cfae81d86c.wav"
+  }
+ ],
+ "failures": [],
+ "hardware": {
+  "cpu": {
+   "name": "Intel(R) Core(TM) i7-9700 CPU @ 3.00GHz",
+   "cores": 8,
+   "threads": 8
+  },
+  "ram_bytes": 16903786496,
+  "gpus": [
+   {
+    "name": "Radeon (TM) RX 560X",
+    "vendor": "AMD",
+    "vram_bytes": 4293918720,
+    "vram_note": "Win32 AdapterRAM caps at 4 GiB",
+    "driver": "31.0.12019.9007",
+    "source": "Win32_VideoController"
+   },
+   {
+    "name": "Intel(R) UHD Graphics 630",
+    "vendor": "Intel",
+    "vram_bytes": 1073741824,
+    "vram_note": "Win32 AdapterRAM caps at 4 GiB",
+    "driver": "27.20.100.9316",
+    "source": "Win32_VideoController"
+   }
+  ],
+  "torch": {
+   "installed": true,
+   "version": "2.15.0+cpu",
+   "cuda_available": false,
+   "cuda_version": null,
+   "hip_version": null,
+   "device_count": 0
+  },
+  "cuda_usable": false,
+  "rocm_usable": false
+ },
+ "repeatability": {
+  "same_seed_identical_audio": true,
+  "note": "sampling decoder with a fixed seed"
+ },
+ "finished_at": "2026-11-01T07:51:26.468556+00:00",
+ "verdict": "PASS",
+ "report_artifact": {
+  "artifact_id": "art_6f2e941e4e2a4af992a6",
+  "rel_path": "voice_lab/artifacts/db/dbc57109181d09bff3eb7538f9ba8c712c506b7d90d289c4417a97184887be6f.json"
+ }
+}

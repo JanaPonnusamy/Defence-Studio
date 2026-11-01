@@ -356,3 +356,18 @@ def test_purge_stale_uploads(env):
     import os, time
     os.utime(orphan, (time.time() - 3600, time.time() - 3600))
     assert env["voice"].purge_stale_uploads() == 1 and not orphan.exists()
+
+
+def test_purge_keeps_a_referenced_upload_of_an_unfinished_job(env):
+    import os, sqlite3, time
+    j = upload(env, key="keep-active", data=b"garbage bytes").json()
+    files = list(env["voice"].upload_dir.glob("*"))
+    assert len(files) == 1
+    old = time.time() - 30 * 86400
+    os.utime(files[0], (old, old))
+    with sqlite3.connect(env["voice"].database_file) as c:
+        c.execute("UPDATE workflow_jobs SET status='RUNNING' WHERE job_id=?", (j["job_id"],))
+    assert env["voice"].purge_stale_uploads() == 0 and files[0].exists()
+    with sqlite3.connect(env["voice"].database_file) as c:
+        c.execute("UPDATE workflow_jobs SET status='COMPLETED' WHERE job_id=?", (j["job_id"],))
+    assert env["voice"].purge_stale_uploads() == 1 and not files[0].exists()

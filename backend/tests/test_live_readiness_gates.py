@@ -47,7 +47,11 @@ def _counts(db):
 
 def _ready_job(tmp_path):
     db, root, jobs, job = make_job(tmp_path)
-    result = policy_service(db, root, tmp_path).run(job, OWNER)
+    svc = policy_service(db, root, tmp_path)
+    assert svc.run(job, OWNER)["awaiting_human_review"], "fixture must meet the criteria"
+    from human_approval_helpers import approve_package_as_human
+    approve_package_as_human(db, root, job, OWNER)
+    result = svc.run(job, OWNER)
     assert result["ready_for_generation"] and result["package_approval"], "fixture must be ready"
     return db, root, job, result
 
@@ -69,7 +73,7 @@ def _tree_hashes(root, job):
 
 def test_ready_package_builds_request_once_and_leaves_review_ledger_and_artifacts_untouched(tmp_path):
     db, root, job, run = _ready_job(tmp_path)
-    assert run["package_approval"] is not None and "AUTOMATED_POLICY" in json.dumps(run["package_approval"])
+    assert run["package_approval"] is not None and run["package_approval"]["approval_kind"] == "HUMAN"
     before_counts, before_tree = _counts(db), _tree_hashes(root, job)
     t = Transport(_body(db, root, job))
     ScriptService(db, root, provider=_provider(t)).generate(job, OWNER, GOOD_CONFIG, "live-ready-1")

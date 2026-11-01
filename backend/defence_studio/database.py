@@ -3,7 +3,7 @@ from contextlib import closing
 from pathlib import Path
 
 
-SCHEMA_VERSION = 13
+SCHEMA_VERSION = 16
 
 
 def connect(path: Path) -> sqlite3.Connection:
@@ -31,7 +31,7 @@ def initialize_database(path: Path) -> None:
         version = connection.execute(
             "SELECT version FROM schema_info WHERE singleton = 1"
         ).fetchone()[0]
-        if version not in (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, SCHEMA_VERSION):
+        if version not in (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, SCHEMA_VERSION):
             raise RuntimeError(f"Unsupported Defence Studio schema version: {version}")
 
         connection.executescript(
@@ -138,6 +138,15 @@ def initialize_database(path: Path) -> None:
             version = 12
         if version == 12:
             _upgrade_v12_to_v13(connection)
+            version = 13
+        if version == 13:
+            _upgrade_v13_to_v14(connection)
+            version = 14
+        if version == 14:
+            _upgrade_v14_to_v15(connection)
+            version = 15
+        if version == 15:
+            _upgrade_v15_to_v16(connection)
 
 
 def _upgrade_v3_to_v4(connection: sqlite3.Connection) -> None:
@@ -886,6 +895,79 @@ def _upgrade_v12_to_v13(connection: sqlite3.Connection) -> None:
             """
         )
         connection.execute("UPDATE schema_info SET version = 13 WHERE singleton = 1")
+        connection.commit()
+    except Exception:
+        connection.rollback()
+        raise
+
+
+def _upgrade_v13_to_v14(connection: sqlite3.Connection) -> None:
+    """Tamil speech-reference library. Additive tables only; no existing row is rewritten."""
+    from defence_studio.services.speech_reference_schema import SPEECH_REFERENCE_DDL
+
+    script = (
+        "BEGIN EXCLUSIVE;\n"
+        + SPEECH_REFERENCE_DDL
+        + "\nUPDATE schema_info SET version = 14 WHERE singleton = 1;\nCOMMIT;\n"
+    )
+    try:
+        connection.executescript(script)
+    except Exception:
+        if connection.in_transaction:
+            connection.rollback()
+        raise
+
+
+def _upgrade_v14_to_v15(connection: sqlite3.Connection) -> None:
+    """Storage lifecycle registry, retention overrides and cleanup audit. Additive only."""
+    from defence_studio.storage.lifecycle import STORAGE_DDL
+
+    script = (
+        "BEGIN EXCLUSIVE;\n"
+        + STORAGE_DDL
+        + "\nUPDATE schema_info SET version = 15 WHERE singleton = 1;\nCOMMIT;\n"
+    )
+    try:
+        connection.executescript(script)
+    except Exception:
+        if connection.in_transaction:
+            connection.rollback()
+        raise
+
+
+def _upgrade_v15_to_v16(connection: sqlite3.Connection) -> None:
+    """Human-only approval (decision C, 2026-11-01).
+
+    `evidence_packages` had UNIQUE(job_id, revision), so a revision that already carries a legacy
+    AUTOMATED_POLICY row could never receive a human approval. The ledger is rebuilt with
+    UNIQUE(job_id, revision, reviewer_id): every existing row is copied unchanged (append-only
+    history is preserved), and a human may now approve the same revision once. The copy is
+    verified row-for-row before the old table is dropped; everything commits atomically."""
+    columns = "job_id, version, revision, uri, sha256, reviewer_id, note, created_at, idempotency_key"
+    connection.execute("BEGIN EXCLUSIVE")
+    try:
+        connection.execute("""CREATE TABLE evidence_packages_v16 (
+            job_id TEXT NOT NULL REFERENCES workflow_jobs(job_id) ON DELETE CASCADE,
+            version INTEGER NOT NULL CHECK(version > 0),
+            revision TEXT NOT NULL,
+            uri TEXT NOT NULL,
+            sha256 TEXT NOT NULL,
+            reviewer_id TEXT NOT NULL,
+            note TEXT NOT NULL,
+            created_at TEXT NOT NULL,
+            idempotency_key TEXT NOT NULL,
+            PRIMARY KEY(job_id, version),
+            UNIQUE(job_id, revision, reviewer_id),
+            UNIQUE(job_id, idempotency_key)
+        )""")
+        connection.execute(f"INSERT INTO evidence_packages_v16({columns}) SELECT {columns} FROM evidence_packages")
+        old = connection.execute(f"SELECT {columns} FROM evidence_packages ORDER BY job_id, version").fetchall()
+        new = connection.execute(f"SELECT {columns} FROM evidence_packages_v16 ORDER BY job_id, version").fetchall()
+        if [tuple(r) for r in old] != [tuple(r) for r in new]:
+            raise RuntimeError("evidence_packages copy mismatch; migration aborted")
+        connection.execute("DROP TABLE evidence_packages")
+        connection.execute("ALTER TABLE evidence_packages_v16 RENAME TO evidence_packages")
+        connection.execute("UPDATE schema_info SET version = 16 WHERE singleton = 1")
         connection.commit()
     except Exception:
         connection.rollback()

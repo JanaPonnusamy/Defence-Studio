@@ -151,6 +151,10 @@ class EvidenceRefV1(StrictModel):
     qualification: str = Field(default="", max_length=2000)
 
 
+VISUAL_TYPES = ("ARCHIVE_FOOTAGE", "STILL_IMAGE", "MAP", "INFOGRAPHIC", "DIAGRAM", "TIMELINE",
+                "PRESENTER", "TEXT_CARD", "B_ROLL")
+
+
 class NarrationSectionV1(StrictModel):
     section_id: str = Field(min_length=1, max_length=120)
     heading: str = Field(default="", max_length=400)
@@ -164,6 +168,9 @@ class NarrationSectionV1(StrictModel):
     evidence: EvidenceRefV1 = Field(default_factory=EvidenceRefV1)
     # Optional presentation/transition note, clearly separated from narration.
     presentation_note: str = Field(default="", max_length=2000)
+    # Script Studio chapter metadata (2026-11-01). Optional; set by a human edit or a template.
+    visual_type: Literal[VISUAL_TYPES] | None = None
+    chapter_template: str | None = Field(default=None, min_length=1, max_length=80)
 
 
 class UsageV1(StrictModel):
@@ -217,8 +224,14 @@ class ScriptApprovalV1(StrictModel):
     reviewer_id: str = Field(min_length=1)
     note: str = Field(min_length=1, max_length=4000)
     approved_at: str = Field(min_length=1)
+    # AUTOMATED_VALIDATION stays parseable for legacy artifacts only; it never makes a script
+    # production-eligible (ScriptService.export_approved requires HUMAN). Decision C, 2026-11-01.
     approval_kind: Literal["HUMAN", "AUTOMATED_VALIDATION"] = "HUMAN"
     policy_version: str | None = None
+    decision: Literal["APPROVED"] | None = None
+    evidence_package_version: int | None = Field(default=None, gt=0)
+    evidence_package_sha256: str | None = Field(default=None, pattern=r"^[0-9a-f]{64}$")
+    audit: dict | None = None
 
 
 class ScriptRevisionV1(StrictModel):
@@ -246,6 +259,9 @@ class ScriptRevisionV1(StrictModel):
     # retained so validation and review are reproducible without re-reading it.
     eligible_claim_ids: list[str] = Field(default_factory=list)
     approval: ScriptApprovalV1 | None = None
+    # Script Studio lineage for revisions derived from another one (human edit, section regeneration):
+    # {kind, parent_version, parent_revision_sha256, edited_by, operations[], evidence_diff{}}.
+    lineage: dict | None = None
 
     @model_validator(mode="after")
     def _status_integrity(self):

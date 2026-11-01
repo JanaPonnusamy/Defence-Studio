@@ -335,7 +335,7 @@ def test_package_version_survives_and_blocks_script_until_approval(tmp_path):
         connection.commit()
     initialize_database(db)
     with closing(connect(db)) as connection:
-        assert connection.execute("SELECT version FROM schema_info").fetchone()[0] == SCHEMA_VERSION == 13
+        assert connection.execute("SELECT version FROM schema_info").fetchone()[0] == SCHEMA_VERSION == 16
         assert connection.execute("SELECT topic FROM workflow_jobs WHERE job_id=?", (preserved,)).fetchone()[0] == "Northwind drill"
         assert connection.execute("SELECT COUNT(*) FROM verification_packages").fetchone()[0] == 0
 

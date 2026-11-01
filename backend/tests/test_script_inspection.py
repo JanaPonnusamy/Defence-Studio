@@ -45,10 +45,10 @@ def test_record_matches_actual_wire_request_and_hides_secrets(approved):
     assert rec["request"]["wire_body"] == sent[0]                      # exactly what the client sent
     assert rec["request"]["structure"]["wire_messages_match_client_input"] is True
     assert rec["request"]["structure"]["evidence_references"]["claim_ids"] == [s["claim_id"]]
-    assert rec["outcome"] == "APPROVED" and rec["script_accepted"] is True
+    assert rec["outcome"] == "AWAITING_REVIEW" and rec["script_accepted"] is True   # decision C: human approves
     assert rec["raw_response"]["http"]["provider_request_id"] == "req_abc"
     assert rec["raw_response"]["usage"]["input_tokens"] == 400
-    assert rec["clean_output"]["status_label"] == "AUTO_APPROVED"
+    assert rec["clean_output"].get("status_label") != "AUTO_APPROVED"
     assert "authorization" in {k.lower() for k in sent[1]}              # sent on the wire...
     assert KEY not in json.dumps(rec) and "Bearer" not in json.dumps(rec)  # ...never stored
 

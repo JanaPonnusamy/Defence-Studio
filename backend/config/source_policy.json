@@ -160,14 +160,19 @@
         "application/xml",
         "application/rss+xml",
         "application/atom+xml"
-      ]
+      ],
+      "access": [
+        "feed_discovery"
+      ],
+      "https_only": true
     },
     {
       "id": "defensenews-feed",
       "domain": "www.defensenews.com",
       "include_subdomains": false,
       "url_patterns": [
-        "^/arc/outboundfeeds/rss/\\?outputType=xml$"
+        "^/arc/outboundfeeds/rss/\\?outputType=xml$",
+        "^/feed/$"
       ],
       "category": "INDEPENDENT_REPORTING",
       "publisher": "Defense News",
@@ -182,7 +187,11 @@
         "application/xml",
         "application/rss+xml",
         "application/atom+xml"
-      ]
+      ],
+      "access": [
+        "feed_discovery"
+      ],
+      "https_only": true
     },
     {
       "id": "breakingdefense-feed",
@@ -204,7 +213,11 @@
         "application/xml",
         "application/rss+xml",
         "application/atom+xml"
-      ]
+      ],
+      "access": [
+        "feed_discovery"
+      ],
+      "https_only": true
     },
     {
       "id": "thehindu-national-feed",
@@ -226,7 +239,11 @@
         "application/xml",
         "application/rss+xml",
         "application/atom+xml"
-      ]
+      ],
+      "access": [
+        "feed_discovery"
+      ],
+      "https_only": true
     },
     {
       "id": "thehindu-gsat7c-varunastra-20261015",
@@ -307,6 +324,167 @@
       "provenance_requirements": [
         "published_at"
       ]
+    },
+    {
+      "id": "bbc-news-articles",
+      "domain": "www.bbc.com",
+      "include_subdomains": false,
+      "category": "INDEPENDENT_REPORTING",
+      "trust": {
+        "descriptive_claims": true,
+        "quantitative_claims": "ATTRIBUTED_ONLY"
+      },
+      "enabled": true,
+      "access": [
+        "article"
+      ],
+      "https_only": true,
+      "respect_robots": true,
+      "min_article_words": 150,
+      "allowed_content_types": [
+        "text/html"
+      ],
+      "provenance_requirements": [
+        "published_at"
+      ],
+      "publisher": "BBC News",
+      "independence_group": "bbc",
+      "url_patterns": [
+        "^/news/articles/[a-z0-9]{8,16}$",
+        "^/news/[a-z][a-z-]*-\\d{7,9}$"
+      ],
+      "exclusions": [
+        "^/news/(?:live|av|videos)/"
+      ],
+      "approval": "owner decision A, 2026-11-01: eligible article pages of approved publishers; no paywall/login/anti-bot bypass"
+    },
+    {
+      "id": "bbc-news-articles-uk",
+      "domain": "www.bbc.co.uk",
+      "include_subdomains": false,
+      "category": "INDEPENDENT_REPORTING",
+      "trust": {
+        "descriptive_claims": true,
+        "quantitative_claims": "ATTRIBUTED_ONLY"
+      },
+      "enabled": true,
+      "access": [
+        "article"
+      ],
+      "https_only": true,
+      "respect_robots": true,
+      "min_article_words": 150,
+      "allowed_content_types": [
+        "text/html"
+      ],
+      "provenance_requirements": [
+        "published_at"
+      ],
+      "publisher": "BBC News",
+      "independence_group": "bbc",
+      "url_patterns": [
+        "^/news/articles/[a-z0-9]{8,16}$",
+        "^/news/[a-z][a-z-]*-\\d{7,9}$"
+      ],
+      "exclusions": [
+        "^/news/(?:live|av|videos)/"
+      ],
+      "approval": "owner decision A, 2026-11-01: eligible article pages of approved publishers; no paywall/login/anti-bot bypass"
+    },
+    {
+      "id": "defensenews-articles",
+      "domain": "www.defensenews.com",
+      "include_subdomains": false,
+      "category": "INDEPENDENT_REPORTING",
+      "trust": {
+        "descriptive_claims": true,
+        "quantitative_claims": "ATTRIBUTED_ONLY"
+      },
+      "enabled": true,
+      "access": [
+        "article"
+      ],
+      "https_only": true,
+      "respect_robots": true,
+      "min_article_words": 150,
+      "allowed_content_types": [
+        "text/html"
+      ],
+      "provenance_requirements": [
+        "published_at"
+      ],
+      "publisher": "Defense News",
+      "independence_group": "defensenews",
+      "url_patterns": [
+        "^/(?:[a-z0-9-]+/){1,3}\\d{4}/\\d{2}/\\d{2}/[a-z0-9-]+/?$"
+      ],
+      "exclusions": [
+        "^/(?:video|podcasts?|sponsored|native)/"
+      ],
+      "approval": "owner decision A, 2026-11-01: eligible article pages of approved publishers; no paywall/login/anti-bot bypass"
+    },
+    {
+      "id": "breakingdefense-articles",
+      "domain": "breakingdefense.com",
+      "include_subdomains": false,
+      "category": "INDEPENDENT_REPORTING",
+      "trust": {
+        "descriptive_claims": true,
+        "quantitative_claims": "ATTRIBUTED_ONLY"
+      },
+      "enabled": true,
+      "access": [
+        "article"
+      ],
+      "https_only": true,
+      "respect_robots": true,
+      "min_article_words": 150,
+      "allowed_content_types": [
+        "text/html"
+      ],
+      "provenance_requirements": [
+        "published_at"
+      ],
+      "publisher": "Breaking Defense",
+      "independence_group": "breakingdefense",
+      "url_patterns": [
+        "^/\\d{4}/\\d{2}/[a-z0-9-]+/?$"
+      ],
+      "exclusions": [],
+      "approval": "owner decision A, 2026-11-01: eligible article pages of approved publishers; no paywall/login/anti-bot bypass"
+    },
+    {
+      "id": "thehindu-news-articles",
+      "domain": "www.thehindu.com",
+      "include_subdomains": false,
+      "category": "INDEPENDENT_REPORTING",
+      "trust": {
+        "descriptive_claims": true,
+        "quantitative_claims": "ATTRIBUTED_ONLY"
+      },
+      "enabled": true,
+      "access": [
+        "article"
+      ],
+      "https_only": true,
+      "respect_robots": true,
+      "min_article_words": 150,
+      "allowed_content_types": [
+        "text/html"
+      ],
+      "provenance_requirements": [
+        "published_at"
+      ],
+      "publisher": "The Hindu",
+      "independence_group": "thehindu",
+      "url_patterns": [
+        "^/news/(?:national|international)/(?:[a-z0-9-]+/)?[a-z0-9-]+/article\\d+\\.ece$"
+      ],
+      "exclusions": [
+        "/opinion/",
+        "/premium/"
+      ],
+      "approval": "owner decision A, 2026-11-01: eligible article pages of approved publishers; no paywall/login/anti-bot bypass"
     }
   ]
 }
