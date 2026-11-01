@@ -3,7 +3,7 @@ from contextlib import closing
 from pathlib import Path
 
 
-SCHEMA_VERSION = 13
+SCHEMA_VERSION = 15
 
 
 def connect(path: Path) -> sqlite3.Connection:
@@ -31,7 +31,7 @@ def initialize_database(path: Path) -> None:
         version = connection.execute(
             "SELECT version FROM schema_info WHERE singleton = 1"
         ).fetchone()[0]
-        if version not in (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, SCHEMA_VERSION):
+        if version not in (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, SCHEMA_VERSION):
             raise RuntimeError(f"Unsupported Defence Studio schema version: {version}")
 
         connection.executescript(
@@ -138,6 +138,12 @@ def initialize_database(path: Path) -> None:
             version = 12
         if version == 12:
             _upgrade_v12_to_v13(connection)
+            version = 13
+        if version == 13:
+            _upgrade_v13_to_v14(connection)
+            version = 14
+        if version == 14:
+            _upgrade_v14_to_v15(connection)
 
 
 def _upgrade_v3_to_v4(connection: sqlite3.Connection) -> None:
@@ -889,4 +895,38 @@ def _upgrade_v12_to_v13(connection: sqlite3.Connection) -> None:
         connection.commit()
     except Exception:
         connection.rollback()
+        raise
+
+
+def _upgrade_v13_to_v14(connection: sqlite3.Connection) -> None:
+    """Tamil speech-reference library. Additive tables only; no existing row is rewritten."""
+    from defence_studio.services.speech_reference_schema import SPEECH_REFERENCE_DDL
+
+    script = (
+        "BEGIN EXCLUSIVE;\n"
+        + SPEECH_REFERENCE_DDL
+        + "\nUPDATE schema_info SET version = 14 WHERE singleton = 1;\nCOMMIT;\n"
+    )
+    try:
+        connection.executescript(script)
+    except Exception:
+        if connection.in_transaction:
+            connection.rollback()
+        raise
+
+
+def _upgrade_v14_to_v15(connection: sqlite3.Connection) -> None:
+    """Storage lifecycle registry, retention overrides and cleanup audit. Additive only."""
+    from defence_studio.storage.lifecycle import STORAGE_DDL
+
+    script = (
+        "BEGIN EXCLUSIVE;\n"
+        + STORAGE_DDL
+        + "\nUPDATE schema_info SET version = 15 WHERE singleton = 1;\nCOMMIT;\n"
+    )
+    try:
+        connection.executescript(script)
+    except Exception:
+        if connection.in_transaction:
+            connection.rollback()
         raise

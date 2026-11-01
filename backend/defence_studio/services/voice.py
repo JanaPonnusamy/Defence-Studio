@@ -261,11 +261,16 @@ class VoiceService:
         """Retention policy: unreferenced/aged temporary reference uploads are removed."""
         n = 0
         with closing(connect(self.database_file)) as c:
-            live = {r[0] for r in c.execute("SELECT temp_path FROM voice_job_requests WHERE temp_path IS NOT NULL")}
+            rows = c.execute(
+                "SELECT r.temp_path, j.status FROM voice_job_requests r "
+                "LEFT JOIN workflow_jobs j ON j.job_id = r.job_id WHERE r.temp_path IS NOT NULL").fetchall()
+        live = {r[0] for r in rows}
+        # A referenced upload may only age out once its job is finished; an active job keeps its file.
+        finished = {r[0] for r in rows if r[1] in ("COMPLETED", "FAILED", "CANCELLED")}
         for f in self.upload_dir.glob("*"):
             if str(f) not in live and time.time() - f.stat().st_mtime > 60:
                 f.unlink(missing_ok=True); n += 1
-            elif time.time() - f.stat().st_mtime > max_age_seconds:
+            elif str(f) in finished and time.time() - f.stat().st_mtime > max_age_seconds:
                 f.unlink(missing_ok=True); n += 1
         return n
 

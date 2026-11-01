@@ -201,3 +201,73 @@ JSON contract** are in `docs/voice_lab/VL0_EVALUATION_AND_CONTRACT.md` §5. B ma
   `docs/voice_lab/**`, `scripts/voice_lab_*.ps1`, `third_party/voice_lab/` + `models/voice_lab/` (git-ignored except manifest).
 - **Files B is expected to own:** `frontend/js/views/voice-lab*.js`, `frontend/js/voice-lab/**`, `frontend/tests/voice-lab*.test.mjs`.
 - **Hard facts:** no NVIDIA/CUDA on this PC, so local training is NOT feasible; training APIs must return 409, never simulate.
+
+## 19. Recovery sprint — storage v15, content research run (Agent A = Claude Code session "storage/content", 2026-11-01)
+
+Two Claude sessions now sign as "Agent A". This one owns storage + content research; the Voice Lab session (§18) owns `voice_lab/**`.
+To tell them apart: this session wrote §3, §5 A2/S1–S4, §7 storage contract, §19.
+
+### Schema reconciliation (v14 → v15)
+
+- v14 (speech reference) was live in the DB but only in uncommitted `database.py`. Reconciled by committing the v14 wiring together
+  with the working-tree `speech_reference_schema.py` DDL: the live DB has `channel_title`, `duration_iso` and `description`, and the committed
+  service INSERTs name their columns, so the wider tables are safe. The rest of the speech-reference work (routes, service changes, tests, seed, view)
+  stays uncommitted for its owner. `backend/tests/test_speech_reference.py` (untracked) had its version assert bumped 14→15 in the working tree only.
+- **v15 = storage lifecycle**, committed: `storage_artifacts`, `storage_retention_policy`, `storage_cleanup_runs`, `storage_cleanup_items`
+  (`backend/defence_studio/storage/lifecycle.py::STORAGE_DDL`). Next free version: **v16** (Voice Lab tentative), then v17+.
+
+### S2 storage backend — READY_FOR_INTEGRATION (B: the §7 contract is live; field notes below)
+
+- Routes: `GET /api/storage/summary`, `/render-controls`, `/capacity?required_bytes=`, `/jobs/{job_id}`, `GET|PUT /retention`,
+  `POST /cleanup/dry-run`, `POST /cleanup {dry_run_id, confirm}`, `GET /cleanup/history`.
+- Summary returns exactly the fields `storage-manager-view.js` reads (`total_bytes`, `permanent_bytes`, `temporary_bytes`, `orphan_bytes`,
+  `unclassified_bytes`, `reclaimed_bytes_total`, `by_module[] {module, bytes, count}`, `roots[] {root, path, bytes, files, disk_free_bytes, below_floor}`,
+  `largest[] {path_relative, module, bytes, lifecycle_state}`, `last_cleanup {dry_run, finished_at, reclaimed_bytes}`, `measured_at`).
+- Retention GET: `categories[] {name, mode: DAYS|PRESERVE|AFTER_VERIFIED_RENDER, days, preserve, locked, temporary}`. PUT `{categories: {NAME: days|null|"preserve"|"after_verified_render"}}`.
+  **B, please:** for `locked: true` classes and `AFTER_VERIFIED_RENDER` classes, render read-only and do not send them. `Number("")` = 0 is rejected (422),
+  and a locked class changed to anything returns 422.
+- Dry run: `{run_id, candidates[], would_reclaim_bytes, confirm_phrase: "DELETE <n> FILES", skipped[] {reason}, preserved_counts}`. Execute needs
+  that exact phrase within 30 min. Replaying the same `dry_run_id` returns the first result (`replayed: true`). Execute result: `deleted[]`, `already_gone[]`,
+  `blocked[]`, `failed[]`, `errors[]`, `reclaimed_bytes`.
+- Rules (tested): only the core storage root is deletable; module stores are measured only. Only 8 temporary classes can expire. Any file named in any
+  DB text column or inside a stored JSON/text artifact is `REFERENCED`. Non-terminal jobs, active stages, worker claims and QUEUED/RUNNING/INTERRUPTED
+  renders protect a whole job. Render intermediates go only after a SUCCEEDED render whose file sha256 matches **and** a SUCCEEDED QC report.
+  Rejected images expire 7 days after the rejection review. Orphans are report-only. Cleanup is scoped to the caller's own jobs. Each item is re-classified,
+  path-checked (no `..`, absolute paths, links or reparse points) and re-hashed before `unlink`.
+- **B coordination need:** after cleanup removes a rejected image file, `image_research_candidates.stored_relative_path` still points at it.
+  Your preview/accept handlers must treat a missing file as `download_status` unavailable; A does not write B's tables.
+- `render-controls`: only `disk_floor_bytes` (env `DEFENCE_STUDIO_MIN_FREE_DISK_MB`, default 2048) is real; the rest are `null` (S4 not started).
+- Also fixed: `voice.purge_stale_uploads` no longer deletes a referenced upload of an unfinished job (audit §3).
+
+### Content research — real run (isolated)
+
+- Root cause of 0 RSS candidates in the earlier run: Defense News moved its feed (`/arc/outboundfeeds/rss/?outputType=xml` now redirects to `/feed/`).
+  The redirect was rejected as not allowlisted. The policy now adds the exact feed path `^/feed/$` on the existing `defensenews-feed` entry (article pages are still not allowed).
+- **Policy blocker (owner decision):** BBC/Defense News/Breaking Defense/The Hindu are discovery-only. Their article pages are not allowlisted, so RSS
+  candidates can never be acquired. Enabled article publishers: CSIS Missile Threat (`/missile/`, `/defsys/`), RUSI publications, PIB press releases, and single owner-approved articles.
+- Run: job `33e195dd-43c8-435b-ae5b-a592e6ed3d98`, topic "BrahMos supersonic cruise missile: production, testing and exports", isolated DB/storage
+  `C:\Users\Jana Local Account\AppData\Local\Temp\dsa-a\` (short path: the scratchpad path exceeded the 240-char artifact limit), port 8031.
+  rss_feed `COMPLETED_NO_RESULTS` (all 4 feeds read; nothing on topic); manual_url 4 operator seeds (1 CSIS profile, 3 PIB releases), all `ACQUIRED`.
+  Analysis gave 56 deterministic claims. OpenAI `gpt-4o-mini`: 4 calls, ₹0.1795 measured, 21 span claims from 2 sources; 2 PIB sources were rejected `SCHEMA_INVALID`
+  (model offsets out of range; failed closed). Independent provenance check: 21/21 spans equal the stored normalized text at their offsets (all relocated by
+  `text_search`), all source and raw-artifact sha256 values verify, and all 4 sources mention BrahMos (2–22 times).
+  Evidence policy: 5 accepted claims from 1 independence group, so `package_ready: false` (needs 8 claims / 2 groups). Script generation is correctly blocked.
+  The job is `AWAITING_REVIEW` (human review pending) and survived an API restart. AI spans are labelled NOT_REVIEWED and are not part of the review set (by design).
+  Some AI spans are context-free fragments (e.g. "Supersonic Cruise Missile", "300-500 km, 290 km export version"), a quality gap for the prompt or validator.
+
+### Script Studio readiness (inspection only)
+
+Exists: gated on an approved evidence package; title/hook/sections/closing; per-section evidence refs (claim_ids/source_ids), statement_kind, presentation note;
+script-level word count and runtime estimate (`words-per-minute.v1`); min/max word range; integrity validation; versioned revisions with compare, repetition,
+staleness and history; request-changes; approve; export. **Missing vs master prompt §5:** per-chapter duration and word count; a structured visual-type field;
+per-chapter uncertainty warnings; the required chapter template; editor operations (human narration edit, reorder, regenerate one section, accept/reject suggestions).
+**Flag:** `ScriptApprovalV1.approval_kind` allows `AUTOMATED_VALIDATION`, so a non-human approval path exists (`test_script_auto_approval`) and the human-only
+gate is not exclusive. Owner decision.
+
+### Tests (this session)
+
+- `cd backend; python -m pytest -q -p no:cacheprovider --basetemp=C:/dsv/<dir>`. A short basetemp is required on this account: the default
+  `...\pytest-of-Jana Local Account\...` path pushes artifact paths over the 240-char limit and caused 106 failures + 232 errors on both HEAD and the tree.
+  Clean HEAD `a147114`-era worktree: **826 passed / 10 skipped / 0 failed**. Working tree: **889 passed / 10 skipped / 0 failed**.
+  Staged snapshot (HEAD `a147114` + this commit only): full suite **859 passed / 11 skipped / 0 failed**; 13 affected files 248 passed / 3 skipped. `test_storage_lifecycle.py`: 31 passed, 1 skipped (symlinks not permitted for this account).
+- Frontend `node --test tests/*.test.mjs`: 97 passed.

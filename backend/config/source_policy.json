@@ -167,7 +167,8 @@
       "domain": "www.defensenews.com",
       "include_subdomains": false,
       "url_patterns": [
-        "^/arc/outboundfeeds/rss/\\?outputType=xml$"
+        "^/arc/outboundfeeds/rss/\\?outputType=xml$",
+        "^/feed/$"
       ],
       "category": "INDEPENDENT_REPORTING",
       "publisher": "Defense News",

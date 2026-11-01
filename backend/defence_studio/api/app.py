@@ -29,11 +29,13 @@ from defence_studio.services.youtube import YouTubeService
 from defence_studio.api.integration_routes import register_integration_routes
 from defence_studio.api.voice_routes import register_voice_routes
 from defence_studio.api.image_research_routes import register_image_research_routes
+from defence_studio.api.storage_routes import register_storage_routes
 from defence_studio.api.factcheck_routes import register_factcheck_routes
 from defence_studio.api.evidence_policy_routes import register_evidence_policy_routes
 from defence_studio.api.monitor_routes import register_monitor_routes
 from defence_studio.services.voice import VoiceService
 from defence_studio.image_research.service import ImageResearchService
+from defence_studio.storage.lifecycle import StorageLifecycleService, default_observed_roots
 from defence_studio.services.factcheck import FactcheckService, FactcheckError
 from defence_studio.services.assets import AssetService
 from defence_studio.contracts.evidence import ApprovalBody
@@ -178,6 +180,7 @@ def create_app(
 
     voice = VoiceService(db_path, store_root)
     image_research = ImageResearchService(db_path, store_root)
+    storage_lifecycle = StorageLifecycleService(db_path, store_root, observed_roots=default_observed_roots(PROJECT_ROOT))
     factcheck = FactcheckService(db_path, store_root)
 
     @asynccontextmanager
@@ -757,6 +760,7 @@ def create_app(
 
     register_voice_routes(app, require_owner, voice)
     register_image_research_routes(app, require_owner, image_research)
+    register_storage_routes(app, require_owner, storage_lifecycle)
     register_factcheck_routes(app, require_owner, factcheck)
     from defence_studio.services.evidence_policy import EvidencePolicyService
     register_evidence_policy_routes(app, require_owner, EvidencePolicyService(db_path, store_root))
