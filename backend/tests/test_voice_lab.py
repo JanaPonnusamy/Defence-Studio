@@ -260,6 +260,28 @@ def test_dataset_ingest_segment_qc_duplicates_versions(env):
     assert r.status_code == 409 and r.json()["detail"]["code"] == "MANIFEST_INTEGRITY"
 
 
+def test_clearing_a_transcript_cannot_mark_it_reviewed(env):
+    """T0-A regression: an empty new transcript must not borrow the stored one to pass the REVIEWED check."""
+    c, svc = env["c"], env["svc"]
+    n, con, _ = narrator(c, "Female Narrator", "female", "Jaya")
+    ds = _dataset(c, svc, n, con)
+    ok(_upload(c, ds["dataset_id"], wav(speechlike([(2500, 0, 1000)], 220))), 202)
+    svc.run_pending()
+    sid = ok(c.get(f"/api/voice-lab/datasets/{ds['dataset_id']}/segments", headers=H))["items"][0]["segment_id"]
+    ok(c.patch(f"/api/voice-lab/segments/{sid}", headers=H, json={"transcript": "இது ஒரு சோதனை வாக்கியம்."}))
+    for cleared in ("", "   "):
+        r = c.patch(f"/api/voice-lab/segments/{sid}", headers=H, json={"transcript": cleared, "transcript_status": "REVIEWED"})
+        assert r.status_code == 422, r.text
+    seg = ok(c.get(f"/api/voice-lab/datasets/{ds['dataset_id']}/segments", headers=H))["items"][0]
+    assert seg["transcript"] == "இது ஒரு சோதனை வாக்கியம்." and seg["transcript_status"] == "DRAFT"  # rejected call changed nothing
+    # status-only REVIEWED still uses the stored transcript; clearing without REVIEWED still works
+    assert ok(c.patch(f"/api/voice-lab/segments/{sid}", headers=H, json={"transcript_status": "REVIEWED"}))["updated"] == ["transcript_status"]
+    ok(c.patch(f"/api/voice-lab/segments/{sid}", headers=H, json={"transcript": ""}))
+    seg = ok(c.get(f"/api/voice-lab/datasets/{ds['dataset_id']}/segments", headers=H))["items"][0]
+    assert seg["transcript"] is None and seg["transcript_status"] == "NONE"
+    assert c.patch(f"/api/voice-lab/segments/{sid}", headers=H, json={"transcript_status": "REVIEWED"}).status_code == 422
+
+
 def test_datasets_never_mix_identities_and_need_narrator_consent(env):
     c, svc = env["c"], env["svc"]
     m, mcon, _ = narrator(c, "Male Narrator", "male", "Prakash")
@@ -485,6 +507,58 @@ def test_script_studio_contract_and_paragraph_regeneration(env):
     assert res["narrator"]["model_version"] == 1 and res["chapter_id"] == "c1" and res["paragraph_id"] == "p1"
     assert any("not cleared" in l for l in res["limitations"])
     assert any("base-model speaker" in l for l in res["limitations"])
+
+
+class RecordingTTS(FakeTTS):
+    """Test-only: FakeTTS that keeps the exact text each chunk was synthesised from."""
+
+    def __init__(self):
+        super().__init__()
+        self.texts = []
+
+    def synthesize(self, model, cfg, text, out_wav, seed):
+        self.texts.append(text)
+        return super().synthesize(model, cfg, text, out_wav, seed)
+
+
+def test_tamil_text_preparation_feeds_model_but_keeps_approved_text(env):
+    """T0-B: Voice Lab reuses services/tts_text.py. The real reviewed config files are used (no stub tables)."""
+    c, svc = env["c"], env["svc"]
+    svc.backends["parler"] = rec = RecordingTTS()
+    f, _, _ = narrator(c, "Female Narrator", "female", "Jaya")
+    approved = "Su-57 விமானம் 25% வேகமாக பறந்தது. XQZ-9 ஒரு சோதனை."
+    g = ok(c.post("/api/voice-lab/generations", headers=H, json={"narrator_id": f["narrator_id"], "text": approved}), 202)
+    tp = g["text_preparation"]
+    assert any(r["source"] == "designation" and r["from"] == "Su-57" for r in tp["replacements"])
+    assert any("XQZ-9" in w for w in tp["warnings"])  # unknown designation reported, not transliterated
+    svc.run_pending()
+    spoken = " ".join(rec.texts)
+    assert "Su fifty seven" in spoken and "Su-57" not in spoken and "சதவீதம்" in spoken and "XQZ-9" in spoken
+    done = ok(c.get(f"/api/voice-lab/generations/{g['generation_id']}", headers=H))
+    assert done["status"] == "COMPLETED" and done["text"] == approved  # approved/subtitle text unchanged
+    assert done["provenance"]["text_preparation"]["spoken_sha256"] == tp["spoken_sha256"]
+    assert done["provenance"]["text_preparation"]["lexicon_sha256"]
+    assert any("pronunciation:" in l and "XQZ-9" in l for l in svc.generation.script_result(done)["limitations"])
+    # same input -> same spoken form -> reused (deterministic)
+    again = ok(c.post("/api/voice-lab/generations", headers=H, json={"narrator_id": f["narrator_id"], "text": approved}), 202)
+    assert again["reused"] and again["text_preparation"]["spoken"] == tp["spoken"]
+    # broken Tamil (word starting with a vowel sign) is refused, not repaired
+    r = c.post("/api/voice-lab/generations", headers=H, json={"narrator_id": f["narrator_id"], "text": "ா சோதனை."})
+    assert r.status_code == 422 and r.json()["detail"]["code"] == "TAMIL_TEXT_INVALID"
+
+
+def test_english_generation_text_is_passed_unchanged(env):
+    c, svc = env["c"], env["svc"]
+    svc.backends["parler"] = rec = RecordingTTS()
+    f, _, _ = narrator(c, "Female Narrator", "female", "Jaya")
+    text = "The Su-57 flew 25% faster. DRDO confirmed it."
+    g = ok(c.post("/api/voice-lab/generations", headers=H,
+                  json={"narrator_id": f["narrator_id"], "text": text, "language": "en"}), 202)
+    assert g["text_preparation"] is None
+    svc.run_pending()
+    assert " ".join(rec.texts) == text
+    done = ok(c.get(f"/api/voice-lab/generations/{g['generation_id']}", headers=H))
+    assert "text_preparation" not in done["provenance"]
 
 
 def test_chunk_text_keeps_sentences():

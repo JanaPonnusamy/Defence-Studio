@@ -259,7 +259,9 @@ class Datasets:
             fields["transcript_status"] = transcript_status
         if fields.get("transcript_status") not in (None, "NONE", "DRAFT", "REVIEWED"):
             raise VoiceLabError(422, "transcript_status must be NONE, DRAFT or REVIEWED")
-        if fields.get("transcript_status") == "REVIEWED" and not (fields.get("transcript") or r["transcript"]):
+        # The transcript this call leaves behind: a supplied (possibly cleared) one wins over the stored one.
+        resulting = fields["transcript"] if "transcript" in fields else r["transcript"]
+        if fields.get("transcript_status") == "REVIEWED" and not resulting:
             raise VoiceLabError(422, "cannot mark an empty transcript REVIEWED")
         if excluded is not None:
             fields["excluded"] = int(bool(excluded))
