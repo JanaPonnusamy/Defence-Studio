@@ -1,0 +1,13 @@
+{
+  "version": "defence-studio.chapter-templates.v1",
+  "_comment": "Owner-editable Script Studio chapter templates. A section's chapter_template must name one of these ids. Word ranges and visual types are guidance checked as WARNINGS (never silently enforced); the evidence requirement is checked against the section's cited claims. Adjust freely; validated at load.",
+  "templates": [
+    {"id": "HOOK", "label": "Opening hook", "purpose": "Why this matters now, in plain words", "default_visual_type": "B_ROLL", "min_words": 30, "max_words": 120, "requires_evidence": true},
+    {"id": "CONTEXT", "label": "Background and context", "purpose": "Origin, programme history, who built it", "default_visual_type": "ARCHIVE_FOOTAGE", "min_words": 80, "max_words": 260, "requires_evidence": true},
+    {"id": "CAPABILITY", "label": "Capabilities and specifications", "purpose": "Attributed technical characteristics", "default_visual_type": "INFOGRAPHIC", "min_words": 80, "max_words": 260, "requires_evidence": true},
+    {"id": "OPERATIONS", "label": "Testing, deployment and operations", "purpose": "Tests, induction, service use, exports", "default_visual_type": "MAP", "min_words": 80, "max_words": 260, "requires_evidence": true},
+    {"id": "ANALYSIS", "label": "Analysis", "purpose": "Clearly labelled analysis drawn from cited evidence", "default_visual_type": "DIAGRAM", "min_words": 60, "max_words": 220, "requires_evidence": true},
+    {"id": "UNCERTAINTY", "label": "What is not confirmed", "purpose": "Disputed or single-source points, stated as such", "default_visual_type": "TEXT_CARD", "min_words": 30, "max_words": 160, "requires_evidence": true},
+    {"id": "CLOSING", "label": "Closing", "purpose": "Summary without new facts", "default_visual_type": "PRESENTER", "min_words": 30, "max_words": 120, "requires_evidence": false}
+  ]
+}

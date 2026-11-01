@@ -159,8 +159,10 @@ def test_old_assessor_decisions_cannot_authorize_current_generation(tmp_path, mo
 def test_diagnostic_then_approval_and_recovery_refresh_current_result(tmp_path):
     db, root, _, job = make_job(tmp_path)
     svc = policy_service(db, root, tmp_path)
-    first = svc.run(job, OWNER, approve_package=False)
-    assert not first["ready_for_generation"]
+    first = svc.run(job, OWNER)
+    assert not first["ready_for_generation"] and first["awaiting_human_review"]
+    from human_approval_helpers import approve_package_as_human
+    approve_package_as_human(db, root, job, OWNER)
     approved = svc.run_assessment(job, OWNER)
     assert approved["ready_for_generation"]
     assert svc.latest(job, OWNER)["ready_for_generation"]

@@ -775,6 +775,9 @@ def create_app(
     register_evidence_policy_routes(app, require_owner, EvidencePolicyService(db_path, store_root))
     from defence_studio.services.research_monitor import ResearchMonitorService
     register_monitor_routes(app, require_owner, ResearchMonitorService(db_path, store_root))
+    from defence_studio.api.script_studio_routes import register_script_studio_routes
+    from defence_studio.services.script_studio import ScriptStudioService
+    register_script_studio_routes(app, require_owner, ScriptStudioService(db_path, store_root))
     register_integration_routes(app, require_owner, {"visual": visual, "audio": audio, "render": render, "qc": qc, "package": package, "yt": yt})
 
     frontend_dir = PROJECT_ROOT / "frontend"

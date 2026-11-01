@@ -78,7 +78,7 @@ def build_content_fixture(work):
     while worker.run_once():
         pass
     worker.shutdown()
-    assert jobs.get(job, owner)["status"] == "PAUSED"
+    assert jobs.get(job, owner)["status"] == "AWAITING_REVIEW"      # decision C: waits for a person
     review = ReviewService(db, root)
     sources = review.list_sources(job, owner)
     claims = review.list_claims(job, owner)
@@ -88,8 +88,12 @@ def build_content_fixture(work):
     evidence = EvidenceService(db, root)
     draft = evidence.draft(job, owner)
     assert draft["package"]["ready"], draft["package"]["blockers"]
-    assert draft["current_approval"]["reviewer_id"] == "AUTOMATED_POLICY"
+    assert draft["current_approval"] is None and draft["approvals"] == []
     assert all(c["review"] is None for c in claims["claims"])
+    from human_approval_helpers import approve_package_as_human
+    approve_package_as_human(db, root, job, owner)
+    assert evidence.draft(job, owner)["current_approval"]["reviewer_id"] == owner
+    assert jobs.get(job, owner)["status"] == "PAUSED"
     return db, root, job, owner
 
 
@@ -99,8 +103,9 @@ def test_research_reaches_mock_ai_and_persisted_draft(tmp_path):
     service = ScriptService(db, root, provider=provider)
     config = {**GOOD_CONFIG, "language": "en", "terminology": {}}
     revision = service.generate(job, owner, config, "content-generate")
-    assert revision["status"] == "APPROVED", revision["validation"]
-    assert revision["approval"]["approval_kind"] == "AUTOMATED_VALIDATION"
+    # Decision C: a passing revision waits for a human; it is not production-eligible yet.
+    assert revision["status"] == "AWAITING_REVIEW" and revision["validation"]["passed"], revision["validation"]
+    assert revision["approval"] is None
     assert provider.prompts and "Varunastra" in provider.prompts[0]
     sources = ReviewService(db, root).list_sources(job, owner)["sources"]
     assert any(s.get("canonical_url") == URL for s in sources)

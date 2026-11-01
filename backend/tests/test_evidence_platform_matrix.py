@@ -28,6 +28,7 @@ from conftest import SECRET, access_token
 from test_review_f5 import (ACQUISITION_STAGE, ACQUISITION_RESULT_ARTIFACT, ACQUISITION_RESULT_SCHEMA, ANALYSIS_STAGE,
                             OWNER, _advance, _complete, _setup, _source, _store_acquisition)
 from test_script_phase3 import FakeProvider, GOOD_CONFIG
+from human_approval_helpers import approve_package_as_human
 
 
 def entry(eid, domain, category, group, subjects=(), quant="CORROBORATION_REQUIRED", types=("text/plain",), publisher=True):
@@ -193,7 +194,7 @@ def test_new_topic_category_requires_no_code_change(tmp_path):
     res = svc.run(job, OWNER)
     assert res["subject_categories"] == ["SPACE_LAUNCH"]
     assert [x["state"] for x in res["sources"]] == ["AUTO_ACCEPTED"]
-    assert res["ready_for_generation"], res.get("explanation")
+    assert res["awaiting_human_review"], res.get("explanation")        # criteria met; waits for a person
 
 
 # ── separation of automated decisions from human review ────────────────────────────────────────────
@@ -207,12 +208,15 @@ def two_source_job(tmp_path, **kw):
 def test_automation_never_writes_human_ledger_and_human_wins(tmp_path):
     svc, job, db, root = two_source_job(tmp_path)
     out = svc.run(job, OWNER)
-    assert out["ready_for_generation"] and out["package_approval"]["approval_kind"] == "AUTOMATED_POLICY"
+    assert out["awaiting_human_review"] and out["package_approval"] is None and not out["ready_for_generation"]
+    approve_package_as_human(db, root, job, OWNER)
+    out = svc.run(job, OWNER)
+    assert out["ready_for_generation"] and out["package_approval"]["approval_kind"] == "HUMAN"
     with closing(sqlite3.connect(db)) as c:
         for table in ("claim_reviews", "claim_review_history", "source_reviews", "source_review_history"):
             assert c.execute(f"SELECT COUNT(*) FROM {table}").fetchone()[0] == 0
         assert c.execute("SELECT COUNT(*) FROM evidence_policy_decisions").fetchone()[0] > 0
-        assert c.execute("SELECT reviewer_id FROM evidence_packages WHERE job_id=?", (job,)).fetchone()[0] == "AUTOMATED_POLICY"
+        assert c.execute("SELECT reviewer_id FROM evidence_packages WHERE job_id=?", (job,)).fetchone()[0] == OWNER
     # a person overrides one accepted claim; the package changes and the old approval no longer applies
     review = ReviewService(db, root)
     listing = review.list_claims(job, OWNER)
@@ -221,7 +225,7 @@ def test_automation_never_writes_human_ledger_and_human_wins(tmp_path):
     ev = EvidenceService(db, root)
     draft = ev.draft(job, OWNER)
     assert victim not in draft["package"]["eligible_claim_ids"]
-    assert draft["current_approval"] is None                      # human change invalidates automated approval
+    assert draft["current_approval"] is None                      # a later review change invalidates the approval
     rec = [c for c in review.list_claims(job, OWNER)["claims"] if c["claim_id"] == victim][0]["review"]
     assert rec["reviewer_id"] == OWNER and rec["note"] == "Not wanted"
 
@@ -239,6 +243,7 @@ def test_decisions_table_is_append_only(tmp_path):
 def test_stale_analysis_invalidates_automated_approval(tmp_path):
     svc, job, db, root = two_source_job(tmp_path)
     first = svc.run(job, OWNER)
+    approve_package_as_human(db, root, job, OWNER)
     ev = EvidenceService(db, root)
     assert ev.draft(job, OWNER)["current_approval"] is not None
     from defence_studio.database import connect
@@ -289,7 +294,8 @@ def _body(claim_ids, kind, narration="அதிகாரிகள் தெர�
 def test_prompt_exposes_the_validator_rule_and_single_source_claims_validate_as_attributed(tmp_path):
     svc, job, db, root = two_source_job(tmp_path)
     out = svc.run(job, OWNER)
-    assert out["ready_for_generation"]
+    assert out["awaiting_human_review"]
+    approve_package_as_human(db, root, job, OWNER)
     pkg = EvidenceService(db, root).export(job, OWNER)
     from defence_studio.services.script_integrity import corroboration_count
     single = next(c for c in out["claims"] if c["state"] == "AUTO_ACCEPTED" and "suppression" in c["text"])["claim_id"]

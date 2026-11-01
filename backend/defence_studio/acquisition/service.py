@@ -86,7 +86,9 @@ class AcquisitionService:
         self.store = store
         if guard is None:
             from defence_studio.acquisition.source_policy import default_policy
-            guard = UrlGuard(policy=default_policy())   # controlled source registry (None only if owner opted out)
+            # Controlled source registry (None only if owner opted out). Acquisition asks for
+            # purpose "article": a feed-discovery-only entry is never fetched as a source.
+            guard = UrlGuard(policy=default_policy(), purpose="article")
         self.guard = guard
         self.registry = registry or default_registry()
         self.client_factory = client_factory

@@ -11,6 +11,7 @@ verified fact.
 
 from __future__ import annotations
 
+import re
 from html.parser import HTMLParser
 
 from defence_studio.acquisition.http_client import HttpFetchError
@@ -27,6 +28,48 @@ from defence_studio.storage.artifacts import safe_filename
 
 
 _PDF_MAGIC = b"%PDF-"
+ARTICLE_CHECK_VERSION = "article-paragraph-words.v1"
+_DATE_PUBLISHED = re.compile(r'"datePublished"\s*:\s*"([^"]{8,40})"')
+
+
+class _ParagraphWords(HTMLParser):
+    """Count words of visible text inside <p> elements (scripts/styles excluded).
+
+    A paywall stub, consent wall or script-only shell has almost no paragraph text,
+    so this distinguishes "the article was retrieved" from "a page was retrieved"."""
+
+    _SKIP = {"script", "style", "noscript", "template"}
+
+    def __init__(self):
+        super().__init__(convert_charrefs=True)
+        self.words = 0
+        self._p = 0
+        self._skip = 0
+
+    def handle_starttag(self, tag, attrs):
+        if tag in self._SKIP:
+            self._skip += 1
+        elif tag == "p":
+            self._p += 1
+
+    def handle_endtag(self, tag):
+        if tag in self._SKIP and self._skip:
+            self._skip -= 1
+        elif tag == "p" and self._p:
+            self._p -= 1
+
+    def handle_data(self, data):
+        if self._p and not self._skip:
+            self.words += len(data.split())
+
+
+def article_paragraph_words(html: str) -> int:
+    parser = _ParagraphWords()
+    try:
+        parser.feed(html)
+    except Exception:  # noqa: BLE001 - malformed markup counts what was parsed
+        pass
+    return parser.words
 
 
 class _HeadMetadata(HTMLParser):
@@ -106,6 +149,7 @@ class HttpPageProvider(AcquisitionProvider):
         else:
             source_type, extension, declared = "binary", ".bin", self._unknown_metadata()
 
+        access = self._article_check(context, response, source_type, body)
         filename = safe_filename("content", context.validated_url.url, extension)
         uri = f"jobs/{context.job_id}/research/sources/{context.source_id}/{filename}"
         stored = context.store.write_bytes(context.job_id, uri, body, response.media_type or "application/octet-stream")
@@ -124,9 +168,36 @@ class HttpPageProvider(AcquisitionProvider):
                 "http_status": response.status_code,
                 "response_headers": response.headers,
                 "declared_media_type": response.media_type,
+                **({"publisher_access": access} if access else {}),
             },
             final_url=response.final_url,
         )
+
+    @staticmethod
+    def _article_check(context: ProviderContext, response, source_type: str, body: bytes) -> dict | None:
+        """For registry entries with ``min_article_words``: refuse anything that is not the article.
+
+        Returns the access provenance recorded with the source (entry, robots decisions,
+        measured paragraph words), or None when the entry sets no article requirement."""
+        policy = getattr(context.guard, "policy", None)
+        entry = policy.entry_for(response.final_url, getattr(context.guard, "purpose", None)) if policy else None
+        if entry is None or not entry.min_article_words:
+            return None
+        if source_type != "web_page":
+            raise ProviderError("article_content_unavailable",
+                                f"{entry.publisher or entry.id} returned {response.media_type or 'unknown'} content, "
+                                "not an article page", retryable=False)
+        words = article_paragraph_words(body.decode("utf-8", errors="replace"))
+        if words < entry.min_article_words:
+            raise ProviderError(
+                "article_content_unavailable",
+                f"Page from {entry.publisher or entry.id} has {words} words of article paragraph text "
+                f"(< {entry.min_article_words}); likely a paywall, consent wall or script-only page. "
+                "Not counted as an acquired article.", retryable=False)
+        return {"policy_entry": entry.id, "publisher": entry.publisher, "access_kind": "article",
+                "independence_group": entry.independence_group, "article_check": ARTICLE_CHECK_VERSION,
+                "article_paragraph_words": words, "min_article_words": entry.min_article_words,
+                "robots": list(getattr(context.fetcher, "robots_log", []))}
 
     def _html_metadata(self, body: bytes, context: ProviderContext) -> DeclaredMetadata:
         parser = _HeadMetadata()
@@ -137,6 +208,9 @@ class HttpPageProvider(AcquisitionProvider):
         if not parser.published_at:
             from defence_studio.acquisition.source_dates import pib_publication_date
             parser.published_at = pib_publication_date(body.decode("utf-8", errors="replace"), context.validated_url.url)
+        if not parser.published_at:
+            match = _DATE_PUBLISHED.search(body.decode("utf-8", errors="replace"))
+            parser.published_at = match.group(1) if match else None
         return DeclaredMetadata(
             title=parser.title or None,
             title_status=MetadataStatus.COLLECTED if parser.title else MetadataStatus.UNAVAILABLE,

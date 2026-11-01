@@ -77,12 +77,12 @@ def candidates(svc, owner="owner-1"):
 # 0. migration ----------------------------------------------------------------
 
 def test_fresh_and_upgraded_databases_reach_v15_with_storage_tables(tmp_path):
-    assert SCHEMA_VERSION == 15
+    assert SCHEMA_VERSION == 16
     db = tmp_path / "fresh.sqlite3"
     initialize_database(db)
     initialize_database(db)  # idempotent
     with connect(db) as c:
-        assert c.execute("SELECT version FROM schema_info").fetchone()[0] == 15
+        assert c.execute("SELECT version FROM schema_info").fetchone()[0] == 16
         tables = {r[0] for r in c.execute("SELECT name FROM sqlite_master WHERE type='table'")}
     assert {"storage_artifacts", "storage_retention_policy", "storage_cleanup_runs",
             "storage_cleanup_items", "speech_reference_sources"} <= tables
@@ -98,7 +98,7 @@ def test_v14_database_upgrades_without_touching_existing_rows(tmp_path):
         c.execute("UPDATE schema_info SET version = 14")
     initialize_database(db)
     with sqlite3.connect(db) as c:
-        assert c.execute("SELECT version FROM schema_info").fetchone()[0] == 15
+        assert c.execute("SELECT version FROM schema_info").fetchone()[0] == 16
         assert c.execute("SELECT count(*) FROM workflow_jobs WHERE job_id='j-keep'").fetchone()[0] == 1
         assert c.execute("SELECT count(*) FROM storage_artifacts").fetchone()[0] == 0
 
