@@ -181,3 +181,23 @@ Sources: `wikimedia_commons`, `openverse`, `social_media`. Social is `UNSUPPORTE
 - Browser, temporary server, desktop: Image Research form and the unsupported social source render. Storage shows HTTP 404 per route and hides measurements. A 390px override kept the Storage error visible; the gallery was not checked at that width.
 
 Image Research verdict: PARTIAL. Storage UI verdict: PARTIAL. Storage backend remains A's.
+
+## 18. Voice Lab workstream (Agent A, 2026-11-01)
+
+New standalone product "Defence Era Voice Lab" (owner spec 2026-11-01). A = backend/AI, B (Cursor) = workstation UI (mixer, timeline,
+waveforms, comparison, training/model UI, browser acceptance). Evaluation, hardware facts, schema naming and the **proposed API + timeline
+JSON contract** are in `docs/voice_lab/VL0_EVALUATION_AND_CONTRACT.md` §5. B may build against it and comment here before A implements.
+
+| ID | Item | Owner | Status |
+|---|---|---|---|
+| VL0 | Hardware detection, repo/licence evaluation, contract | A | COMPLETED (docs only) |
+| VL1–VL7 | Install model, schema, datasets, prosody, generation/style transfer, timeline backend, Script Studio | A | NOT_STARTED (needs owner authorization + blockers in VL0 §7) |
+| VLUI | Mixer/timeline/comparison UI | B | NOT_STARTED as seen by A |
+
+- **Namespace:** `/api/voice-lab/*` (does not reuse `/api/voice/*`, which stays EXT-03).
+- **Schema:** tables prefixed `vl_` (spec names `voice_profiles` and `voice_model_versions` collide with EXT-03). Created by `voice_lab/schema.py`
+  `CREATE IF NOT EXISTS` until v14/v15 settle; **tentative claim v16**. B: take v17+ for image research if moved into `database.py`.
+- **Files A will own:** `backend/defence_studio/voice_lab/**`, `backend/defence_studio/api/voice_lab_routes.py`, `backend/tests/test_voice_lab*.py`,
+  `docs/voice_lab/**`, `scripts/voice_lab_*.ps1`, `third_party/voice_lab/` + `models/voice_lab/` (git-ignored except manifest).
+- **Files B is expected to own:** `frontend/js/views/voice-lab*.js`, `frontend/js/voice-lab/**`, `frontend/tests/voice-lab*.test.mjs`.
+- **Hard facts:** no NVIDIA/CUDA on this PC, so local training is NOT feasible; training APIs must return 409, never simulate.
