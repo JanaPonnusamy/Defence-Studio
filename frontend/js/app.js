@@ -9,6 +9,8 @@ import { mountProduction } from "./views/production-view.js";
 import { mountFactcheck } from "./views/factcheck-view.js";
 import { mountVoice } from "./views/voice-view.js";
 import { mountResearch } from "./views/research-view.js";
+import { mountImageResearch } from "./views/image-research-view.js";
+import { mountStorage } from "./views/storage-manager-view.js";
 import { loadSession, saveToken, saveJobId } from "./state.js";
 import { textFieldHtml } from "./components/text-field.js";
 import { showToast } from "./components/toast.js";
@@ -265,6 +267,10 @@ function parseHash() {
     state.tab = "factcheck";
   } else if (parts[0] === "research") {
     state.tab = "research";
+  } else if (parts[0] === "images") {
+    state.tab = "images";
+  } else if (parts[0] === "storage") {
+    state.tab = "storage";
   } else {
     state.tab = "sources";
     state.selectedSourceId = parts[1] ? decodeURIComponent(parts[1]) : null;
@@ -327,6 +333,8 @@ function renderTabs() {
     ${tab("scene", "scene", "Scene")}
     ${tab("production", "layers", "Production")}
     ${tab("voice", "script", "Voice")}
+    ${tab("images", "image", "Image Research")}
+    ${tab("storage", "layers", "Storage")}
     ${tab("inspector", "shield", "Inspector")}`;
   el.tabs.querySelectorAll("[data-tab]").forEach((btn) => {
     btn.addEventListener("click", () => {
@@ -336,7 +344,7 @@ function renderTabs() {
 }
 
 function renderFilters() {
-  if (state.tab === "evidence" || state.tab === "research" || state.tab === "factcheck" || state.tab === "script" || state.tab === "inspector" || state.tab === "scene" || state.tab === "production" || state.tab === "voice" || state.tab === "dashboard") { el.filters.innerHTML = ""; return; }
+  if (state.tab === "evidence" || state.tab === "research" || state.tab === "factcheck" || state.tab === "script" || state.tab === "inspector" || state.tab === "scene" || state.tab === "production" || state.tab === "voice" || state.tab === "dashboard" || state.tab === "images" || state.tab === "storage") { el.filters.innerHTML = ""; return; }
   const statusOptions = ["", "PENDING", "APPROVED_FOR_USE", "REJECTED", "NEEDS_MORE_EVIDENCE", "CONFLICT_UNRESOLVED"];
   const optionHtml = (value) => `<option value="${value}">${value || "All statuses"}</option>`;
   if (state.tab === "discovery") {
@@ -876,6 +884,14 @@ function dispatchTab() {
     // Voice engines are job-independent: they do not need a selected research job.
     mountVoice({api, list:el.list, detail:el.detail, filters:el.filters,
       isCurrent:() => state.tab === "voice"});
+  }
+  else if (state.tab === "images") {
+    mountImageResearch({api, list:el.list, detail:el.detail,
+      isCurrent:() => state.tab === "images"});
+  }
+  else if (state.tab === "storage") {
+    mountStorage({api, list:el.list, detail:el.detail,
+      isCurrent:() => state.tab === "storage"});
   }
   else if (state.tab === "discovery") loadDiscovery();
   else if (state.tab === "sources") loadSources();
