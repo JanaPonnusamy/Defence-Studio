@@ -23,7 +23,7 @@ from __future__ import annotations
 import ipaddress
 import socket
 from dataclasses import dataclass
-from urllib.parse import urlsplit, urlunsplit
+from urllib.parse import unquote_plus, urlsplit, urlunsplit
 
 
 DEFAULT_ALLOWED_SCHEMES = ("http", "https")
@@ -71,6 +71,38 @@ def normalize_url(url: str) -> str:
     if port is not None and not _is_default_port(scheme, port):
         netloc = f"{host_part}:{port}"
     return urlunsplit((scheme, netloc, parts.path or "", parts.query, ""))
+
+
+# Query parameters that only identify the click or campaign, never the document.
+# Deliberately short: an unknown parameter is kept, because removing a real one
+# could merge two different pages.
+_TRACKING_PARAMS = frozenset({
+    "fbclid", "gclid", "dclid", "gbraid", "wbraid", "msclkid", "yclid",
+    "mc_cid", "mc_eid", "igshid", "_ga", "_gl",
+})
+
+
+def _is_tracking_param(segment: str) -> bool:
+    key = unquote_plus(segment.split("=", 1)[0]).strip().lower()
+    return key.startswith("utm_") or key in _TRACKING_PARAMS
+
+
+def canonical_url(url: str) -> str:
+    """``normalize_url`` plus removal of click/campaign tracking parameters.
+
+    Used as the dedup key and source/candidate id. The surviving query segments
+    keep their original order and encoding, so a URL without tracking
+    parameters returns exactly ``normalize_url(url)`` and its id is unchanged.
+    """
+    normalized = normalize_url(url)
+    parts = urlsplit(normalized)
+    if not parts.query:
+        return normalized
+    segments = parts.query.split("&")
+    kept = [s for s in segments if s and not _is_tracking_param(s)]
+    if len(kept) == len(segments):
+        return normalized
+    return urlunsplit((parts.scheme, parts.netloc, parts.path, "&".join(kept), ""))
 
 
 def _is_default_port(scheme: str, port: int) -> bool:

@@ -32,7 +32,7 @@ from defence_studio.acquisition.provider import (
 )
 from defence_studio.acquisition.providers.http_page import HttpPageProvider
 from defence_studio.acquisition.providers.youtube import YoutubeSubtitleProvider
-from defence_studio.acquisition.url_guard import UrlGuard, UrlValidationError, normalize_url
+from defence_studio.acquisition.url_guard import UrlGuard, UrlValidationError, canonical_url
 from defence_studio.contracts.acquisition import (
     AcquiredSourceV1,
     AcquisitionError,
@@ -130,7 +130,7 @@ class AcquisitionService:
         timestamp = _now_iso()
         # 1. Normalize + derive the stable source id (also the dedup key).
         try:
-            canonical = normalize_url(target.url)
+            canonical = canonical_url(target.url)
         except UrlValidationError as exc:
             return self._failed(job_id, target, target.url, target.url, timestamp,
                                 AcquisitionError("invalid_url", str(exc), retryable=False))
