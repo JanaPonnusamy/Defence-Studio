@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import queue
 import threading
+import time
 import traceback
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
@@ -89,11 +90,22 @@ class AuditOrchestrator:
         self.repo.add_event(audit_id, level, message)
         log.info("[%s] %s", level, message)
 
-    def _next(self, q: queue.Queue, timeout: float):
-        try:
-            return q.get(timeout=timeout)
-        except queue.Empty:
-            return None, {}
+    def _next(self, q: queue.Queue, timeout: float, session=None):
+        """Wait for a command. While waiting, keep Playwright's event loop running: the request
+        guard is a Playwright route handler, so without this the employer's own clicks (login,
+        manual navigation) would hang in the browser until the next Playwright call."""
+        end = time.monotonic() + timeout
+        while True:
+            try:
+                return q.get_nowait()
+            except queue.Empty:
+                pass
+            if time.monotonic() >= end:
+                return None, {}
+            if session is not None:
+                session.pump(200)
+            else:
+                time.sleep(0.2)
 
     def _worker(self, run: dict, q: queue.Queue) -> None:
         audit_id = run["id"]
@@ -158,7 +170,7 @@ class AuditOrchestrator:
     def _wait_for_login(self, audit_id: int, session, q: queue.Queue) -> None:
         deadline = datetime.now(timezone.utc) + timedelta(seconds=LOGIN_TIMEOUT_S)
         while datetime.now(timezone.utc) < deadline:
-            name, _ = self._next(q, 1.0)
+            name, _ = self._next(q, 1.0, session)
             if name == "cancel":
                 raise Cancelled()
             if not session.alive():
@@ -226,7 +238,7 @@ class AuditOrchestrator:
         deadline = datetime.now(timezone.utc) + timedelta(seconds=ASSIST_TIMEOUT_S)
         any_capture = False
         while datetime.now(timezone.utc) < deadline:
-            name, kw = self._next(q, 1.0)
+            name, kw = self._next(q, 1.0, session)
             if name == "cancel":
                 raise Cancelled()
             if name == "finish":

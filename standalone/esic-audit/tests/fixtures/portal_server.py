@@ -38,7 +38,10 @@ LOGIN = """<!doctype html><html><head><title>ESIC Login (synthetic)</title></hea
 <input name="txtUserName" type="text" id="txtUserName" placeholder="Type your username">
 <input name="txtPassword" type="password" id="txtPassword" placeholder="Type your password">
 <input name="txtChallanCaptcha" type="text" id="txtChallanCaptcha" placeholder="Type your Captcha">
-<input type="submit" name="btnLogin" value="Login" id="btnLogin"></form></body></html>"""
+<input type="submit" name="btnLogin" value="Login" id="btnLogin"></form>
+<script>if (location.search.indexOf('auto=1') >= 0) setTimeout(function () {
+  document.getElementById('txtUserName').value = 'u'; document.getElementById('txtPassword').value = 'p';
+  document.getElementById('btnLogin').click(); }, 1500);</script></body></html>"""
 
 
 def grid(gid: str, headers: list[str], rows: list[list[str]], pager: str = "") -> str:

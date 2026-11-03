@@ -13,6 +13,7 @@ import time
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Callable
+from urllib.parse import urlparse
 
 from .safety import VIEW_ONLY, classify_request, guard_script, is_click_allowed
 
@@ -86,6 +87,11 @@ class BrowserSession:
         self.context.expose_binding("__esicGuardReport", lambda source, what: self._blocked(str(what)))
         self.context.route("**/*", self._route)
         self.context.on("page", lambda p: p.on("dialog", self._dialog))
+        # Diagnostics: page-level navigations only (method, status, path) - never bodies or form values.
+        self.context.on("response", lambda r: r.request.resource_type == "document" and self.on_event(
+            "NAV", f"{r.request.method} {r.status} {urlparse(r.url).netloc}{urlparse(r.url).path}"))
+        self.context.on("requestfailed", lambda r: r.resource_type == "document" and self.on_event(
+            "WARN", f"navigation failed {urlparse(r.url).path}: {r.failure}"))
         page = self.context.new_page()
         page.on("dialog", self._dialog)
         page.goto(self.login_url, wait_until="domcontentloaded", timeout=60_000)
@@ -157,6 +163,13 @@ class BrowserSession:
         if not hit:
             return False, "no employer menu or logout link visible yet"
         return True, f"authenticated marker found: {hit}"
+
+    def pump(self, ms: int) -> None:
+        """Let Playwright dispatch pending events (route guard, dialogs) for `ms` milliseconds."""
+        try:
+            self.page.wait_for_timeout(ms)
+        except Exception:
+            time.sleep(ms / 1000)
 
     def before_user_capture(self, category: str) -> None:
         """Extension point called (in the browser thread) just before a user-requested capture.

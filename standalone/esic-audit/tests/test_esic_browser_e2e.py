@@ -202,3 +202,26 @@ def test_expired_session_never_reports_zero(tmp_path, portal):
     if d["result"]:
         assert d["result"]["totals"]["total_is_complete"] is False
     assert any(s["outcome"] == "SESSION_EXPIRED" for s in d["stages"]) or d["status"] == "FAILED"
+
+
+def test_user_login_is_not_stalled_while_waiting(tmp_path, portal):
+    """Regression: the employer's own login POST must reach the portal while the module waits."""
+    settings = load_settings(storage_dir=tmp_path, login_url=portal.login_url + "?auto=1", headless=True, access_token="t",
+                             browser_channel=None if CHANNEL == "bundled" else CHANNEL)
+    repo = Repository(settings.db_path)
+
+    def factory(on_event):
+        s = HumanSession(settings.login_url, settings.allowed_host_suffixes, settings.browser_channel, settings.headless, on_event)
+        s.base, s.login = portal.base, False
+        return s
+    orch = AuditOrchestrator(settings, repo, session_factory=factory)
+    client = TestClient(create_app(settings, orch))
+    uuid = client.post("/api/audits", headers=H).json()["audit_uuid"]
+    end = time.monotonic() + 20
+    while portal.state.logins == 0 and time.monotonic() < end:
+        time.sleep(0.2)
+    assert portal.state.logins == 1  # page-submitted login went through while the orchestrator was idle
+    client.post(f"/api/audits/{uuid}/confirm-login", headers=H)
+    wait_for(client, uuid, lambda d: d["status"] in ("AUTHENTICATED", "INSPECTING"))
+    client.post(f"/api/audits/{uuid}/cancel", headers=H)
+    orch.wait(60)
