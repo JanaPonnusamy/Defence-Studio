@@ -1,0 +1,23 @@
+{
+  "map_version": "2026.11.03-1",
+  "verified_against_live_portal": false,
+  "note": "Menu labels come from the employer's screenshot of the ESIC employer menu. Login page fields were verified on 2026-11-03 (public page). Authenticated pages have NOT been verified: if a label is not found the stage is reported as NOT_FOUND and the employer can open the page and press Capture.",
+  "login_page_markers": ["Portal_Loginnew.aspx", "txtPassword"],
+  "authenticated_markers": ["Logout", "Log Out", "LogOut", "Sign Out", "Monthly Contribution", "View Contribution History"],
+  "no_records_markers": ["No Record Found", "No Records Found", "No Data Found", "No record(s) found", "No data available"],
+  "targets": [
+    {"id": "contribution_history", "category": "contribution", "page_name": "View Contribution History",
+     "menu": ["Monthly Contribution", "View Contribution History"]},
+    {"id": "consolidated_history", "category": "contribution", "page_name": "Consolidated View Contribution History",
+     "menu": ["Monthly Contribution", "Consolidated View Contribution History"]},
+    {"id": "consolidated_monthly", "category": "contribution", "page_name": "Consolidated Monthly Contributions",
+     "menu": ["Monthly Contribution", "Consolidated Monthly Contributions"]},
+    {"id": "interest_delay", "category": "interest", "page_name": "Interest For Delay Payment",
+     "menu": ["Monthly Contribution", "Interest For Delay Payment"]},
+    {"id": "recovery_defaulter", "category": "recovery", "page_name": "Recovery/Defaulter Challan",
+     "menu": ["Monthly Contribution", "Recovery/Defaulter Challan"]},
+    {"id": "view_rc", "category": "recovery", "page_name": "View RC",
+     "menu": ["Monthly Contribution", "View RC"]}
+  ],
+  "never_open": ["File Monthly Contributions", "Update Employer Details", "Generate Challan", "List of Employees"]
+}
