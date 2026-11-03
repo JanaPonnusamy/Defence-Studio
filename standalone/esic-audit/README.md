@@ -7,7 +7,7 @@ deterministic arithmetic, and produces a PDF and an Excel report. Every audit is
 immutable snapshot.
 
 It lives under `standalone/` like the other Defence Era modules. It does not depend on, or
-change, Defence Studio core. **Status: READY WITH LIMITATIONS.** It is tested against a
+change, Defence Studio core. **Status: PARTIAL.** Built and fully tested against a
 synthetic portal and has **not yet been verified on the real ESIC portal** (see Limitations).
 
 ## What it never does
