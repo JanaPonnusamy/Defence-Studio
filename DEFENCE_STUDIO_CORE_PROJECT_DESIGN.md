@@ -73,6 +73,16 @@ review. Mirrored in `CLAUDE.md`.
 shortest useful report. Before every tool call, ask: "Will this
 materially help complete or verify the current task?" If not, skip it.
 
+### 1B. Project root containment (permanent)
+
+The Git repository is the only Defence Era root. Project-owned source,
+configuration, logs, temporary files, models, and generated artifacts stay
+inside it. Resolve paths through `tools/project_paths.py`. Do not hardcode a
+drive letter or send project files to `%TEMP%`, `%LOCALAPPDATA%`, or the
+Desktop. Windows, Python, Git, and other installed tools stay outside.
+Authoritative text: `docs/PROJECT_ROOT_CONTAINMENT.md`. Run
+`python scripts/check_root_containment.py` when a change adds paths.
+
 ## 2. Product goal and content domains
 
 Defence Studio helps a solo creator discover defence news, research a

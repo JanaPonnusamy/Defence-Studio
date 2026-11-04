@@ -4,8 +4,9 @@ import hmac
 import json
 import os
 import time
-import tempfile
 from pathlib import Path
+
+from defence_studio.project_paths import require_inside_root, session_workspace
 
 SECRET = "phase-one-test-signing-secret-32-bytes-minimum"
 # Must run before `defence_studio.api.app` is imported below: that module
@@ -18,9 +19,9 @@ SECRET = "phase-one-test-signing-secret-32-bytes-minimum"
 os.environ.setdefault("DEFENCE_STUDIO_AUTH_SECRET", SECRET)
 # App construction includes policy-service setup, so even importing the entry
 # point must use disposable defaults rather than the checked-in development DB.
-_session_storage = tempfile.TemporaryDirectory(prefix="defence-backend-tests-")
-os.environ["DEFENCE_STUDIO_DB_PATH"] = str(Path(_session_storage.name) / "default.sqlite3")
-os.environ["DEFENCE_STUDIO_STORAGE_PATH"] = str(Path(_session_storage.name) / "storage")
+_session_storage = session_workspace("backend-tests")
+os.environ["DEFENCE_STUDIO_DB_PATH"] = str(_session_storage / "default.sqlite3")
+os.environ["DEFENCE_STUDIO_STORAGE_PATH"] = str(_session_storage / "storage")
 
 import pytest
 from fastapi.testclient import TestClient
@@ -35,6 +36,16 @@ def access_token(subject: str, secret: str = SECRET) -> str:
     signing_input = f"{header}.{payload}"
     signature = encode(hmac.new(secret.encode(), signing_input.encode(), hashlib.sha256).digest())
     return f"{signing_input}.{signature}"
+
+
+@pytest.hookimpl(tryfirst=True)
+def pytest_configure(config):
+    """Keep pytest's own temp tree inside the repository."""
+    chosen = getattr(config.option, "basetemp", None)
+    if chosen:
+        require_inside_root(Path(chosen), label="pytest basetemp")
+        return
+    config.option.basetemp = str(session_workspace("pytest-basetemp"))
 
 
 @pytest.fixture

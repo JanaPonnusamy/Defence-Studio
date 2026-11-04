@@ -11,14 +11,16 @@ from __future__ import annotations
 import argparse
 import json
 import os
-import shutil
 import sys
-import tempfile
 import time
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
+_REPO = ROOT.parent.parent
+if str(_REPO) not in sys.path:
+    sys.path.insert(0, str(_REPO))
+from tools.project_paths import release_task_directory, task_directory
 
 
 def main() -> int:
@@ -27,7 +29,7 @@ def main() -> int:
     ap.add_argument("--keep", action="store_true", help="keep the temp storage root")
     args = ap.parse_args()
 
-    tmp = Path(tempfile.mkdtemp(prefix="vvm_bench_"))
+    tmp = task_directory("vvm-bench")
     os.environ["VIDEO_MODULE_STORAGE_ROOT"] = str(tmp)
     os.environ.pop("VIDEO_MODULE_DATABASE_URL", None)
     os.environ["VIDEO_MODULE_LOG_LEVEL"] = "WARNING"
@@ -94,7 +96,7 @@ def main() -> int:
                                                   "unknown_cost_count", "totals_complete")}
     finally:
         if not args.keep:
-            shutil.rmtree(tmp, ignore_errors=True)
+            release_task_directory(tmp, ignore_errors=True)
     text = json.dumps(res, indent=2)
     print(text)
     if args.out:

@@ -1,8 +1,29 @@
 """VoiceModel interface + adapters. Adapters sit UNDER the engine; callers never see them."""
 from __future__ import annotations
-import abc, os, subprocess, tempfile
+import abc, os, subprocess, sys
+from pathlib import Path
 import numpy as np
 from . import wavutil
+
+
+def _contained_temp(prefix: str):
+    import importlib.util
+    repo = None
+    for parent in Path(__file__).resolve().parents:
+        candidate = parent / "tools" / "project_paths.py"
+        if candidate.is_file():
+            repo = candidate
+            break
+    if repo is None:
+        raise RuntimeError("Defence Era root not found; refusing an uncontrolled temporary directory")
+    key = "defence_era_project_paths"
+    mod = sys.modules.get(key)
+    if mod is None:
+        spec = importlib.util.spec_from_file_location(key, repo)
+        mod = importlib.util.module_from_spec(spec)
+        sys.modules[key] = mod
+        spec.loader.exec_module(mod)
+    return mod.temporary_directory(prefix)
 
 
 class ModelError(Exception):
@@ -109,7 +130,7 @@ class SapiModel(VoiceModel):
         self.validate(language)
         rate = int(round(np.clip((controls.get("tempo", 1.0) - 1.0) * 10 / 0.5 * 1.0, -10, 10)))
         vol = int(round(np.clip(40 + 60 * controls.get("energy", 0.7) + 15 * controls.get("emphasis", 0.0), 0, 100)))
-        with tempfile.TemporaryDirectory() as td:
+        with _contained_temp("voice-sapi") as td:
             tp, wp = os.path.join(td, "t.txt"), os.path.join(td, "o.wav")
             with open(tp, "w", encoding="utf-8") as f:
                 f.write(text)

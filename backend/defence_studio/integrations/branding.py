@@ -11,10 +11,10 @@ import json
 import os
 import shutil
 import subprocess
-import tempfile
 from pathlib import Path
 
 from defence_studio.integrations.subtitles import SubtitleError, ffmpeg_binary, resolve_font
+from defence_studio.project_paths import temporary_directory
 
 THUMB_MAX_BYTES = 2 * 1024 * 1024  # YouTube custom-thumbnail limit
 THUMB_SIZE = (1280, 720)
@@ -74,8 +74,7 @@ def make_card_video(lines: list[str], seconds: float, width: int, height: int, f
     """A silent-audio title card clip (H.264/AAC mono 48 kHz) matching the main video's profile."""
     font_file, family = resolve_font(language)
     ff = ffmpeg_binary("ffmpeg")
-    with tempfile.TemporaryDirectory(prefix="ds-card-") as work:
-        w = Path(work)
+    with temporary_directory("ds-card") as w:
         (w / "fonts").mkdir()
         shutil.copy2(font_file, w / "fonts" / font_file.name)
         c = template["colors"]
@@ -124,8 +123,7 @@ def make_thumbnail(video: Path, title: str, language: str, template: dict, out_p
     ff = ffmpeg_binary("ffmpeg")
     w, h = THUMB_SIZE
     c = template["colors"]
-    with tempfile.TemporaryDirectory(prefix="ds-thumb-") as work:
-        wd = Path(work)
+    with temporary_directory("ds-thumb") as wd:
         (wd / "fonts").mkdir()
         shutil.copy2(font_file, wd / "fonts" / font_file.name)
         size = int(h * 0.085)

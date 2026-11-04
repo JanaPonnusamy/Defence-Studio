@@ -230,8 +230,8 @@ def sample_video_frames(path: str) -> dict:
     ffmpeg = shutil.which("ffmpeg")
     if not ffmpeg:
         return {"available": False, "reason": "ffmpeg is not on PATH", "frames": None}
-    import tempfile
-    out_dir = Path(tempfile.mkdtemp(prefix="factcheck-frames-"))
+    from defence_studio.project_paths import release_task_directory, task_directory
+    out_dir = task_directory("factcheck-frames")
     try:
         completed = subprocess.run(
             [ffmpeg, "-hide_banner", "-y", "-i", path, "-vf", "fps=1,showinfo", "-frames:v", "3",
@@ -267,7 +267,7 @@ def sample_video_frames(path: str) -> dict:
     except Exception as exc:
         return {"available": True, "reason": str(exc)[:400], "frames": []}
     finally:
-        shutil.rmtree(out_dir, ignore_errors=True)
+        release_task_directory(out_dir, ignore_errors=True)
 
 
 def rights_status(asset_ref: str | None = None, registered_asset: dict | None = None) -> dict:

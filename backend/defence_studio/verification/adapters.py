@@ -10,11 +10,12 @@ import json
 import os
 import shutil
 import subprocess
-import tempfile
 import time
 import urllib.error
 import urllib.parse
 import urllib.request
+
+from defence_studio.project_paths import temporary_directory
 
 NOT_CONFIGURED = "NOT_CONFIGURED"
 PROVIDER_UNAVAILABLE = "PROVIDER_UNAVAILABLE"
@@ -127,8 +128,8 @@ def ocr_image(data: bytes, *, lang: str = "eng") -> dict:
         return {"available": False, "status": "DEPENDENCY_MISSING", "text": None,
                 "reason": "tesseract is not installed; no text was invented from the image."}
     suffix = ".png" if data[:8] == b"\x89PNG\r\n\x1a\n" else ".jpg"
-    with tempfile.TemporaryDirectory() as td:
-        src = os.path.join(td, "in" + suffix)
+    with temporary_directory("ocr") as td:
+        src = str(td / ("in" + suffix))
         with open(src, "wb") as fh:
             fh.write(data)
         try:

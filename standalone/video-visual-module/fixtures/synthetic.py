@@ -69,7 +69,7 @@ def real_mp4_bytes(seconds: float = 2.0, fps: int = 10, size=(160, 90)) -> bytes
         imageio_ffmpeg.get_ffmpeg_exe()
     except Exception:  # noqa: BLE001
         return None
-    fd, path = tempfile.mkstemp(suffix=".mp4")
+    fd, path = tempfile.mkstemp(suffix=".mp4", dir=Path(__file__).resolve().parent)
     os.close(fd)
     try:
         w = imageio_ffmpeg.write_frames(path, size, fps=fps, codec="libx264", pix_fmt_out="yuv420p",

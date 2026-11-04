@@ -2,7 +2,7 @@
 Live OpenAI provider check for the Video Visual Module -- see docs/LIVE_PROVIDER_TEST_RUNBOOK.md.
 
 NOT part of pytest (pytest only collects tests/). Every command runs the module IN-PROCESS against a
-dedicated, throwaway storage root under %TEMP%\\vvm_live_check\\<run-id> -- never the module's real storage/.
+dedicated, throwaway storage root under the project ``tmp/runtime/vvm-live-check/<run-id>`` -- never the module's real storage/.
 
 Commands (default: dry-run):
   dry-run          (default) print the plan, key presence (boolean + length only), enablement flags and
@@ -30,13 +30,17 @@ import json
 import os
 import shutil
 import sys
-import tempfile
 import time
 import uuid
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-BASE_DIR = Path(tempfile.gettempdir()) / "vvm_live_check"
+_REPO = ROOT.parent.parent
+if str(_REPO) not in sys.path:
+    sys.path.insert(0, str(_REPO))
+from tools.project_paths import contained_dir
+
+BASE_DIR = contained_dir("tmp", "runtime", "vvm-live-check")
 MANIFEST = "live_check_manifest.json"
 # cheapest documented preset for gpt-image-2: quality low, 1536x1024 (landscape) = USD 0.005 (retrieved 2026-10-12)
 DEFAULT_RESOLUTION = "1536x1024"

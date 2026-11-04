@@ -218,7 +218,6 @@ def test_tamil_subtitles_burn_in_with_real_font_and_decode_clean(tmp_path):
     bbox = ImageChops.difference(a, b).point(lambda v: 255 if v > 40 else 0).getbbox()
     assert bbox is not None, "subtitle text was not drawn"
     assert bbox[1] > 360 * 0.6, "text should sit in the lower third"
-    (Path(__import__("tempfile").gettempdir()) / "ds_tamil_burn_frame.png").write_bytes(burned_frame.read_bytes())
 
 
 # -- service level with fakes ----------------------------------------------------
@@ -531,9 +530,6 @@ def test_real_end_to_end_audio_visual_render_subtitles(approved_script):
     assert abs(probe["duration"] - body["audio_duration_seconds"]) < 0.25
     assert body["video_subtitled"]["decode_errors"] == 0
     assert body["subtitles"]["cue_count"] >= len(plan["scenes"])
-    out = Path(__import__("tempfile").gettempdir()) / "ds_rm5_e2e.mp4"
-    data, _ = render.render_file(s["job"], OWNER, "en", r["version"], "subtitled")
-    out.write_bytes(data)
 
 
 def test_cues_never_break_after_abbreviations_and_prefer_commas():

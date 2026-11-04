@@ -3,15 +3,29 @@ from __future__ import annotations
 
 import json
 import os
-from pathlib import Path
 import subprocess
 import sys
 import tempfile
 import unicodedata
 import uuid
+from pathlib import Path
 
 from app.tts.base import TTSAdapter, TTSRequest, TTSResult
 from app.tts.controls import PROFILE, resolve_controls
+
+
+def _contained_temp(prefix: str):
+    repo = None
+    for parent in Path(__file__).resolve().parents:
+        if (parent / "tools" / "project_paths.py").is_file():
+            repo = parent
+            break
+    if repo is None:
+        raise RuntimeError("Defence Era root not found; refusing an uncontrolled temporary directory")
+    if str(repo) not in sys.path:
+        sys.path.insert(0, str(repo))
+    from tools.project_paths import temporary_directory
+    return temporary_directory(prefix)
 
 
 class LocalPyttsx3Adapter(TTSAdapter):
@@ -38,7 +52,7 @@ class LocalPyttsx3Adapter(TTSAdapter):
                   'output_format': 'wav', 'controls': PROFILE['controls'],
                   'notes': PROFILE['emotion'], 'available': False, 'voices': []}
         try:
-            with tempfile.TemporaryDirectory() as folder:
+            with _contained_temp("tts-inventory") as folder:
                 result.update(self._call({'inventory': True}, folder))
             result['available'] = bool(result['voices'])
         except Exception as exc:
