@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { mountEvidence } from "../js/views/evidence-view.js";
 
-test("evidence view mounts and reassesses without a manual approval control", async () => {
+test("blocked evidence explains human approval and reassesses without an approve button", async () => {
   const nodes = new Map();
   const node = id => {
     if (!nodes.has(id)) nodes.set(id, { innerHTML: "", handlers: {},
@@ -27,10 +27,11 @@ test("evidence view mounts and reassesses without a manual approval control", as
     evidenceTimeline: async () => ({ note: "No records", items: [] }),
   };
   await mountEvidence({ api, jobId: "j1", list, detail, filters, isCurrent: () => true });
-  assert.match(list.innerHTML, /Approval is automatic/);
+  assert.match(list.innerHTML, /separate human action|Resolve the requirements/);
   assert.match(list.innerHTML, /Need another independent source/);
   assert.doesNotMatch(list.innerHTML, /approve-package|package-note/);
-  assert.match(filters.innerHTML, /No manual package approval/);
+  assert.match(filters.innerHTML, /person approves/);
+  assert.doesNotMatch(list.innerHTML, /Approval is automatic/);
   await node("#run-assessment").handlers.click({ target: node("#run-assessment") });
   assert.equal(assessmentRuns, 1);
   assert.doesNotMatch(detail.innerHTML, /error-state/);

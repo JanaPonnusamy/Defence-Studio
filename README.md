@@ -9,13 +9,13 @@ the UI and continue work immediately.
 > Authoritative design: `DEFENCE_STUDIO_CORE_PROJECT_DESIGN.md` ·
 > Current state: `project_status.md`
 
-Evidence packages approve automatically when the configured policy requirements
-pass. Generated script drafts also approve automatically after validation and a
-freshness check against their evidence, with the decision recorded as
-`AUTOMATED_VALIDATION`. No manual evidence-package or script approval is needed
-in this flow. Missing evidence or failed validation still blocks progress.
-Generation remains an explicit action; automatic approval does not start paid
-generation, narration, rendering or publishing by itself.
+Evidence policy checks run automatically and explain what is missing. They do
+not approve anything. A person must approve the current evidence package and
+each script revision before scene planning, narration, or rendering can use
+them (human-only approval, decision C). A legacy `AUTOMATED_VALIDATION` or
+`AUTOMATED_POLICY` row stays in history and does not count. Missing evidence
+or failed validation still blocks progress. Generation remains an explicit
+action and does not start narration, rendering, or publishing by itself.
 
 ---
 

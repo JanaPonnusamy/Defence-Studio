@@ -1,12 +1,13 @@
 // Evidence timeline and immutable package approval. All authority lives on the server.
 import { escapeHtml as esc } from "../components/status-badge.js";
 import { textFieldHtml } from "../components/text-field.js";
+import { newIdempotencyKey } from "../api.js";
 
 export async function mountEvidence({ api, jobId, list, detail, filters, isCurrent }) {
   list.innerHTML = '<p class="loading-state">Loading evidence package…</p>';
   detail.innerHTML = "";
   detail.classList.remove("detail-overlay");
-  filters.innerHTML = '<p>Evidence packages approve automatically when policy checks pass. No manual package approval is required.</p>';
+  filters.innerHTML = '<p>Policy checks explain readiness. A person approves the current package before a script can be generated.</p>';
   const showError = (error) => {
     if (isCurrent()) detail.innerHTML = `<p role="alert" class="error-state">${esc(error.message)}</p>`;
   };
@@ -34,7 +35,9 @@ export async function mountEvidence({ api, jobId, list, detail, filters, isCurre
         const claim = pkg.claims.find(x => x.claim_id === id);
         return `<div><a href="#/claims/${encodeURIComponent(id)}">${esc(id)}</a><p>${esc(claim?.claim_text || "Missing claim")}</p><p>${esc(claim?.source_id || "")} · ${esc(claim?.review?.decision || "PENDING")}</p></div>`;
       }).join("")}</div>`).join("")}</details>
-      <p>Approval is automatic once the evidence requirements are satisfied.</p>
+      <p>${result.current_approval ? "A person has approved this revision." : pkg.ready ? "Requirements are met. Approval is still a separate human action." : "Resolve the requirements before approval."}</p>
+      ${pkg.ready && !result.current_approval ? `${textFieldHtml({ id: "package-note", label: "Approval note", multiline: true, maxLength: 4000 })}
+      <button type="button" id="approve-package">Approve this evidence package</button>` : ""}
       <button type="button" id="export-approved" ${!result.current_approval ? "disabled" : ""}>Export approved JSON</button>
       <button type="button" id="export-draft">Download unapproved draft</button>
       <div id="package-action-status" role="status"></div>
@@ -67,6 +70,21 @@ export async function mountEvidence({ api, jobId, list, detail, filters, isCurre
       renderTimeline(Object.fromEntries(["start","end","source_id","claim_id","language"].map(k => [k,detail.querySelector(`#timeline-${k}`).value.trim()])));
     });
     const actionStatus = list.querySelector("#package-action-status");
+    if (list.innerHTML.includes('id="approve-package"')) {
+      const approveBtn = list.querySelector("#approve-package");
+      approveBtn.addEventListener("click", async () => {
+        const note = (list.querySelector("#package-note").value || "").trim();
+        if (!note) { actionStatus.textContent = "Enter a note explaining this approval."; return; }
+        approveBtn.disabled = true;
+        try {
+          await api.approveEvidence(jobId, result.revision, note, newIdempotencyKey());
+          if (isCurrent()) await mountEvidence({ api, jobId, list, detail, filters, isCurrent });
+        } catch (error) {
+          actionStatus.textContent = error.message;
+          approveBtn.disabled = false;
+        }
+      });
+    }
     list.querySelector("#run-assessment").addEventListener("click", async event => {
       event.target.disabled = true;
       try {
