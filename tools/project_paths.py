@@ -40,8 +40,18 @@ def is_inside(path: Path, root: Path | None = None) -> bool:
 
 
 def require_inside_root(path: Path, *, label: str = "path") -> Path:
-    """Return ``path`` resolved, or raise if it is not inside the project root."""
-    resolved = Path(path).resolve()
+    """Return ``path`` resolved, or raise if it is not inside the project root.
+
+    ``resolve`` follows symlinks and Windows junctions. A link inside the
+    root whose target is outside is rejected. An unusable path string fails
+    the same way; it is not replaced with another location.
+    """
+    try:
+        resolved = Path(path).resolve()
+    except (OSError, ValueError) as exc:
+        raise ProjectPathError(
+            f"{label} is not a usable path inside the project root {PROJECT_ROOT}: {path}"
+        ) from exc
     if not is_inside(resolved):
         raise ProjectPathError(
             f"{label} must stay inside the project root {PROJECT_ROOT}: {resolved}"

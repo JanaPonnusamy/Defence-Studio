@@ -5,10 +5,21 @@ from pathlib import Path
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 
 
+def _contained(path: Path) -> Path:
+    """Project-owned database and storage paths cannot leave the repository."""
+    from defence_studio.project_paths import configure_project_logging, require_inside_root
+
+    if os.environ.get("DEFENCE_STUDIO_STARTUP_DIAGNOSTICS") == "1":
+        configure_project_logging()
+    return require_inside_root(path)
+
+
 def database_path() -> Path:
     configured = os.environ.get("DEFENCE_STUDIO_DB_PATH")
     path = Path(configured) if configured else PROJECT_ROOT / "data" / "defence_studio.sqlite3"
-    return path if path.is_absolute() else PROJECT_ROOT / path
+    if not path.is_absolute():
+        path = PROJECT_ROOT / path
+    return _contained(path)
 
 
 def auth_secret() -> str:
@@ -26,5 +37,6 @@ def storage_root() -> Path:
     """
     configured = os.environ.get("DEFENCE_STUDIO_STORAGE_PATH")
     path = Path(configured) if configured else PROJECT_ROOT / "data" / "storage"
-    return path if path.is_absolute() else PROJECT_ROOT / path
-
+    if not path.is_absolute():
+        path = PROJECT_ROOT / path
+    return _contained(path)
