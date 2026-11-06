@@ -3,6 +3,34 @@ import { escapeHtml as esc } from "../components/status-badge.js";
 import { textFieldHtml } from "../components/text-field.js";
 import { newIdempotencyKey } from "../api.js";
 
+const RECOMMENDATION_TEXT = {
+  HUMAN_APPROVED: "A person has approved this package for script generation.",
+  RECOMMEND_HUMAN_APPROVAL: "Policy criteria are met. A person still has to approve this package before script generation.",
+  NOT_READY: "More evidence is required before a person can approve this package.",
+};
+
+export function recommendationHtml(assessment) {
+  if (!assessment) return "";
+  const label = RECOMMENDATION_TEXT[assessment.recommendation] || "";
+  const missing = Array.isArray(assessment.missing_information) ? assessment.missing_information : [];
+  if (!label && !assessment.awaiting_human_review && !assessment.legacy_automated_approval_ignored && !missing.length) {
+    return "";
+  }
+  return `<section aria-label="Human approval recommendation">
+    ${label ? `<p id="policy-recommendation">${esc(label)}</p>` : ""}
+    ${assessment.awaiting_human_review ? `<p id="awaiting-human">This package is waiting for a person's approval.</p>` : ""}
+    ${assessment.legacy_automated_approval_ignored ? `<p id="legacy-approval">An earlier automatic approval remains in the history. Script generation stays blocked until a person approves the current package.</p>` : ""}
+    ${missing.length ? `<ul id="missing-information">${missing.map(item => `<li>${esc(String(item))}</li>`).join("")}</ul>` : ""}
+  </section>`;
+}
+
+function approvalHistoryLine(record, currentRevision) {
+  const kind = record.counts_for_production ? "Counts for production"
+    : record.approval_kind === "LEGACY_AUTOMATED" ? "History only" : (record.approval_kind || "Recorded");
+  const current = record.revision === currentRevision ? "Current" : "Stale for current evidence";
+  return `<p>Version ${record.version} · ${esc(record.created_at)} · ${esc(record.reviewer_id)} · ${esc(kind)}<br>${esc(record.note)}<br>${current} · ${esc(record.sha256)}</p>`;
+}
+
 export async function mountEvidence({ api, jobId, list, detail, filters, isCurrent }) {
   list.innerHTML = '<p class="loading-state">Loading evidence package…</p>';
   detail.innerHTML = "";
@@ -29,6 +57,7 @@ export async function mountEvidence({ api, jobId, list, detail, filters, isCurre
       <p>Deterministic source support and policy checks; no AI truth verification. Human decisions remain explicit exceptions.</p>
       <ul>${(assessment?.policy_criteria_failed || []).map(f => `<li>${esc(f.criterion)}: required ${esc(String(f.required))}, observed ${esc(String(f.actual))}. ${esc(f.action)}</li>`).join("")}</ul>
       <button type="button" id="run-assessment">${assessment ? "Reassess current evidence" : "Assess current evidence"}</button></section>
+      ${recommendationHtml(assessment)}
       <h3>Evidence requirements</h3>${pkg.blockers.length ? `<ul>${pkg.blockers.map(b => `<li>${esc(b)}</li>`).join("")}</ul>` : '<p>No blocking issues in current revision.</p>'}
       <details><summary>Limitations and missing evidence</summary><ul>${pkg.limitations.map(b => `<li>${esc(b)}</li>`).join("")}</ul></details>
       <details><summary>Conflicts (${pkg.conflicts.length})</summary>${pkg.conflicts.map(c => `<p>${esc(c.explanation)}</p><div class="conflict-pair">${[c.claim_id_a,c.claim_id_b].map(id => {
@@ -41,7 +70,7 @@ export async function mountEvidence({ api, jobId, list, detail, filters, isCurre
       <button type="button" id="export-approved" ${!result.current_approval ? "disabled" : ""}>Export approved JSON</button>
       <button type="button" id="export-draft">Download unapproved draft</button>
       <div id="package-action-status" role="status"></div>
-      <details><summary>Package approval history (${result.approvals.length})</summary>${result.approvals.map(a => `<p>Version ${a.version} · ${esc(a.created_at)} · ${esc(a.reviewer_id)}<br>${esc(a.note)}<br>${a.revision === result.revision ? "Current" : "Stale for current evidence"} · ${esc(a.sha256)}</p>`).join("")}</details>`;
+      <details><summary>Package approval history (${result.approvals.length})</summary>${result.approvals.map(a => approvalHistoryLine(a, result.revision)).join("")}</details>`;
     detail.innerHTML = `<h2>Evidence timeline</h2><p>Publication, acquisition, analysis and review times remain distinct. Unknown dates are listed separately.</p>
       <form id="timeline-filters">${[
         ["start","From (ISO time with timezone)"],["end","Through (ISO time with timezone)"],
