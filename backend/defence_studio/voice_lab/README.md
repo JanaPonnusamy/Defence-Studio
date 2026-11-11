@@ -18,7 +18,9 @@ API: `docs/voice_lab/VOICE_LAB_API.md`. Evaluation and licences: `docs/voice_lab
 | `style.py` | phrase-level delivery transfer (formant-preserving rubberband, capped, relative pitch only) |
 | `inference.py` + `runtime/parler_runner.py` | warm local runner in the isolated `.venv-voicelab`; no fallback voice |
 | `execution.py` | (DirectML session) execution-provider selection |
-| `generation.py` | content-keyed generation, provenance, Script Studio result shape |
+| `generation.py` | content-keyed generation, provenance, Script Studio result shape; Tamil text via `services/tts_text.py` (approved text kept) |
+| `conversion.py` | owner-identity voice-conversion interface + guards; only provider today is `UnavailableConverter` (no model approved) |
+| `verification.py` | speaker-verification interface: owner/reference similarity, leakage + identity verdicts; never PASS without validated calibration |
 | `projects.py` | timeline ops, undo/redo, persistence, mixing, effects, export with integrity check |
 | `service.py` | facade, workflow-queue stages, in-process worker, restart reconcile, storage report |
 
