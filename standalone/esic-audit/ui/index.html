@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ESIC Compliance Audit</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <aside class="sidebar">
+    <div class="brand">Defence Era</div>
+    <nav>
+      <a href="#dashboard" data-view="dashboard" class="active">ESIC Compliance Audit</a>
+      <a href="#history" data-view="history">Audit History</a>
+      <a href="#compare" data-view="compare">Compare Audits</a>
+      <a href="#rules" data-view="rules">Legal Rules</a>
+    </nav>
+    <p class="side-note">Read-only. One-time. User-initiated.<br>This module never generates challans, pays, or edits portal data.</p>
+  </aside>
+
+  <main>
+    <div id="synthetic-banner" class="banner warn" hidden>Synthetic fixture portal configured - results are NOT real ESIC records.</div>
+    <div id="error" class="banner error" hidden></div>
+
+    <section id="view-dashboard" class="view">
+      <h1>ESIC Compliance Audit</h1>
+
+      <div class="panel">
+        <h2>Audit overview</h2>
+        <div id="overview" class="kv-grid"></div>
+      </div>
+
+      <div class="panel start">
+        <div>
+          <h2>Start audit</h2>
+          <p>Open the official ESIC Employer Portal and perform a one-time read-only compliance inspection.</p>
+          <p class="muted">You log in yourself in the browser window that opens (username, password, CAPTCHA/OTP). The module never sees or stores them.</p>
+        </div>
+        <button id="btn-start" class="primary big">START ESIC AUDIT</button>
+      </div>
+
+      <div id="live" class="panel" hidden>
+        <h2>Current audit <span id="live-status" class="badge"></span></h2>
+        <p id="live-activity" class="activity"></p>
+        <ol id="live-stages" class="stages"></ol>
+        <div class="actions">
+          <button id="btn-login" hidden>I have logged in</button>
+          <span id="capture-box" hidden>
+            <select id="capture-category" aria-label="Category of the page currently open in the portal window">
+              <option value="contribution">Contribution history</option>
+              <option value="interest">Interest</option>
+              <option value="damages">Damages</option>
+              <option value="recovery">Recovery / RC</option>
+              <option value="employer">Employer details</option>
+              <option value="other">Other</option>
+            </select>
+            <input id="capture-name" placeholder="Page name (optional)" maxlength="120">
+            <button id="btn-capture">Capture current page</button>
+            <button id="btn-finish" class="primary">Finish inspection</button>
+          </span>
+          <button id="btn-cancel" class="danger">Cancel audit</button>
+          <button id="btn-live-logs">View logs</button>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2>Latest audit summary</h2>
+        <div id="latest-cards" class="cards"></div>
+        <div id="latest-answers"></div>
+      </div>
+    </section>
+
+    <section id="view-history" class="view" hidden>
+      <h1>Audit history</h1>
+      <div class="panel table-wrap"><table id="history-table"></table></div>
+    </section>
+
+    <section id="view-details" class="view" hidden>
+      <h1>Audit details <span id="d-status" class="badge"></span></h1>
+      <div id="d-head" class="panel"></div>
+      <div class="actions">
+        <button id="d-pdf">Download PDF</button>
+        <button id="d-xlsx">Download Excel</button>
+        <button id="d-logs">View logs</button>
+        <button id="d-evidence">View evidence</button>
+      </div>
+      <div id="d-cards" class="cards"></div>
+      <div id="d-body"></div>
+    </section>
+
+    <section id="view-compare" class="view" hidden>
+      <h1>Compare two audits</h1>
+      <div class="panel actions">
+        <label>Older <select id="cmp-a"></select></label>
+        <label>Newer <select id="cmp-b"></select></label>
+        <button id="cmp-go" class="primary">Compare</button>
+      </div>
+      <div id="cmp-out"></div>
+    </section>
+
+    <section id="view-rules" class="view" hidden>
+      <h1>Legal rules reference</h1>
+      <p class="muted">Rules with status UNVERIFIED rest on secondary sources or none; figures that depend on them are labelled UNVERIFIED.</p>
+      <div class="panel table-wrap"><table id="rules-table"></table></div>
+    </section>
+  </main>
+
+  <dialog id="modal"><div id="modal-body"></div><form method="dialog"><button>Close</button></form></dialog>
+  <dialog id="token-dialog">
+    <form id="token-form">
+      <h2>Local access token</h2>
+      <p class="muted">Paste the token printed when the server started (also in <code>storage/access_token.txt</code>). It protects your audit data and reports on this computer.</p>
+      <input id="token-input" type="password" autocomplete="off" required>
+      <button class="primary">Continue</button>
+    </form>
+  </dialog>
+  <script src="app.js"></script>
+</body>
+</html>

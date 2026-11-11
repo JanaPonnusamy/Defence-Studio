@@ -1,9 +1,20 @@
 """SYNTHETIC TEST DATA: never real-world rights evidence."""
+import sys
 from pathlib import Path
-from tempfile import TemporaryDirectory
+
+_REPO = None
+for _parent in Path(__file__).resolve().parents:
+    if (_parent / "tools" / "project_paths.py").is_file():
+        _REPO = _parent
+        break
+if _REPO is None:
+    raise RuntimeError("Defence Era root not found; refusing an uncontrolled temporary directory")
+if str(_REPO) not in sys.path:
+    sys.path.insert(0, str(_REPO))
+from tools.project_paths import temporary_directory
 from asset_rights_engine import *
 
-with TemporaryDirectory() as directory:
+with temporary_directory("are-example") as directory:
     engine=Engine(Path(directory))
     timestamp="2026-10-12T00:00:00Z"
     engine.register_asset(AssetDescriptor("demo-asset","image","Synthetic example","No media file","Test fixture","test:synthetic",timestamp,timestamp))

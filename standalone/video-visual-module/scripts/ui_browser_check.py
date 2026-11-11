@@ -11,18 +11,23 @@ docs/ui_screenshots/. Exit code 0 = every check passed and no unexpected console
 """
 from __future__ import annotations
 
+import atexit
 import json
 import os
 import socket
 import subprocess
 import sys
-import tempfile
 import time
 import urllib.request
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
+_REPO = ROOT.parent.parent
+if str(_REPO) not in sys.path:
+    sys.path.insert(0, str(_REPO))
+from tools.project_paths import release_task_directory, task_directory
+
 OUT = ROOT / "docs" / "ui_screenshots"
 
 
@@ -40,7 +45,8 @@ def main() -> int:
     OUT.mkdir(parents=True, exist_ok=True)
     for old in OUT.glob("*.png"):
         old.unlink()
-    tmp = Path(tempfile.mkdtemp(prefix="vvm_ui_"))
+    tmp = task_directory("vvm-ui")
+    atexit.register(release_task_directory, tmp, ignore_errors=True)
     files = tmp / "files"
     files.mkdir()
     (files / "harbour_photo.png").write_bytes(png_bytes(960, 540, 77, text="Kestrel harbour"))

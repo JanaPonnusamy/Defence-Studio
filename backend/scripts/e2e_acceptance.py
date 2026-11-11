@@ -72,8 +72,12 @@ def step(name):
 
 def main() -> int:
     topic = next((a for a in sys.argv[1:] if not a.startswith("--")), "Ukraine")
-    out_path = Path(sys.argv[sys.argv.index("--out") + 1]) if "--out" in sys.argv else ROOT.parent / "analysis" / "e2e-acceptance.json"
-    base = Path(os.environ.get("E2E_DIR", "C:/dstmp/e2e"))
+    repo = ROOT.parent
+    if str(repo) not in sys.path:
+        sys.path.insert(0, str(repo))
+    from tools.project_paths import require_inside_root
+    out_path = Path(sys.argv[sys.argv.index("--out") + 1]) if "--out" in sys.argv else repo / "analysis" / "e2e-acceptance.json"
+    base = require_inside_root(Path(os.environ.get("E2E_DIR", repo / "tmp" / "runtime" / "e2e")))
     base.mkdir(parents=True, exist_ok=True)
     db, root = base / f"e2e-{int(time.time())}.sqlite3", base / "store"
     initialize_database(db)

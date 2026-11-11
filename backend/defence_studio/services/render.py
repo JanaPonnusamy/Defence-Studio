@@ -20,9 +20,10 @@ import hashlib
 import io
 import json
 import shutil
-import tempfile
 import wave
 from pathlib import Path
+
+from defence_studio.project_paths import release_task_directory, task_directory
 
 from defence_studio.integrations import subtitles as subs
 from defence_studio.integrations.renderer_module import RendererClient, RendererError
@@ -293,7 +294,8 @@ class RenderService(IntegrationService):
             self.store.write_bytes(job_id, uri, data, mime)
             files[name] = {"uri": uri, "sha256": sha}
         src = self.store.job_dir(job_id) / plain_uri.split(f"jobs/{job_id}/", 1)[1]
-        out_tmp = Path(tempfile.mkdtemp(prefix="ds-sub-")) / "subtitled.mp4"
+        work = task_directory("ds-sub")
+        out_tmp = work / "subtitled.mp4"
         try:
             info = subs.burn_in(src, ass, out_tmp, font_file)
             probe = subs.probe(out_tmp)
@@ -304,7 +306,7 @@ class RenderService(IntegrationService):
                 raise RenderError("duration_drift", f"Subtitled video {probe['duration']:.2f}s vs audio {duration:.2f}s")
             data = out_tmp.read_bytes()
         finally:
-            shutil.rmtree(out_tmp.parent, ignore_errors=True)
+            release_task_directory(work, ignore_errors=True)
         sha = hashlib.sha256(data).hexdigest()
         uri = f"jobs/{job_id}/render/{language}/{sha}-subtitled.mp4"
         self.store.write_bytes(job_id, uri, data, "video/mp4")

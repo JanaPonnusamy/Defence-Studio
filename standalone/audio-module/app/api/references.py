@@ -40,7 +40,9 @@ def create_reference(
     db.commit()
 
     settings = get_settings()
-    with tempfile.NamedTemporaryFile(delete=False, suffix=Path(audio_file.filename).suffix) as tmp:
+    upload_tmp = Path(settings.storage_root) / "upload-tmp"
+    upload_tmp.mkdir(parents=True, exist_ok=True)
+    with tempfile.NamedTemporaryFile(delete=False, suffix=Path(audio_file.filename or "").suffix, dir=upload_tmp) as tmp:
         shutil.copyfileobj(audio_file.file, tmp)
         tmp_path = Path(tmp.name)
     try:

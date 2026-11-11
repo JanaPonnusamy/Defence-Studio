@@ -1,0 +1,4 @@
+# Paths the containment check skips, relative to the repository root.
+# One forward-slash path per line. Use this only for a historical source
+# string that is not a runtime location. Do not allow a new write path.
+components/asset-rights-engine/verification/a3_1/write_report.py

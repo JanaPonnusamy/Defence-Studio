@@ -3,17 +3,21 @@ from __future__ import annotations
 import os
 import shutil
 import sys
-import tempfile
 import time
 from pathlib import Path
 
 import pytest
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
+_REPO = PROJECT_ROOT.parent.parent
+if str(_REPO) not in sys.path:
+    sys.path.insert(0, str(_REPO))
+from tools.project_paths import session_workspace
+
 sys.path.insert(0, str(PROJECT_ROOT))
 
 # Isolated temp storage + DB for the whole session, set BEFORE any app import.
-_TEST_ROOT = Path(tempfile.mkdtemp(prefix="vvm_test_"))
+_TEST_ROOT = session_workspace("vvm")
 os.environ["VIDEO_MODULE_STORAGE_ROOT"] = str(_TEST_ROOT)
 os.environ.pop("VIDEO_MODULE_DATABASE_URL", None)
 os.environ["VIDEO_MODULE_API_KEY"] = ""

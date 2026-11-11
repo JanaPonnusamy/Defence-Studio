@@ -17,8 +17,9 @@ import os
 import re
 import shutil
 import subprocess
-import tempfile
 from pathlib import Path
+
+from defence_studio.project_paths import temporary_directory
 
 CUE_TIMING_METHOD = "scene_measured_chunk_proportional"
 MIN_CUE_SECONDS = 0.6
@@ -264,8 +265,7 @@ def burn_in(video_in: Path, ass_text: str, video_out: Path, font_file: Path, *, 
     dir so no Windows drive-letter path needs filter escaping. Video is
     re-encoded (x264, CRF 20); audio is copied untouched."""
     ffmpeg = ffmpeg_binary("ffmpeg")
-    with tempfile.TemporaryDirectory(prefix="ds-burn-") as work:
-        work_dir = Path(work)
+    with temporary_directory("ds-burn") as work_dir:
         (work_dir / "fonts").mkdir()
         shutil.copy2(font_file, work_dir / "fonts" / font_file.name)
         (work_dir / "subs.ass").write_text(ass_text, encoding="utf-8")

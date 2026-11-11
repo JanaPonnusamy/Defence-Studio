@@ -1,0 +1,6 @@
+---
+description: Defence Era files stay inside the canonical project root
+alwaysApply: true
+---
+
+Defence Era-owned source, config, logs, temp files, models, and generated artifacts stay inside the Git repository root. Use `tools/project_paths.py` (re-exported as `defence_studio.project_paths`). Do not hardcode a drive letter, `%TEMP%`, `%LOCALAPPDATA%`, or the Desktop for project data. Full rule: `docs/PROJECT_ROOT_CONTAINMENT.md`. Before finishing a task that adds paths, run `python scripts/check_root_containment.py`.

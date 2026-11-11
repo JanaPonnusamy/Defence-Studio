@@ -13,9 +13,9 @@ from __future__ import annotations
 import hashlib
 import json
 import re
-import shutil
-import tempfile
 from pathlib import Path
+
+from defence_studio.project_paths import release_task_directory, task_directory
 
 from defence_studio.integrations import branding, subtitles as subs
 from defence_studio.services.integration import IntegrationStale, IntegrationValidationError
@@ -173,7 +173,7 @@ class PackageService(QcService):
 
             # -- media --------------------------------------------------------
             step = "branding"
-            work = Path(tempfile.mkdtemp(prefix="ds-pkg-"))
+            work = task_directory("ds-pkg")
             try:
                 self._transition(job_id, language, PACKAGE_KIND, version, "RUNNING", detail="Building branded video",
                                  progress=0.2)
@@ -210,7 +210,7 @@ class PackageService(QcService):
                     raise IntegrationValidationError(f"Thumbnail invalid: {tinfo}")
                 branded_bytes, thumb_bytes = branded.read_bytes(), thumb.read_bytes()
             finally:
-                shutil.rmtree(work, ignore_errors=True)
+                release_task_directory(work, ignore_errors=True)
 
             def put(name_ext: str, data: bytes, mime: str) -> dict:
                 sha = hashlib.sha256(data).hexdigest()

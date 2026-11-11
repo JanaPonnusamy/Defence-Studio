@@ -33,10 +33,26 @@ if (-not $env:DEFENCE_STUDIO_AUTH_SECRET) {
 # Portable defaults (config.py resolves these relative to the project root when unset).
 if (-not $env:DEFENCE_STUDIO_DB_PATH)      { $env:DEFENCE_STUDIO_DB_PATH      = Join-Path $root "data\defence_studio.sqlite3" }
 if (-not $env:DEFENCE_STUDIO_STORAGE_PATH) { $env:DEFENCE_STUDIO_STORAGE_PATH = Join-Path $root "data\storage" }
+$env:DEFENCE_STUDIO_STARTUP_DIAGNOSTICS = "1"
 
-# Pick a Python: prefer a local venv, else whatever "python" resolves to.
+# Prefer the repo venv, but only if that interpreter actually starts. A venv
+# created under another Windows account has a python.exe that exists and
+# still fails (base interpreter path denied).
+function Test-Python([string]$Candidate) {
+    if ($Candidate -like "*\python.exe" -and -not (Test-Path -LiteralPath $Candidate)) { return $false }
+    & $Candidate -c "import sys" 1>$null 2>$null
+    return ($LASTEXITCODE -eq 0)
+}
 $py = Join-Path $root "backend\.venv\Scripts\python.exe"
-if (-not (Test-Path $py)) { $py = "python" }
+if (-not (Test-Python $py)) {
+    if (Test-Python "py") { $py = "py" }
+    elseif (Test-Python "python") { $py = "python" }
+    else {
+        Write-Error "No working Python interpreter. Recreate backend\.venv with: py -3 -m venv backend\.venv"
+        exit 1
+    }
+    Write-Warning "backend\.venv Python is missing or unusable on this account. Using '$py'."
+}
 
 Push-Location (Join-Path $root "backend")
 try {

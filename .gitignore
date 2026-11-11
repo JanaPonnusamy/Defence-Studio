@@ -61,6 +61,7 @@ node_modules/
 !/standalone/video-visual-module/
 !/standalone/audio-module/
 !/standalone/video-renderer/
+!/standalone/esic-audit/
 /standalone/audio-module/fixtures/_female_voice_audit_out/
 *.wav.tmp
 
@@ -74,6 +75,9 @@ node_modules/
 
 # job-scoped temporary workspaces (auto-removed at terminal state)
 /tmp/
+
+# Root containment (docs/PROJECT_ROOT_CONTAINMENT.md): rotating process logs.
+/logs/
 
 # Voice Lab (Agent A, 2026-11-01): isolated inference env, model weights, third-party source. Only manifests are tracked.
 .venv-voicelab*/

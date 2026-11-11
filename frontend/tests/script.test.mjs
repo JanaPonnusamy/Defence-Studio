@@ -10,12 +10,15 @@ test("failed or malformed generation is never labelled a saved accepted draft", 
   }
 });
 
-test("automatic approval is reported only for a validated approved revision", () => {
-  const revision = { version: 2, status: "APPROVED", validation: { passed: true },
-    approval: { approval_kind: "AUTOMATED_VALIDATION" } };
-  assert.match(generationOutcome(revision), /automatically approved/);
-  assert.doesNotMatch(generationOutcome({ ...revision, validation: { passed: false } }), /automatically approved/);
-  assert.doesNotMatch(generationOutcome({ ...revision, approval: null }), /automatically approved/);
+test("only a human approval is reported as an approved script", () => {
+  const human = { version: 2, status: "APPROVED", validation: { passed: true },
+    approval: { approval_kind: "HUMAN" } };
+  assert.match(generationOutcome(human), /Approved script saved/);
+  const legacy = { ...human, approval: { approval_kind: "AUTOMATED_VALIDATION" } };
+  assert.match(generationOutcome(legacy), /not a production approval/);
+  assert.doesNotMatch(generationOutcome(legacy), /Approved script saved/);
+  assert.doesNotMatch(generationOutcome({ ...human, validation: { passed: false } }), /Approved script saved/);
+  assert.doesNotMatch(generationOutcome({ ...human, approval: null }), /Approved script saved/);
 });
 
 test("stale banner appears only when a revision is stale and escapes the reason", () => {
@@ -45,7 +48,18 @@ test("revision detail shows source attribution, the claim warning, and an offlin
   assert.ok(html.includes("claim-05608baa58e4c016") && html.includes("148827db7320d204c6c3f4e53296339538cf636f"));
   assert.ok(html.includes("Offline extractive draft") && html.includes("Recorded token usage: none"));
   assert.ok(!html.includes('id="approve-revision-btn"'));
-  assert.match(html, /approval is automatic/);
+  assert.match(html, /human-only/);
+  const approvable = renderRevisionDetail({
+    title: "S-400", language: "en", version: 1, status: "AWAITING_REVIEW",
+    revision_sha256: "a".repeat(64),
+    word_count: { words: 10, estimated_duration_seconds: 4, words_per_minute: 150 },
+    validation: { passed: true, validator_version: "v2", issues: [] },
+    usage: { provider: "offline-extractive", model: "gpt-4o-mini", retries: 0, cost_is_measured: true, measured_text_cost_inr: 0, pricing_source: "manual" },
+    sections: [{ section_id: "s001", statement_kind: "ATTRIBUTED_CLAIM", narration: "Reported range.",
+      evidence: { claim_ids: [], source_ids: [], qualification: "" } }],
+    closing: "End.", approval: null,
+  }, []);
+  assert.ok(approvable.includes('id="approve-revision-btn"'));
   const provider = renderRevisionDetail({
     title: "T", language: "en", version: 1, status: "AWAITING_REVIEW",
     word_count: { words: 1, estimated_duration_seconds: 1, words_per_minute: 150 },

@@ -26,11 +26,14 @@ test("failed validation is never shown as success and unresolved refs are flagge
   assert.ok(html.includes("SYS &lt;b&gt;"), "instructions are escaped");
 });
 
-test("inspection displays automatic approval without asking for human review", () => {
+test("an accepted generation still requires a human approval", () => {
   const html = renderInspectionHtml(rec({ outcome: "APPROVED", script_accepted: true,
     validation_report: { passed: true, issues: [] }, clean_output: null }));
-  assert.match(html, /Automatically approved after validation/);
-  assert.doesNotMatch(html, /Accepted for human review|not approved/);
+  assert.match(html, /human approval on the Script tab/);
+  assert.doesNotMatch(html, /Automatically approved/);
+  const draft = renderInspectionHtml(rec({ outcome: "AWAITING_REVIEW", script_accepted: true,
+    validation_report: { passed: true, issues: [] }, clean_output: null }));
+  assert.match(draft, /Accepted for human review/);
 });
 
 test("no-call record states that the provider was not called", () => {

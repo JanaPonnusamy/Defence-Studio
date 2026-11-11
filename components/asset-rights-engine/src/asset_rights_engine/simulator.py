@@ -2,7 +2,6 @@
 from contextlib import contextmanager
 from dataclasses import dataclass, replace
 from pathlib import Path
-from tempfile import TemporaryDirectory
 from threading import Barrier, RLock, Thread
 from typing import Iterator
 from .adapter_contracts import (HostOperation, HostOperationRequest, HostPrincipal,
@@ -11,6 +10,27 @@ from .host_adapter import AdapterGateway
 from .contracts import (AssetDescriptor, DomainError, ReviewRequest, RightsRecord,
                         UseContext, identifier, require)
 from .engine import Engine
+
+
+def _contained_temp(prefix: str):
+    import importlib.util
+    import sys
+    repo = None
+    for parent in Path(__file__).resolve().parents:
+        candidate = parent / "tools" / "project_paths.py"
+        if candidate.is_file():
+            repo = candidate
+            break
+    if repo is None:
+        raise RuntimeError("Defence Era root not found; refusing an uncontrolled temporary directory")
+    key = "defence_era_project_paths"
+    mod = sys.modules.get(key)
+    if mod is None:
+        spec = importlib.util.spec_from_file_location(key, repo)
+        mod = importlib.util.module_from_spec(spec)
+        sys.modules[key] = mod
+        spec.loader.exec_module(mod)
+    return mod.temporary_directory(prefix)
 
 
 class SyntheticHost:
@@ -118,7 +138,7 @@ def run_simulation() -> SimulationReport:
         else:
             raise AssertionError(f"Scenario {name} unexpectedly succeeded")
 
-    with TemporaryDirectory(prefix="are-a2-synthetic-") as directory:
+    with _contained_temp("are-a2-synthetic") as directory:
         engine = Engine(Path(directory))
         host = SyntheticHost(scope)
         host.set_scene(context)

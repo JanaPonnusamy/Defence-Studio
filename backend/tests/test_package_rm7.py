@@ -61,8 +61,6 @@ def test_thumbnail_is_valid_with_tamil_title(tmp_path):
     assert info["within_youtube_limit"] and info["width"] == 1280 and info["height"] == 720
     with Image.open(out) as im:
         assert im.format == "JPEG"
-    import tempfile, shutil
-    shutil.copy(out, __import__("pathlib").Path(tempfile.gettempdir()) / "ds_thumb_tamil.jpg")
 
 
 # -- service -------------------------------------------------------------------

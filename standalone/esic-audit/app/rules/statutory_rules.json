@@ -1,0 +1,166 @@
+{
+  "rules_version": "2026.11.03-1",
+  "researched_on": "2026-11-03",
+  "verification_levels": {
+    "OFFICIAL_TEXT": "Wording read directly in an official ESIC / Government publication during research.",
+    "SECONDARY": "Only found in secondary sources (law firms, compliance sites, court summaries). Treated as UNVERIFIED.",
+    "UNKNOWN": "No reliable source located. Treated as UNVERIFIED."
+  },
+  "sources": {
+    "ESIC_REGS_CONSOLIDATED_2023": {
+      "title": "ESI (General) Regulations, 1950 - consolidated text 'As on 17.05.2023' (Notification No. RS/5/48 dt 17.10.1950)",
+      "url": "https://sronandnagri.esic.gov.in/attachments/publicationfile/b5492c0755e7b0f96197f413a363bc6d.pdf",
+      "publisher": "Employees' State Insurance Corporation",
+      "publication_date": "2023-05-17",
+      "read_on": "2026-11-03",
+      "level": "OFFICIAL_TEXT"
+    },
+    "REG31_AMENDMENT_2017": {
+      "title": "Notification N-12/13/1/2016-P&D (1 July 2017): '21 days' substituted by '15 days' in Regulation 31, applicable from contributions for June 2017",
+      "url": "https://corporatelawreporter.com/esi-contribution-payment-last-date-changed-to-15th-of-every-month-w-e-f-1st-july-17/",
+      "publisher": "Corporate Law Reporter (reproduction of the Gazette text)",
+      "publication_date": "2017-07-01",
+      "read_on": "2026-11-03",
+      "level": "SECONDARY"
+    },
+    "ESI_ACT_S85B": {
+      "title": "Employees' State Insurance Act, 1948, Section 85B - damages not exceeding the amount of arrears, after a reasonable opportunity of being heard",
+      "url": "https://www.indiacode.nic.in/handle/123456789/1441",
+      "publisher": "India Code (Legislative Department)",
+      "publication_date": "1948-04-19",
+      "read_on": "2026-11-03",
+      "level": "SECONDARY",
+      "note": "Cap and hearing requirement taken from the Act as commonly reproduced; the India Code page was located but its text was not read in full during research."
+    },
+    "COSS_2020_COMMENCEMENT": {
+      "title": "ESIC circular N-11011/2/2025-BFT-II dated 28.11.2025: Code on Social Security, 2020 in force w.e.f. 21.11.2025 (Gazette Notification No. 5143 dated 21.11.2025); ESI Act 1948 'since repealed'",
+      "url": "https://esic.gov.in/attachments/circularfile/Implementation_the_Code_on_Social_Security_2020_English_1764326385.pdf",
+      "publisher": "ESIC Headquarters",
+      "publication_date": "2025-11-28",
+      "read_on": "2026-11-03",
+      "level": "OFFICIAL_TEXT"
+    },
+    "COSS_S127_INTEREST_2026": {
+      "title": "S.O. 2698(E), 29 May 2026: 12% p.a. simple interest under Section 127, Code on Social Security, 2020, deemed in force from 21.11.2025",
+      "url": "https://www.sgcms.com/regulatory-updates/?p=3380",
+      "publisher": "SGCMS regulatory update (secondary; Gazette PDF not read)",
+      "publication_date": "2026-05-29",
+      "read_on": "2026-11-03",
+      "level": "SECONDARY"
+    },
+    "INTEREST_HISTORY_BOM_HC": {
+      "title": "Bombay High Court judgment (2022) recording interest at 15% p.a. 01.09.1994-30.09.2005 and 12% p.a. from 01.10.2005",
+      "url": "https://www.latestlaws.com/judgements/bombay-high-court/2022/february/2022-latest-caselaw-1297-bom",
+      "publisher": "LatestLaws (court judgment reproduction)",
+      "publication_date": "2022-02-01",
+      "read_on": "2026-11-03",
+      "level": "SECONDARY"
+    }
+  },
+  "due_date_rules": [
+    {
+      "id": "REG31-21D",
+      "name": "Contribution due within 21 days of the end of the wage month",
+      "provision": "ESI (General) Regulations 1950, Regulation 31 (text before the 2017 amendment)",
+      "wage_month_from": null,
+      "wage_month_to": "2017-05",
+      "days_after_month_end": 21,
+      "source": "REG31_AMENDMENT_2017",
+      "level": "SECONDARY"
+    },
+    {
+      "id": "REG31-15D",
+      "name": "Contribution due within 15 days of the last day of the wage month",
+      "provision": "ESI (General) Regulations 1950, Regulation 31",
+      "wage_month_from": "2017-06",
+      "wage_month_to": "2025-10",
+      "days_after_month_end": 15,
+      "source": "ESIC_REGS_CONSOLIDATED_2023",
+      "level": "OFFICIAL_TEXT"
+    },
+    {
+      "id": "COSS-DUE-15D-ASSUMED",
+      "name": "Due date after the Code on Social Security commencement (15 days assumed, not verified)",
+      "provision": "Code on Social Security, 2020 - corresponding scheme/rules not located during research",
+      "wage_month_from": "2025-11",
+      "wage_month_to": null,
+      "days_after_month_end": 15,
+      "source": "COSS_2020_COMMENCEMENT",
+      "level": "UNKNOWN"
+    }
+  ],
+  "interest_rules": [
+    {
+      "id": "REG31A-15",
+      "name": "Simple interest 15% p.a. per day of delay",
+      "provision": "ESI (General) Regulations 1950, Regulation 31A (historical rate)",
+      "from": "1994-09-01",
+      "to": "2005-09-30",
+      "annual_rate_percent": "15",
+      "source": "INTEREST_HISTORY_BOM_HC",
+      "level": "SECONDARY"
+    },
+    {
+      "id": "REG31A-12",
+      "name": "Simple interest 12% p.a. for each day of default or delay",
+      "provision": "ESI (General) Regulations 1950, Regulation 31A",
+      "from": "2005-10-01",
+      "to": "2025-11-20",
+      "annual_rate_percent": "12",
+      "source": "ESIC_REGS_CONSOLIDATED_2023",
+      "level": "OFFICIAL_TEXT",
+      "note": "Rate confirmed in the official consolidated text; the 01.10.2005 start date is from a court judgment (secondary)."
+    },
+    {
+      "id": "COSS-S127-12",
+      "name": "Simple interest 12% p.a. under Section 127, Code on Social Security, 2020",
+      "provision": "Code on Social Security, 2020, Section 127; S.O. 2698(E)",
+      "from": "2025-11-21",
+      "to": null,
+      "annual_rate_percent": "12",
+      "source": "COSS_S127_INTEREST_2026",
+      "level": "SECONDARY"
+    }
+  ],
+  "damages_rules": [
+    {
+      "id": "REG31C-SLAB",
+      "name": "Maximum damages by period of delay (% per annum of the amount due)",
+      "provision": "ESI (General) Regulations 1950, Regulation 31C read with ESI Act 1948 Section 85B",
+      "from": null,
+      "to": "2025-11-20",
+      "slabs": [
+        {"delay_months_below": 2, "max_rate_percent": "5"},
+        {"delay_months_below": 4, "max_rate_percent": "10"},
+        {"delay_months_below": 6, "max_rate_percent": "15"},
+        {"delay_months_below": null, "max_rate_percent": "25"}
+      ],
+      "cap": "amount_of_arrears",
+      "discretionary": true,
+      "requires_assessment": true,
+      "source": "ESIC_REGS_CONSOLIDATED_2023",
+      "cap_source": "ESI_ACT_S85B",
+      "level": "OFFICIAL_TEXT",
+      "note": "Rates are MAXIMUMS. ESIC levies damages only after a hearing; it may levy less or waive (e.g. the ESIC Amnesty Scheme 2025 or NCLT resolution-plan proviso). Any estimate from this slab is an upper bound, never a confirmed liability."
+    },
+    {
+      "id": "COSS-S128-UNVERIFIED",
+      "name": "Damages for delay on or after 21.11.2025",
+      "provision": "Code on Social Security, 2020, Section 128 - commencement for ESI dues not confirmed",
+      "from": "2025-11-21",
+      "to": null,
+      "slabs": [
+        {"delay_months_below": 2, "max_rate_percent": "5"},
+        {"delay_months_below": 4, "max_rate_percent": "10"},
+        {"delay_months_below": 6, "max_rate_percent": "15"},
+        {"delay_months_below": null, "max_rate_percent": "25"}
+      ],
+      "cap": "amount_of_arrears",
+      "discretionary": true,
+      "requires_assessment": true,
+      "source": "COSS_2020_COMMENCEMENT",
+      "level": "UNKNOWN",
+      "note": "Secondary commentary says the Regulation 31C scale continues as a saved provision; not confirmed from an official text."
+    }
+  ]
+}

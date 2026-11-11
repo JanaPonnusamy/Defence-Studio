@@ -5,6 +5,9 @@
 * Requests are content-keyed: identical paragraph + narrator version + style + settings
   returns the existing artifact (no regeneration of unchanged paragraphs) unless forced.
 * No fallback voice: if the model is not installed the request fails with 409.
+* Tamil text goes through the production preparation (services/tts_text.py: reviewed lexicon,
+  designation table, unit rules). Only the text sent to the model changes; the approved text
+  stored on the job (and used for subtitles) stays exactly as submitted. Other languages pass unchanged.
 """
 from __future__ import annotations
 
@@ -14,6 +17,7 @@ from contextlib import closing
 
 import numpy as np
 
+from defence_studio.services import tts_text
 from defence_studio.voice_lab import audio as A
 from defence_studio.voice_lab import style as S
 from defence_studio.voice_lab.common import VoiceLabError, canon, loads, new_id, now, sha256_bytes
@@ -43,6 +47,20 @@ def chunk_text(text: str, limit: int = CHUNK_CHARS) -> list[str]:
     if cur:
         out.append(cur)
     return out
+
+
+def prepare_text(text: str, language: str) -> tuple[str, dict | None]:
+    """(spoken text for the model, preparation record). The record is None for non-Tamil text, which is
+    passed through unchanged. Broken Tamil text is refused (422), never repaired silently."""
+    try:
+        p = tts_text.prepare(text, language)
+    except tts_text.TamilTextError as exc:
+        raise VoiceLabError(422, {"code": "TAMIL_TEXT_INVALID", "detail": str(exc)}) from exc
+    if language != "ta":
+        return p["spoken"], None
+    return p["spoken"], {"spoken": p["spoken"], "spoken_sha256": sha256_bytes(p["spoken"].encode()),
+                         "replacements": p["replacements"], "warnings": p["warnings"],
+                         "lexicon_sha256": p["lexicon_sha256"], "source": "services/tts_text.py"}
 
 
 class Generation:
@@ -77,9 +95,12 @@ class Generation:
             style_sha = st["features_sha256"]
         if target_duration_ms is not None and not (500 <= int(target_duration_ms) <= 3_600_000):
             raise VoiceLabError(422, "target_duration_ms must be 500..3600000")
+        _, prep = prepare_text(text, language)
         cfg.setdefault("seed", 1234)
         key_src = {"narrator_id": narrator_id, "model_version_id": v["model_version_id"], "style": style_profile_id,
                    "style_sha": style_sha, "text": text, "language": language, "target": target_duration_ms, "config": cfg}
+        if prep:  # a lexicon/designation change alters the spoken form, so it must not reuse old audio
+            key_src["spoken_sha256"] = prep["spoken_sha256"]
         rkey = sha256_bytes(canon(key_src).encode())
         if not force:
             with closing(self.ctx.conn()) as c:
@@ -87,7 +108,7 @@ class Generation:
                                "status IN ('QUEUED','RUNNING','COMPLETED') ORDER BY created_at DESC LIMIT 1",
                                (owner_id, rkey)).fetchone()
             if ex:
-                return self.get(ex[0], owner_id) | {"reused": True}
+                return self.get(ex[0], owner_id) | {"reused": True, "text_preparation": prep}
         est = len(text) * 48000 * 2 // 10 + 10 * 1024 ** 2  # rough WAV size bound for the disk guard
         self.ctx.require_space(est)
         gid, ts = new_id("gen"), now()
@@ -101,7 +122,7 @@ class Generation:
         wf = enqueue(owner_id, f"vl-gen-{gid}", "vl_generation", gid, f"Voice Lab generation {narrator_id}")
         with self.ctx.tx() as c:
             c.execute("UPDATE vl_generation_jobs SET workflow_job_id=? WHERE generation_id=?", (wf, gid))
-        return self.get(gid, owner_id) | {"reused": False}
+        return self.get(gid, owner_id) | {"reused": False, "text_preparation": prep}
 
     def get(self, gid, owner_id):
         with closing(self.ctx.conn()) as c:
@@ -142,7 +163,8 @@ class Generation:
         model = self.ctx.model(v["model_id"])
         backend = self.backends[model["runtime"]]
         self._set(gid, status="RUNNING", error=None, progress_note="synthesising")
-        chunks = chunk_text(g["text"])
+        spoken, prep = prepare_text(g["text"], g["language"])
+        chunks = chunk_text(spoken)
         pieces, metas, execution = [], [], None
         for i, ch in enumerate(chunks):
             if should_abort():
@@ -174,6 +196,8 @@ class Generation:
                 "chunks": len(chunks), "runtime": metas, "generated_at": now(),
                 "execution": execution or {"provider": "cpu", "gpu_workload_verified": False,
                                            "reason": "The backend did not report an execution device."}}
+        if prep:
+            prov["text_preparation"] = prep
         raw_art = self.ctx.register_audio(owner_id, raw, OUT_SR, kind="GENERATED_RAW",
                                           source={"generation_id": gid, "provenance": prov})
         features = None
@@ -212,6 +236,7 @@ class Generation:
             limitations.append("phrase mapping not possible; global timing only: " + rep.get("reason", ""))
         if rep.get("stretch_capped_phrases") or rep.get("capped"):
             limitations.append("time-stretch cap reached; exact target duration not met")
+        limitations += [f"pronunciation: {w}" for w in (prov.get("text_preparation") or {}).get("warnings", [])]
         return {"generation_id": g["generation_id"], "status": g["status"], "reused": g.get("reused", False),
                 "script_id": ref.get("script_id"), "chapter_id": ref.get("chapter_id"),
                 "paragraph_id": ref.get("paragraph_id"), "audio": g.get("audio"), "audio_url": (g.get("audio") or {}).get("url"),

@@ -60,8 +60,6 @@ def _require_ytdlp_backend(url, languages, max_bytes, cancel) -> YoutubeSubtitle
     that wants live YouTube acquisition installs the ``youtube`` extra.
     """
     try:
-        import tempfile
-
         import yt_dlp
     except ImportError as exc:  # pragma: no cover - exercised only without the extra
         raise ProviderError(
@@ -70,8 +68,10 @@ def _require_ytdlp_backend(url, languages, max_bytes, cancel) -> YoutubeSubtitle
             retryable=False,
         ) from exc
 
+    from defence_studio.project_paths import temporary_directory
+
     langs = list(languages) if languages else ["en"]
-    with tempfile.TemporaryDirectory() as tmp:
+    with temporary_directory("youtube-subs") as tmp:
         opts = {
             "skip_download": True,       # never fetch the video stream
             "writesubtitles": True,

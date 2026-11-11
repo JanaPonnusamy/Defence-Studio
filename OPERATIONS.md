@@ -35,7 +35,7 @@ Gotcha (verified): the Audio Module's SQLite URL defaults to its own `storage/`;
 | Variable | Purpose |
 |---|---|
 | `DEFENCE_STUDIO_AUTH_SECRET` | HS256 signing secret (≥32 bytes). Required. |
-| `DEFENCE_STUDIO_DB_PATH`, `DEFENCE_STUDIO_STORAGE_PATH` | SQLite file / artifact root. **Keep the storage root short on Windows** (writes beyond 240 chars fail with a clear error). |
+| `DEFENCE_STUDIO_DB_PATH`, `DEFENCE_STUDIO_STORAGE_PATH` | SQLite file / artifact root. Both must resolve inside the project root. **Keep the storage root short on Windows** (writes beyond 240 chars fail with a clear error). |
 | `DEFENCE_STUDIO_DISCOVERY_CONFIG` | feed catalogue JSON (default `backend/config/discovery_feeds.json`) |
 | `DEFENCE_STUDIO_DISCOVERY_SEARCH_API_URL` / `_KEY` | hosted search provider (unconfigured by default; never live-called) |
 | `DEFENCE_STUDIO_OPENAI_API_KEY` or per-owner key via `PUT /api/settings/credentials/openai` | script generation |
@@ -52,7 +52,8 @@ Gotcha (verified): the Audio Module's SQLite URL defaults to its own `storage/`;
 ```powershell
 cd backend
 $env:DEFENCE_STUDIO_AUTH_SECRET = "phase-one-test-signing-secret-32-bytes-minimum"
-python -m pytest -q --basetemp C:\dstmp\pt     # --basetemp avoids a Windows temp-dir PermissionError
+python -m pytest -q
+# The suite places its own basetemp under ..\tmp\pytest. An outside --basetemp is rejected.
 cd ..\frontend; npm test
 ```
 
